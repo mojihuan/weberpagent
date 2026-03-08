@@ -212,6 +212,7 @@ __marimo__/
 设计ui原型/
 .claude/
 CLAUDE.md
+docs/
 
 # Node.js
 node_modules/
