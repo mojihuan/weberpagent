@@ -1,0 +1,26 @@
+# 测试目标配置
+# 用于 POC 场景验证
+
+# 基础 URL
+base_url: "https://erptest.epbox.cn/"
+
+# 登录场景配置
+login:
+  url: "/"
+  account: "Y59800075"
+  password: "Aa123456"
+  success_indicator:
+    - "首页"
+    - "欢迎"
+    - "用户"
+    - "工作台"
+
+# 表单场景配置（待补充）
+form:
+  url: "/form"
+  fields: []
+
+# 搜索场景配置（待补充）
+search:
+  url: "/search"
+  test_keyword: "测试"
