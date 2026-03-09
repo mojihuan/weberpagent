@@ -32,10 +32,12 @@
     - 感知优化：提取 aria-label/title、文本清理、元素优先级
   - [ ] 3.6 验证登录场景（待 Phase 4）
 
-### Phase 4: 场景验证 🔄
+### Phase 4: 场景验证 ✅
 - **开始日期**: 2026-03-10
+- **完成日期**: 2026-03-10
 - **设计文档**: `docs/plans/2026-03-10-phase4-scenario-validation-design.md`
 - **实施计划**: `docs/plans/2026-03-10-phase4-implementation-plan.md`
+- **测试报告**: `outputs/tests/phase4/phase4_report.json`
 - **任务清单**:
   - [x] 4.1 更新测试配置 (`test_targets.yaml`) ✅
   - [x] 4.2 创建 pytest fixtures (`conftest.py`) ✅
@@ -43,9 +45,21 @@
   - [x] 4.4 编写登录场景测试 (`test_login_e2e.py`) ✅
   - [x] 4.5 编写采购单场景测试 (`test_purchase_e2e.py`) ✅
   - [x] 4.6 创建批量运行脚本 (`run_phase4.py`) ✅
-  - [ ] 4.7 运行测试并生成报告 ⏳
+  - [x] 4.7 运行测试并生成报告 ✅
+- **测试结果**: 2 场景全部超时失败，发现 LLM 元素定位、反思机制等问题
 
-### Phase 5: 总结与复盘
+### Phase 5: Agent 优化 🔄
+- **开始日期**: 2026-03-10
+- **设计文档**: `docs/plans/2026-03-09-phase5-optimization-design.md`
+- **目标**: 场景通过率 ≥80%，自愈成功率 ≥50%
+- **任务清单**:
+  - [ ] 5.1 Prompt 层优化 (`prompts.py`) - 禁止数字索引 + Few-shot
+  - [ ] 5.2 执行层优化 (`executor.py`) - 多策略定位 + JS 回退
+  - [ ] 5.3 感知层优化 (`perception.py`) - 属性提取 + 优先级排序
+  - [ ] 5.4 反思层优化 (`agent.py`) - 多策略反思 + 循环检测
+  - [ ] 5.5 验证测试并生成报告
+
+### Phase 6: 总结与复盘
 - *待完成*
 
 ---
