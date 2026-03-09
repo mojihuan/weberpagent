@@ -60,3 +60,27 @@ export interface Report {
   duration_ms: number
   created_at: string
 }
+
+// Dashboard 统计数据
+export interface DashboardStats {
+  totalTasks: number
+  totalRuns: number
+  successRate: number
+  todayRuns: number
+}
+
+// 7 天趋势数据点
+export interface TrendDataPoint {
+  date: string
+  runs: number
+  successRate: number
+}
+
+// 最近执行记录
+export interface RecentRun {
+  id: string
+  task_name: string
+  status: 'success' | 'failed' | 'running'
+  started_at: string
+  duration_ms: number
+}
