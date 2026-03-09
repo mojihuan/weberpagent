@@ -8,7 +8,7 @@ import { mockTasks } from '../api/mock/tasks'
 export function RunMonitor() {
   const { id } = useParams<{ id: string }>()
 
-  const { run, isConnected, disconnect } = useRunStream({
+  const { run, disconnect } = useRunStream({
     runId: id || '',
     autoConnect: true,
   })

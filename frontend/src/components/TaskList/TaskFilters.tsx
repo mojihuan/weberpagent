@@ -1,4 +1,4 @@
-import { Search, ChevronDown } from 'lucide-react'
+import { Search } from 'lucide-react'
 import type { Filters } from '../../hooks/useTasks'
 
 interface TaskFiltersProps {

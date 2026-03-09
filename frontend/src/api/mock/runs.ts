@@ -86,7 +86,7 @@ export const mockRuns: Run[] = [
   },
 ]
 
-export function getTaskStats(taskId: string) {
+export function getTaskStats(_taskId: string) {
   const last7Days = ['03/03', '03/04', '03/05', '03/06', '03/07', '03/08', '03/09']
 
   return last7Days.map(date => {

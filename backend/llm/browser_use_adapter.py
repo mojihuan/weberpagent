@@ -1,17 +1,21 @@
 """Browser-Use LLM 适配器"""
 
+import json
 import logging
-from typing import Any
+import re
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
 from browser_use.llm.base import BaseChatModel
 from browser_use.llm.messages import BaseMessage
-from browser_use.llm.views import ChatInvokeCompletion
+from browser_use.llm.views import ChatInvokeCompletion, ChatInvokeUsage
 
 from .base import BaseLLM
 
 logger = logging.getLogger(__name__)
+
+T = TypeVar('T', bound=BaseModel)
 
 
 class BrowserUseAdapter(BaseChatModel):
@@ -47,7 +51,7 @@ class BrowserUseAdapter(BaseChatModel):
         messages: list[BaseMessage],
         output_format: type[BaseModel] | None = None,
         **kwargs: Any,
-    ) -> ChatInvokeCompletion[str]:
+    ) -> ChatInvokeCompletion[Any]:
         """调用底层 LLM 并返回结果
 
         Args:
@@ -67,11 +71,93 @@ class BrowserUseAdapter(BaseChatModel):
             images=images,
         )
 
-        # 3. 返回 Browser-Use 期望的格式
-        return ChatInvokeCompletion(
-            content=response.content,
-            usage=response.usage,
+        # 3. 构建 usage 对象
+        usage_data = response.usage or {}
+        usage = ChatInvokeUsage(
+            prompt_tokens=usage_data.get("input_tokens", 0),
+            prompt_cached_tokens=0,
+            prompt_cache_creation_tokens=0,
+            prompt_image_tokens=0,
+            completion_tokens=usage_data.get("output_tokens", 0),
+            total_tokens=usage_data.get("input_tokens", 0) + usage_data.get("output_tokens", 0),
         )
+
+        # 4. 处理输出
+        content = response.content
+
+        if output_format is None:
+            # 返回字符串响应
+            return ChatInvokeCompletion(
+                completion=content,
+                usage=usage,
+            )
+        else:
+            # 需要结构化输出 - 解析 JSON 并转换为 Pydantic 对象
+            json_content = self._extract_json(content)
+
+            try:
+                # 使用 Pydantic 验证并解析
+                parsed = output_format.model_validate(json_content)
+                return ChatInvokeCompletion(
+                    completion=parsed,
+                    usage=usage,
+                )
+            except Exception as e:
+                logger.error(f"解析结构化输出失败: {e}")
+                logger.error(f"原始内容: {content[:500]}...")
+                logger.error(f"提取的 JSON: {json.dumps(json_content, ensure_ascii=False)[:500]}...")
+                raise
+
+    def _extract_json(self, content: str) -> dict:
+        """从 LLM 输出中提取 JSON
+
+        支持以下格式：
+        1. 纯 JSON 对象
+        2. Markdown 代码块中的 JSON
+        3. 嵌入在文本中的 JSON
+
+        Args:
+            content: LLM 返回的内容
+
+        Returns:
+            解析后的字典
+        """
+        # 尝试提取 markdown 代码块中的 JSON
+        code_block_pattern = r"```(?:json)?\s*([\s\S]*?)```"
+        matches = re.findall(code_block_pattern, content)
+
+        for match in matches:
+            try:
+                return json.loads(match.strip())
+            except json.JSONDecodeError:
+                continue
+
+        # 尝试找到最外层的 JSON 对象
+        depth = 0
+        start = -1
+        for i, char in enumerate(content):
+            if char == '{':
+                if depth == 0:
+                    start = i
+                depth += 1
+            elif char == '}':
+                depth -= 1
+                if depth == 0 and start >= 0:
+                    try:
+                        return json.loads(content[start : i + 1])
+                    except json.JSONDecodeError:
+                        start = -1
+                        continue
+
+        # 尝试直接解析
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            pass
+
+        # 返回空字典作为 fallback
+        logger.warning(f"无法解析 JSON 输出: {content[:200]}...")
+        return {}
 
     def _convert_messages(
         self, messages: list[BaseMessage]
@@ -110,7 +196,6 @@ class BrowserUseAdapter(BaseChatModel):
                             elif isinstance(url, str):
                                 image_urls.append(url)
                         elif part.get("type") == "image":
-                            # 处理 image 类型
                             img_data = part.get("image", "")
                             if img_data:
                                 image_urls.append(img_data)

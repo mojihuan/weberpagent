@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import type { Task } from '../types'
 import { tasksApi } from '../api/tasks'
 
-interface Filters {
+export interface Filters {
   search: string
   status: 'all' | 'draft' | 'ready'
   sortBy: 'updated_at' | 'name' | 'created_at'

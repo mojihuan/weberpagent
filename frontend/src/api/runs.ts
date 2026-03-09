@@ -1,5 +1,5 @@
 // Mock: 启动执行
-export async function startRun(taskId: string): Promise<{ runId: string }> {
+export async function startRun(_taskId: string): Promise<{ runId: string }> {
   // 模拟 API 延迟
   await new Promise(resolve => setTimeout(resolve, 300))
 

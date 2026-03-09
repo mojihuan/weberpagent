@@ -1,0 +1,101 @@
+{
+  "test_date": "2026-03-09",
+  "test_time": "11:43:18",
+  "runs_per_level": 3,
+  "total_runs": 9,
+  "results": {
+    "level1": {
+      "success_count": 3,
+      "total_count": 3,
+      "success_rate": 1.0,
+      "avg_steps": 2,
+      "avg_duration": 21.9,
+      "avg_step_time": 10.97,
+      "details": [
+        {
+          "level": 1,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 25.81,
+          "error": null
+        },
+        {
+          "level": 1,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 25.8,
+          "error": null
+        },
+        {
+          "level": 1,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 14.22,
+          "error": null
+        }
+      ]
+    },
+    "level2": {
+      "success_count": 3,
+      "total_count": 3,
+      "success_rate": 1.0,
+      "avg_steps": 2,
+      "avg_duration": 16.2,
+      "avg_step_time": 8.12,
+      "details": [
+        {
+          "level": 2,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 22.02,
+          "error": null
+        },
+        {
+          "level": 2,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 13.27,
+          "error": null
+        },
+        {
+          "level": 2,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 13.44,
+          "error": null
+        }
+      ]
+    },
+    "level3": {
+      "success_count": 3,
+      "total_count": 3,
+      "success_rate": 1.0,
+      "avg_steps": 2,
+      "avg_duration": 20.3,
+      "avg_step_time": 10.14,
+      "details": [
+        {
+          "level": 3,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 18.12,
+          "error": null
+        },
+        {
+          "level": 3,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 26.04,
+          "error": null
+        },
+        {
+          "level": 3,
+          "success": true,
+          "steps": 2,
+          "duration_seconds": 16.71,
+          "error": null
+        }
+      ]
+    }
+  }
+}

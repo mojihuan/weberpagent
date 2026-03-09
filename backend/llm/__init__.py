@@ -1,7 +1,9 @@
-"""LLM 模块 - 国内模型适配层"""
+"""LLM 模块 - 多模型适配层"""
 
 from .base import BaseLLM, LLMResponse, ActionResult
 from .qwen import QwenChat
+from .deepseek import DeepSeekChat
+from .azure_openai import AzureOpenAIChat
 from .browser_use_adapter import BrowserUseAdapter
 
 __all__ = [
@@ -9,6 +11,8 @@ __all__ = [
     "LLMResponse",
     "ActionResult",
     "QwenChat",
+    "DeepSeekChat",
+    "AzureOpenAIChat",
     "BrowserUseAdapter",
 ]
 

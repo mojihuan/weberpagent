@@ -1,4 +1,7 @@
-"""Browser Agent 封装类"""
+"""使用代理的 Browser Agent
+
+通过 OpenAI 兼容代理连接通义千问，绕过适配器问题。
+"""
 
 import logging
 import time
@@ -6,9 +9,8 @@ import uuid
 from typing import Any
 
 from browser_use import Agent
+from browser_use.llm import ChatOpenAI
 
-from backend.llm.base import BaseLLM
-from backend.llm.browser_use_adapter import BrowserUseAdapter
 from backend.utils.logger import StructuredLogger
 from backend.utils.screenshot import ScreenshotManager
 from backend.agent.prompts import CHINESE_ENHANCEMENT
@@ -16,43 +18,69 @@ from backend.agent.prompts import CHINESE_ENHANCEMENT
 logger = logging.getLogger(__name__)
 
 
-class UIBrowserAgent:
-    """封装 Browser-Use Agent，集成国内模型
+def create_proxy_llm(
+    model: str = "qwen-vl-max",
+    base_url: str = "http://localhost:8001/v1",
+    api_key: str = "dummy",  # 代理不需要真实 key
+) -> ChatOpenAI:
+    """创建连接到代理的 LLM 实例
 
-    提供简化的接口来执行 UI 自动化任务：
-    - 自动集成国内 LLM（通义千问）
-    - 自动保存截图和日志
-    - 支持回调函数监控执行过程
+    Args:
+        model: 模型名称
+        base_url: 代理服务地址
+        api_key: API Key（代理不需要，但 ChatOpenAI 需要）
+
+    Returns:
+        ChatOpenAI 实例
+    """
+    return ChatOpenAI(
+        model=model,
+        base_url=base_url,
+        api_key=api_key,
+        temperature=0.2,
+    )
+
+
+class ProxyBrowserAgent:
+    """使用代理的 Browser Agent
+
+    通过 OpenAI 兼容代理连接通义千问，避免适配器兼容性问题。
     """
 
     def __init__(
         self,
         task: str,
-        llm: BaseLLM,
         output_dir: str = "outputs",
         task_id: str | None = None,
-        max_failures: int = 3,
+        max_failures: int = 5,
         use_vision: bool = True,
+        proxy_url: str = "http://localhost:8765/v1",
+        model: str = "qwen-vl-max",
     ):
         """初始化 Agent
 
         Args:
             task: 任务描述（自然语言）
-            llm: LLM 实例（如 QwenChat）
             output_dir: 输出目录
             task_id: 任务 ID（可选，自动生成）
             max_failures: 最大失败次数
             use_vision: 是否使用视觉能力
+            proxy_url: 代理服务地址
+            model: 模型名称
         """
         self.task = task
-        self.llm = llm
         self.output_dir = output_dir
         self.task_id = task_id or str(uuid.uuid4())[:8]
         self.max_failures = max_failures
         self.use_vision = use_vision
+        self.proxy_url = proxy_url
+        self.model = model
 
-        # 创建适配器
-        self.adapter = BrowserUseAdapter(llm)
+        # 创建 LLM
+        self.llm = create_proxy_llm(
+            model=model,
+            base_url=proxy_url,
+        )
 
         # 初始化工具
         self.screenshot_manager = ScreenshotManager(output_dir, self.task_id)
@@ -66,24 +94,20 @@ class UIBrowserAgent:
         """执行任务
 
         Returns:
-            执行结果字典，包含：
-            - success: 是否成功
-            - steps: 执行步数
-            - duration_seconds: 执行时长
-            - screenshot_dir: 截图目录
-            - log_file: 日志文件
+            执行结果字典
         """
         self._start_time = time.time()
         self._step_count = 0
 
         logger.info(f"开始执行任务: {self.task[:50]}...")
         logger.info(f"任务 ID: {self.task_id}")
+        logger.info(f"代理地址: {self.proxy_url}")
 
         try:
             # 创建 Browser-Use Agent
             agent = Agent(
                 task=self.task,
-                llm=self.adapter,
+                llm=self.llm,
                 extend_system_message=CHINESE_ENHANCEMENT,
                 max_failures=self.max_failures,
                 use_vision=self.use_vision,
@@ -126,13 +150,7 @@ class UIBrowserAgent:
             }
 
     async def _on_step(self, browser_state, agent_output, step: int) -> None:
-        """每步回调函数
-
-        Args:
-            browser_state: 浏览器状态
-            agent_output: Agent 输出
-            step: 步骤编号
-        """
+        """每步回调函数"""
         self._step_count = step
 
         # 提取动作信息
