@@ -83,6 +83,10 @@ class QwenChat(BaseLLM):
         # 添加图像
         for img in images:
             if img.startswith("http"):
+                # HTTP URL
+                content.append({"image": img})
+            elif img.startswith("data:"):
+                # Data URI (已经是 base64 格式)
                 content.append({"image": img})
             else:
                 # 本地文件转 base64

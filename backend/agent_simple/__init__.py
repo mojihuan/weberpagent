@@ -9,10 +9,10 @@ from backend.agent_simple.types import (
     Step,
 )
 from backend.agent_simple.perception import Perception
+from backend.agent_simple.decision import Decision
 
 # 以下模块尚未实现，暂时注释
 # from backend.agent_simple.agent import SimpleAgent
-# from backend.agent_simple.decision import Decision
 # from backend.agent_simple.executor import Executor
 
 __all__ = [
@@ -23,7 +23,7 @@ __all__ = [
     "AgentResult",
     "Step",
     "Perception",
+    "Decision",
     # "SimpleAgent",
-    # "Decision",
     # "Executor",
 ]
