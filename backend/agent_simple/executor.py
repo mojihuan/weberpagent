@@ -279,11 +279,11 @@ class Executor:
             except:
                 pass
 
-            return True, None
-
-        if action.action == "input":
-            if action.value is None:
+            # 额外检查 input 动作需要 value
+            if action.action == "input" and action.value is None:
                 return False, "input 动作需要 value"
+
+            return True, None
 
         return True, None
 
@@ -353,7 +353,9 @@ class Executor:
                 # 尝试 get_by_role 定位
                 if target_normalized in _normalize_text(el.text):
                     logger.debug(f"按钮角色定位: {el.text}")
-                    return self.page.get_by_role("button", name=el.text)        # 4. 精确匹配 aria-label
+                    return self.page.get_by_role("button", name=el.text)
+
+        # 4. 精确匹配 aria-label
         for el in elements:
             if el.aria_label and _normalize_text(el.aria_label) == target_normalized:
                 logger.debug(f"精确匹配 aria-label: {el.aria_label}")
