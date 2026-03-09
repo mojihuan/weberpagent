@@ -25,6 +25,7 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
   const [error, setError] = useState<Error | null>(null)
 
   const streamRef = useRef<ReturnType<typeof createMockRunStream> | null>(null)
+  const isConnectedRef = useRef(false)
 
   const handleEvent = useCallback((event: RunEvent) => {
     switch (event.type) {
@@ -37,6 +38,7 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
           steps: [],
         })
         setIsConnected(true)
+        isConnectedRef.current = true
         break
 
       case 'step':
@@ -59,20 +61,24 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
           }
         })
         setIsConnected(false)
+        isConnectedRef.current = false
         break
 
       case 'error':
         setError(new Error(event.data.error || 'Unknown error'))
         setIsConnected(false)
+        isConnectedRef.current = false
         break
     }
   }, [runId])
 
   const connect = useCallback(() => {
-    if (isConnected) return
+    // 使用 ref 检查，避免循环依赖
+    if (isConnectedRef.current) return
 
     setError(null)
     setIsConnected(true)
+    isConnectedRef.current = true
 
     if (useMock) {
       streamRef.current = createMockRunStream({
@@ -84,7 +90,7 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
       // TODO: 实现真实 SSE 连接
       // const eventSource = new EventSource(`/api/runs/${runId}/stream`)
     }
-  }, [runId, isConnected, useMock, handleEvent])
+  }, [runId, useMock, handleEvent])
 
   const disconnect = useCallback(() => {
     if (streamRef.current) {
@@ -92,6 +98,7 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
       streamRef.current = null
     }
     setIsConnected(false)
+    isConnectedRef.current = false
   }, [])
 
   useEffect(() => {
@@ -101,7 +108,8 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     return () => {
       disconnect()
     }
-  }, [autoConnect, connect, disconnect])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoConnect, runId]) // 只在 autoConnect 和 runId 变化时重新连接
 
   return {
     run,
