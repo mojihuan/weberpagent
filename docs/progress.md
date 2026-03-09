@@ -26,10 +26,24 @@
   - [x] 3.2 实现 LLM 决策模块 (`decision.py`, `prompts.py`) ✅
   - [x] 3.3 实现动作执行模块 (`executor.py`) ✅
   - [x] 3.4 实现循环控制模块 (`agent.py`) ✅
-  - [ ] 3.5 验证登录场景（待 Phase 4）
+  - [x] 3.5 优化元素定位和执行逻辑 ✅ **(2026-03-10)**
+    - Prompt 优化：添加 ID/name 定位规则、few-shot 示例、任务完成判断
+    - 执行器优化：JavaScript 输入/点击回退（解决可见性问题）
+    - 感知优化：提取 aria-label/title、文本清理、元素优先级
+  - [ ] 3.6 验证登录场景（待 Phase 4）
 
-### Phase 4: 场景验证
-- *待完成* (依赖 Phase 3')
+### Phase 4: 场景验证 🔄
+- **开始日期**: 2026-03-10
+- **设计文档**: `docs/plans/2026-03-10-phase4-scenario-validation-design.md`
+- **实施计划**: `docs/plans/2026-03-10-phase4-implementation-plan.md`
+- **任务清单**:
+  - [x] 4.1 更新测试配置 (`test_targets.yaml`) ✅
+  - [x] 4.2 创建 pytest fixtures (`conftest.py`) ✅
+  - [x] 4.3 创建测试报告模块 (`reporter.py`) ✅
+  - [x] 4.4 编写登录场景测试 (`test_login_e2e.py`) ✅
+  - [x] 4.5 编写采购单场景测试 (`test_purchase_e2e.py`) ✅
+  - [x] 4.6 创建批量运行脚本 (`run_phase4.py`) ✅
+  - [ ] 4.7 运行测试并生成报告 ⏳
 
 ### Phase 5: 总结与复盘
 - *待完成*

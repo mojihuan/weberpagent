@@ -7,20 +7,27 @@ base_url: "https://erptest.epbox.cn/"
 # 登录场景配置
 login:
   url: "/"
-  account: "Y59800075"
+  account: "Y96230027"
   password: "Aa123456"
-  success_indicator:
-    - "首页"
+  success_indicators:
+    - "商品采购"
+    - "采购管理"
     - "欢迎"
-    - "用户"
-    - "工作台"
 
-# 表单场景配置（待补充）
-form:
-  url: "/form"
-  fields: []
-
-# 搜索场景配置（待补充）
-search:
-  url: "/search"
-  test_keyword: "测试"
+# 采购单场景配置
+purchase:
+  # 导航路径
+  navigation:
+    - "商品采购"
+    - "采购管理"
+    - "新增采购单"
+  # 新增按钮
+  add_button: "新增"
+  # 设备类型选项
+  device_types:
+    - "手机"
+    - "平板电脑"
+    - "笔记本电脑"
+    - "智能手表"
+  # 成功标志
+  success_indicator: "记录出现在列表中"
