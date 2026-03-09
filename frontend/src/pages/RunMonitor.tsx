@@ -58,7 +58,7 @@ export function RunMonitor() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Header */}
       <RunHeader
         taskName={taskName}
@@ -69,9 +69,9 @@ export function RunMonitor() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-0">
         {/* Left: Screenshot */}
-        <div className="w-1/2 border-r border-gray-200">
+        <div className="w-1/2 border-r border-gray-200 min-h-0">
           <ScreenshotPanel
             steps={run.steps}
             currentViewIndex={viewIndex}
@@ -81,15 +81,15 @@ export function RunMonitor() {
         </div>
 
         {/* Right: Timeline + Log */}
-        <div className="w-1/2 flex flex-col">
-          <div className="h-1/2 border-b border-gray-200">
+        <div className="w-1/2 flex flex-col min-h-0">
+          <div className="flex-1 min-h-0 border-b border-gray-200">
             <StepTimeline
               steps={run.steps}
               currentStepIndex={run.steps.length - 1}
               onStepClick={handleStepClick}
             />
           </div>
-          <div className="h-1/2">
+          <div className="flex-1 min-h-0">
             <ReasoningLog steps={run.steps} autoScroll />
           </div>
         </div>
