@@ -7,6 +7,7 @@ import { TaskDetail } from './pages/TaskDetail'
 import { RunList } from './pages/RunList'
 import { RunMonitor } from './pages/RunMonitor'
 import { Reports } from './pages/Reports'
+import { ReportDetail } from './pages/ReportDetail'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ function App() {
             <Route path="/runs" element={<RunList />} />
             <Route path="/runs/:id" element={<RunMonitor />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/reports/:id" element={<ReportDetail />} />
           </Route>
         </Routes>
       </BrowserRouter>
