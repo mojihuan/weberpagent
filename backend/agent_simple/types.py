@@ -72,3 +72,21 @@ class AgentResult(BaseModel):
     result: str | None = Field(default=None, description="任务结果描述")
     error: str | None = Field(default=None, description="错误信息")
     steps: list[Step] = Field(default_factory=list, description="执行步骤记录")
+
+
+class ReflectionStrategy(str, Enum):
+    """反思策略"""
+
+    RETRY = "retry"  # 原样重试
+    ALTERNATIVE = "alternative"  # 替代方案
+    SKIP = "skip"  # 跳过当前步骤
+
+
+class Reflection(BaseModel):
+    """反思结果"""
+
+    reason: str = Field(description="失败原因分析")
+    strategy: ReflectionStrategy = Field(description="修复策略")
+    adjusted_action: Action | None = Field(
+        default=None, description="调整后的动作（alternative 策略时使用）"
+    )
