@@ -24,6 +24,8 @@ class InteractiveElement(BaseModel):
     id: str | None = Field(default=None, description="元素 id")
     placeholder: str | None = Field(default=None, description="占位文本")
     name: str | None = Field(default=None, description="元素 name 属性")
+    aria_label: str | None = Field(default=None, description="aria-label 属性")
+    title: str | None = Field(default=None, description="title 属性（悬停提示）")
 
 
 class PageState(BaseModel):

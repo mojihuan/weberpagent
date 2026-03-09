@@ -61,8 +61,16 @@ class Perception:
             elements=elements,
         )
 
+    # 元素数量上限
+    MAX_ELEMENTS = 30
+
     async def _extract_elements(self) -> list[InteractiveElement]:
         """提取页面上的可交互元素
+
+        优化：
+        1. 提取 aria-label 和 title 属性
+        2. 清理文本（去除多余空格）
+        3. 限制元素数量（优先保留有文本/placeholder 的元素）
 
         Returns:
             可交互元素列表
@@ -72,7 +80,7 @@ class Perception:
         # 使用参数传递方式避免引号转义问题
         elements_data = await self.page.evaluate(
             """
-            (selector) => {
+            ([selector, maxElements]) => {
                 const elements = document.querySelectorAll(selector);
                 const result = [];
 
@@ -88,21 +96,39 @@ class Perception:
                         return;
                     }
 
+                    // 清理文本：去除多余空格和换行
+                    let text = (el.innerText || el.value || '')
+                        .replace(/\\s+/g, ' ')
+                        .trim()
+                        .slice(0, 50);
+
                     result.push({
                         index: index,
                         tag: el.tagName,
-                        text: (el.innerText || el.value || '').slice(0, 50).trim(),
+                        text: text,
                         type: el.type || null,
                         id: el.id || null,
                         placeholder: el.placeholder || null,
-                        name: el.name || null
+                        name: el.name || null,
+                        aria_label: el.getAttribute('aria-label') || null,
+                        title: el.getAttribute('title') || null
                     });
                 });
 
-                return result;
+                // 优先保留有文本、placeholder、aria-label 的元素
+                const withContent = result.filter(el =>
+                    el.text || el.placeholder || el.aria_label
+                );
+                const withoutContent = result.filter(el =>
+                    !el.text && !el.placeholder && !el.aria_label
+                );
+
+                // 合并并限制数量
+                const sorted = [...withContent, ...withoutContent];
+                return sorted.slice(0, maxElements);
             }
         """,
-            selector,
+            [selector, self.MAX_ELEMENTS],
         )
 
         return [InteractiveElement(**el) for el in elements_data]

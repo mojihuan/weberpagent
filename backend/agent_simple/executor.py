@@ -1,11 +1,27 @@
 """动作执行模块 - 执行 Playwright 动作"""
 
 import logging
+import re
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
 from backend.agent_simple.types import Action, ActionResult, InteractiveElement
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_text(text: str) -> str:
+    """规范化文本用于比较
+
+    - 移除所有空白字符
+    - 转为小写
+
+    Args:
+        text: 原始文本
+
+    Returns:
+        规范化后的文本
+    """
+    return re.sub(r'\s+', '', text.lower())
 
 
 class Executor:
@@ -91,9 +107,30 @@ class Executor:
         locator = await self._locate_element(target, elements)
 
         if locator:
-            await locator.click(timeout=self.timeout)
-            logger.info(f"点击成功: {target}")
-            return ActionResult(success=True)
+            try:
+                # 尝试正常点击
+                await locator.click(timeout=self.timeout)
+                logger.info(f"点击成功: {target}")
+                return ActionResult(success=True)
+            except Exception as e:
+                error_str = str(e).lower()
+                # 如果是可见性问题，尝试 JavaScript 点击
+                if "not visible" in error_str or "timeout" in error_str:
+                    try:
+                        element_handle = await locator.element_handle(timeout=5000)
+                        await self.page.evaluate(
+                            """(el) => {
+                                el.click();
+                            }""",
+                            element_handle
+                        )
+                        logger.info(f"JavaScript 点击成功: {target}")
+                        return ActionResult(success=True)
+                    except Exception as js_error:
+                        logger.warning(f"JavaScript 点击也失败: {target}, 错误: {js_error}")
+
+                logger.warning(f"点击失败: {target}, 错误: {e}")
+                return ActionResult(success=False, error=f"点击失败: {str(e)[:100]}")
         else:
             # 直接尝试通过文本点击
             try:
@@ -123,33 +160,68 @@ class Executor:
         locator = await self._locate_element(target, elements)
 
         if locator:
-            # 先点击聚焦，再输入
-            await locator.click(timeout=self.timeout)
-            await locator.fill(value, timeout=self.timeout)
-            logger.info(f"输入成功: {target} <- {value}")
-            return ActionResult(success=True)
-        else:
-            # 直接尝试通过 placeholder 定位
             try:
-                await self.page.get_by_placeholder(target).fill(
+                # 尝试正常点击和输入
+                await locator.click(timeout=self.timeout)
+                await locator.fill(value, timeout=self.timeout)
+                logger.info(f"输入成功: {target} <- {value}")
+                return ActionResult(success=True)
+            except Exception as e:
+                error_str = str(e).lower()
+                # 如果是可见性问题或超时，尝试 force 模式
+                if "not visible" in error_str or "not attached" in error_str or "timeout" in error_str:
+                    try:
+                        # 使用 Playwright 的 force 模式（跳过可见性检查，但保留原生行为）
+                        await locator.fill(value, timeout=self.timeout, force=True)
+                        logger.info(f"强制输入成功: {target} <- {value}")
+                        return ActionResult(success=True)
+                    except Exception as force_error:
+                        try:
+                            # 最后尝试：使用 JavaScript 直接操作（确保视觉更新）
+                            element_handle = await locator.element_handle(timeout=5000)
+                            await self.page.evaluate(
+                                """([el, val]) => {
+                                    // 使用原生 setter 确保响应式更新
+                                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                                        window.HTMLInputElement.prototype, 'value'
+                                    ).set;
+                                    nativeInputValueSetter.call(el, val);
+
+                                    // 触发 React/Vue 需要的事件
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                }""",
+                                [element_handle, value]
+                            )
+                            logger.info(f"JavaScript 输入成功: {target} <- {value}")
+                            return ActionResult(success=True)
+                        except Exception as js_error:
+                            logger.warning(f"JavaScript 输入也失败: {target}, 错误: {js_error}")
+
+                logger.warning(f"输入失败: {target}, 错误: {e}")
+                return ActionResult(success=False, error=f"输入失败: {str(e)[:100]}")
+
+        # 直接尝试通过 placeholder 定位
+        try:
+            await self.page.get_by_placeholder(target).fill(
+                value, timeout=self.timeout
+            )
+            logger.info(f"通过 placeholder 输入成功: {target}")
+            return ActionResult(success=True)
+        except Exception:
+            # 尝试通过 label 定位
+            try:
+                await self.page.get_by_label(target).fill(
                     value, timeout=self.timeout
                 )
-                logger.info(f"通过 placeholder 输入成功: {target}")
+                logger.info(f"通过 label 输入成功: {target}")
                 return ActionResult(success=True)
-            except Exception:
-                # 尝试通过 label 定位
-                try:
-                    await self.page.get_by_label(target).fill(
-                        value, timeout=self.timeout
-                    )
-                    logger.info(f"通过 label 输入成功: {target}")
-                    return ActionResult(success=True)
-                except Exception as e:
-                    logger.warning(f"输入失败: {target}, 错误: {e}")
-                    return ActionResult(
-                        success=False,
-                        error=f"无法找到输入框: {target}",
-                    )
+            except Exception as e:
+                logger.warning(f"输入失败: {target}, 错误: {e}")
+                return ActionResult(
+                    success=False,
+                    error=f"无法找到输入框: {target}",
+                )
 
     async def _wait(self) -> ActionResult:
         """等待页面稳定"""
@@ -166,11 +238,15 @@ class Executor:
         """定位元素
 
         定位策略（优先级从高到低）：
-        1. 精确匹配文本
-        2. 精确匹配 placeholder
-        3. 模糊匹配文本
-        4. 模糊匹配 placeholder
-        5. 索引定位（如果 target 是数字）
+        1. CSS ID 选择器（如果 target 匹配某元素的 id）
+        2. CSS name 选择器（如果 target 匹配某元素的 name）
+        3. 精确匹配文本（忽略空格）
+        4. 精确匹配 aria-label
+        5. 精确匹配 title
+        6. 精确匹配 placeholder
+        7. 模糊匹配文本
+        8. 模糊匹配 placeholder
+        9. 索引定位（如果 target 是数字）
 
         Args:
             target: 目标元素描述
@@ -179,39 +255,62 @@ class Executor:
         Returns:
             Playwright Locator 或 None
         """
-        # 1. 精确匹配文本
+        target_normalized = _normalize_text(target)
+
+        # 1. CSS ID 选择器（最可靠）
         for el in elements:
-            if el.text and target == el.text:
+            if el.id and _normalize_text(el.id) == target_normalized:
+                logger.debug(f"ID 选择器: #{el.id}")
+                return self.page.locator(f"#{el.id}")
+
+        # 2. CSS name 选择器
+        for el in elements:
+            if el.name and _normalize_text(el.name) == target_normalized:
+                logger.debug(f"name 选择器: [name='{el.name}']")
+                return self.page.locator(f"[name='{el.name}']")
+
+        # 3. 精确匹配文本（忽略空格）
+        for el in elements:
+            if el.text and _normalize_text(el.text) == target_normalized:
                 logger.debug(f"精确匹配文本: {el.text}")
                 return self.page.get_by_text(el.text, exact=True)
 
-        # 2. 精确匹配 placeholder
+        # 4. 精确匹配 aria-label
         for el in elements:
-            if el.placeholder and target == el.placeholder:
+            if el.aria_label and _normalize_text(el.aria_label) == target_normalized:
+                logger.debug(f"精确匹配 aria-label: {el.aria_label}")
+                return self.page.locator(f'[aria-label="{el.aria_label}"]')
+
+        # 5. 精确匹配 title
+        for el in elements:
+            if el.title and _normalize_text(el.title) == target_normalized:
+                logger.debug(f"精确匹配 title: {el.title}")
+                return self.page.locator(f'[title="{el.title}"]')
+
+        # 6. 精确匹配 placeholder
+        for el in elements:
+            if el.placeholder and _normalize_text(el.placeholder) == target_normalized:
                 logger.debug(f"精确匹配 placeholder: {el.placeholder}")
                 return self.page.get_by_placeholder(el.placeholder, exact=True)
 
-        # 3. 模糊匹配文本
+        # 7. 模糊匹配文本
         for el in elements:
-            if el.text and target in el.text:
+            if el.text and target_normalized in _normalize_text(el.text):
                 logger.debug(f"模糊匹配文本: {el.text}")
                 return self.page.get_by_text(el.text)
 
-        # 4. 模糊匹配 placeholder
+        # 8. 模糊匹配 placeholder
         for el in elements:
-            if el.placeholder and target in el.placeholder:
+            if el.placeholder and target_normalized in _normalize_text(el.placeholder):
                 logger.debug(f"模糊匹配 placeholder: {el.placeholder}")
                 return self.page.get_by_placeholder(el.placeholder)
 
-        # 5. 索引定位
+        # 9. 索引定位
         if target.isdigit():
             idx = int(target)
             if 0 <= idx < len(elements):
                 el = elements[idx]
                 logger.debug(f"索引定位: [{idx}] {el.tag}")
-                # 使用通用选择器
-                return self.page.locator(
-                    f"{el.tag.lower()}:visible >> nth={idx}"
-                )
+                return self.page.locator(f"{el.tag.lower()}:visible >> nth={idx}")
 
         return None
