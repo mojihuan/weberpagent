@@ -108,41 +108,46 @@ class Executor:
 
         if locator:
             try:
-                # 尝试正常点击
+                # 策略 1: 正常点击
                 await locator.click(timeout=self.timeout)
                 logger.info(f"点击成功: {target}")
                 return ActionResult(success=True)
             except Exception as e:
                 error_str = str(e).lower()
-                # 如果是可见性问题，尝试 JavaScript 点击
-                if "not visible" in error_str or "timeout" in error_str:
-                    try:
-                        element_handle = await locator.element_handle(timeout=5000)
-                        await self.page.evaluate(
-                            """(el) => {
-                                el.click();
-                            }""",
-                            element_handle
-                        )
-                        logger.info(f"JavaScript 点击成功: {target}")
-                        return ActionResult(success=True)
-                    except Exception as js_error:
-                        logger.warning(f"JavaScript 点击也失败: {target}, 错误: {js_error}")
 
-                logger.warning(f"点击失败: {target}, 错误: {e}")
+                # 策略 2: force 点击（跳过可见性检查）
+                if "not visible" in error_str or "covered" in error_str:
+                    try:
+                        await locator.click(force=True, timeout=self.timeout)
+                        logger.info(f"Force 点击成功: {target}")
+                        return ActionResult(success=True)
+                    except Exception as force_error:
+                        pass
+
+                # 策略 3: JavaScript 点击
+                try:
+                    element_handle = await locator.element_handle(timeout=5000)
+                    await self.page.evaluate("el => el.click()", element_handle)
+                    logger.info(f"JavaScript 点击成功: {target}")
+                    return ActionResult(success=True)
+                except Exception as js_error:
+                    logger.warning(f"所有点击策略都失败: {target}")
+
                 return ActionResult(success=False, error=f"点击失败: {str(e)[:100]}")
         else:
-            # 直接尝试通过文本点击
+            # 策略 4: 直接通过文本点击
             try:
                 await self.page.get_by_text(target).click(timeout=self.timeout)
                 logger.info(f"通过文本点击成功: {target}")
                 return ActionResult(success=True)
             except Exception as e:
-                logger.warning(f"点击失败: {target}, 错误: {e}")
-                return ActionResult(
-                    success=False,
-                    error=f"无法找到元素: {target}",
-                )
+                # 策略 5: 通过 role 点击
+                try:
+                    await self.page.get_by_role("button", name=target).click(timeout=self.timeout)
+                    logger.info(f"通过 role 点击成功: {target}")
+                    return ActionResult(success=True)
+                except Exception:
+                    return ActionResult(success=False, error=f"无法找到元素: {target}")
 
     async def _input(
         self,
@@ -230,6 +235,58 @@ class Executor:
         await self.page.wait_for_load_state("networkidle")
         return ActionResult(success=True)
 
+    async def validate_action(
+        self,
+        action,  # Action type from types.py
+        elements: list,  # list[InteractiveElement]
+    ) -> tuple[bool, str | None]:
+        """执行前验证动作是否可行
+
+        Args:
+            action: 要验证的动作
+            elements: 可交互元素列表
+
+        Returns:
+            (is_valid, error_message)
+        """
+        if action.action == "done":
+            return True, None
+
+        if action.action == "navigate":
+            if not action.value:
+                return False, "navigate 动作需要 value（URL）"
+            return True, None
+
+        if action.action in ["click", "input"]:
+            if not action.target:
+                return False, f"{action.action} 动作需要 target"
+
+            # 检测数字索引
+            if action.target.strip().isdigit():
+                return False, f"禁止使用数字索引 '{action.target}'，请使用元素文本、placeholder 或 ID"
+
+            # 检查元素是否存在
+            locator = await self._locate_element(action.target, elements)
+            if not locator:
+                return False, f"找不到元素: {action.target}"
+
+            # 检查元素是否可见
+            try:
+                is_visible = await locator.is_visible()
+                if not is_visible:
+                    logger.warning(f"元素存在但不可见: {action.target}")
+                    # 不阻止执行，因为可以用 force 或 JS
+            except:
+                pass
+
+            return True, None
+
+        if action.action == "input":
+            if action.value is None:
+                return False, "input 动作需要 value"
+
+        return True, None
+
     async def _locate_element(
         self,
         target: str,
@@ -246,7 +303,8 @@ class Executor:
         6. 精确匹配 placeholder
         7. 模糊匹配文本
         8. 模糊匹配 placeholder
-        9. 索引定位（如果 target 是数字）
+        9. 按钮角色定位（适用于 button 元素）
+        10. 索引定位（如果 target 是数字，不推荐）
 
         Args:
             target: 目标元素描述
@@ -255,7 +313,21 @@ class Executor:
         Returns:
             Playwright Locator 或 None
         """
+        logger.info(f"尝试定位元素: '{target}'")
         target_normalized = _normalize_text(target)
+
+        # 检测数字索引并警告，自动转换为文本定位
+        if target.strip().isdigit():
+            logger.warning(f"⚠️ 检测到数字索引 '{target}'，这是不允许的！尝试转换为文本定位...")
+            idx = int(target)
+            if 0 <= idx < len(elements):
+                el = elements[idx]
+                # 优先使用文本，其次 placeholder，再次 aria_label
+                actual_target = el.text or el.placeholder or el.aria_label or el.id
+                if actual_target:
+                    logger.info(f"转换为文本定位: '{actual_target}'")
+                    target = actual_target
+                    target_normalized = _normalize_text(target)
 
         # 1. CSS ID 选择器（最可靠）
         for el in elements:
@@ -275,7 +347,13 @@ class Executor:
                 logger.debug(f"精确匹配文本: {el.text}")
                 return self.page.get_by_text(el.text, exact=True)
 
-        # 4. 精确匹配 aria-label
+        # 3.5. 通过按钮角色定位（适用于 button 元素）
+        for el in elements:
+            if el.tag == "BUTTON" and el.text:
+                # 尝试 get_by_role 定位
+                if target_normalized in _normalize_text(el.text):
+                    logger.debug(f"按钮角色定位: {el.text}")
+                    return self.page.get_by_role("button", name=el.text)        # 4. 精确匹配 aria-label
         for el in elements:
             if el.aria_label and _normalize_text(el.aria_label) == target_normalized:
                 logger.debug(f"精确匹配 aria-label: {el.aria_label}")
