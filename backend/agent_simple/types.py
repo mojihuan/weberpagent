@@ -37,6 +37,7 @@ class PageState(BaseModel):
     elements: list[InteractiveElement] = Field(
         default_factory=list, description="可交互元素列表"
     )
+    state_hash: str | None = Field(default=None, description="页面状态哈希")
 
 
 class Action(BaseModel):

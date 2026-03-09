@@ -1,6 +1,7 @@
 """页面感知模块 - 获取截图和可交互元素"""
 
 import base64
+import hashlib
 from typing import Any
 
 from playwright.async_api import Page
@@ -54,11 +55,15 @@ class Perception:
         # 3. 提取可交互元素
         elements = await self._extract_elements()
 
+        # 4. 计算页面状态哈希（用于检测页面变化）
+        state_hash = await self._compute_page_hash()
+
         return PageState(
             screenshot_base64=screenshot_base64,
             url=url,
             title=title,
             elements=elements,
+            state_hash=state_hash,
         )
 
     # 元素数量上限
@@ -68,9 +73,10 @@ class Perception:
         """提取页面上的可交互元素
 
         优化：
-        1. 提取 aria-label 和 title 属性
-        2. 清理文本（去除多余空格）
-        3. 限制元素数量（优先保留有文本/placeholder 的元素）
+        1. 按优先级智能排序（视口内、有文本、按钮优先）
+        2. 提取 aria-label 和 title 属性
+        3. 清理文本（去除多余空格）
+        4. 限制元素数量
 
         Returns:
             可交互元素列表
@@ -96,11 +102,31 @@ class Perception:
                         return;
                     }
 
+                    // 获取元素位置
+                    const rect = el.getBoundingClientRect();
+                    const isInViewport = (
+                        rect.top >= 0 &&
+                        rect.left >= 0 &&
+                        rect.bottom <= window.innerHeight &&
+                        rect.right <= window.innerWidth
+                    );
+
                     // 清理文本：去除多余空格和换行
                     let text = (el.innerText || el.value || '')
                         .replace(/\\s+/g, ' ')
                         .trim()
                         .slice(0, 50);
+
+                    // 计算优先级分数
+                    let priority = 0;
+                    if (text) priority += 30;
+                    if (el.placeholder) priority += 20;
+                    if (el.getAttribute('aria-label')) priority += 15;
+                    if (el.id) priority += 10;
+                    if (isInViewport) priority += 25;
+                    if (el.tagName === 'BUTTON') priority += 15;
+                    if (el.tagName === 'A') priority += 10;
+                    if (el.tagName === 'INPUT') priority += 12;
 
                     result.push({
                         index: index,
@@ -111,21 +137,20 @@ class Perception:
                         placeholder: el.placeholder || null,
                         name: el.name || null,
                         aria_label: el.getAttribute('aria-label') || null,
-                        title: el.getAttribute('title') || null
+                        title: el.getAttribute('title') || null,
+                        _priority: priority,
+                        _isInViewport: isInViewport
                     });
                 });
 
-                // 优先保留有文本、placeholder、aria-label 的元素
-                const withContent = result.filter(el =>
-                    el.text || el.placeholder || el.aria_label
-                );
-                const withoutContent = result.filter(el =>
-                    !el.text && !el.placeholder && !el.aria_label
-                );
+                // 按优先级排序
+                result.sort((a, b) => b._priority - a._priority);
 
-                // 合并并限制数量
-                const sorted = [...withContent, ...withoutContent];
-                return sorted.slice(0, maxElements);
+                // 移除内部字段并限制数量
+                return result.slice(0, maxElements).map(el => {
+                    const { _priority, _isInViewport, ...rest } = el;
+                    return rest;
+                });
             }
         """,
             [selector, self.MAX_ELEMENTS],
@@ -133,34 +158,23 @@ class Perception:
 
         return [InteractiveElement(**el) for el in elements_data]
 
-    def format_elements_for_prompt(self, elements: list[InteractiveElement]) -> str:
-        """格式化元素列表用于 Prompt
-
-        Args:
-            elements: 可交互元素列表
+    async def _compute_page_hash(self) -> str:
+        """计算页面状态哈希（用于检测页面变化）
 
         Returns:
-            格式化后的字符串
+            16 位 MD5 哈希值
         """
-        if not elements:
-            return "（页面上没有可交互元素）"
+        # 使用 URL + 标题 + 主要元素文本计算哈希
+        content = await self.page.evaluate(
+            """
+            () => {
+                const url = window.location.href;
+                const title = document.title;
+                // 获取主要元素的文本
+                const mainContent = document.body.innerText.slice(0, 1000);
+                return url + title + mainContent;
+            }
+        """
+        )
 
-        lines = []
-        for el in elements:
-            # 构建元素描述
-            parts = [f"[{el.index}] <{el.tag}>"]
-
-            if el.text:
-                parts.append(f'文本: "{el.text}"')
-            if el.type:
-                parts.append(f"类型: {el.type}")
-            if el.placeholder:
-                parts.append(f'占位符: "{el.placeholder}"')
-            if el.id:
-                parts.append(f"ID: {el.id}")
-            if el.name:
-                parts.append(f"Name: {el.name}")
-
-            lines.append(" | ".join(parts))
-
-        return "\n".join(lines)
+        return hashlib.md5(content.encode()).hexdigest()[:16]
