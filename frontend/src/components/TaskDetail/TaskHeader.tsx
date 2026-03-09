@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Play, Pencil, Trash2, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { Task } from '../../types'
 import { Button } from '../Button'
@@ -9,9 +9,16 @@ interface TaskHeaderProps {
   onEdit: () => void
   onDelete: () => void
   onExecute: () => void
+  isExecuting?: boolean
 }
 
-export function TaskHeader({ task, onEdit, onDelete, onExecute }: TaskHeaderProps) {
+export function TaskHeader({
+  task,
+  onEdit,
+  onDelete,
+  onExecute,
+  isExecuting = false,
+}: TaskHeaderProps) {
   const navigate = useNavigate()
 
   return (
@@ -34,15 +41,27 @@ export function TaskHeader({ task, onEdit, onDelete, onExecute }: TaskHeaderProp
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={onExecute}>
-            <Play className="w-4 h-4 mr-1" />
-            立即执行
+          <Button
+            variant="primary"
+            onClick={onExecute}
+            disabled={isExecuting}
+          >
+            {isExecuting ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 mr-1" />
+            )}
+            {isExecuting ? '启动中...' : '立即执行'}
           </Button>
           <Button variant="secondary" onClick={onEdit}>
             <Pencil className="w-4 h-4 mr-1" />
             编辑
           </Button>
-          <Button variant="secondary" onClick={onDelete} className="text-red-600 hover:bg-red-50">
+          <Button
+            variant="secondary"
+            onClick={onDelete}
+            className="text-red-600 hover:bg-red-50"
+          >
             <Trash2 className="w-4 h-4 mr-1" />
             删除
           </Button>

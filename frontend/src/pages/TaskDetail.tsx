@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { tasksApi } from '../api/tasks'
+import { startRun } from '../api/runs'
 import type { Task, Run, CreateTaskDto } from '../types'
 import {
   TaskHeader,
@@ -26,6 +27,7 @@ export function TaskDetail() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [isExecuting, setIsExecuting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -81,8 +83,17 @@ export function TaskDetail() {
     loadStats()
   }, [id])
 
-  const handleExecute = () => {
-    console.log('Execute task:', id)
+  const handleExecute = async () => {
+    if (!id || isExecuting) return
+    setIsExecuting(true)
+    try {
+      const { runId } = await startRun(id)
+      navigate(`/runs/${runId}`)
+    } catch (error) {
+      console.error('Failed to start run:', error)
+    } finally {
+      setIsExecuting(false)
+    }
   }
 
   const handleUpdate = async (data: CreateTaskDto) => {
@@ -132,6 +143,7 @@ export function TaskDetail() {
         onEdit={() => setEditModalOpen(true)}
         onDelete={() => setDeleteConfirm(true)}
         onExecute={handleExecute}
+        isExecuting={isExecuting}
       />
 
       <TaskInfo task={task} />
