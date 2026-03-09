@@ -17,15 +17,16 @@
 - **弃用原因**: 国产模型（Azure OpenAI/DeepSeek/通义千问）与 Browser-Use 的复杂 JSON Schema 不兼容
 - **保留内容**: `backend/agent/` 目录作为参考
 
-### Phase 3': 自研简化版 Agent 🔄 (进行中)
+### Phase 3': 自研简化版 Agent ✅
 - **开始日期**: 2026-03-09
+- **完成日期**: 2026-03-09
 - **设计文档**: `docs/plans/2026-03-09-simple-agent-design.md`
 - **任务清单**:
   - [x] 3.1 实现页面感知模块 (`perception.py`) ✅
   - [x] 3.2 实现 LLM 决策模块 (`decision.py`, `prompts.py`) ✅
   - [x] 3.3 实现动作执行模块 (`executor.py`) ✅
-  - [ ] 3.4 实现循环控制模块 (`agent.py`)
-  - [ ] 3.5 验证登录场景
+  - [x] 3.4 实现循环控制模块 (`agent.py`) ✅
+  - [ ] 3.5 验证登录场景（待 Phase 4）
 
 ### Phase 4: 场景验证
 - *待完成* (依赖 Phase 3')
