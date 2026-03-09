@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Play, Pencil, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { Task } from '../../types'
 import { StatusBadge } from '../shared'
+import { startRun } from '../../api/runs'
 
 interface TaskRowProps {
   task: Task
@@ -13,10 +15,21 @@ interface TaskRowProps {
 
 export function TaskRow({ task, selected, onSelect, onEdit, onDelete }: TaskRowProps) {
   const navigate = useNavigate()
+  const [isStarting, setIsStarting] = useState(false)
 
-  const handleExecute = (e: React.MouseEvent) => {
+  const handleExecute = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    console.log('Execute task:', task.id)
+    if (isStarting) return
+
+    setIsStarting(true)
+    try {
+      const { runId } = await startRun(task.id)
+      navigate(`/runs/${runId}`)
+    } catch (error) {
+      console.error('Failed to start run:', error)
+    } finally {
+      setIsStarting(false)
+    }
   }
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -67,7 +80,12 @@ export function TaskRow({ task, selected, onSelect, onEdit, onDelete }: TaskRowP
         <div className="flex items-center gap-1">
           <button
             onClick={handleExecute}
-            className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-500"
+            disabled={isStarting}
+            className={`p-1.5 rounded hover:bg-gray-100 ${
+              isStarting
+                ? 'text-gray-300 cursor-wait'
+                : 'text-gray-500 hover:text-green-500'
+            }`}
             title="立即执行"
           >
             <Play className="w-4 h-4" />
