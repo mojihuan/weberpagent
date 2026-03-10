@@ -346,17 +346,18 @@ def format_elements_for_prompt(elements: list[InteractiveElement]) -> str:
     return "\n".join(lines)
 
 
-def build_user_prompt(task: str, state: PageState) -> str:
+def build_user_prompt(task: str, state: PageState, memory_context: str = "") -> str:
     """构建用户提示词
 
     Args:
         task: 任务描述
         state: 页面状态
+        memory_context: 记忆上下文（由 Memory.format_for_prompt() 生成）
 
     Returns:
         用户提示词字符串
     """
-    elements_text = format_elements_for_prompt(state.elements)
+    elements_text = format_elements_for_prompt(state.elements[:30])
 
     # 判断页面状态
     page_status = ""
@@ -365,12 +366,14 @@ def build_user_prompt(task: str, state: PageState) -> str:
     elif state.url == "about:blank":
         page_status = "\n⚠️ 当前是空白页，需要先导航到目标网站。"
 
+    # 构建完整 Prompt
     return f"""当前任务：{task}
 
-## 页面信息
+{memory_context}
+
+## 当前页面
 - URL: {state.url}
-- 标题: {state.title}
-{page_status}
+- 标题: {state.title}{page_status}
 
 ## 可交互元素（前 30 个）
 {elements_text}
@@ -380,21 +383,23 @@ def build_user_prompt(task: str, state: PageState) -> str:
 2. 如果已完成，使用 done 动作标记完成
 3. 如果未完成，选择合适的元素进行操作
 4. 优先使用 ID 定位元素
+5. ⚠️ 不要重复已失败的动作
 
 请分析页面截图和元素列表，决定下一步动作。只输出 JSON 格式的动作。"""
 
 
-def build_messages(task: str, state: PageState) -> list[dict]:
+def build_messages(task: str, state: PageState, memory_context: str = "") -> list[dict]:
     """构建发送给 LLM 的消息列表
 
     Args:
         task: 任务描述
         state: 页面状态
+        memory_context: 记忆上下文
 
     Returns:
         OpenAI 格式的消息列表
     """
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": build_user_prompt(task, state)},
+        {"role": "user", "content": build_user_prompt(task, state, memory_context)},
     ]

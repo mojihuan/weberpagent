@@ -20,6 +20,7 @@ from backend.agent_simple.types import (
 from backend.agent_simple.perception import Perception
 from backend.agent_simple.decision import Decision
 from backend.agent_simple.executor import Executor
+from backend.agent_simple.memory import Memory
 from backend.agent_simple.prompts import (
     SYSTEM_PROMPT,
     REFLECTION_PROMPT,
@@ -76,6 +77,9 @@ class SimpleAgent:
 
         # 执行历史
         self.history: list[Step] = []
+
+        # 记忆模块
+        self.memory = Memory(max_steps=5)
 
     def _detect_loop(self) -> bool:
         """检测是否陷入循环"""
@@ -193,8 +197,8 @@ class SimpleAgent:
             logger.info(f"URL: {state.url}")
             logger.info(f"元素数量: {len(state.elements)}")
 
-            # 2. LLM 决策
-            action = await self.decision.decide(self.task, state)
+            # 2. LLM 决策（传入记忆）
+            action = await self.decision.decide(self.task, state, self.memory)
 
             # 3. 执行动作（带反思重试）
             result = await self._execute_with_reflection(action, state, step_num)
@@ -207,6 +211,7 @@ class SimpleAgent:
                 result=result,
             )
             self.history.append(step)
+            self.memory.add_step(step)  # 同时更新记忆
 
             # 5. 检查任务完成
             if action.done:

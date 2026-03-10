@@ -6,6 +6,7 @@ import re
 from backend.llm.base import BaseLLM
 from backend.agent_simple.types import Action, PageState
 from backend.agent_simple.prompts import build_messages
+from backend.agent_simple.memory import Memory
 
 logger = logging.getLogger(__name__)
 
@@ -24,32 +25,39 @@ class Decision:
         """
         self.llm = llm
 
-    async def decide(self, task: str, state: PageState) -> Action:
+    async def decide(
+        self,
+        task: str,
+        state: PageState,
+        memory: Memory | None = None,
+    ) -> Action:
         """根据页面状态决定下一步动作
 
         Args:
             task: 任务描述
             state: 当前页面状态
+            memory: 记忆模块（可选）
 
         Returns:
             Action: 解析后的动作对象
         """
-        # 1. 构建消息
-        messages = build_messages(task, state)
+        # 1. 获取记忆上下文
+        memory_context = memory.format_for_prompt() if memory else ""
 
-        # 2. 构建图像 URL（data URI 格式）
-        # 检查截图是否有效（非空且长度足够）
+        # 2. 构建消息（传入记忆上下文）
+        messages = build_messages(task, state, memory_context)
+
+        # 3. 构建图像 URL（data URI 格式）
         if state.screenshot_base64 and len(state.screenshot_base64) > 100:
             image_url = f"data:image/png;base64,{state.screenshot_base64}"
             images = [image_url]
         else:
-            # 截图无效时，不传图片，LLM 将依赖 DOM 信息
             logger.warning("截图无效，LLM 将仅基于 DOM 信息决策")
             images = []
 
         logger.info(f"调用 LLM 决策，模型: {self.llm.model_name}")
 
-        # 3. 调用 LLM
+        # 4. 调用 LLM
         response = await self.llm.chat_with_vision(
             messages=messages,
             images=images,
@@ -57,7 +65,7 @@ class Decision:
 
         logger.info(f"LLM 原始输出: {response.content[:200]}...")
 
-        # 4. 解析输出
+        # 5. 解析输出
         action = self._parse_action(response.content)
 
         logger.info(f"解析后的动作: {action.action}, 目标: {action.target}")
