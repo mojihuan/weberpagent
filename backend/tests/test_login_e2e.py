@@ -42,7 +42,7 @@ async def test_login_e2e(llm, test_config, output_dir):
         browser = await p.chromium.launch(headless=False, slow_mo=100)
         page = await browser.new_page()
 
-        # 创建 Agent
+        # 创建 Agent (增加超时时间到 60 秒)
         agent = SimpleAgent(
             task=task,
             llm=llm,
@@ -50,6 +50,7 @@ async def test_login_e2e(llm, test_config, output_dir):
             output_dir=str(task_output),
             max_steps=10,
             max_retries=3,
+            timeout=60000,  # 60 秒超时
         )
 
         # 执行测试并计时

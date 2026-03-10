@@ -89,8 +89,15 @@ class Executor:
             url = "https://" + url
 
         logger.info(f"导航到: {url}")
-        await self.page.goto(url, timeout=self.timeout)
-        await self.page.wait_for_load_state("networkidle")
+        # 使用 domcontentloaded 而非 load，更快响应
+        await self.page.goto(url, timeout=self.timeout, wait_until="domcontentloaded")
+        # 等待网络稳定，但使用较短的超时
+        try:
+            await self.page.wait_for_load_state("networkidle", timeout=10000)
+        except PlaywrightTimeoutError:
+            logger.warning("networkidle 超时，继续执行")
+        # 额外等待确保页面渲染
+        await self.page.wait_for_timeout(1000)
 
         return ActionResult(success=True)
 

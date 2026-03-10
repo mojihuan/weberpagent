@@ -48,16 +48,37 @@
   - [x] 4.7 运行测试并生成报告 ✅
 - **测试结果**: 2 场景全部超时失败，发现 LLM 元素定位、反思机制等问题
 
-### Phase 5: Agent 优化 🔄
+### Phase 5: Agent 优化 ✅
 - **开始日期**: 2026-03-10
+- **完成日期**: 2026-03-10
 - **设计文档**: `docs/plans/2026-03-09-phase5-optimization-design.md`
+- **实施计划**: `docs/plans/2026-03-10-phase5-implementation-plan.md`
+- **测试报告**: `outputs/tests/phase5/phase5_login_report.json`
 - **目标**: 场景通过率 ≥80%，自愈成功率 ≥50%
 - **任务清单**:
-  - [ ] 5.1 Prompt 层优化 (`prompts.py`) - 禁止数字索引 + Few-shot
-  - [ ] 5.2 执行层优化 (`executor.py`) - 多策略定位 + JS 回退
-  - [ ] 5.3 感知层优化 (`perception.py`) - 属性提取 + 优先级排序
-  - [ ] 5.4 反思层优化 (`agent.py`) - 多策略反思 + 循环检测
-  - [ ] 5.5 验证测试并生成报告
+  - [x] 5.1 Prompt 层优化 (`prompts.py`) ✅
+    - 添加禁止数字索引规则
+    - 添加登录方式切换指导（手机验证码 vs 密码登录）
+    - 添加 Few-shot 登录示例
+    - 添加任务完成判断规则
+  - [x] 5.2 执行层优化 (`executor.py`) ✅
+    - 多策略元素定位（8 种策略）
+    - JavaScript 点击/输入回退
+    - 数字索引检测和警告
+    - 导航超时优化（domcontentloaded + networkidle 容错）
+  - [x] 5.3 感知层优化 (`perception.py`) ✅
+    - 增强属性提取（ID/name/placeholder/aria-label/title）
+    - 元素优先级排序（ID 优先、可见性、类型权重）
+    - 页面状态哈希计算
+  - [x] 5.4 反思层优化 (`agent.py`) ✅
+    - 多策略反思（retry/alternative/skip/rollback）
+    - 循环检测（连续相同动作、页面无变化、高失败率）
+    - 自动恢复机制（等待、滚动）
+    - 历史记忆上下文构建
+  - [x] 5.5 验证测试并生成报告 ✅
+- **测试结果**:
+  - 登录场景：✅ 成功（8 步完成，从 Phase 4 的超时失败 → Phase 5 成功登录）
+  - 关键改进：Agent 能正确识别需要切换到密码登录模式
 
 ### Phase 6: 总结与复盘
 - *待完成*

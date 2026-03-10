@@ -44,6 +44,7 @@ class SimpleAgent:
         output_dir: str = "outputs",
         max_steps: int = 20,
         max_retries: int = 3,
+        timeout: int = 60000,
     ):
         """初始化 Agent
 
@@ -54,17 +55,19 @@ class SimpleAgent:
             output_dir: 输出目录（截图、日志等）
             max_steps: 最大执行步数
             max_retries: 单步最大重试次数
+            timeout: 操作超时时间（毫秒）
         """
         self.task = task
         self.llm = llm
         self.page = page
         self.max_steps = max_steps
         self.max_retries = max_retries
+        self.timeout = timeout
 
         # 初始化子模块
         self.perception = Perception(page)
         self.decision = Decision(llm)
-        self.executor = Executor(page)
+        self.executor = Executor(page, timeout=timeout)
 
         # 输出目录
         self.output_dir = Path(output_dir)
