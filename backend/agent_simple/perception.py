@@ -69,10 +69,10 @@ class Perception:
         """截图并转为 base64，带重试机制
 
         优化策略：
-        1. 等待 DOM 加载完成（domcontentloaded）
-        2. 等待网络空闲（短超时容错）
-        3. 使用 viewport 截图（full_page=False），避免等待字体加载
-        4. 禁用动画加速截图
+        1. 只等待 DOM 加载完成（domcontentloaded）
+        2. 使用固定延迟等待 JS 渲染（不等待 networkidle，避免字体加载阻塞）
+        3. 缩短截图超时，快速失败重试
+        4. 使用 viewport 截图（full_page=False）
 
         Args:
             max_retries: 最大重试次数
@@ -82,38 +82,33 @@ class Perception:
         """
         for attempt in range(max_retries):
             try:
-                # 1. 等待 DOM 加载完成
+                # 1. 只等待 DOM 加载
                 try:
                     await self.page.wait_for_load_state("domcontentloaded", timeout=5000)
                 except Exception:
-                    pass  # DOM 可能已经加载完成，忽略超时
+                    pass
 
-                # 2. 等待网络空闲（短超时容错）
-                try:
-                    await self.page.wait_for_load_state("networkidle", timeout=3000)
-                except Exception:
-                    pass  # 网络可能持续活跃，忽略超时
+                # 2. 固定等待 JS 渲染（移除 networkidle 等待，避免字体加载阻塞）
+                await self.page.wait_for_timeout(1000)
 
-                # 3. 额外等待让 JS 渲染完成
-                await self.page.wait_for_timeout(500)
-
-                # 4. 截取 viewport（不等待字体加载）
+                # 3. 直接截图
                 screenshot_bytes = await self.page.screenshot(
                     type="png",
-                    timeout=10000,  # 10 秒超时（viewport 截图更快）
-                    full_page=False,  # 只截 viewport，避免等待字体
-                    animations="disabled",  # 禁用动画加速截图
+                    timeout=5000,  # 缩短超时，快速失败
+                    full_page=False,
+                    animations="disabled",
+                    caret="initial",  # 不等待光标渲染
                 )
+
                 print(f"✅ 截图成功 (大小: {len(screenshot_bytes)} bytes)")
                 return base64.b64encode(screenshot_bytes).decode("utf-8")
 
             except Exception as e:
                 print(f"⚠️ 截图失败 (尝试 {attempt + 1}/{max_retries}): {e}")
                 if attempt < max_retries - 1:
-                    await self.page.wait_for_timeout(1000)
+                    await self.page.wait_for_timeout(500)
 
         # 所有尝试都失败，返回一个最小的有效 PNG 图片 (1x1 透明像素)
-        # 这样可以避免 API 报错，LLM 会依赖 DOM 信息做决策
         print("⚠️ 所有截图尝试失败，使用占位图片")
         placeholder_png = base64.b64decode(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
