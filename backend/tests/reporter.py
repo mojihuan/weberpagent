@@ -8,8 +8,8 @@ from typing import Optional
 
 
 @dataclass
-class TestResult:
-    """单个测试结果"""
+class ScenarioResult:
+    """单个测试结果（重命名以避免 pytest 误收集）"""
     scenario: str
     success: bool
     steps: int
@@ -21,11 +21,15 @@ class TestResult:
         return asdict(self)
 
 
+# 保持向后兼容
+TestResult = ScenarioResult
+
+
 @dataclass
 class Phase4Report:
     """Phase 4 测试报告"""
     date: str
-    results: list[TestResult]
+    results: list[ScenarioResult]
 
     @property
     def total(self) -> int:

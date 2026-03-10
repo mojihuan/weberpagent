@@ -340,10 +340,31 @@ class Executor:
                 return ActionResult(success=False, error=f"无法找到元素: {target}")
 
     async def _wait(self) -> ActionResult:
-        """等待页面稳定"""
+        """等待页面稳定
+
+        策略：
+        1. 先等待 1 秒让页面有时间响应
+        2. 尝试等待 networkidle（最多 5 秒）
+        3. 如果超时，降级为 domcontentloaded
+        4. 最后再等待 500ms 确保渲染完成
+        """
         logger.info("等待页面加载...")
         await self.page.wait_for_timeout(1000)
-        await self.page.wait_for_load_state("networkidle")
+
+        # 尝试等待 networkidle，但有超时保护
+        try:
+            await self.page.wait_for_load_state("networkidle", timeout=5000)
+            logger.info("页面网络空闲")
+        except PlaywrightTimeoutError:
+            logger.warning("networkidle 超时，降级为 domcontentloaded")
+            # 降级：等待 domcontentloaded（通常已经满足）
+            try:
+                await self.page.wait_for_load_state("domcontentloaded", timeout=3000)
+            except PlaywrightTimeoutError:
+                logger.warning("domcontentloaded 也超时，继续执行")
+
+        # 额外等待确保渲染
+        await self.page.wait_for_timeout(500)
         return ActionResult(success=True)
 
     async def validate_action(

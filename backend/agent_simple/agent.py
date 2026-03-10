@@ -1,5 +1,6 @@
 """循环控制模块 - 整合感知、决策、执行，实现带反思的执行循环"""
 
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -170,12 +171,75 @@ class SimpleAgent:
 
         return "\n".join(parts)
 
+    async def _setup_font_blocker(self):
+        """设置字体拦截器，解决截图等待字体超时问题
+
+        方案1: 使用 route 拦截字体网络请求
+        方案2: 在页面加载后注入脚本，替换 FontFace
+
+        两种方案结合使用，确保字体不会阻塞截图。
+        """
+        # 方案1: route 拦截字体请求
+        async def block_font_requests(route):
+            if route.request.resource_type == "font":
+                logger.debug(f"🚫 拦截字体请求: {route.request.url[:50]}")
+                await route.abort()
+            else:
+                await route.continue_()
+
+        await self.page.route("**", block_font_requests)
+
+        # 方案2: 在当前页面注入 FontFace 替换脚本
+        await self.page.evaluate("""
+            () => {
+                // 如果已经设置过，跳过
+                if (window.__fontBlockerSet) return;
+                window.__fontBlockerSet = true;
+
+                // 保存原始 FontFace
+                const OriginalFontFace = window.FontFace;
+
+                // 替换 FontFace 构造函数
+                window.FontFace = function(family, source, descriptors) {
+                    console.log('🚫 FontFace 拦截:', family);
+
+                    // 创建一个使用本地字体的 FontFace
+                    const fontFace = new OriginalFontFace(
+                        family,
+                        'local("Arial")',
+                        descriptors || {}
+                    );
+
+                    // 立即设置为已加载状态
+                    Object.defineProperty(fontFace, 'status', {
+                        get: () => 'loaded',
+                        configurable: true
+                    });
+
+                    // 让 load() 立即返回
+                    fontFace.load = () => Promise.resolve(fontFace);
+
+                    return fontFace;
+                };
+
+                // 复制静态属性
+                Object.setPrototypeOf(window.FontFace, OriginalFontFace);
+
+                console.log('✅ FontFace 拦截器已启用');
+            }
+        """)
+
+        logger.info("🔧 字体拦截器已启用 (route + evaluate)")
+
     async def run(self) -> AgentResult:
         """执行任务
 
         Returns:
             AgentResult: 任务执行结果
         """
+        # 设置字体拦截器（避免截图等待字体加载）
+        await self._setup_font_blocker()
+
         logger.info(f"开始执行任务: {self.task}")
         logger.info(f"最大步数: {self.max_steps}, 最大重试: {self.max_retries}")
 
@@ -259,14 +323,23 @@ class SimpleAgent:
             # 执行动作
             result = await self.executor.execute(current_action, state.elements)
 
-            # 保存截图（设置超时避免阻塞）
-            screenshot_path = self.screenshot_manager.get_path(step_num, f"_retry{retry}" if retry > 0 else "")
+            # 保存截图（使用 CDP 绕过字体等待）
+            screenshot_path = self.screenshot_manager.get_path(step_num, f"_retry{retry}" if retry > 0 else "", ext="jpg")
             try:
-                await self.page.screenshot(
-                    path=screenshot_path,
-                    timeout=10000,  # 10 秒超时
-                    animations="disabled",  # 禁用动画加速截图
-                )
+                # 使用 CDP 截图，不等待字体加载
+                # 使用 JPEG 格式 + 质量 60，极致压缩体积
+                cdp = await self.page.context.new_cdp_session(self.page)
+                result_cdp = await cdp.send("Page.captureScreenshot", {
+                    "format": "jpeg",
+                    "quality": 60,
+                    "captureBeyondViewport": False,
+                })
+                await cdp.detach()
+
+                # 保存到文件
+                import base64
+                screenshot_bytes = base64.b64decode(result_cdp["data"])
+                Path(screenshot_path).write_bytes(screenshot_bytes)
                 result.screenshot_path = screenshot_path
             except Exception as e:
                 logger.warning(f"截图保存失败: {e}，跳过截图")

@@ -17,17 +17,18 @@ class ScreenshotManager:
         self.screenshot_dir = Path(output_dir) / "screenshots" / task_id
         self.screenshot_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_path(self, step: int, suffix: str = "") -> str:
+    def get_path(self, step: int, suffix: str = "", ext: str = "jpg") -> str:
         """生成截图文件路径
 
         Args:
             step: 步骤编号
             suffix: 文件名后缀（可选）
+            ext: 文件扩展名（默认 jpg）
 
         Returns:
             截图文件的完整路径
         """
-        filename = f"step_{step:03d}{suffix}.png"
+        filename = f"step_{step:03d}{suffix}.{ext}"
         return str(self.screenshot_dir / filename)
 
     def get_dir(self) -> str:

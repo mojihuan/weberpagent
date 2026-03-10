@@ -2,11 +2,14 @@
 
 import base64
 import hashlib
+import logging
 from typing import Any
 
 from playwright.async_api import Page
 
 from backend.agent_simple.types import PageState, InteractiveElement
+
+logger = logging.getLogger(__name__)
 
 
 class Perception:
@@ -68,11 +71,8 @@ class Perception:
     async def _take_screenshot(self, max_retries: int = 3) -> str:
         """截图并转为 base64，带重试机制
 
-        优化策略：
-        1. 只等待 DOM 加载完成（domcontentloaded）
-        2. 使用固定延迟等待 JS 渲染（不等待 networkidle，避免字体加载阻塞）
-        3. 缩短截图超时，快速失败重试
-        4. 使用 viewport 截图（full_page=False）
+        使用 CDP 的 Page.captureScreenshot 直接截图，
+        绕过 Playwright 的字体等待机制。
 
         Args:
             max_retries: 最大重试次数
@@ -82,38 +82,38 @@ class Perception:
         """
         for attempt in range(max_retries):
             try:
-                # 1. 只等待 DOM 加载
-                try:
-                    await self.page.wait_for_load_state("domcontentloaded", timeout=5000)
-                except Exception:
-                    pass
+                # 使用 CDP 直接截图（不等待字体加载）
+                cdp = await self.page.context.new_cdp_session(self.page)
 
-                # 2. 固定等待 JS 渲染（移除 networkidle 等待，避免字体加载阻塞）
-                await self.page.wait_for_timeout(1000)
+                # 使用 JPEG 格式 + 质量 60 + 缩放 0.5，极致压缩体积
+                # 1280x720 → 640x360，足够 LLM 识别 UI 元素
+                result = await cdp.send("Page.captureScreenshot", {
+                    "format": "jpeg",
+                    "quality": 60,  # 降低到 60，文字仍清晰
+                    "captureBeyondViewport": False,
+                    "clip": {
+                        "x": 0,
+                        "y": 0,
+                        "width": self.page.viewport_size["width"] if self.page.viewport_size else 1280,
+                        "height": self.page.viewport_size["height"] if self.page.viewport_size else 720,
+                        "scale": 0.5  # 缩小 50%，体积减小约 75%
+                    }
+                })
 
-                # 3. 直接截图
-                screenshot_bytes = await self.page.screenshot(
-                    type="png",
-                    timeout=5000,  # 缩短超时，快速失败
-                    full_page=False,
-                    animations="disabled",
-                    caret="initial",  # 不等待光标渲染
-                )
+                await cdp.detach()
 
-                print(f"✅ 截图成功 (大小: {len(screenshot_bytes)} bytes)")
-                return base64.b64encode(screenshot_bytes).decode("utf-8")
+                screenshot_base64 = result["data"]
+                logger.info(f"截图成功 (大小: {len(screenshot_base64)} bytes)")
+                return screenshot_base64
 
             except Exception as e:
-                print(f"⚠️ 截图失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+                logger.warning(f"截图失败 (尝试 {attempt + 1}/{max_retries}): {e}")
                 if attempt < max_retries - 1:
                     await self.page.wait_for_timeout(500)
 
         # 所有尝试都失败，返回一个最小的有效 PNG 图片 (1x1 透明像素)
-        print("⚠️ 所有截图尝试失败，使用占位图片")
-        placeholder_png = base64.b64decode(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-        )
-        return base64.b64encode(placeholder_png).decode("utf-8")
+        logger.warning("所有截图尝试失败，使用占位图片")
+        return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 
     # 元素数量上限
     MAX_ELEMENTS = 30
