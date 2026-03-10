@@ -254,10 +254,18 @@ class SimpleAgent:
             # 执行动作
             result = await self.executor.execute(current_action, state.elements)
 
-            # 保存截图
+            # 保存截图（设置超时避免阻塞）
             screenshot_path = self.screenshot_manager.get_path(step_num, f"_retry{retry}" if retry > 0 else "")
-            await self.page.screenshot(path=screenshot_path)
-            result.screenshot_path = screenshot_path
+            try:
+                await self.page.screenshot(
+                    path=screenshot_path,
+                    timeout=10000,  # 10 秒超时
+                    animations="disabled",  # 禁用动画加速截图
+                )
+                result.screenshot_path = screenshot_path
+            except Exception as e:
+                logger.warning(f"截图保存失败: {e}，跳过截图")
+                result.screenshot_path = None
 
             if result.success:
                 logger.info(f"动作执行成功")

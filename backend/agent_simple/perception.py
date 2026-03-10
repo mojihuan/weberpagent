@@ -44,9 +44,18 @@ class Perception:
         Returns:
             PageState: 包含截图和可交互元素的页面状态
         """
-        # 1. 截图并转为 base64
-        screenshot_bytes = await self.page.screenshot(type="png")
-        screenshot_base64 = base64.b64encode(screenshot_bytes).decode("utf-8")
+        # 1. 截图并转为 base64（设置超时，避免字体加载阻塞）
+        try:
+            screenshot_bytes = await self.page.screenshot(
+                type="png",
+                timeout=10000,  # 10 秒超时
+                animations="disabled",  # 禁用动画加速截图
+            )
+            screenshot_base64 = base64.b64encode(screenshot_bytes).decode("utf-8")
+        except Exception as e:
+            # 截图失败时使用空白图片
+            print(f"⚠️ 截图失败: {e}，使用空白图片")
+            screenshot_base64 = ""
 
         # 2. 获取页面基本信息
         url = self.page.url
