@@ -166,7 +166,7 @@ REFLECTION_PROMPT = """上一步操作失败了，请分析原因并给出修复
 请输出 JSON 格式（不要输出其他内容）：
 {{
   "reason": "失败原因分析（一句话）",
-  "strategy": "retry 或 alternative 或 skip",
+  "strategy": "retry 或 alternative 或 skip 或 rollback",
   "adjusted_action": {{
     "thought": "新的思考",
     "action": "动作类型",
@@ -180,6 +180,7 @@ REFLECTION_PROMPT = """上一步操作失败了，请分析原因并给出修复
 - retry: 原样重试（适用于网络超时、页面未加载）
 - alternative: 使用替代方案（适用于元素定位失败）
 - skip: 跳过当前步骤（适用于非关键步骤或重复失败）
+- rollback: 回退到上一页（适用于导航错误或误入错误页面）
 """
 
 
