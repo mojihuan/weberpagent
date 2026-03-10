@@ -1,0 +1,30 @@
+{
+  "phase": "Phase 4",
+  "date": "2026-03-09 21:33:08",
+  "results": [
+    {
+      "scenario": "登录场景",
+      "success": false,
+      "steps": 10,
+      "duration": 628.1337490081787,
+      "error": "超过最大步数 10",
+      "screenshots": []
+    },
+    {
+      "scenario": "新增采购单",
+      "success": false,
+      "steps": 25,
+      "duration": 606.7343957424164,
+      "error": "超过最大步数 25",
+      "screenshots": []
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2,
+    "pass_rate": 0.0,
+    "avg_steps": 17.5,
+    "avg_duration": 617.4340723752975
+  }
+}
