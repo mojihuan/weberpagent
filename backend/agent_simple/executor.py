@@ -117,6 +117,20 @@ class Executor:
 
         if locator:
             try:
+                # 检测是否可能是菜单项（有子菜单）
+                is_menu_item = await self._detect_menu_item(locator)
+
+                if is_menu_item:
+                    # 菜单项：先尝试 hover 展开子菜单
+                    try:
+                        await locator.hover(timeout=self.timeout)
+                        await self.page.wait_for_timeout(800)
+                        logger.info(f"菜单项悬停成功: {target}")
+                        # 继续执行 click（有些菜单需要 click 才能展开）
+                    except Exception as hover_error:
+                        logger.debug(f"菜单项 hover 失败: {hover_error}")
+                        # hover 失败，继续尝试 click
+
                 # 策略 1: 正常点击
                 await locator.click(timeout=self.timeout)
                 logger.info(f"点击成功: {target}")
@@ -237,6 +251,53 @@ class Executor:
                     error=f"无法找到输入框: {target}",
                 )
 
+    async def _detect_menu_item(self, locator) -> bool:
+        """检测元素是否是可展开的菜单项
+
+        通过检查 DOM 结构判断元素是否是可展开的菜单：
+        - 是否有子菜单元素（ul, .submenu 等）
+        - 是否有展开箭头（▶, ▼ 等）
+        - 是否有下拉相关的 class 或属性
+
+        Args:
+            locator: Playwright Locator 对象
+
+        Returns:
+            True 如果元素是可展开的菜单项
+        """
+        try:
+            element = await locator.element_handle(timeout=3000)
+            is_menu = await self.page.evaluate(
+                """
+                (el) => {
+                    // 检查是否有子菜单
+                    const has_submenu = el.querySelector('ul, .submenu, .sub-menu, .children, .ant-menu-sub, .el-submenu__title');
+                    // 检查是否有展开箭头
+                    const text = el.textContent || '';
+                    const has_arrow = text.includes('▶') || text.includes('▼') ||
+                                     text.includes('▸') || text.includes('▾') ||
+                                     text.includes('►') || text.includes('▽');
+                    // 检查是否在导航区域内
+                    const is_nav_item = el.closest('nav, .menu, .sidebar, .nav, .ant-menu, .el-menu, .aside') !== null;
+                    // 检查是否有下拉相关的 class 或属性
+                    const has_dropdown_class = el.classList.contains('dropdown') ||
+                                              el.classList.contains('has-submenu') ||
+                                              el.classList.contains('ant-menu-submenu') ||
+                                              el.classList.contains('el-submenu') ||
+                                              el.getAttribute('aria-haspopup') === 'true';
+
+                    return !!(has_submenu || has_arrow || (is_nav_item && has_dropdown_class));
+                }
+            """,
+                element,
+            )
+            if is_menu:
+                logger.debug(f"检测到可展开菜单项")
+            return is_menu
+        except Exception as e:
+            logger.debug(f"菜单检测失败: {e}")
+            return False
+
     async def _hover(
         self,
         target: str | None,
@@ -260,9 +321,9 @@ class Executor:
         if locator:
             try:
                 await locator.hover(timeout=self.timeout)
+                # 增加等待时间，确保子菜单展开
+                await self.page.wait_for_timeout(1000)
                 logger.info(f"悬停成功: {target}")
-                # 等待子菜单展开
-                await self.page.wait_for_timeout(500)
                 return ActionResult(success=True)
             except Exception as e:
                 logger.warning(f"悬停失败: {target}, 错误: {e}")
@@ -271,10 +332,11 @@ class Executor:
             # 直接尝试通过文本悬停
             try:
                 await self.page.get_by_text(target).hover(timeout=self.timeout)
+                await self.page.wait_for_timeout(1000)
                 logger.info(f"通过文本悬停成功: {target}")
-                await self.page.wait_for_timeout(500)
                 return ActionResult(success=True)
             except Exception as e:
+                logger.warning(f"悬停失败: {target}, 错误: {e}")
                 return ActionResult(success=False, error=f"无法找到元素: {target}")
 
     async def _wait(self) -> ActionResult:
