@@ -83,6 +83,7 @@ class ReflectionStrategy(str, Enum):
     RETRY = "retry"  # 原样重试
     ALTERNATIVE = "alternative"  # 替代方案
     SKIP = "skip"  # 跳过当前步骤
+    ROLLBACK = "rollback"  # 回退到上一步
 
 
 class Reflection(BaseModel):

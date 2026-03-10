@@ -20,52 +20,14 @@ from backend.agent_simple.types import (
 from backend.agent_simple.perception import Perception
 from backend.agent_simple.decision import Decision
 from backend.agent_simple.executor import Executor
-from backend.agent_simple.prompts import SYSTEM_PROMPT, format_elements_for_prompt
+from backend.agent_simple.prompts import (
+    SYSTEM_PROMPT,
+    REFLECTION_PROMPT,
+    format_elements_for_prompt,
+)
 from backend.utils.screenshot import ScreenshotManager
 
 logger = logging.getLogger(__name__)
-
-
-# 反思 Prompt 模板
-REFLECTION_PROMPT = """上一步操作失败了，请分析原因并给出修复建议。
-
-## 任务
-{task}
-
-## 失败的动作
-- 思考: {thought}
-- 动作: {action}
-- 目标: {target}
-- 值: {value}
-
-## 错误信息
-{error}
-
-## 当前页面信息
-- URL: {url}
-- 标题: {title}
-
-## 可交互元素（前 10 个）
-{elements}
-
-请输出 JSON 格式（不要输出其他内容）：
-{{
-  "reason": "失败原因分析（一句话）",
-  "strategy": "retry 或 alternative 或 skip",
-  "adjusted_action": {{
-    "thought": "新的思考",
-    "action": "动作类型",
-    "target": "新目标（如果需要）",
-    "value": "新值（如果需要）",
-    "done": false
-  }}
-}}
-
-策略说明：
-- retry: 原样重试（适用于网络超时、页面未加载等情况）
-- alternative: 使用替代方案（适用于元素定位失败，需要换种方式）
-- skip: 跳过当前步骤（适用于非关键步骤失败）
-"""
 
 
 class SimpleAgent:
@@ -112,6 +74,95 @@ class SimpleAgent:
         # 执行历史
         self.history: list[Step] = []
 
+    def _detect_loop(self) -> bool:
+        """检测是否陷入循环"""
+        if len(self.history) < 4:
+            return False
+
+        recent = self.history[-4:]
+
+        # 检测 1: 连续相同动作
+        actions = [(s.action.action, s.action.target) for s in recent]
+        if len(set(str(a) for a in actions)) <= 2:
+            logger.warning("检测到循环：连续相同动作")
+            return True
+
+        # 检测 2: 页面状态无变化
+        page_hashes = [s.state.state_hash for s in recent if s.state.state_hash]
+        if len(page_hashes) >= 4 and len(set(page_hashes)) == 1:
+            logger.warning("检测到循环：页面状态无变化")
+            return True
+
+        # 检测 3: 高失败率
+        failed_count = sum(1 for s in recent if not s.result.success)
+        if failed_count >= 3:
+            logger.warning(f"检测到循环：高失败率 {failed_count}/4")
+            return True
+
+        return False
+
+    async def _recover_from_loop(self) -> bool:
+        """从循环中恢复"""
+        logger.info("尝试从循环中恢复...")
+
+        recovery_actions = [
+            ("wait", "等待页面加载", lambda: self.page.wait_for_timeout(2000)),
+            (
+                "scroll_down",
+                "滚动到页面底部",
+                lambda: self.page.evaluate(
+                    "window.scrollTo(0, document.body.scrollHeight)"
+                ),
+            ),
+            (
+                "scroll_up",
+                "滚动到页面顶部",
+                lambda: self.page.evaluate("window.scrollTo(0, 0)"),
+            ),
+        ]
+
+        for action_name, description, action_func in recovery_actions:
+            try:
+                logger.info(f"尝试恢复动作: {description}")
+                await action_func()
+                await self.page.wait_for_timeout(500)
+                return True
+            except Exception as e:
+                logger.warning(f"恢复动作失败 {action_name}: {e}")
+                continue
+
+        return False
+
+    def _build_history_context(self) -> str:
+        """构建历史记忆上下文"""
+        if not self.history:
+            return "（这是第一步）"
+
+        parts = []
+
+        # 最近 3 步的摘要
+        recent = self.history[-3:] if len(self.history) >= 3 else self.history
+        for step in recent:
+            status = "✅" if step.result.success else "❌"
+            target = step.action.target or ""
+            value = step.action.value or ""
+            action_desc = f"{step.action.action}"
+            if target:
+                action_desc += f" -> {target}"
+            if value:
+                action_desc += f" = {value}"
+
+            parts.append(f"Step {step.step_num}: {action_desc} {status}")
+
+        # 失败模式检测
+        failed_actions = [s for s in self.history if not s.result.success]
+        if failed_actions:
+            parts.append("\n⚠️ 已失败的动作（请避免重复）：")
+            for f in failed_actions[-2:]:
+                parts.append(f"  - {f.action.action} -> {f.action.target}")
+
+        return "\n".join(parts)
+
     async def run(self) -> AgentResult:
         """执行任务
 
@@ -125,6 +176,13 @@ class SimpleAgent:
             logger.info(f"\n{'='*50}")
             logger.info(f"Step {step_num}/{self.max_steps}")
             logger.info(f"{'='*50}")
+
+            # 检测循环
+            if self._detect_loop():
+                recovered = await self._recover_from_loop()
+                if not recovered:
+                    logger.error("无法从循环中恢复")
+                    # 继续执行，让 LLM 决定下一步
 
             # 1. 感知页面
             state = await self.perception.get_state()
@@ -254,9 +312,11 @@ class SimpleAgent:
         """
         # 构建反思 prompt
         elements_text = format_elements_for_prompt(state.elements[:10])
+        history_context = self._build_history_context()
 
         prompt = REFLECTION_PROMPT.format(
             task=self.task,
+            history=history_context,
             thought=action.thought,
             action=action.action,
             target=action.target or "无",
