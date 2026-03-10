@@ -38,14 +38,21 @@ class Decision:
         messages = build_messages(task, state)
 
         # 2. 构建图像 URL（data URI 格式）
-        image_url = f"data:image/png;base64,{state.screenshot_base64}"
+        # 检查截图是否有效（非空且长度足够）
+        if state.screenshot_base64 and len(state.screenshot_base64) > 100:
+            image_url = f"data:image/png;base64,{state.screenshot_base64}"
+            images = [image_url]
+        else:
+            # 截图无效时，不传图片，LLM 将依赖 DOM 信息
+            logger.warning("截图无效，LLM 将仅基于 DOM 信息决策")
+            images = []
 
         logger.info(f"调用 LLM 决策，模型: {self.llm.model_name}")
 
         # 3. 调用 LLM
         response = await self.llm.chat_with_vision(
             messages=messages,
-            images=[image_url],
+            images=images,
         )
 
         logger.info(f"LLM 原始输出: {response.content[:200]}...")

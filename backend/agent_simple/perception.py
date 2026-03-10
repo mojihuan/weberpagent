@@ -45,17 +45,58 @@ class Perception:
             PageState: 包含截图和可交互元素的页面状态
         """
         # 1. 截图并转为 base64（设置超时，避免字体加载阻塞）
-        try:
-            screenshot_bytes = await self.page.screenshot(
-                type="png",
-                timeout=10000,  # 10 秒超时
-                animations="disabled",  # 禁用动画加速截图
-            )
-            screenshot_base64 = base64.b64encode(screenshot_bytes).decode("utf-8")
-        except Exception as e:
-            # 截图失败时使用空白图片
-            print(f"⚠️ 截图失败: {e}，使用空白图片")
-            screenshot_base64 = ""
+        screenshot_base64 = await self._take_screenshot()
+
+        # 2. 获取页面基本信息
+        url = self.page.url
+        title = await self.page.title()
+
+        # 3. 提取可交互元素
+        elements = await self._extract_elements()
+
+        # 4. 计算页面状态哈希（用于检测页面变化）
+        state_hash = await self._compute_page_hash()
+
+        return PageState(
+            screenshot_base64=screenshot_base64,
+            url=url,
+            title=title,
+            elements=elements,
+            state_hash=state_hash,
+        )
+
+    async def _take_screenshot(self, max_retries: int = 3) -> str:
+        """截图并转为 base64，带重试机制
+
+        Args:
+            max_retries: 最大重试次数
+
+        Returns:
+            base64 编码的截图，失败时返回占位图片
+        """
+        for attempt in range(max_retries):
+            try:
+                # 先等待页面稳定
+                await self.page.wait_for_timeout(500)
+
+                screenshot_bytes = await self.page.screenshot(
+                    type="png",
+                    timeout=30000,  # 30 秒超时
+                    animations="disabled",  # 禁用动画加速截图
+                )
+                return base64.b64encode(screenshot_bytes).decode("utf-8")
+            except Exception as e:
+                print(f"⚠️ 截图失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    await self.page.wait_for_timeout(1000)
+
+        # 所有尝试都失败，返回一个最小的有效 PNG 图片 (1x1 透明像素)
+        # 这样可以避免 API 报错，LLM 会依赖 DOM 信息做决策
+        print("⚠️ 所有截图尝试失败，使用占位图片")
+        placeholder_png = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        )
+        return base64.b64encode(placeholder_png).decode("utf-8")
 
         # 2. 获取页面基本信息
         url = self.page.url
