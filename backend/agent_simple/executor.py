@@ -63,6 +63,8 @@ class Executor:
                 return await self._click(action.target, elements)
             elif action.action == "input":
                 return await self._input(action.target, action.value, elements)
+            elif action.action == "hover":
+                return await self._hover(action.target, elements)
             elif action.action == "wait":
                 return await self._wait()
             elif action.action == "done":
@@ -234,6 +236,46 @@ class Executor:
                     success=False,
                     error=f"无法找到输入框: {target}",
                 )
+
+    async def _hover(
+        self,
+        target: str | None,
+        elements: list[InteractiveElement],
+    ) -> ActionResult:
+        """悬停在目标元素上（用于菜单展开）
+
+        Args:
+            target: 目标元素描述
+            elements: 可交互元素列表
+
+        Returns:
+            ActionResult: 执行结果
+        """
+        if not target:
+            return ActionResult(success=False, error="悬停目标不能为空")
+
+        # 尝试定位元素
+        locator = await self._locate_element(target, elements)
+
+        if locator:
+            try:
+                await locator.hover(timeout=self.timeout)
+                logger.info(f"悬停成功: {target}")
+                # 等待子菜单展开
+                await self.page.wait_for_timeout(500)
+                return ActionResult(success=True)
+            except Exception as e:
+                logger.warning(f"悬停失败: {target}, 错误: {e}")
+                return ActionResult(success=False, error=f"悬停失败: {str(e)[:100]}")
+        else:
+            # 直接尝试通过文本悬停
+            try:
+                await self.page.get_by_text(target).hover(timeout=self.timeout)
+                logger.info(f"通过文本悬停成功: {target}")
+                await self.page.wait_for_timeout(500)
+                return ActionResult(success=True)
+            except Exception as e:
+                return ActionResult(success=False, error=f"无法找到元素: {target}")
 
     async def _wait(self) -> ActionResult:
         """等待页面稳定"""

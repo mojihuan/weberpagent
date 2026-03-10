@@ -10,6 +10,7 @@ class ActionType(str, Enum):
     NAVIGATE = "navigate"
     CLICK = "click"
     INPUT = "input"
+    HOVER = "hover"
     WAIT = "wait"
     DONE = "done"
 
