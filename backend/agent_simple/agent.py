@@ -288,6 +288,21 @@ class SimpleAgent:
                 # 原样重试
                 continue
 
+            elif reflection.strategy == ReflectionStrategy.ROLLBACK:
+                logger.info(f"反思策略: ROLLBACK - {reflection.reason}")
+                # Navigate back to previous page
+                try:
+                    await self.page.go_back()
+                    await self.page.wait_for_load_state("networkidle")
+                    logger.info("已回退到上一页")
+                    return ActionResult(
+                        success=True,
+                        error=f"回退: {reflection.reason}",
+                    )
+                except Exception as e:
+                    logger.warning(f"回退失败: {e}")
+                    continue
+
         # 重试次数耗尽
         return ActionResult(
             success=False,
@@ -374,6 +389,8 @@ class SimpleAgent:
                     strategy = ReflectionStrategy.ALTERNATIVE
                 elif strategy_str == "skip":
                     strategy = ReflectionStrategy.SKIP
+                elif strategy_str == "rollback":
+                    strategy = ReflectionStrategy.ROLLBACK
 
                 # 解析调整后的动作
                 adjusted_action = None
