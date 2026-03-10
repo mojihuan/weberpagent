@@ -68,6 +68,12 @@ class Perception:
     async def _take_screenshot(self, max_retries: int = 3) -> str:
         """截图并转为 base64，带重试机制
 
+        优化策略：
+        1. 等待 DOM 加载完成（domcontentloaded）
+        2. 等待网络空闲（短超时容错）
+        3. 使用 viewport 截图（full_page=False），避免等待字体加载
+        4. 禁用动画加速截图
+
         Args:
             max_retries: 最大重试次数
 
@@ -76,15 +82,31 @@ class Perception:
         """
         for attempt in range(max_retries):
             try:
-                # 先等待页面稳定
+                # 1. 等待 DOM 加载完成
+                try:
+                    await self.page.wait_for_load_state("domcontentloaded", timeout=5000)
+                except Exception:
+                    pass  # DOM 可能已经加载完成，忽略超时
+
+                # 2. 等待网络空闲（短超时容错）
+                try:
+                    await self.page.wait_for_load_state("networkidle", timeout=3000)
+                except Exception:
+                    pass  # 网络可能持续活跃，忽略超时
+
+                # 3. 额外等待让 JS 渲染完成
                 await self.page.wait_for_timeout(500)
 
+                # 4. 截取 viewport（不等待字体加载）
                 screenshot_bytes = await self.page.screenshot(
                     type="png",
-                    timeout=30000,  # 30 秒超时
+                    timeout=10000,  # 10 秒超时（viewport 截图更快）
+                    full_page=False,  # 只截 viewport，避免等待字体
                     animations="disabled",  # 禁用动画加速截图
                 )
+                print(f"✅ 截图成功 (大小: {len(screenshot_bytes)} bytes)")
                 return base64.b64encode(screenshot_bytes).decode("utf-8")
+
             except Exception as e:
                 print(f"⚠️ 截图失败 (尝试 {attempt + 1}/{max_retries}): {e}")
                 if attempt < max_retries - 1:
@@ -97,24 +119,6 @@ class Perception:
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         )
         return base64.b64encode(placeholder_png).decode("utf-8")
-
-        # 2. 获取页面基本信息
-        url = self.page.url
-        title = await self.page.title()
-
-        # 3. 提取可交互元素
-        elements = await self._extract_elements()
-
-        # 4. 计算页面状态哈希（用于检测页面变化）
-        state_hash = await self._compute_page_hash()
-
-        return PageState(
-            screenshot_base64=screenshot_base64,
-            url=url,
-            title=title,
-            elements=elements,
-            state_hash=state_hash,
-        )
 
     # 元素数量上限
     MAX_ELEMENTS = 30
