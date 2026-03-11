@@ -31,6 +31,16 @@ class Perception:
         '[role="checkbox"]',
         '[role="radio"]',
         '[tabindex]:not([tabindex="-1"])',
+        # 侧边栏菜单项（Vue/Element UI/Ant Design 常见结构）
+        ".sidebar .menu-item",
+        ".sidebar .nav-item",
+        ".ant-menu-item",
+        ".el-menu-item",
+        "[class*='menu'] [class*='item']",
+        "aside [class*='menu'] div",
+        "nav [class*='menu'] div",
+        ".el-submenu__title",
+        ".ant-menu-submenu-title",
     ]
 
     def __init__(self, page: Page):
@@ -40,6 +50,16 @@ class Perception:
             page: Playwright Page 对象
         """
         self.page = page
+
+    async def take_screenshot_base64(self) -> str:
+        """获取页面截图（base64 编码）
+
+        公共接口，供外部模块直接获取截图使用。
+
+        Returns:
+            base64 编码的截图
+        """
+        return await self._take_screenshot()
 
     async def get_state(self) -> PageState:
         """获取当前页面状态

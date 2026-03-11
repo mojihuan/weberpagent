@@ -65,21 +65,40 @@ class FormFiller:
                 logger.error(f"代码优化失败: {e}")
 
         # 3. 执行代码
+        logger.info("=" * 60)
+        logger.info("📝 准备执行生成的代码:")
+        logger.info("-" * 60)
+        for line_num, line in enumerate(code.split('\n'), 1):
+            logger.info(f"{line_num:3d} | {line}")
+        logger.info("-" * 60)
+        logger.info("=" * 60)
+
         try:
-            await self._execute_code(code)
-            logger.info("代码执行成功")
+            result = await self._execute_code(code)
+            logger.info("✅ 代码执行成功")
+            if result.get("stdout"):
+                logger.info(f"📤 标准输出:\n{result['stdout']}")
         except Exception as e:
             error_msg = str(e)
-            logger.warning(f"代码执行失败: {error_msg}")
+            logger.error(f"❌ 代码执行失败: {error_msg}")
 
             # 尝试一次优化后重新执行
+            logger.info("🔄 尝试优化代码后重新执行...")
             try:
                 optimized_code = await self.code_optimizer.optimize(
                     code, state.elements, execution_error=error_msg
                 )
-                await self._execute_code(optimized_code)
+                logger.info("📝 优化后的代码:")
+                logger.info("-" * 60)
+                for line_num, line in enumerate(optimized_code.split('\n'), 1):
+                    logger.info(f"{line_num:3d} | {line}")
+                logger.info("-" * 60)
+
+                result = await self._execute_code(optimized_code)
                 code = optimized_code
-                logger.info("优化后执行成功")
+                logger.info("✅ 优化后执行成功")
+                if result.get("stdout"):
+                    logger.info(f"📤 标准输出:\n{result['stdout']}")
             except Exception as retry_error:
                 return FillResult(
                     success=False,
@@ -88,8 +107,13 @@ class FormFiller:
 
         return FillResult(success=True, code=code)
 
-    async def _execute_code(self, code: str) -> None:
-        """执行代码"""
+    async def _execute_code(self, code: str) -> dict:
+        """执行代码
+
+        Returns:
+            执行结果字典，包含 success, stdout, locals 等
+        """
         result = await execute_code(code, {"page": self.page})
         if not result["success"]:
             raise Exception(result.get("error", "未知执行错误"))
+        return result

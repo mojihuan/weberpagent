@@ -64,15 +64,15 @@ def generate_test_report(result, test_data, output_dir="outputs/tests/delivery_f
 
 @pytest.mark.asyncio
 async def test_delivery_form_fill():
-    """测试发货单表单填写完整流程
+    """测试采购单表单填写完整流程
 
     测试流程：
     1. 登录 ERP 系统
-    2. 导航到：商品采购 → 采购管理 → 新增发货单
-    3. 点击"+新增"打开表单弹窗
-    4. 填写发货单信息
-    5. 保存发货单
-    6. 在列表中搜索确认发货单已创建
+    2. 导航到：商品采购 → 采购管理 → 新增采购单
+    3. 点击"新增"打开表单弹窗
+    4. 填写采购单信息
+    5. 保存采购单
+    6. 在列表中搜索确认采购单已创建
     """
     # 检查 API Key
     if not os.getenv("DASHSCOPE_API_KEY"):
@@ -90,19 +90,23 @@ async def test_delivery_form_fill():
         llm = QwenChat(model="qwen-vl-max")
         agent = SimpleAgent(
             task=f"""
-            执行发货单填写任务：
+            执行采购单填写任务：
             1. 打开 https://erptest.epbox.cn/
-            2. 登录 ERP（用户名：Y59800075，密码：Aa123456）
-            3. 导航到：侧边栏 商品采购 → 采购管理 → 新增发货单
-            4. 点击"+新增"按钮打开表单弹窗
-            5. 填写发货单信息：
-               - 收货人：{test_data['receiver']}
-               - 电话：{test_data['phone']}
-               - 地址：{test_data['address']}
-               - 添加至少一个商品明细（如果需要选择商品，选择第一个可用的）
-            6. 点击保存按钮提交表单
-            7. 在发货单列表中搜索 {test_data['receiver']}，确认发货单已创建
-            8. 任务完成
+            2. 登录 ERP（用户名：Y96230027，密码：Aa123456）
+            3. 导航到：侧边栏 商品采购 → 采购管理 → 新增采购单(侧边栏)
+            4. 首先填写基础信息区域表单
+            5. 然后点击及其列表"新增"按钮打开表单弹窗
+            6. 在弹窗中填写采购单信息：
+                - 选择机器型号： 手机 - 苹果 - iphone 5s  点击确定
+                - 填写手动录入机器信息：
+                    - 选择很多信息
+                    - 单独录入区域填写：imei号，金额
+                    - 点击确定
+                    - 需要确保 机器列表下面出现 刚刚所天信息的机器
+            7. 填写付款信息区域的信息
+            8. 点击确定生成采购单
+            9. 在侧边栏 采购订单列表 搜索 刚刚创建的采购单，确认其已创建成功
+            10. 任务完成
             """,
             llm=llm,
             page=page,

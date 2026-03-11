@@ -1,6 +1,8 @@
 """代码沙箱执行器 - POC 阶段信任执行"""
 
+import json
 import logging
+import re
 import sys
 from io import StringIO
 from typing import Any
@@ -35,15 +37,48 @@ async def execute_code(
     sys.stdout = captured_stdout = StringIO()
 
     # 准备执行环境
+    # 预加载常用标准库模块，供生成代码使用
     local_vars: dict[str, Any] = {}
-    global_vars = {"__builtins__": __builtins__, **context}
+    global_vars = {
+        "__builtins__": __builtins__,
+        # 常用标准库
+        "json": json,
+        "re": re,
+        **context,
+    }
 
     try:
-        logger.info(f"开始执行代码，超时: {timeout}s")
-        logger.debug(f"代码内容:\n{code[:500]}...")
+        code_lines = code.split('\n')
+        logger.info(f"开始执行代码，超时: {timeout}s，共 {len(code_lines)} 行")
+        logger.debug("=" * 60)
+        for i, line in enumerate(code_lines, 1):
+            logger.debug(f"{i:3d} | {line}")
+        logger.debug("=" * 60)
 
-        # 执行代码
-        exec(code, global_vars, local_vars)
+        # ========== 调试：逐行执行并记录 ==========
+        # 将代码按顶层语句分割执行
+        import ast
+        try:
+            tree = ast.parse(code)
+            for i, node in enumerate(tree.body):
+                # 获取当前节点的源代码
+                start_line = node.lineno - 1
+                end_line = node.end_lineno if hasattr(node, 'end_lineno') else start_line + 1
+                node_code = '\n'.join(code_lines[start_line:end_line])
+
+                logger.info(f"📍 执行第 {i+1} 个语句 (行 {start_line+1}-{end_line}):")
+                logger.info(f"   {node_code[:100]}{'...' if len(node_code) > 100 else ''}")
+
+                # 执行当前节点
+                try:
+                    exec(compile(ast.Module([node], []), '<string>', 'exec'), global_vars, local_vars)
+                    logger.info(f"   ✅ 成功")
+                except Exception as e:
+                    logger.error(f"   ❌ 失败: {type(e).__name__}: {e}")
+                    raise
+        except SyntaxError as e:
+            logger.error(f"代码语法错误: {e}")
+            raise
 
         # 获取 stdout
         stdout_output = captured_stdout.getvalue()

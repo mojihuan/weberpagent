@@ -500,7 +500,12 @@ class Executor:
         """
         from backend.agent_simple.perception import Perception
 
-        logger.info("使用 FormFiller 填写表单")
+        logger.info("=" * 60)
+        logger.info("📋 开始 FormFiller 表单填写流程")
+        logger.info(f"   目标任务: {action.target or '填写表单'}")
+        logger.info(f"   页面 URL: {self.page.url}")
+        logger.info(f"   可交互元素数量: {len(elements)}")
+        logger.info("=" * 60)
 
         if not self.llm:
             return ActionResult(
@@ -525,12 +530,16 @@ class Executor:
             result = await filler.fill_form(state, action.target or "填写表单")
 
             if result.success:
-                logger.info("表单填写成功")
+                logger.info("=" * 60)
+                logger.info("✅ 表单填写流程完成")
+                if result.code:
+                    logger.info(f"   最终执行代码行数: {len(result.code.split(chr(10)))}")
+                logger.info("=" * 60)
                 return ActionResult(success=True, error=None)
             else:
-                logger.error(f"表单填写失败: {result.error}")
+                logger.error(f"❌ 表单填写失败: {result.error}")
                 return ActionResult(success=False, error=result.error)
 
         except Exception as e:
-            logger.error(f"表单填写异常: {e}")
+            logger.error(f"❌ 表单填写异常: {e}")
             return ActionResult(success=False, error=str(e))
