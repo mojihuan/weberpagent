@@ -317,6 +317,15 @@ def format_elements_for_prompt(elements: list[InteractiveElement]) -> str:
     Returns:
         格式化后的字符串
     """
+    # 区域中文名称映射
+    REGION_NAMES = {
+        'sidebar': '侧边栏',
+        'header': '顶部导航',
+        'main': '主内容区',
+        'footer': '页脚',
+        'modal': '弹窗',
+    }
+
     if not elements:
         return "（页面上没有可交互元素）"
 
@@ -340,6 +349,10 @@ def format_elements_for_prompt(elements: list[InteractiveElement]) -> str:
             parts.append(f'title: "{el.title}"')
         if el.type and el.tag == "INPUT":
             parts.append(f"类型: {el.type}")
+
+        # 添加区域信息
+        if el.region and el.region in REGION_NAMES:
+            parts.append(f'区域: {REGION_NAMES[el.region]}')
 
         lines.append(" | ".join(parts))
 
