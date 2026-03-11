@@ -30,6 +30,15 @@ class Executor:
     负责将 LLM 决策的动作转换为 Playwright 操作并执行
     """
 
+    # 区域选择器映射
+    REGION_SELECTORS = {
+        'sidebar': 'aside, .sidebar, .side-nav, nav',
+        'header': 'header, .header',
+        'main': 'main, .main, .content',
+        'footer': 'footer, .footer',
+        'modal': '.modal, .dialog, [role="dialog"]',
+    }
+
     def __init__(self, page: Page, timeout: int = 30000):
         """初始化执行模块
 
@@ -473,11 +482,24 @@ class Executor:
                 logger.debug(f"name 选择器: [name='{el.name}']")
                 return self.page.locator(f"[name='{el.name}']")
 
-        # 3. 精确匹配文本（忽略空格）
+        # 3. 精确匹配文本（忽略空格）+ 区域消歧
         for el in elements:
             if el.text and _normalize_text(el.text) == target_normalized:
                 logger.debug(f"精确匹配文本: {el.text}")
-                return self.page.get_by_text(el.text, exact=True)
+                locator = self.page.get_by_text(el.text, exact=True)
+
+                # 检查是否匹配多个元素，如果是则用区域限定
+                try:
+                    count = await locator.count()
+                    if count > 1 and el.region:
+                        region_sel = self.REGION_SELECTORS.get(el.region)
+                        if region_sel:
+                            logger.info(f"检测到多个匹配元素，使用区域限定: {el.region}")
+                            locator = self.page.locator(region_sel).get_by_text(el.text, exact=True)
+                except Exception as e:
+                    logger.debug(f"区域消歧检查失败: {e}")
+
+                return locator
 
         # 3.5. 通过按钮角色定位（适用于 button 元素）
         for el in elements:
