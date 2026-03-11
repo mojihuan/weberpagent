@@ -4,9 +4,12 @@
 """
 
 import asyncio
+import json
 import os
 import random
 import string
+from datetime import datetime
+from pathlib import Path
 
 import pytest
 from playwright.async_api import async_playwright
@@ -27,10 +30,6 @@ def generate_random_delivery_data():
 
 def generate_test_report(result, test_data, output_dir="outputs/tests/delivery_form"):
     """生成测试报告"""
-    import json
-    from pathlib import Path
-    from datetime import datetime
-
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
