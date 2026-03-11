@@ -25,6 +25,44 @@ def generate_random_delivery_data():
     }
 
 
+def generate_test_report(result, test_data, output_dir="outputs/tests/delivery_form"):
+    """生成测试报告"""
+    import json
+    from pathlib import Path
+    from datetime import datetime
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    report = {
+        "timestamp": datetime.now().isoformat(),
+        "success": result.success,
+        "result": result.result,
+        "error": result.error,
+        "total_steps": len(result.steps),
+        "test_data": test_data,
+        "steps": [
+            {
+                "step_num": step.step_num,
+                "action": step.action.action,
+                "target": step.action.target,
+                "value": step.action.value,
+                "thought": step.action.thought,
+                "success": step.result.success,
+                "error": step.result.error,
+                "screenshot": step.result.screenshot_path,
+            }
+            for step in result.steps
+        ],
+    }
+
+    report_path = output_path / f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n📄 测试报告已保存: {report_path}")
+
+    return report_path
+
+
 @pytest.mark.asyncio
 async def test_delivery_form_fill():
     """测试发货单表单填写完整流程
@@ -91,6 +129,9 @@ async def test_delivery_form_fill():
         for step in result.steps:
             status = "✅" if step.result.success else "❌"
             print(f"Step {step.step_num}: {step.action.action} -> {step.action.target or ''} {status}")
+
+        # 生成测试报告
+        generate_test_report(result, test_data)
 
         await browser.close()
 
