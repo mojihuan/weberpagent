@@ -112,6 +112,21 @@
   - [x] 7.2 分析失败原因 ✅
   - [x] 7.3 输出 POC 结论和后续建议 ✅
 
+### Phase 8: 基于区域的元素定位消歧 ✅
+- **完成日期**: 2026-03-11
+- **设计文档**: `docs/plans/2026-03-11-region-based-element-location-design.md`
+- **实施计划**: `docs/plans/2026-03-11-region-based-element-location-plan.md`
+- **触发原因**: 页面上存在多个相同文本的元素（如侧边栏和主内容区都有"商品采购"），Playwright strict mode 报错
+- **任务清单**:
+  - [x] 8.1 类型层：`InteractiveElement` 添加 `region` 字段 ✅
+  - [x] 8.2 感知层：`_extract_elements` 添加区域检测 ✅
+  - [x] 8.3 执行层：`_locate_element` 添加区域消歧逻辑 ✅
+  - [x] 8.4 Prompt 层：`format_elements_for_prompt` 展示区域信息 ✅
+  - [x] 8.5 单元测试验证 ✅
+- **实现效果**:
+  - 元素列表展示区域信息：`[0] BUTTON | 文本: "商品采购" | 区域: 侧边栏`
+  - 执行层自动消歧：当 `count > 1` 时用区域选择器限定
+
 ---
 
 ## 前端进度
