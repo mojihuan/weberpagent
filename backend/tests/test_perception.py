@@ -4,6 +4,7 @@ import asyncio
 from playwright.async_api import async_playwright
 
 from backend.agent_simple.perception import Perception
+from backend.agent_simple.prompts import format_elements_for_prompt
 
 
 async def test_perception():
@@ -40,7 +41,7 @@ async def test_perception():
             print(f"  ... 还有 {len(state.elements) - 10} 个元素")
 
         print(f"\n=== Prompt 格式 ===")
-        print(perception.format_elements_for_prompt(state.elements[:5]))
+        print(format_elements_for_prompt(state.elements[:5]))
 
         # 关闭浏览器
         await browser.close()
