@@ -1,4 +1,3 @@
-# backend/agent_simple/form_filler/__init__.py
 """表单填写子模块 - 多 Agent 协作模式"""
 
 from backend.agent_simple.form_filler.types import (

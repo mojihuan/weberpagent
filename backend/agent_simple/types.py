@@ -10,9 +10,9 @@ class ActionType(str, Enum):
     NAVIGATE = "navigate"
     CLICK = "click"
     INPUT = "input"
-    HOVER = "hover"
     WAIT = "wait"
     DONE = "done"
+    FILL_FORM = "fill_form"  # 新增：复杂表单填写
 
 
 class InteractiveElement(BaseModel):
