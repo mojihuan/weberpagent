@@ -496,8 +496,10 @@ class Executor:
                         if region_sel:
                             logger.info(f"检测到多个匹配元素，使用区域限定: {el.region}")
                             locator = self.page.locator(region_sel).get_by_text(el.text, exact=True)
+                except PlaywrightTimeoutError as e:
+                    logger.debug(f"区域消歧检查超时: {e}")
                 except Exception as e:
-                    logger.debug(f"区域消歧检查失败: {e}")
+                    logger.warning(f"区域消歧检查失败: {e}")
 
                 return locator
 
