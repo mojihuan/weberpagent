@@ -4,7 +4,8 @@ import logging
 import re
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
-from backend.agent_simple.types import Action, ActionResult, InteractiveElement
+from backend.agent_simple.types import Action, ActionResult, InteractiveElement, PageState
+from backend.agent_simple.form_filler.orchestrator import FormFiller
 
 logger = logging.getLogger(__name__)
 
@@ -39,14 +40,16 @@ class Executor:
         'modal': '.modal, .dialog, [role="dialog"]',
     }
 
-    def __init__(self, page: Page, timeout: int = 30000):
+    def __init__(self, page: Page, llm=None, timeout: int = 30000):
         """初始化执行模块
 
         Args:
             page: Playwright Page 对象
+            llm: LLM 实例（用于 fill_form）
             timeout: 操作超时时间（毫秒）
         """
         self.page = page
+        self.llm = llm
         self.timeout = timeout
 
     async def execute(
@@ -72,10 +75,10 @@ class Executor:
                 return await self._click(action.target, elements)
             elif action.action == "input":
                 return await self._input(action.target, action.value, elements)
-            elif action.action == "hover":
-                return await self._hover(action.target, elements)
             elif action.action == "wait":
                 return await self._wait()
+            elif action.action == "fill_form":
+                return await self._fill_form(action, elements)
             elif action.action == "done":
                 return ActionResult(success=True, error=None)
             else:
@@ -126,26 +129,21 @@ class Executor:
 
         if locator:
             try:
-                # 检测是否可能是菜单项（有子菜单）
-                is_menu_item = await self._detect_menu_item(locator)
-
-                if is_menu_item:
-                    # 菜单项：先尝试 hover 展开子菜单
-                    try:
-                        await locator.hover(timeout=self.timeout)
-                        await self.page.wait_for_timeout(800)
-                        logger.info(f"菜单项悬停成功: {target}")
-                        # 继续执行 click（有些菜单需要 click 才能展开）
-                    except Exception as hover_error:
-                        logger.debug(f"菜单项 hover 失败: {hover_error}")
-                        # hover 失败，继续尝试 click
-
                 # 策略 1: 正常点击
                 await locator.click(timeout=self.timeout)
                 logger.info(f"点击成功: {target}")
                 return ActionResult(success=True)
             except Exception as e:
                 error_str = str(e).lower()
+
+                # 策略 1.5: 如果是 strict mode 违规（多个匹配元素），尝试 .first
+                if "strict mode violation" in error_str:
+                    try:
+                        await locator.first.click(timeout=self.timeout)
+                        logger.info(f"通过 .first 点击成功（解决 strict mode）: {target}")
+                        return ActionResult(success=True)
+                    except Exception as first_error:
+                        logger.debug(f".first 点击也失败: {first_error}")
 
                 # 策略 2: force 点击（跳过可见性检查）
                 if "not visible" in error_str or "covered" in error_str:
@@ -167,13 +165,24 @@ class Executor:
 
                 return ActionResult(success=False, error=f"点击失败: {str(e)[:100]}")
         else:
-            # 策略 4: 直接通过文本点击
+            # 策略 4: 在侧边栏区域内查找（优先）
             try:
-                await self.page.get_by_text(target).click(timeout=self.timeout)
-                logger.info(f"通过文本点击成功: {target}")
+                sidebar_locator = self.page.locator(
+                    'aside, .sidebar, .side-nav, nav, .ant-layout-sider, .el-aside, [class*="sidebar"], [class*="menu"]'
+                ).get_by_text(target, exact=True).first
+                await sidebar_locator.click(timeout=self.timeout)
+                logger.info(f"通过侧边栏区域限定点击成功: {target}")
                 return ActionResult(success=True)
             except Exception as e:
-                # 策略 5: 通过 role 点击
+                logger.debug(f"侧边栏区域限定点击失败: {e}")
+
+            # 策略 5: 使用 .first 避免严格模式错误
+            try:
+                await self.page.get_by_text(target).first.click(timeout=self.timeout)
+                logger.info(f"通过 .first 点击成功: {target}")
+                return ActionResult(success=True)
+            except Exception as e:
+                # 策略 6: 通过 role 点击
                 try:
                     await self.page.get_by_role("button", name=target).click(timeout=self.timeout)
                     logger.info(f"通过 role 点击成功: {target}")
@@ -259,94 +268,6 @@ class Executor:
                     success=False,
                     error=f"无法找到输入框: {target}",
                 )
-
-    async def _detect_menu_item(self, locator) -> bool:
-        """检测元素是否是可展开的菜单项
-
-        通过检查 DOM 结构判断元素是否是可展开的菜单：
-        - 是否有子菜单元素（ul, .submenu 等）
-        - 是否有展开箭头（▶, ▼ 等）
-        - 是否有下拉相关的 class 或属性
-
-        Args:
-            locator: Playwright Locator 对象
-
-        Returns:
-            True 如果元素是可展开的菜单项
-        """
-        try:
-            element = await locator.element_handle(timeout=3000)
-            is_menu = await self.page.evaluate(
-                """
-                (el) => {
-                    // 检查是否有子菜单
-                    const has_submenu = el.querySelector('ul, .submenu, .sub-menu, .children, .ant-menu-sub, .el-submenu__title');
-                    // 检查是否有展开箭头
-                    const text = el.textContent || '';
-                    const has_arrow = text.includes('▶') || text.includes('▼') ||
-                                     text.includes('▸') || text.includes('▾') ||
-                                     text.includes('►') || text.includes('▽');
-                    // 检查是否在导航区域内
-                    const is_nav_item = el.closest('nav, .menu, .sidebar, .nav, .ant-menu, .el-menu, .aside') !== null;
-                    // 检查是否有下拉相关的 class 或属性
-                    const has_dropdown_class = el.classList.contains('dropdown') ||
-                                              el.classList.contains('has-submenu') ||
-                                              el.classList.contains('ant-menu-submenu') ||
-                                              el.classList.contains('el-submenu') ||
-                                              el.getAttribute('aria-haspopup') === 'true';
-
-                    return !!(has_submenu || has_arrow || (is_nav_item && has_dropdown_class));
-                }
-            """,
-                element,
-            )
-            if is_menu:
-                logger.debug(f"检测到可展开菜单项")
-            return is_menu
-        except Exception as e:
-            logger.debug(f"菜单检测失败: {e}")
-            return False
-
-    async def _hover(
-        self,
-        target: str | None,
-        elements: list[InteractiveElement],
-    ) -> ActionResult:
-        """悬停在目标元素上（用于菜单展开）
-
-        Args:
-            target: 目标元素描述
-            elements: 可交互元素列表
-
-        Returns:
-            ActionResult: 执行结果
-        """
-        if not target:
-            return ActionResult(success=False, error="悬停目标不能为空")
-
-        # 尝试定位元素
-        locator = await self._locate_element(target, elements)
-
-        if locator:
-            try:
-                await locator.hover(timeout=self.timeout)
-                # 增加等待时间，确保子菜单展开
-                await self.page.wait_for_timeout(1000)
-                logger.info(f"悬停成功: {target}")
-                return ActionResult(success=True)
-            except Exception as e:
-                logger.warning(f"悬停失败: {target}, 错误: {e}")
-                return ActionResult(success=False, error=f"悬停失败: {str(e)[:100]}")
-        else:
-            # 直接尝试通过文本悬停
-            try:
-                await self.page.get_by_text(target).hover(timeout=self.timeout)
-                await self.page.wait_for_timeout(1000)
-                logger.info(f"通过文本悬停成功: {target}")
-                return ActionResult(success=True)
-            except Exception as e:
-                logger.warning(f"悬停失败: {target}, 错误: {e}")
-                return ActionResult(success=False, error=f"无法找到元素: {target}")
 
     async def _wait(self) -> ActionResult:
         """等待页面稳定
@@ -491,11 +412,23 @@ class Executor:
                 # 检查是否匹配多个元素，如果是则用区域限定
                 try:
                     count = await locator.count()
-                    if count > 1 and el.region:
-                        region_sel = self.REGION_SELECTORS.get(el.region)
-                        if region_sel:
-                            logger.info(f"检测到多个匹配元素，使用区域限定: {el.region}")
-                            locator = self.page.locator(region_sel).get_by_text(el.text, exact=True)
+                    if count > 1:
+                        if el.region:
+                            region_sel = self.REGION_SELECTORS.get(el.region)
+                            if region_sel:
+                                logger.info(f"检测到多个匹配元素，使用区域限定: {el.region}")
+                                region_locator = self.page.locator(region_sel).get_by_text(el.text, exact=True)
+                                region_count = await region_locator.count()
+                                if region_count == 1:
+                                    return region_locator
+                                elif region_count > 1:
+                                    # 区域限定后仍多个，使用 .first
+                                    logger.info(f"区域限定后仍有 {region_count} 个匹配，使用 .first")
+                                    return region_locator.first
+                        else:
+                            # 无区域信息，直接使用 .first
+                            logger.info(f"检测到 {count} 个匹配元素且无区域信息，使用 .first")
+                            return locator.first
                 except PlaywrightTimeoutError as e:
                     logger.debug(f"区域消歧检查超时: {e}")
                 except Exception as e:
@@ -550,3 +483,54 @@ class Executor:
                 return self.page.locator(f"{el.tag.lower()}:visible >> nth={idx}")
 
         return None
+
+    async def _fill_form(
+        self,
+        action: Action,
+        elements: list[InteractiveElement],
+    ) -> ActionResult:
+        """执行复杂表单填写
+
+        Args:
+            action: 动作对象
+            elements: 元素列表
+
+        Returns:
+            ActionResult: 执行结果
+        """
+        from backend.agent_simple.perception import Perception
+
+        logger.info("使用 FormFiller 填写表单")
+
+        if not self.llm:
+            return ActionResult(
+                success=False,
+                error="Executor 未配置 LLM，无法使用 fill_form"
+            )
+
+        try:
+            # 获取当前页面状态
+            perception = Perception(self.page)
+            screenshot_base64 = await perception.take_screenshot_base64()
+
+            state = PageState(
+                screenshot_base64=screenshot_base64,
+                url=self.page.url,
+                title=await self.page.title(),
+                elements=elements,
+            )
+
+            # 使用 FormFiller
+            filler = FormFiller(self.llm, self.page)
+            result = await filler.fill_form(state, action.target or "填写表单")
+
+            if result.success:
+                logger.info("表单填写成功")
+                return ActionResult(success=True, error=None)
+            else:
+                logger.error(f"表单填写失败: {result.error}")
+                return ActionResult(success=False, error=result.error)
+
+        except Exception as e:
+            logger.error(f"表单填写异常: {e}")
+            return ActionResult(success=False, error=str(e))

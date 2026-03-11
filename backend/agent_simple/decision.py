@@ -25,6 +25,30 @@ class Decision:
         """
         self.llm = llm
 
+    def _is_complex_form(self, state: PageState) -> bool:
+        """检测是否为复杂表单
+
+        Args:
+            state: 当前页面状态
+
+        Returns:
+            是否为复杂表单
+        """
+        # 检查输入元素数量
+        input_count = sum(
+            1 for e in state.elements
+            if e.tag in ("INPUT", "SELECT", "TEXTAREA")
+        )
+
+        # 检查 URL 关键词
+        url_lower = state.url.lower()
+        is_form_url = any(
+            kw in url_lower
+            for kw in ["form", "add", "edit", "create", "new"]
+        )
+
+        return input_count >= 3 and is_form_url
+
     async def decide(
         self,
         task: str,
@@ -41,6 +65,15 @@ class Decision:
         Returns:
             Action: 解析后的动作对象
         """
+        # 检测复杂表单
+        if self._is_complex_form(state):
+            logger.info("检测到复杂表单，使用 fill_form 模式")
+            return Action(
+                thought="检测到复杂表单，使用代码生成模式一次性填写",
+                action="fill_form",
+                done=False,
+            )
+
         # 1. 获取记忆上下文
         memory_context = memory.format_for_prompt() if memory else ""
 
@@ -87,9 +120,16 @@ class Decision:
         if json_str:
             try:
                 data = json.loads(json_str)
+                action_type = data.get("action", "wait")
+
+                # 将 hover 动作转换为 click（因为已移除 hover 支持）
+                if action_type == "hover":
+                    logger.info("检测到 hover 动作，自动转换为 click")
+                    action_type = "click"
+
                 return Action(
                     thought=data.get("thought", ""),
-                    action=data.get("action", "wait"),
+                    action=action_type,
                     target=data.get("target"),
                     value=data.get("value"),
                     done=data.get("done", False),

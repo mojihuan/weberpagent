@@ -69,7 +69,7 @@ class SimpleAgent:
         # 初始化子模块
         self.perception = Perception(page)
         self.decision = Decision(llm)
-        self.executor = Executor(page, timeout=timeout)
+        self.executor = Executor(page, llm=llm, timeout=timeout)
 
         # 输出目录
         self.output_dir = Path(output_dir)
@@ -82,52 +82,98 @@ class SimpleAgent:
         # 记忆模块
         self.memory = Memory(max_steps=5)
 
-    def _detect_loop(self) -> bool:
-        """检测是否陷入循环"""
+        # 循环检测状态
+        self._last_loop_type: str | None = None
+
+    def _detect_loop(self) -> tuple[bool, str | None]:
+        """检测是否陷入循环
+
+        Returns:
+            (is_loop, loop_type): 是否陷入循环，以及循环类型描述
+        """
         if len(self.history) < 4:
-            return False
+            return False, None
 
         recent = self.history[-4:]
 
         # 检测 1: 连续相同动作
         actions = [(s.action.action, s.action.target) for s in recent]
-        if len(set(str(a) for a in actions)) <= 2:
-            logger.warning("检测到循环：连续相同动作")
-            return True
+        unique_actions = len(set(str(a) for a in actions))
+        if unique_actions <= 2:
+            loop_type = f"连续执行相同动作: {actions[0][0]} -> {actions[0][1]}"
+            logger.warning(f"检测到循环：{loop_type}")
+            return True, loop_type
 
         # 检测 2: 页面状态无变化
         page_hashes = [s.state.state_hash for s in recent if s.state.state_hash]
         if len(page_hashes) >= 4 and len(set(page_hashes)) == 1:
-            logger.warning("检测到循环：页面状态无变化")
-            return True
+            loop_type = "页面状态连续 4 步无变化"
+            logger.warning(f"检测到循环：{loop_type}")
+            return True, loop_type
 
         # 检测 3: 高失败率
         failed_count = sum(1 for s in recent if not s.result.success)
         if failed_count >= 3:
-            logger.warning(f"检测到循环：高失败率 {failed_count}/4")
-            return True
+            loop_type = f"连续 4 步中 {failed_count} 步失败"
+            logger.warning(f"检测到循环：{loop_type}")
+            return True, loop_type
 
-        return False
+        return False, None
 
-    async def _recover_from_loop(self) -> bool:
-        """从循环中恢复"""
-        logger.info("尝试从循环中恢复...")
+    async def _recover_from_loop(self, loop_type: str | None = None) -> bool:
+        """从循环中恢复
 
-        recovery_actions = [
-            ("wait", "等待页面加载", lambda: self.page.wait_for_timeout(2000)),
-            (
-                "scroll_down",
-                "滚动到页面底部",
-                lambda: self.page.evaluate(
-                    "window.scrollTo(0, document.body.scrollHeight)"
+        Args:
+            loop_type: 循环类型描述，用于智能选择恢复策略
+        """
+        logger.info(f"尝试从循环中恢复... (循环类型: {loop_type})")
+
+        # 根据循环类型选择不同的恢复策略
+        if loop_type and "相同动作" in loop_type:
+            # 连续相同动作：尝试滚动或等待，让页面状态发生变化
+            recovery_actions = [
+                (
+                    "scroll_down",
+                    "滚动到页面底部寻找新元素",
+                    lambda: self.page.evaluate(
+                        "window.scrollTo(0, document.body.scrollHeight)"
+                    ),
                 ),
-            ),
-            (
-                "scroll_up",
-                "滚动到页面顶部",
-                lambda: self.page.evaluate("window.scrollTo(0, 0)"),
-            ),
-        ]
+                (
+                    "scroll_up",
+                    "滚动回页面顶部",
+                    lambda: self.page.evaluate("window.scrollTo(0, 0)"),
+                ),
+                ("wait", "等待页面加载", lambda: self.page.wait_for_timeout(2000)),
+            ]
+        elif loop_type and "失败" in loop_type:
+            # 高失败率：可能是元素定位问题，尝试滚动
+            recovery_actions = [
+                (
+                    "scroll_down",
+                    "滚动查找元素",
+                    lambda: self.page.evaluate(
+                        "window.scrollTo(0, document.body.scrollHeight)"
+                    ),
+                ),
+                (
+                    "scroll_up",
+                    "滚动到页面顶部",
+                    lambda: self.page.evaluate("window.scrollTo(0, 0)"),
+                ),
+            ]
+        else:
+            # 默认恢复策略
+            recovery_actions = [
+                ("wait", "等待页面加载", lambda: self.page.wait_for_timeout(2000)),
+                (
+                    "scroll_down",
+                    "滚动到页面底部",
+                    lambda: self.page.evaluate(
+                        "window.scrollTo(0, document.body.scrollHeight)"
+                    ),
+                ),
+            ]
 
         for action_name, description, action_func in recovery_actions:
             try:
@@ -147,6 +193,11 @@ class SimpleAgent:
             return "（这是第一步）"
 
         parts = []
+
+        # 如果检测到循环，添加明确的警告
+        if self._last_loop_type:
+            parts.append("⚠️ 循环警告：检测到 " + self._last_loop_type)
+            parts.append("请换一种策略，不要重复之前的动作！\n")
 
         # 最近 3 步的摘要
         recent = self.history[-3:] if len(self.history) >= 3 else self.history
@@ -249,11 +300,14 @@ class SimpleAgent:
             logger.info(f"{'='*50}")
 
             # 检测循环
-            if self._detect_loop():
-                recovered = await self._recover_from_loop()
+            is_loop, loop_type = self._detect_loop()
+            if is_loop:
+                recovered = await self._recover_from_loop(loop_type)
                 if not recovered:
                     logger.error("无法从循环中恢复")
                     # 继续执行，让 LLM 决定下一步
+                # 记录循环警告，用于构建上下文
+                self._last_loop_type = loop_type
 
             # 1. 感知页面
             state = await self.perception.get_state()
