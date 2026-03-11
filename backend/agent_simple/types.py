@@ -27,6 +27,7 @@ class InteractiveElement(BaseModel):
     name: str | None = Field(default=None, description="元素 name 属性")
     aria_label: str | None = Field(default=None, description="aria-label 属性")
     title: str | None = Field(default=None, description="title 属性（悬停提示）")
+    region: str | None = Field(default=None, description="元素所在区域 (sidebar/header/main/footer/modal)")
 
 
 class PageState(BaseModel):
