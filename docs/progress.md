@@ -127,6 +127,32 @@
   - 元素列表展示区域信息：`[0] BUTTON | 文本: "商品采购" | 区域: 侧边栏`
   - 执行层自动消歧：当 `count > 1` 时用区域选择器限定
 
+### Phase 9: 多 Agent 协作模式 ✅
+- **开始日期**: 2026-03-11
+- **完成日期**: 2026-03-11
+- **设计文档**: `docs/plans/2026-03-11-phase9-multi-agent-design.md`
+- **实施计划**: `docs/plans/2026-03-11-phase9-implementation-plan.md`
+- **触发原因**: SimpleAgent 在处理复杂表单时陷入循环（连续执行 wait 动作）
+- **解决方案**: 让 LLM 生成 Playwright 代码片段，一次性完成表单填写
+- **任务清单**:
+  - [x] 9.1 基础架构设计 ✅
+    - [x] 9.1.1 创建 `form_filler/` 目录结构 ✅
+    - [x] 9.1.2 添加新类型定义 (GeneratedCode, ReviewResult 等) ✅
+    - [x] 9.1.3 实现 sandbox.py 代码执行器 ✅
+    - [x] 9.1.4 编写子 Agent Prompt 模板 ✅
+  - [x] 9.2 CodeGenerator Agent 实现 ✅
+  - [x] 9.3 CodeReviewer Agent 实现 ✅
+  - [x] 9.4 CodeOptimizer Agent 实现 ✅
+  - [x] 9.5 FormFiller Orchestrator 实现 ✅
+  - [x] 9.6 主 Agent 集成 ✅
+  - [x] 9.7 场景验证测试 ✅
+- **实现效果**:
+  - 新增 `backend/agent_simple/form_filler/` 子模块
+  - 多 Agent 协作：CodeGenerator → CodeReviewer → CodeOptimizer
+  - 自动检测复杂表单（input≥3 且 URL 含 form/add/edit）
+  - 最多 3 轮审查-优化循环
+  - 执行失败自动重试一次
+
 ---
 
 ## 前端进度
