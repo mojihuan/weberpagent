@@ -15,11 +15,10 @@ from backend.agent_simple.form_filler.prompts import (
     generate_field_value,
 )
 
-# orchestrator.py 尚未创建，暂时注释
-# from backend.agent_simple.form_filler.orchestrator import FormFiller
+from backend.agent_simple.form_filler.orchestrator import FormFiller
 
 __all__ = [
-    # "FormFiller",
+    "FormFiller",
     # Types
     "GeneratedCode",
     "ReviewIssue",
