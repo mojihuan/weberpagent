@@ -177,6 +177,26 @@ class Perception:
                     if (el.tagName === 'A') priority += 10;
                     if (el.tagName === 'INPUT') priority += 12;
 
+                    // 检测元素所在区域
+                    const region = (() => {
+                        if (el.closest('aside, .sidebar, .side-nav, .ant-layout-sider, .el-aside, nav')) {
+                            return 'sidebar';
+                        }
+                        if (el.closest('header, .header, .ant-layout-header, .el-header')) {
+                            return 'header';
+                        }
+                        if (el.closest('main, .main, .content, .ant-layout-content, .el-main')) {
+                            return 'main';
+                        }
+                        if (el.closest('footer, .footer, .ant-layout-footer, .el-footer')) {
+                            return 'footer';
+                        }
+                        if (el.closest('.modal, .dialog, .ant-modal, .el-dialog, [role="dialog"]')) {
+                            return 'modal';
+                        }
+                        return null;
+                    })();
+
                     result.push({
                         index: index,
                         tag: el.tagName,
@@ -187,6 +207,7 @@ class Perception:
                         name: el.name || null,
                         aria_label: el.getAttribute('aria-label') || null,
                         title: el.getAttribute('title') || null,
+                        region: region,
                         _priority: priority,
                         _isInViewport: isInViewport
                     });
