@@ -1,13 +1,28 @@
-"""LLM 实例工厂 - 根据模块名称创建对应的 LLM 实例"""
+"""LLM 实例工厂 - 根据模块名称创建对应的 LLM 实例
+
+注意：当前 qwen.py 已归档到 _archived/llm/，需要创建 OpenAI 实现。
+使用 set_llm_class() 方法设置具体的 LLM 实现。
+"""
 
 import logging
-from typing import Type
+from typing import Type, Optional
 
 from .base import BaseLLM
 from .config import LLMConfig, get_config
-from .qwen import QwenChat
 
 logger = logging.getLogger(__name__)
+
+# 尝试导入可用的 LLM 实现
+_LLM_CLASS: Optional[Type[BaseLLM]] = None
+
+# 尝试导入 QwenChat（已归档）
+try:
+    from backend._archived.llm.qwen import QwenChat
+
+    _LLM_CLASS = QwenChat
+    logger.info("使用已归档的 QwenChat 实现（建议迁移到 OpenAI）")
+except ImportError:
+    logger.debug("QwenChat 不可用，请使用 set_llm_class() 设置 LLM 实现")
 
 
 class LLMFactory:
@@ -15,10 +30,12 @@ class LLMFactory:
 
     根据模块名称从配置中获取对应的模型，创建 LLM 实例
     使用缓存避免重复创建
+
+    使用前需要先调用 set_llm_class() 设置 LLM 实现类。
     """
 
     _instances: dict[str, BaseLLM] = {}
-    _llm_class: Type[BaseLLM] = QwenChat
+    _llm_class: Optional[Type[BaseLLM]] = _LLM_CLASS
 
     @classmethod
     def set_llm_class(cls, llm_class: Type[BaseLLM]) -> None:
@@ -34,7 +51,16 @@ class LLMFactory:
 
         Returns:
             LLM 实例
+
+        Raises:
+            RuntimeError: 未设置 LLM 实现类
         """
+        if cls._llm_class is None:
+            raise RuntimeError(
+                "LLM 实现类未设置。请先调用 LLMFactory.set_llm_class() "
+                "设置 LLM 实现（如 OpenAI），或确保 QwenChat 可用。"
+            )
+
         config = get_config()
         model = config.get_model(module_path)
 
