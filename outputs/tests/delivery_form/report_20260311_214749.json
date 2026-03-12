@@ -1,0 +1,314 @@
+{
+  "timestamp": "2026-03-11T21:47:49.821707",
+  "success": false,
+  "result": null,
+  "error": "超过最大步数 30",
+  "total_steps": 30,
+  "test_data": {
+    "receiver": "测试收货人_qkdmua",
+    "phone": "13889087620",
+    "address": "测试地址_qkdmua号"
+  },
+  "steps": [
+    {
+      "step_num": 1,
+      "action": "navigate",
+      "target": null,
+      "value": "https://erptest.epbox.cn/",
+      "thought": "当前页面为空白页，需要首先导航到目标网站 https://erptest.epbox.cn/",
+      "success": false,
+      "error": "重试 3 次后仍然失败",
+      "screenshot": null
+    },
+    {
+      "step_num": 2,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面为加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_002.jpg"
+    },
+    {
+      "step_num": 3,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_003.jpg"
+    },
+    {
+      "step_num": 4,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_004.jpg"
+    },
+    {
+      "step_num": 5,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_005.jpg"
+    },
+    {
+      "step_num": 6,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_006.jpg"
+    },
+    {
+      "step_num": 7,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_007.jpg"
+    },
+    {
+      "step_num": 8,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_008.jpg"
+    },
+    {
+      "step_num": 9,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_009.jpg"
+    },
+    {
+      "step_num": 10,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_010.jpg"
+    },
+    {
+      "step_num": 11,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_011.jpg"
+    },
+    {
+      "step_num": 12,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_012.jpg"
+    },
+    {
+      "step_num": 13,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_013.jpg"
+    },
+    {
+      "step_num": 14,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_014.jpg"
+    },
+    {
+      "step_num": 15,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_015.jpg"
+    },
+    {
+      "step_num": 16,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_016.jpg"
+    },
+    {
+      "step_num": 17,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍处于加载状态，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_017.jpg"
+    },
+    {
+      "step_num": 18,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_018.jpg"
+    },
+    {
+      "step_num": 19,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_019.jpg"
+    },
+    {
+      "step_num": 20,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_020.jpg"
+    },
+    {
+      "step_num": 21,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_021.jpg"
+    },
+    {
+      "step_num": 22,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_022.jpg"
+    },
+    {
+      "step_num": 23,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_023.jpg"
+    },
+    {
+      "step_num": 24,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_024.jpg"
+    },
+    {
+      "step_num": 25,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_025.jpg"
+    },
+    {
+      "step_num": 26,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_026.jpg"
+    },
+    {
+      "step_num": 27,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_027.jpg"
+    },
+    {
+      "step_num": 28,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_028.jpg"
+    },
+    {
+      "step_num": 29,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_029.jpg"
+    },
+    {
+      "step_num": 30,
+      "action": "wait",
+      "target": null,
+      "value": null,
+      "thought": "当前页面仍在加载中，显示'正在加载系统资源，请耐心等待'，说明页面尚未完全加载。需要继续等待页面加载完成后再进行后续操作。",
+      "success": true,
+      "error": null,
+      "screenshot": "outputs/tests/delivery_form/screenshots/20260311_213659/step_030.jpg"
+    }
+  ]
+}

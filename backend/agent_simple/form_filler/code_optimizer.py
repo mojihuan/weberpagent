@@ -63,15 +63,35 @@ class CodeOptimizer:
 
     def _extract_code(self, response: str) -> str:
         """从响应中提取代码"""
-        # 优先从代码块提取
+        import json
+
+        # 1. 优先从 ```json 代码块中提取 JSON，然后提取 code 字段
+        json_block_pattern = r"```json\s*([\s\S]*?)\s*```"
+        match = re.search(json_block_pattern, response)
+        if match:
+            try:
+                data = json.loads(match.group(1))
+                if isinstance(data, dict) and "code" in data:
+                    return data["code"].strip()
+            except json.JSONDecodeError:
+                pass
+
+        # 2. 从 ```python 代码块提取
         code_block_pattern = r"```(?:python)?\s*([\s\S]*?)\s*```"
         match = re.search(code_block_pattern, response)
         if match:
-            return match.group(1).strip()
+            content = match.group(1).strip()
+            # 如果内容是 JSON，尝试解析
+            try:
+                data = json.loads(content)
+                if isinstance(data, dict) and "code" in data:
+                    return data["code"].strip()
+            except json.JSONDecodeError:
+                pass
+            # 否则直接返回代码
+            return content
 
-        # 尝试从 JSON 中提取 code 字段
-        import json
-
+        # 3. 尝试直接解析整个响应为 JSON
         try:
             data = json.loads(response)
             if isinstance(data, dict) and "code" in data:
@@ -79,7 +99,7 @@ class CodeOptimizer:
         except json.JSONDecodeError:
             pass
 
-        # 尝试找到函数定义开始
+        # 4. 尝试找到函数定义开始
         func_start = response.find("async def fill_form")
         if func_start >= 0:
             return response[func_start:].strip()

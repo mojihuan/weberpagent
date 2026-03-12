@@ -58,6 +58,8 @@ async def execute_code(
         # ========== 调试：逐行执行并记录 ==========
         # 将代码按顶层语句分割执行
         import ast
+        import asyncio
+
         try:
             tree = ast.parse(code)
             for i, node in enumerate(tree.body):
@@ -66,15 +68,50 @@ async def execute_code(
                 end_line = node.end_lineno if hasattr(node, 'end_lineno') else start_line + 1
                 node_code = '\n'.join(code_lines[start_line:end_line])
 
+                # 检查是否是函数定义
+                is_function_def = isinstance(node, ast.AsyncFunctionDef) or isinstance(node, ast.FunctionDef)
+                func_name = node.name if is_function_def else None
+
                 logger.info(f"📍 执行第 {i+1} 个语句 (行 {start_line+1}-{end_line}):")
-                logger.info(f"   {node_code[:100]}{'...' if len(node_code) > 100 else ''}")
+                if is_function_def:
+                    logger.info(f"   定义函数: {func_name}")
+                else:
+                    logger.info(f"   {node_code[:100]}{'...' if len(node_code) > 100 else ''}")
 
                 # 执行当前节点
                 try:
                     exec(compile(ast.Module([node], []), '<string>', 'exec'), global_vars, local_vars)
                     logger.info(f"   ✅ 成功")
+
+                    # 如果是函数定义，执行完后调用它
+                    if is_function_def and func_name:
+                        logger.info(f"📍 调用函数: {func_name}(page)")
+                        func = local_vars.get(func_name)
+                        if func and callable(func):
+                            result = func(page=context.get('page'))
+                            # 如果是协程，需要 await
+                            if asyncio.iscoroutine(result):
+                                await result
+                            logger.info(f"   ✅ 函数执行成功")
+                        else:
+                            logger.error(f"   ❌ 函数 {func_name} 未找到或不可调用")
+
                 except Exception as e:
-                    logger.error(f"   ❌ 失败: {type(e).__name__}: {e}")
+                    import traceback
+                    # 获取详细的错误堆栈，找出失败的行号
+                    tb = traceback.extract_tb(e.__traceback__)
+                    error_detail = f"{type(e).__name__}: {e}"
+
+                    # 查找代码中的失败行
+                    for frame in reversed(tb):
+                        if frame.filename == '<string>':
+                            failed_line = frame.lineno
+                            line_content = code_lines[failed_line - 1] if failed_line <= len(code_lines) else "未知"
+                            logger.error(f"   ❌ 失败 (行 {failed_line}): {line_content.strip()}")
+                            logger.error(f"   ❌ 错误: {error_detail}")
+                            break
+                    else:
+                        logger.error(f"   ❌ 失败: {error_detail}")
                     raise
         except SyntaxError as e:
             logger.error(f"代码语法错误: {e}")
