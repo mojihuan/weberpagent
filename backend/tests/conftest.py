@@ -5,12 +5,15 @@ import os
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
 
 # 添加项目根目录到路径
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from backend.llm.qwen import QwenChat
+from backend.llm import get_llm
+
+load_dotenv()
 
 
 @pytest.fixture(scope="session")
@@ -24,10 +27,10 @@ def event_loop():
 @pytest.fixture
 def llm():
     """创建 LLM 实例"""
-    api_key = os.getenv("DASHSCOPE_API_KEY")
-    if not api_key:
-        pytest.skip("DASHSCOPE_API_KEY 未配置")
-    return QwenChat(model="qwen-vl-max")
+    try:
+        return get_llm()
+    except Exception as e:
+        pytest.skip(f"LLM 配置未就绪: {e}")
 
 
 @pytest.fixture
@@ -45,3 +48,13 @@ def output_dir():
     output_path = Path("outputs/tests/phase4")
     output_path.mkdir(parents=True, exist_ok=True)
     return output_path
+
+
+@pytest.fixture
+def erp_config():
+    """ERP 测试配置"""
+    return {
+        "base_url": os.getenv("ERP_BASE_URL", "https://erp.example.com"),
+        "username": os.getenv("ERP_USERNAME", "test_user"),
+        "password": os.getenv("ERP_PASSWORD", ""),
+    }
