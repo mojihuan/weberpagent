@@ -1,4 +1,19 @@
-"""循环控制模块 - 整合感知、决策、执行，实现带反思的执行循环"""
+"""
+⚠️ 已归档 - 2026-03-12
+
+原因：切换到 browser-use + 官方 OpenAI API，不再需要自研 Agent。
+保留供历史参考。
+
+替代方案：直接使用 browser_use.Agent + langchain_openai.ChatOpenAI
+
+原 SimpleAgent 架构：
+- perception.py: 页面感知
+- decision.py: LLM 决策
+- executor.py: 动作执行
+- agent.py: 循环控制
+"""
+
+# 原注释：循环控制模块 - 整合感知、决策、执行，实现带反思的执行循环
 
 import asyncio
 import json
