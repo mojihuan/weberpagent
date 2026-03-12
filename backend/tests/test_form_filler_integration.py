@@ -58,7 +58,7 @@ async def test_form_filler_full_flow(mock_llm, mock_page, sample_state):
     with patch('backend.agent_simple.form_filler.orchestrator.execute_code') as mock_exec:
         mock_exec.return_value = {"success": True, "locals": {}}
 
-        filler = FormFiller(mock_llm, mock_page)
+        filler = FormFiller(mock_page, llm=mock_llm)
         result = await filler.fill_form(sample_state, "填写测试表单")
 
         assert result.success is True
@@ -78,7 +78,7 @@ async def test_form_filler_with_retry(mock_llm, mock_page, sample_state):
         return {"success": True, "locals": {}}
 
     with patch('backend.agent_simple.form_filler.orchestrator.execute_code', side_effect=mock_execute):
-        filler = FormFiller(mock_llm, mock_page)
+        filler = FormFiller(mock_page, llm=mock_llm)
         result = await filler.fill_form(sample_state, "填写测试表单")
 
         # 应该重试成功
@@ -90,7 +90,7 @@ async def test_form_filler_generation_failure(mock_llm, mock_page, sample_state)
     """测试代码生成失败的情况"""
     mock_llm.chat_with_vision.side_effect = Exception("LLM API Error")
 
-    filler = FormFiller(mock_llm, mock_page)
+    filler = FormFiller(mock_page, llm=mock_llm)
     result = await filler.fill_form(sample_state, "填写测试表单")
 
     assert result.success is False
@@ -103,7 +103,7 @@ async def test_form_filler_execution_failure_with_retry(mock_llm, mock_page, sam
     with patch('backend.agent_simple.form_filler.orchestrator.execute_code') as mock_exec:
         mock_exec.return_value = {"success": False, "error": "Element not found"}
 
-        filler = FormFiller(mock_llm, mock_page)
+        filler = FormFiller(mock_page, llm=mock_llm)
         result = await filler.fill_form(sample_state, "填写测试表单")
 
         assert result.success is False

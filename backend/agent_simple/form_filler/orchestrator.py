@@ -101,7 +101,7 @@ class FormFiller:
 
         # 2. 审查循环
         for round_num in range(self.MAX_REVIEW_ROUNDS):
-            review_result = self.code_reviewer.review(code, state.elements)
+            review_result = await self.code_reviewer.review(code, state.elements)
 
             if review_result.approved:
                 logger.info(f"代码审查通过（第 {round_num + 1} 轮）")

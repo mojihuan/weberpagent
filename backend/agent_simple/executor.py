@@ -526,7 +526,7 @@ class Executor:
             )
 
             # 使用 FormFiller
-            filler = FormFiller(self.llm, self.page)
+            filler = FormFiller(self.page, llm=self.llm)
             result = await filler.fill_form(state, action.target or "填写表单")
 
             if result.success:

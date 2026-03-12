@@ -49,7 +49,7 @@ async def test_fill_form_success(mock_llm, mock_page, sample_state):
             # Mock 代码审查
             with patch('backend.agent_simple.form_filler.orchestrator.CodeReviewer') as MockReviewer:
                 mock_reviewer = MockReviewer.return_value
-                mock_reviewer.review = MagicMock(return_value=ReviewResult(
+                mock_reviewer.review = AsyncMock(return_value=ReviewResult(
                     approved=True, issues=[], suggestions=[]
                 ))
 
@@ -88,7 +88,7 @@ async def test_fill_form_review_with_optimization(mock_llm, mock_page, sample_st
             with patch('backend.agent_simple.form_filler.orchestrator.CodeReviewer') as MockReviewer:
                 mock_reviewer = MockReviewer.return_value
                 # 第一次审查失败，第二次通过
-                mock_reviewer.review = MagicMock(side_effect=[
+                mock_reviewer.review = AsyncMock(side_effect=[
                     ReviewResult(approved=False, issues=[], suggestions=["需要优化"]),
                     ReviewResult(approved=True, issues=[], suggestions=[]),
                 ])
@@ -116,7 +116,7 @@ async def test_fill_form_execution_failure_with_retry(mock_llm, mock_page, sampl
 
         with patch('backend.agent_simple.form_filler.orchestrator.CodeReviewer') as MockReviewer:
             mock_reviewer = MockReviewer.return_value
-            mock_reviewer.review = MagicMock(return_value=ReviewResult(
+            mock_reviewer.review = AsyncMock(return_value=ReviewResult(
                 approved=True, issues=[], suggestions=[]
             ))
 
@@ -153,7 +153,7 @@ async def test_fill_form_execution_failure_final(mock_llm, mock_page, sample_sta
 
         with patch('backend.agent_simple.form_filler.orchestrator.CodeReviewer') as MockReviewer:
             mock_reviewer = MockReviewer.return_value
-            mock_reviewer.review = MagicMock(return_value=ReviewResult(
+            mock_reviewer.review = AsyncMock(return_value=ReviewResult(
                 approved=True, issues=[], suggestions=[]
             ))
 
