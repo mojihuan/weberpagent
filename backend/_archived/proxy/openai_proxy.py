@@ -1,4 +1,14 @@
-"""OpenAI 兼容代理服务
+"""
+⚠️ 已归档 - 2026-03-12
+
+原因：切换到官方 OpenAI API，不再需要代理服务。
+保留供历史参考。
+
+替代方案：直接使用 api.openai.com
+
+---
+
+OpenAI 兼容代理服务
 
 将 OpenAI 格式的 API 请求转换为通义千问格式，
 使 Browser-Use 可以直接使用 ChatOpenAI 类。
