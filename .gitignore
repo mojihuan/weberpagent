@@ -211,8 +211,6 @@ __marimo__/
 开发流程资料/
 设计ui原型/
 .claude/
-CLAUDE.md
-docs/
 
 # Node.js
 node_modules/
@@ -248,3 +246,5 @@ coverage/
 
 # Screenshots (generated during tests)
 screenshots/
+
+.mcp.json
