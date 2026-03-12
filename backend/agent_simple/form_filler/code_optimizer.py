@@ -53,6 +53,7 @@ class CodeOptimizer:
         )
 
         # 调用 LLM
+        logger.info(f"调用代码优化 LLM，模型: {self.llm.model_name}")
         response = await self.llm.chat_with_vision(messages=prompt, images=[])
 
         # 提取代码

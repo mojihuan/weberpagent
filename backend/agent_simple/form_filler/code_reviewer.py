@@ -172,6 +172,7 @@ class CodeReviewer:
             return issues, suggestions
 
         try:
+            logger.info(f"调用 LLM 代码审查，模型: {self._llm.model_name}")
             messages = build_code_reviewer_prompt(code, elements)
             response = await self._llm.chat_with_vision(messages, images=[])
             llm_issues, llm_suggestions = self._parse_llm_response(response.content)

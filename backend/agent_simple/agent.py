@@ -499,6 +499,7 @@ class SimpleAgent:
 
         try:
             # 使用 reflect_llm 而不是 self.llm
+            logger.info(f"调用反思 LLM，模型: {self.reflect_llm.model_name}")
             response = await self.reflect_llm.chat_with_vision(
                 messages=messages,
                 images=[f"data:image/png;base64,{state.screenshot_base64}"],

@@ -54,6 +54,7 @@ class CodeGenerator:
             images.append(f"data:image/png;base64,{state.screenshot_base64}")
 
         # 3. 调用 LLM
+        logger.info(f"调用代码生成 LLM，模型: {self.llm.model_name}")
         response = await self.llm.chat_with_vision(messages=messages, images=images)
 
         # 4. 解析响应
