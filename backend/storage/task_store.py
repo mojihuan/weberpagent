@@ -37,7 +37,13 @@ class TaskStore:
             json.dump(tasks, f, ensure_ascii=False, indent=2, default=str)
 
     def create(
-        self, name: str, description: str, assertions: list | None = None
+        self,
+        name: str,
+        description: str,
+        target_url: str = "",
+        max_steps: int = 10,
+        status: str = "draft",
+        assertions: list | None = None,
     ):
         """创建任务"""
         from backend.api.schemas.index import Task
@@ -48,6 +54,9 @@ class TaskStore:
             "id": str(uuid.uuid4())[:8],
             "name": name,
             "description": description,
+            "target_url": target_url,
+            "max_steps": max_steps,
+            "status": status,
             "assertions": [a.model_dump() for a in assertions] if assertions else [],
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),
