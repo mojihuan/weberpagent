@@ -261,3 +261,12 @@ def get_llm_base_url() -> str:
         Base URL
     """
     return LLMConfig.get_instance().get_base_url()
+
+
+def get_config() -> LLMConfig:
+    """获取 LLM 配置单例
+
+    Returns:
+        LLMConfig 实例
+    """
+    return LLMConfig.get_instance()
