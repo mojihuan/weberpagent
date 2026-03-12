@@ -1,10 +1,13 @@
 """代码审查 Agent - 审查生成的代码"""
 
 import ast
+import json
 import logging
 import re
 from backend.agent_simple.types import InteractiveElement
 from backend.agent_simple.form_filler.types import ReviewResult, ReviewIssue
+from backend.llm.base import BaseLLM
+from backend.agent_simple.form_filler.prompts import build_code_reviewer_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +27,24 @@ DANGEROUS_CALLS = {
 class CodeReviewer:
     """代码审查 Agent - 审查生成的代码是否安全、有效、完整"""
 
-    def __init__(self):
-        pass
+    def __init__(self, llm: BaseLLM | None = None):
+        """初始化代码审查器
 
-    def review(self, code: str, elements: list[InteractiveElement]) -> ReviewResult:
-        """审查代码"""
+        Args:
+            llm: 可选的 LLM 实例，用于语义审查
+        """
+        self._llm = llm
+
+    async def review(self, code: str, elements: list[InteractiveElement]) -> ReviewResult:
+        """审查代码
+
+        Args:
+            code: 待审查的代码
+            elements: 页面可交互元素列表
+
+        Returns:
+            ReviewResult 包含审查结果
+        """
         issues: list[ReviewIssue] = []
         suggestions: list[str] = []
 
@@ -47,6 +63,12 @@ class CodeReviewer:
         coverage_issues, coverage_suggestions = self._check_coverage(code, elements)
         issues.extend(coverage_issues)
         suggestions.extend(coverage_suggestions)
+
+        # 5. LLM 语义审查（可选）
+        if self._llm is not None:
+            llm_issues, llm_suggestions = await self._llm_review(code, elements)
+            issues.extend(llm_issues)
+            suggestions.extend(llm_suggestions)
 
         # 确定是否通过
         has_critical = any(i.severity == "CRITICAL" for i in issues)
@@ -128,5 +150,80 @@ class CodeReviewer:
                 line=None,
                 message=f"字段覆盖率较低: {coverage:.0%}",
             ))
+
+        return issues, suggestions
+
+    async def _llm_review(
+        self, code: str, elements: list[InteractiveElement]
+    ) -> tuple[list[ReviewIssue], list[str]]:
+        """使用 LLM 进行语义审查
+
+        Args:
+            code: 待审查的代码
+            elements: 页面可交互元素列表
+
+        Returns:
+            tuple[list[ReviewIssue], list[str]]: LLM 发现的问题和建议
+        """
+        issues: list[ReviewIssue] = []
+        suggestions: list[str] = []
+
+        if self._llm is None:
+            return issues, suggestions
+
+        try:
+            messages = build_code_reviewer_prompt(code, elements)
+            response = await self._llm.chat_with_vision(messages, images=[])
+            llm_issues, llm_suggestions = self._parse_llm_response(response.content)
+            issues.extend(llm_issues)
+            suggestions.extend(llm_suggestions)
+        except Exception as e:
+            logger.warning(f"LLM 审查失败，跳过: {e}")
+
+        return issues, suggestions
+
+    def _parse_llm_response(self, response: str) -> tuple[list[ReviewIssue], list[str]]:
+        """解析 LLM 响应，提取问题和建议
+
+        Args:
+            response: LLM 的原始响应文本
+
+        Returns:
+            tuple[list[ReviewIssue], list[str]]: 解析出的问题和建议
+        """
+        issues: list[ReviewIssue] = []
+        suggestions: list[str] = []
+
+        try:
+            # 尝试提取 JSON 内容
+            json_str = response.strip()
+
+            # 处理可能的 markdown 代码块包装
+            if "```json" in json_str:
+                start = json_str.find("```json") + 7
+                end = json_str.find("```", start)
+                json_str = json_str[start:end].strip()
+            elif "```" in json_str:
+                start = json_str.find("```") + 3
+                end = json_str.find("```", start)
+                json_str = json_str[start:end].strip()
+
+            data = json.loads(json_str)
+
+            # 解析 issues
+            for issue_data in data.get("issues", []):
+                issues.append(ReviewIssue(
+                    severity=issue_data.get("severity", "MEDIUM"),
+                    line=issue_data.get("line"),
+                    message=issue_data.get("message", ""),
+                ))
+
+            # 解析 suggestions
+            suggestions.extend(data.get("suggestions", []))
+
+        except json.JSONDecodeError as e:
+            logger.warning(f"解析 LLM 响应失败: {e}")
+        except Exception as e:
+            logger.warning(f"处理 LLM 响应时出错: {e}")
 
         return issues, suggestions
