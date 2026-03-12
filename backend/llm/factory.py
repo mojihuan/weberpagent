@@ -113,3 +113,34 @@ class LLMFactory:
 def get_llm(module_path: str) -> BaseLLM:
     """便捷函数：获取指定模块的 LLM 实例"""
     return LLMFactory.create(module_path)
+
+
+def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
+    """创建 browser-use 兼容的 ChatOpenAI 实例
+
+    Args:
+        llm_config: 可选的 LLM 配置字典
+            - model: 模型名称，默认 gpt-4o
+            - api_key: API Key，默认从环境变量读取
+            - base_url: API Base URL，支持 OpenAI 兼容接口
+            - temperature: 温度参数，默认 0.1
+
+    Returns:
+        ChatOpenAI 实例，可直接传递给 browser-use Agent
+    """
+    from .openai import OpenAIChat
+
+    config = llm_config or {}
+    model = config.get("model", "gpt-4o")
+    api_key = config.get("api_key")
+    base_url = config.get("base_url")
+    temperature = config.get("temperature", 0.1)
+
+    openai_chat = OpenAIChat(
+        model=model,
+        api_key=api_key,
+        base_url=base_url,
+        temperature=temperature,
+    )
+
+    return openai_chat.llm
