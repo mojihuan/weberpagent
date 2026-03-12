@@ -5,6 +5,7 @@ import logging
 from playwright.async_api import Page
 
 from backend.llm.base import BaseLLM
+from backend.llm.factory import LLMFactory
 from backend.agent_simple.types import PageState
 from backend.agent_simple.form_filler.types import FillResult, ReviewResult, GeneratedCode
 from backend.agent_simple.form_filler.code_generator import CodeGenerator
@@ -20,12 +21,63 @@ class FormFiller:
 
     MAX_REVIEW_ROUNDS = 3
 
-    def __init__(self, llm: BaseLLM, page: Page):
-        self.llm = llm
+    def __init__(
+        self,
+        page: Page,
+        llm: BaseLLM | None = None,
+        generator_llm: BaseLLM | None = None,
+        optimizer_llm: BaseLLM | None = None,
+        reviewer_llm: BaseLLM | None = None,
+    ):
+        """初始化表单填写编排器
+
+        Args:
+            page: Playwright 页面对象
+            llm: 通用 LLM 实例（向后兼容，用于所有模块）
+            generator_llm: 代码生成专用 LLM
+            optimizer_llm: 代码优化专用 LLM
+            reviewer_llm: 代码审查专用 LLM
+
+        优先级：专用 LLM > 通用 LLM > 工厂创建
+        """
         self.page = page
-        self.code_generator = CodeGenerator(llm)
-        self.code_reviewer = CodeReviewer()
-        self.code_optimizer = CodeOptimizer(llm)
+
+        # 确定各模块使用的 LLM（优先级：专用 > 通用 > 工厂）
+        if generator_llm:
+            gen_llm = generator_llm
+        elif llm:
+            gen_llm = llm
+        else:
+            gen_llm = LLMFactory.get_code_generator_llm()
+
+        if optimizer_llm:
+            opt_llm = optimizer_llm
+        elif llm:
+            opt_llm = llm
+        else:
+            opt_llm = LLMFactory.get_code_optimizer_llm()
+
+        if reviewer_llm:
+            rev_llm = reviewer_llm
+        elif llm:
+            rev_llm = llm
+        else:
+            rev_llm = LLMFactory.get_code_reviewer_llm()
+
+        # 初始化子模块
+        self.code_generator = CodeGenerator(gen_llm)
+        self.code_reviewer = CodeReviewer(rev_llm)
+        self.code_optimizer = CodeOptimizer(opt_llm)
+
+        # 保留通用 LLM 引用（向后兼容）
+        self.llm = gen_llm
+
+        logger.info(
+            f"FormFiller 初始化完成: "
+            f"generator={gen_llm.model_name}, "
+            f"optimizer={opt_llm.model_name}, "
+            f"reviewer={rev_llm.model_name}"
+        )
 
     async def fill_form(self, state: PageState, task: str) -> FillResult:
         """填写表单

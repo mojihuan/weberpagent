@@ -36,7 +36,7 @@ def sample_state():
 @pytest.mark.asyncio
 async def test_fill_form_success(mock_llm, mock_page, sample_state):
     """测试表单填写成功流程"""
-    with patch.object(FormFiller, '_execute_code', return_value=None):
+    with patch.object(FormFiller, '_execute_code', return_value={"success": True, "stdout": ""}):
         # Mock 代码生成
         with patch('backend.agent_simple.form_filler.orchestrator.CodeGenerator') as MockGenerator:
             mock_generator = MockGenerator.return_value
@@ -53,7 +53,7 @@ async def test_fill_form_success(mock_llm, mock_page, sample_state):
                     approved=True, issues=[], suggestions=[]
                 ))
 
-                filler = FormFiller(mock_llm, mock_page)
+                filler = FormFiller(mock_page, llm=mock_llm)
                 result = await filler.fill_form(sample_state, "填写表单")
 
                 assert result.success is True
@@ -66,7 +66,7 @@ async def test_fill_form_generation_failure(mock_llm, mock_page, sample_state):
         mock_generator = MockGenerator.return_value
         mock_generator.generate = AsyncMock(side_effect=Exception("LLM error"))
 
-        filler = FormFiller(mock_llm, mock_page)
+        filler = FormFiller(mock_page, llm=mock_llm)
         result = await filler.fill_form(sample_state, "填写表单")
 
         assert result.success is False
@@ -76,7 +76,7 @@ async def test_fill_form_generation_failure(mock_llm, mock_page, sample_state):
 @pytest.mark.asyncio
 async def test_fill_form_review_with_optimization(mock_llm, mock_page, sample_state):
     """测试审查未通过后优化场景"""
-    with patch.object(FormFiller, '_execute_code', return_value=None):
+    with patch.object(FormFiller, '_execute_code', return_value={"success": True, "stdout": ""}):
         with patch('backend.agent_simple.form_filler.orchestrator.CodeGenerator') as MockGenerator:
             mock_generator = MockGenerator.return_value
             mock_generator.generate = AsyncMock(return_value=GeneratedCode(
@@ -97,7 +97,7 @@ async def test_fill_form_review_with_optimization(mock_llm, mock_page, sample_st
                     mock_optimizer = MockOptimizer.return_value
                     mock_optimizer.optimize = AsyncMock(return_value='async def fill_form(page): await page.fill("input", "value")')
 
-                    filler = FormFiller(mock_llm, mock_page)
+                    filler = FormFiller(mock_page, llm=mock_llm)
                     result = await filler.fill_form(sample_state, "填写表单")
 
                     assert result.success is True
@@ -131,10 +131,10 @@ async def test_fill_form_execution_failure_with_retry(mock_llm, mock_page, sampl
                     call_count[0] += 1
                     if call_count[0] == 1:
                         raise Exception("Element not found")
-                    return None
+                    return {"success": True, "stdout": ""}
 
                 with patch.object(FormFiller, '_execute_code', side_effect=mock_execute):
-                    filler = FormFiller(mock_llm, mock_page)
+                    filler = FormFiller(mock_page, llm=mock_llm)
                     result = await filler.fill_form(sample_state, "填写表单")
 
                     assert result.success is True
@@ -166,7 +166,7 @@ async def test_fill_form_execution_failure_final(mock_llm, mock_page, sample_sta
                     raise Exception("Timeout")
 
                 with patch.object(FormFiller, '_execute_code', side_effect=mock_execute):
-                    filler = FormFiller(mock_llm, mock_page)
+                    filler = FormFiller(mock_page, llm=mock_llm)
                     result = await filler.fill_form(sample_state, "填写表单")
 
                     assert result.success is False
