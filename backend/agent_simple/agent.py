@@ -9,6 +9,7 @@ from datetime import datetime
 from playwright.async_api import Page
 
 from backend.llm.base import BaseLLM
+from backend.llm.factory import LLMFactory
 from backend.agent_simple.types import (
     Action,
     ActionResult,
@@ -47,17 +48,19 @@ class SimpleAgent:
         max_steps: int = 20,
         max_retries: int = 3,
         timeout: int = 60000,
+        reflect_llm: BaseLLM | None = None,
     ):
         """初始化 Agent
 
         Args:
             task: 任务描述
-            llm: LLM 实例（支持 vision）
+            llm: LLM 实例（用于决策）
             page: Playwright Page 对象
             output_dir: 输出目录（截图、日志等）
             max_steps: 最大执行步数
             max_retries: 单步最大重试次数
             timeout: 操作超时时间（毫秒）
+            reflect_llm: 反思专用 LLM（可选，默认从工厂获取）
         """
         self.task = task
         self.llm = llm
@@ -65,6 +68,9 @@ class SimpleAgent:
         self.max_steps = max_steps
         self.max_retries = max_retries
         self.timeout = timeout
+
+        # 反思专用 LLM
+        self.reflect_llm = reflect_llm or LLMFactory.get_reflect_llm()
 
         # 初始化子模块
         self.perception = Perception(page)
@@ -492,7 +498,8 @@ class SimpleAgent:
         ]
 
         try:
-            response = await self.llm.chat_with_vision(
+            # 使用 reflect_llm 而不是 self.llm
+            response = await self.reflect_llm.chat_with_vision(
                 messages=messages,
                 images=[f"data:image/png;base64,{state.screenshot_base64}"],
             )
