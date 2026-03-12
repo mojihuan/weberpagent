@@ -34,15 +34,19 @@ def test_add_step(temp_store):
     """测试添加步骤"""
     run = temp_store.create(task_id="task-123")
     step = Step(step=1, action="click", reasoning="点击按钮")
+    # Call add_step method to add step to run
+    updated_run = temp_store.add_step(run.id, step)
     # Get the Run object and access updated steps
-            updated_run = updated
-            # Check that steps is a list of Step objects
-            assert isinstance(updated.steps, list)
-            assert len(updated.steps) == 1
-            # Verify the step object has correct data
-            assert updated.steps[0].step == 1
-            assert updated.steps[0].action == "click"
-            assert updated.steps[0].reasoning == "点击按钮"
+    assert updated_run is not None
+    # Check that steps is a list of Step objects
+    assert isinstance(updated_run.steps, list)
+    assert len(updated_run.steps) == 1
+    # Verify the step object has correct data
+    assert updated_run.steps[0].step == 1
+    assert updated_run.steps[0].action == "click"
+
+
+    assert updated_run.steps[0].reasoning == "点击按钮"
 
 
 def test_get_runs_by_task(temp_store):

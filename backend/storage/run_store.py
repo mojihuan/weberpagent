@@ -1,11 +1,15 @@
 """执行记录存储服务 - JSON 文件实现"""
 
+from __future__ import annotations
+
 import json
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from backend.api.schemas.index import Run, Step, RunResult
+if TYPE_CHECKING:
+    from backend.api.schemas.index import Run, Step, RunResult
 
 
 class RunStore:
@@ -32,8 +36,10 @@ class RunStore:
         with open(self.file_path, "w", encoding="utf-8") as f:
             json.dump(runs, f, ensure_ascii=False, indent=2, default=str)
 
-    def create(self, task_id: str) -> Run:
+    def create(self, task_id: str):
         """创建执行记录"""
+        from backend.api.schemas.index import Run
+
         runs = self._load()
         run_data = {
             "id": str(uuid.uuid4())[:8],
@@ -49,23 +55,31 @@ class RunStore:
         self._save(runs)
         return Run(**run_data)
 
-    def get(self, run_id: str) -> Run | None:
+    def get(self, run_id: str):
         """获取单个执行记录"""
+        from backend.api.schemas.index import Run
+
         for run in self._load():
             if run["id"] == run_id:
                 return Run(**run)
         return None
 
-    def list(self) -> list[Run]:
+    def list(self):
         """列出所有执行记录"""
+        from backend.api.schemas.index import Run
+
         return [Run(**r) for r in self._load()]
 
-    def list_by_task(self, task_id: str) -> list[Run]:
+    def list_by_task(self, task_id: str):
         """按任务 ID 列出执行记录"""
+        from backend.api.schemas.index import Run
+
         return [Run(**r) for r in self._load() if r["task_id"] == task_id]
 
-    def update_status(self, run_id: str, status: str) -> Run | None:
+    def update_status(self, run_id: str, status: str):
         """更新执行状态"""
+        from backend.api.schemas.index import Run
+
         runs = self._load()
         for i, run in enumerate(runs):
             if run["id"] == run_id:
@@ -79,8 +93,10 @@ class RunStore:
                 return Run(**run)
         return None
 
-    def add_step(self, run_id: str, step: Step) -> Run | None:
+    def add_step(self, run_id: str, step):
         """添加执行步骤"""
+        from backend.api.schemas.index import Run
+
         runs = self._load()
         for i, run in enumerate(runs):
             if run["id"] == run_id:
@@ -90,8 +106,10 @@ class RunStore:
                 return Run(**run)
         return None
 
-    def set_result(self, run_id: str, result: RunResult) -> Run | None:
+    def set_result(self, run_id: str, result):
         """设置执行结果"""
+        from backend.api.schemas.index import Run
+
         runs = self._load()
         for i, run in enumerate(runs):
             if run["id"] == run_id:

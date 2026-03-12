@@ -1,11 +1,15 @@
 """任务存储服务 - JSON 文件实现"""
 
+from __future__ import annotations
+
 import json
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from backend.api.schemas.index import Task
+if TYPE_CHECKING:
+    from backend.api.schemas.index import Task
 
 
 class TaskStore:
@@ -34,8 +38,10 @@ class TaskStore:
 
     def create(
         self, name: str, description: str, assertions: list | None = None
-    ) -> Task:
+    ):
         """创建任务"""
+        from backend.api.schemas.index import Task
+
         tasks = self._load()
         now = datetime.now()
         task_data = {
@@ -50,19 +56,25 @@ class TaskStore:
         self._save(tasks)
         return Task(**task_data)
 
-    def get(self, task_id: str) -> Task | None:
+    def get(self, task_id: str):
         """获取单个任务"""
+        from backend.api.schemas.index import Task
+
         for task in self._load():
             if task["id"] == task_id:
                 return Task(**task)
         return None
 
-    def list(self) -> list[Task]:
+    def list(self):
         """列出所有任务"""
+        from backend.api.schemas.index import Task
+
         return [Task(**t) for t in self._load()]
 
-    def update(self, task_id: str, **kwargs) -> Task | None:
+    def update(self, task_id: str, **kwargs):
         """更新任务"""
+        from backend.api.schemas.index import Task
+
         tasks = self._load()
         for i, task in enumerate(tasks):
             if task["id"] == task_id:
