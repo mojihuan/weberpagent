@@ -1,7 +1,16 @@
-"""登录场景验证运行脚本
+"""
+⚠️ 已归档 - 2026-03-12
+
+原因：旧的 Browser-Use 验证脚本，使用国产模型适配器。
+保留供历史参考。
+
+替代方案：使用 pytest + browser-use 原生 API
+"""
+
+"""登录场景验证运行脚本 (Azure OpenAI 版本)
 
 批量运行渐进式测试，统计成功率、耗时等指标，生成验证报告。
-使用 DeepSeek 模型（OpenAI 兼容）。
+使用 Azure OpenAI 模型（推荐 gpt-4o）。
 """
 
 import argparse
@@ -76,8 +85,23 @@ async def run_single_test(level: int, llm, config: dict) -> dict:
 
         # 执行
         result = await agent.run()
-        step_count = getattr(result, 'total_steps', 0) or len(result.history) if hasattr(result, 'history') else 0
-        success = result.is_done
+        # 获取步数
+        if hasattr(result, '__len__'):
+            step_count = len(result)
+        elif hasattr(result, 'history'):
+            step_count = len(result.history)
+        else:
+            step_count = 1
+
+        # 判断成功 - is_done 是方法，需要调用
+        if callable(getattr(result, 'is_done', None)):
+            success = result.is_done()
+        elif hasattr(result, 'is_done'):
+            success = result.is_done
+        else:
+            # 检查 final_result
+            final = result.final_result() if hasattr(result, 'final_result') else None
+            success = final is not None and '成功' in str(final)
 
         duration = time.time() - start_time
 
@@ -98,6 +122,13 @@ async def run_single_test(level: int, llm, config: dict) -> dict:
             "duration_seconds": round(duration, 2),
             "error": str(e),
         }
+    finally:
+        # 确保清理浏览器资源
+        if 'agent' in dir():
+            try:
+                await agent.close()
+            except:
+                pass
 
 
 async def run_validation(runs_per_level: int = 5, levels: list[int] | None = None) -> dict:
@@ -110,13 +141,19 @@ async def run_validation(runs_per_level: int = 5, levels: list[int] | None = Non
     Returns:
         验证报告字典
     """
-    from backend.llm import DeepSeekChat
+    from backend.llm import AzureOpenAIChat
 
-    # 检查 API Key
-    api_key = os.getenv("DEEPSEEK_API_KEY")
-    if not api_key:
-        print("错误: DEEPSEEK_API_KEY 未配置")
-        print("请在 .env 文件中添加: DEEPSEEK_API_KEY=sk-xxx")
+    # 检查 Azure OpenAI 配置
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
+
+    if not api_key or not endpoint:
+        print("错误: Azure OpenAI 配置不完整")
+        print("请在 .env 文件中添加:")
+        print("  AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/")
+        print("  AZURE_OPENAI_API_KEY=xxx")
+        print("  AZURE_OPENAI_DEPLOYMENT=gpt-4o")
         return {}
 
     # 配置
@@ -130,9 +167,10 @@ async def run_validation(runs_per_level: int = 5, levels: list[int] | None = Non
     if levels is None:
         levels = [1, 2, 3]
 
-    # 初始化 LLM (DeepSeek)
-    llm = DeepSeekChat(model="deepseek-chat")
-    print(f"使用模型: DeepSeek ({llm.model})")
+    # 初始化 LLM (Azure OpenAI)
+    llm = AzureOpenAIChat(deployment=deployment)
+    print(f"使用模型: Azure OpenAI ({deployment})")
+    print(f"端点: {endpoint}")
 
     # 结果收集
     all_results = {f"level{lv}": [] for lv in levels}
@@ -282,7 +320,7 @@ def print_summary(report: dict):
         print(f"  {check_name}: {status}")
 
 
-def save_report(report: dict, output_path: str = "outputs/validation_report.json"):
+def save_report(report: dict, output_path: str = "outputs/validation_report_azure.json"):
     """保存报告到文件
 
     Args:
@@ -301,7 +339,7 @@ def save_report(report: dict, output_path: str = "outputs/validation_report.json
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="登录场景验证运行脚本")
+    parser = argparse.ArgumentParser(description="登录场景验证运行脚本 (Azure OpenAI)")
     parser.add_argument(
         "-n", "--runs",
         type=int,
@@ -317,7 +355,7 @@ def main():
     parser.add_argument(
         "-o", "--output",
         type=str,
-        default="outputs/validation_report.json",
+        default="outputs/validation_report_azure.json",
         help="报告输出路径"
     )
 
