@@ -1,6 +1,6 @@
 // frontend/src/api/runs.ts
 import { apiClient } from './client'
-import type { Run, Step } from '../types'
+import type { Run } from '../types'
 
 const API_BASE = 'http://localhost:8080/api'
 
