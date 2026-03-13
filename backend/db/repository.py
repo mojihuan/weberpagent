@@ -1,11 +1,11 @@
 """数据库操作封装"""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.models import Task, Run, Step
+from backend.db.models import Task, Run, Step, Report
 from backend.db.schemas import TaskCreate, TaskUpdate
 
 
@@ -121,3 +121,84 @@ class StepRepository:
         stmt = select(Step).where(Step.run_id == run_id, Step.step_index == step_index)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+
+class ReportRepository:
+    """报告仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(
+        self,
+        run_id: str,
+        task_id: str,
+        task_name: str,
+        status: str,
+        total_steps: int,
+        success_steps: int,
+        failed_steps: int,
+        duration_ms: int,
+    ) -> Report:
+        report = Report(
+            run_id=run_id,
+            task_id=task_id,
+            task_name=task_name,
+            status=status,
+            total_steps=total_steps,
+            success_steps=success_steps,
+            failed_steps=failed_steps,
+            duration_ms=duration_ms,
+        )
+        self.session.add(report)
+        await self.session.commit()
+        await self.session.refresh(report)
+        return report
+
+    async def get(self, report_id: str) -> Optional[Report]:
+        return await self.session.get(Report, report_id)
+
+    async def get_by_run_id(self, run_id: str) -> Optional[Report]:
+        stmt = select(Report).where(Report.run_id == run_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list(
+        self,
+        status: Optional[str] = None,
+        date: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> tuple[List[Report], int]:
+        stmt = select(Report)
+
+        # 状态筛选
+        if status and status != "all":
+            stmt = stmt.where(Report.status == status)
+
+        # 日期筛选
+        if date:
+            now = datetime.now()
+            if date == "today":
+                start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            elif date == "7days":
+                start = now - timedelta(days=7)
+            elif date == "30days":
+                start = now - timedelta(days=30)
+            else:
+                start = None
+
+            if start:
+                stmt = stmt.where(Report.created_at >= start)
+
+        # 统计总数
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await self.session.execute(count_stmt)).scalar()
+
+        # 分页
+        stmt = stmt.order_by(Report.created_at.desc())
+        stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+        result = await self.session.execute(stmt)
+        reports = list(result.scalars())
+
+        return reports, total
