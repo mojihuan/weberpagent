@@ -64,3 +64,22 @@ class Step(Base):
 
     # 关系
     run: Mapped["Run"] = relationship("Run", back_populates="steps")
+
+
+class Report(Base):
+    """报告模型"""
+    __tablename__ = "reports"
+
+    id: Mapped[str] = mapped_column(String(8), primary_key=True, default=generate_id)
+    run_id: Mapped[str] = mapped_column(String(8), ForeignKey("runs.id"), unique=True, nullable=False)
+    task_id: Mapped[str] = mapped_column(String(8), ForeignKey("tasks.id"), nullable=False)
+    task_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)  # success, failed
+    total_steps: Mapped[int] = mapped_column(Integer, default=0)
+    success_steps: Mapped[int] = mapped_column(Integer, default=0)
+    failed_steps: Mapped[int] = mapped_column(Integer, default=0)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    # 关系
+    run: Mapped["Run"] = relationship("Run", backref="report", uselist=False)
