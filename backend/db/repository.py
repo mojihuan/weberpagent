@@ -1,0 +1,123 @@
+"""数据库操作封装"""
+
+from datetime import datetime
+from typing import Optional, List
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.db.models import Task, Run, Step
+from backend.db.schemas import TaskCreate, TaskUpdate
+
+
+class TaskRepository:
+    """任务仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, data: TaskCreate) -> Task:
+        task = Task(**data.model_dump())
+        self.session.add(task)
+        await self.session.commit()
+        await self.session.refresh(task)
+        return task
+
+    async def get(self, task_id: str) -> Optional[Task]:
+        return await self.session.get(Task, task_id)
+
+    async def list(self, status: Optional[str] = None) -> List[Task]:
+        stmt = select(Task)
+        if status:
+            stmt = stmt.where(Task.status == status)
+        stmt = stmt.order_by(Task.created_at.desc())
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
+    async def update(self, task_id: str, data: TaskUpdate) -> Optional[Task]:
+        task = await self.get(task_id)
+        if not task:
+            return None
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(task, key, value)
+        task.updated_at = datetime.now()
+        await self.session.commit()
+        return task
+
+    async def delete(self, task_id: str) -> bool:
+        task = await self.get(task_id)
+        if not task:
+            return False
+        await self.session.delete(task)
+        await self.session.commit()
+        return True
+
+
+class RunRepository:
+    """执行记录仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, task_id: str) -> Run:
+        run = Run(task_id=task_id, status="pending")
+        self.session.add(run)
+        await self.session.commit()
+        await self.session.refresh(run)
+        return run
+
+    async def get(self, run_id: str) -> Optional[Run]:
+        return await self.session.get(Run, run_id)
+
+    async def get_with_task(self, run_id: str) -> Optional[Run]:
+        """获取执行记录及其关联的任务"""
+        run = await self.get(run_id)
+        if run:
+            await self.session.refresh(run, ["task"])
+        return run
+
+    async def list(self, task_id: Optional[str] = None) -> List[Run]:
+        stmt = select(Run)
+        if task_id:
+            stmt = stmt.where(Run.task_id == task_id)
+        stmt = stmt.order_by(Run.created_at.desc())
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
+    async def update_status(self, run_id: str, status: str) -> Optional[Run]:
+        run = await self.get(run_id)
+        if not run:
+            return None
+        run.status = status
+        if status == "running":
+            run.started_at = datetime.now()
+        elif status in ("success", "failed", "stopped"):
+            run.finished_at = datetime.now()
+        await self.session.commit()
+        return run
+
+    async def add_step(self, run_id: str, step_data: dict) -> Step:
+        step = Step(run_id=run_id, **step_data)
+        self.session.add(step)
+        await self.session.commit()
+        await self.session.refresh(step)
+        return step
+
+
+class StepRepository:
+    """步骤仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get(self, step_id: str) -> Optional[Step]:
+        return await self.session.get(Step, step_id)
+
+    async def list_by_run(self, run_id: str) -> List[Step]:
+        stmt = select(Step).where(Step.run_id == run_id).order_by(Step.step_index)
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
+    async def get_by_index(self, run_id: str, step_index: int) -> Optional[Step]:
+        stmt = select(Step).where(Step.run_id == run_id, Step.step_index == step_index)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()

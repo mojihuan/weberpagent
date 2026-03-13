@@ -1,7 +1,9 @@
 // frontend/src/hooks/useRunStream.ts
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Run } from '../types'
+import type { Run, Step } from '../types'
 import { createMockRunStream, type RunEvent } from '../api/mock/runStream'
+
+const API_BASE = 'http://localhost:8080/api'
 
 interface UseRunStreamOptions {
   runId: string
@@ -24,10 +26,10 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const streamRef = useRef<ReturnType<typeof createMockRunStream> | null>(null)
+  const streamRef = useRef<ReturnType<typeof createMockRunStream> | EventSource | null>(null)
   const isConnectedRef = useRef(false)
 
-  const handleEvent = useCallback((event: RunEvent) => {
+  const handleMockEvent = useCallback((event: RunEvent) => {
     switch (event.type) {
       case 'started':
         setRun({
@@ -81,20 +83,110 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     isConnectedRef.current = true
 
     if (useMock) {
+      // Mock 模式
       streamRef.current = createMockRunStream({
         runId,
-        onEvent: handleEvent,
+        onEvent: handleMockEvent,
       })
       streamRef.current.start()
     } else {
-      // TODO: 实现真实 SSE 连接
-      // const eventSource = new EventSource(`/api/runs/${runId}/stream`)
+      // 真实 SSE 连接
+      const eventSource = new EventSource(`${API_BASE}/runs/${runId}/execute`, {
+        withCredentials: true,
+      })
+
+      eventSource.addEventListener('started', (e) => {
+        try {
+          const data = JSON.parse(e.data)
+          setRun({
+            id: runId,
+            task_id: data.run_id || '',
+            status: 'running',
+            started_at: new Date().toISOString(),
+            steps: [],
+          })
+          setIsConnected(true)
+          isConnectedRef.current = true
+        } catch (err) {
+          console.error('Failed to parse started event:', err)
+        }
+      })
+
+      eventSource.addEventListener('step', (e) => {
+        try {
+          const stepData = JSON.parse(e.data)
+          setRun(prev => {
+            if (!prev) return prev
+            const newStep: Step = {
+              index: stepData.index,
+              action: stepData.action,
+              reasoning: stepData.reasoning,
+              screenshot: stepData.screenshot_url || '',
+              status: stepData.status,
+              duration_ms: stepData.duration_ms || 0,
+            }
+            return {
+              ...prev,
+              steps: [...prev.steps, newStep],
+            }
+          })
+        } catch (err) {
+            console.error('Failed to parse step event:', err)
+          }
+        }
+      })
+
+      eventSource.addEventListener('finished', (e) => {
+        try {
+          const data = JSON.parse(e.data)
+          setRun(prev => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              status: data.status,
+              finished_at: new Date().toISOString(),
+            }
+          })
+          setIsConnected(false)
+          isConnectedRef.current = false
+          eventSource.close()
+        } catch (err) {
+          console.error('Failed to parse finished event:', err)
+        }
+      })
+
+      eventSource.addEventListener('error', (e) => {
+        try {
+          const data = JSON.parse(e.data)
+          setError(new Error(data.error || 'Unknown error'))
+        } catch {
+          setError(new Error('SSE connection error'))
+        }
+        setIsConnected(false)
+        isConnectedRef.current = false
+        eventSource.close()
+      })
+
+      eventSource.onerror = () => {
+        setError(new Error('SSE connection error'))
+        setIsConnected(false)
+        isConnectedRef.current = false
+        eventSource.close()
+      }
+
+      streamRef.current = eventSource
     }
-  }, [runId, useMock, handleEvent])
+  }, [runId, useMock, handleMockEvent])
 
   const disconnect = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.stop()
+      if ('stop' in streamRef.current) {
+        // Mock stream
+        streamRef.current.stop()
+      } else {
+        // EventSource
+        streamRef.current.close()
+      }
       streamRef.current = null
     }
     setIsConnected(false)

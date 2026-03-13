@@ -1,0 +1,13 @@
+[
+  {
+    "id": "a82071eb",
+    "name": "测试用户登陆",
+    "description": "测试https://erptest.epbox.cn/ 这个网站的登录功能，账号是Y96230027，密码是Aa123456，登录成功后应该跳转到用户中心。",
+    "target_url": "",
+    "max_steps": 10,
+    "status": "draft",
+    "assertions": [],
+    "created_at": "2026-03-12T22:04:44.086099",
+    "updated_at": "2026-03-12T22:04:44.086099"
+  }
+]
