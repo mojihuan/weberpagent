@@ -1,15 +1,31 @@
 """FastAPI 应用入口"""
 
+import os
+
+# 禁用代理 - 避免 httpx 自动读取系统代理配置导致 LLM 调用超时
+# 必须在 import 其他模块之前执行，确保 httpx 不会读取到代理配置
+for proxy_var in ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'all_proxy']:
+    os.environ.pop(proxy_var, None)
+
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.routes import tasks, runs
+from backend.api.routes import tasks, runs, reports, dashboard
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 启用 DEBUG 日志以捕获完整错误堆栈
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    # 专门为 browser_use 启用 DEBUG
+    logging.getLogger('browser_use').setLevel(logging.DEBUG)
+    logging.getLogger('cdp_use').setLevel(logging.DEBUG)
     print("Starting Browser-Use API Server...")
     yield
     print("Shutting down Browser-Use API Server...")
@@ -25,10 +41,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",  # Vite 可能使用备用端口
-        "http://127.0.0.1:5174",
+        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -37,6 +50,8 @@ app.add_middleware(
 
 app.include_router(tasks.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")
 
 
 @app.get("/")

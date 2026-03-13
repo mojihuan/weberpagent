@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 import traceback
 from datetime import datetime
 
@@ -11,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db
 from backend.db.database import async_session
-from backend.db.repository import TaskRepository, RunRepository, StepRepository
+from backend.db.repository import TaskRepository, RunRepository, StepRepository, ReportRepository
 from backend.db.schemas import (
     RunResponse,
     SSEStartedEvent,
@@ -25,6 +26,22 @@ from backend.core.event_manager import event_manager
 logger = logging.getLogger(__name__)
 
 
+def get_llm_config() -> dict:
+    """获取 LLM 配置，从环境变量读取
+
+    默认使用阿里云 DashScope + qwen3.5-plus
+    """
+    return {
+        "model": os.getenv("LLM_MODEL", "qwen3.5-plus"),
+        "api_key": os.getenv("DASHSCOPE_API_KEY") or os.getenv("OPENAI_API_KEY"),
+        "base_url": os.getenv(
+            "LLM_BASE_URL",
+            "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        ),
+        "temperature": float(os.getenv("LLM_TEMPERATURE", "0.1")),
+    }
+
+
 router = APIRouter(prefix="/runs", tags=["runs"])
 
 
@@ -32,9 +49,12 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
     """后台执行 agent 任务"""
     logger.info(f"[{run_id}] 开始后台执行: task_name={task_name}, max_steps={max_steps}")
 
+    # 获取 LLM 配置
+    llm_config = get_llm_config()
+    logger.info(f"[{run_id}] LLM 配置: model={llm_config['model']}, base_url={llm_config['base_url']}")
+
     async with async_session() as session:
         run_repo = RunRepository(session)
-        step_repo = StepRepository(session)
         agent_service = AgentService()
 
         try:
@@ -66,7 +86,7 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
                     "status": "success",
                     "duration_ms": 0,
                 }
-                await step_repo.add_step(run_id, step_data)
+                await run_repo.add_step(run_id, step_data)
                 logger.debug(f"[{run_id}] 步骤 {step} 已保存到数据库")
             except Exception as e:
                 logger.error(f"[{run_id}] 保存步骤失败: {e}")
@@ -92,6 +112,7 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
                 run_id=run_id,
                 on_step=on_step,
                 max_steps=max_steps,
+                llm_config=llm_config,
             )
             logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
 
@@ -107,6 +128,40 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
             )
             await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
             logger.info(f"[{run_id}] 已发送 finished 事件, status={final_status}")
+
+            # 生成报告
+            try:
+                # 获取 run 信息以计算执行时间
+                run = await run_repo.get(run_id)
+                duration_ms = 0
+                if run and run.started_at and run.finished_at:
+                    duration_ms = int((run.finished_at - run.started_at).total_seconds() * 1000)
+
+                # 获取步骤统计
+                steps = await run_repo.get_steps(run_id)
+                success_steps = sum(1 for s in steps if s.status == "success")
+                failed_steps = sum(1 for s in steps if s.status == "failed")
+
+                # 获取 task 信息
+                task_repo = TaskRepository(session)
+                task = await task_repo.get(run.task_id) if run else None
+                task_name = task.name if task else "Unknown"
+
+                # 创建报告
+                report_repo = ReportRepository(session)
+                await report_repo.create(
+                    run_id=run_id,
+                    task_id=run.task_id if run else "",
+                    task_name=task_name,
+                    status=final_status,
+                    total_steps=step_count,
+                    success_steps=success_steps,
+                    failed_steps=failed_steps,
+                    duration_ms=duration_ms,
+                )
+                logger.info(f"[{run_id}] 报告已生成")
+            except Exception as report_error:
+                logger.error(f"[{run_id}] 生成报告失败: {report_error}")
 
         except Exception as e:
             logger.error(f"[{run_id}] 执行失败: {e}")
