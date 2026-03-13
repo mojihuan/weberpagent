@@ -1,32 +1,39 @@
-import { useState } from 'react'
+import { useReports } from '../hooks/useReports'
 import { ReportFilters, ReportTable, type ReportFiltersState } from '../components/Report'
 import { Pagination, EmptyState } from '../components/shared'
-import { getReports } from '../api/mock/reports'
 
 export function Reports() {
-  const [filters, setFilters] = useState<ReportFiltersState>({
-    status: 'all',
-    dateRange: 'all',
-  })
-  const [page, setPage] = useState(1)
-  const pageSize = 10
-
-  // 获取报告数据
-  const { reports, total } = getReports({
-    status: filters.status === 'all' ? undefined : filters.status,
-    date: filters.dateRange === 'all' ? undefined :
-      filters.dateRange === 'today' ? 'today' :
-      filters.dateRange === '7days' ? '7days' : '30days',
+  const {
+    reports,
+    total,
+    loading,
+    error,
+    filters,
     page,
     pageSize,
-  })
+    setPage,
+    updateFilter,
+    refresh,
+  } = useReports()
 
   const hasFilters = filters.status !== 'all' || filters.dateRange !== 'all'
 
-  // 筛选变化时重置页码
+  // 筛选变化处理
   const handleFilterChange = (newFilters: ReportFiltersState) => {
-    setFilters(newFilters)
-    setPage(1)
+    Object.entries(newFilters).forEach(([key, value]) => {
+      updateFilter(key as keyof ReportFiltersState, value)
+    })
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
+        加载失败: {error.message}
+        <button onClick={refresh} className="ml-4 text-red-600 underline">
+          重试
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -43,8 +50,14 @@ export function Reports() {
         onFilterChange={handleFilterChange}
       />
 
-      {/* 表格 */}
-      {reports.length === 0 ? (
+      {/* 加载状态 */}
+      {loading ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8">
+          <div className="flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        </div>
+      ) : reports.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8">
           <EmptyState
             message={hasFilters ? '没有找到匹配的报告' : '暂无执行报告'}

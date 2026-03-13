@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getReports } from '../api/mock/reports'
+import { listReports, type ReportsListParams } from '../api/reports'
 import type { Report } from '../types'
 import type { ReportFiltersState } from '../components/Report'
 
@@ -7,6 +7,7 @@ interface UseReportsReturn {
   reports: Report[]
   total: number
   loading: boolean
+  error: Error | null
   filters: ReportFiltersState
   page: number
   pageSize: number
@@ -22,6 +23,7 @@ export function useReports(): UseReportsReturn {
   const [reports, setReports] = useState<Report[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   const [filters, setFilters] = useState<ReportFiltersState>({
     status: 'all',
     dateRange: 'all',
@@ -29,25 +31,35 @@ export function useReports(): UseReportsReturn {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const fetchReports = useCallback(() => {
+  const fetchReports = useCallback(async () => {
     setLoading(true)
+    setError(null)
 
-    // 映射筛选状态
-    const statusParam = filters.status === 'all' ? 'all' : filters.status
-    const dateParam = filters.dateRange === 'all' ? undefined :
-      filters.dateRange === 'today' ? 'today' :
-      filters.dateRange === '7days' ? '7days' : '30days'
+    try {
+      // 映射筛选状态
+      const params: ReportsListParams = {
+        status: filters.status === 'all' ? 'all' : filters.status,
+        page,
+        page_size: pageSize,
+      }
 
-    const result = getReports({
-      status: statusParam,
-      date: dateParam,
-      page,
-      pageSize,
-    })
+      if (filters.dateRange === 'today') {
+        params.date = 'today'
+      } else if (filters.dateRange === '7days') {
+        params.date = '7days'
+      } else if (filters.dateRange === '30days') {
+        params.date = '30days'
+      }
 
-    setReports(result.reports)
-    setTotal(result.total)
-    setLoading(false)
+      const result = await listReports(params)
+      setReports(result.reports)
+      setTotal(result.total)
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch reports'))
+      console.error('Failed to fetch reports:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [filters, page])
 
   useEffect(() => {
@@ -70,6 +82,7 @@ export function useReports(): UseReportsReturn {
     reports,
     total,
     loading,
+    error,
     filters,
     page,
     pageSize,

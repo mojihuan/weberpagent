@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { RunHeader, StepTimeline, ScreenshotPanel, ReasoningLog } from '../components/RunMonitor'
 import { ImageViewer } from '../components/shared'
 import { useRunStream } from '../hooks/useRunStream'
-import { mockTasks } from '../api/mock/tasks'
+import { tasksApi } from '../api/tasks'
 
 export function RunMonitor() {
   const { id } = useParams<{ id: string }>()
@@ -11,10 +11,12 @@ export function RunMonitor() {
   const { run, disconnect } = useRunStream({
     runId: id || '',
     autoConnect: true,
+    useMock: false, // 使用真实 SSE
   })
 
   const [viewIndex, setViewIndex] = useState(0)
   const [viewerOpen, setViewerOpen] = useState(false)
+  const [taskName, setTaskName] = useState('执行监控')
 
   // 自动跟随最新步骤
   useEffect(() => {
@@ -22,6 +24,17 @@ export function RunMonitor() {
       setViewIndex(run.steps.length - 1)
     }
   }, [run?.steps.length])
+
+  // 获取任务名称
+  useEffect(() => {
+    if (run?.task_id) {
+      tasksApi.get(run.task_id)
+        .then(task => {
+          if (task) setTaskName(task.name)
+        })
+        .catch(console.error)
+    }
+  }, [run?.task_id])
 
   const handleStop = () => {
     disconnect()
@@ -38,11 +51,6 @@ export function RunMonitor() {
   const handleZoom = () => {
     setViewerOpen(true)
   }
-
-  // 获取任务名称（从 Mock 数据）
-  const taskName = run?.task_id
-    ? mockTasks.find(t => t.id === run.task_id)?.name || '未知任务'
-    : '执行监控'
 
   const currentStep = run?.steps[viewIndex]
 
