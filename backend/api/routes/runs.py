@@ -1,13 +1,14 @@
 """执行管理路由"""
 
-import json
+import asyncio
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db
+from backend.db.database import async_session
 from backend.db.repository import TaskRepository, RunRepository, StepRepository
 from backend.db.schemas import (
     RunResponse,
@@ -17,9 +18,85 @@ from backend.db.schemas import (
     SSEErrorEvent,
 )
 from backend.core.agent_service import AgentService
+from backend.core.event_manager import event_manager
 
 
 router = APIRouter(prefix="/runs", tags=["runs"])
+
+
+async def run_agent_background(run_id: str, task_name: str, task_description: str, max_steps: int):
+    """后台执行 agent 任务"""
+    async with async_session() as session:
+        run_repo = RunRepository(session)
+        step_repo = StepRepository(session)
+        agent_service = AgentService()
+
+        await run_repo.update_status(run_id, "running")
+
+        # 发送 started 事件
+        started = SSEStartedEvent(run_id=run_id, task_name=task_name)
+        await event_manager.publish(run_id, f"event: started\ndata: {started.model_dump_json()}\n\n")
+
+        step_count = 0
+
+        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None):
+            nonlocal step_count
+            step_count = step
+
+            # 保存步骤到数据库
+            step_data = {
+                "step_index": step,
+                "action": action,
+                "reasoning": reasoning,
+                "screenshot_path": screenshot_path,
+                "status": "success",
+                "duration_ms": 0,
+            }
+            await step_repo.add_step(run_id, step_data)
+
+            # 构造截图 URL
+            screenshot_url = f"/api/runs/{run_id}/screenshots/{step}" if screenshot_path else None
+
+            # 发送 step 事件
+            event = SSEStepEvent(
+                index=step,
+                action=action,
+                reasoning=reasoning,
+                screenshot_url=screenshot_url,
+                status="success",
+                duration_ms=0,
+            )
+            await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
+
+        try:
+            result = await agent_service.run_with_streaming(
+                task=task_description,
+                run_id=run_id,
+                on_step=on_step,
+                max_steps=max_steps,
+            )
+
+            # 发送 finished 事件
+            final_status = "success" if result.is_successful() else "failed"
+            await run_repo.update_status(run_id, final_status)
+            event_manager.set_status(run_id, final_status)
+
+            finished = SSEFinishedEvent(
+                status=final_status,
+                total_steps=step_count,
+                duration_ms=0,
+            )
+            await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
+
+        except Exception as e:
+            await run_repo.update_status(run_id, "failed")
+            event_manager.set_status(run_id, "failed")
+
+            error = SSEErrorEvent(error=str(e))
+            await event_manager.publish(run_id, f"event: error\ndata: {error.model_dump_json()}\n\n")
+
+        finally:
+            await event_manager.publish(run_id, None)  # 结束信号
 
 
 def get_task_repo(db: AsyncSession = Depends(get_db)) -> TaskRepository:
@@ -46,14 +123,26 @@ async def list_runs(
 @router.post("", response_model=RunResponse)
 async def create_run(
     task_id: str,
+    background_tasks: BackgroundTasks,
     task_repo: TaskRepository = Depends(get_task_repo),
     run_repo: RunRepository = Depends(get_run_repo),
 ):
-    """创建执行记录"""
+    """创建执行记录并启动后台执行"""
     task = await task_repo.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
+
     run = await run_repo.create(task_id=task_id)
+
+    # 启动后台执行
+    background_tasks.add_task(
+        run_agent_background,
+        run.id,
+        task.name,
+        task.description,
+        task.max_steps,
+    )
+
     return run
 
 
@@ -69,94 +158,22 @@ async def get_run(
     return run
 
 
-@router.post("/{run_id}/execute")
-async def execute_run(
+@router.get("/{run_id}/stream")
+async def stream_run(
     run_id: str,
     run_repo: RunRepository = Depends(get_run_repo),
-    step_repo: StepRepository = Depends(get_step_repo),
 ):
-    """SSE 流式执行任务"""
+    """SSE 订阅执行流"""
+    # 验证 run 存在
     run = await run_repo.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
 
-    run_with_task = await run_repo.get_with_task(run_id)
-    if not run_with_task or not run_with_task.task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    task = run_with_task.task
-    agent_service = AgentService()
-
     async def event_generator():
-        start_time = datetime.now()
-        await run_repo.update_status(run_id, "running")
-
-        # 发送 started 事件
-        started = SSEStartedEvent(run_id=run_id, task_name=task.name)
-        yield f"event: started\ndata: {started.model_dump_json()}\n\n"
-
-        try:
-            step_count = 0
-            steps_data = []
-
-            def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None):
-                nonlocal step_count
-                step_count = step
-
-                # 保存步骤到数据库 (同步调用)
-                import asyncio
-                loop = asyncio.get_event_loop()
-                step_data = {
-                    "step_index": step,
-                    "action": action,
-                    "reasoning": reasoning,
-                    "screenshot_path": screenshot_path,
-                    "status": "success",
-                    "duration_ms": 0,
-                }
-                loop.run_until_complete(step_repo.add_step(run_id, step_data))
-
-                # 构造截图 URL
-                screenshot_url = f"/api/runs/{run_id}/screenshots/{step}" if screenshot_path else None
-
-                # 发送 step 事件
-                event = SSEStepEvent(
-                    index=step,
-                    action=action,
-                    reasoning=reasoning,
-                    screenshot_url=screenshot_url,
-                    status="success",
-                    duration_ms=0,
-                )
-                steps_data.append(event.model_dump())
-                yield f"event: step\ndata: {event.model_dump_json()}\n\n"
-
-            # 执行任务
-            result = await agent_service.run_with_streaming(
-                task=task.description,
-                run_id=run_id,
-                on_step=lambda s, a, r, p: list(on_step(s, a, r, p)),
-                max_steps=task.max_steps,
-            )
-
-            # 计算总耗时
-            total_duration = int((datetime.now() - start_time).total_seconds() * 1000)
-
-            # 发送 finished 事件
-            final_status = "success" if result.is_successful() else "failed"
-            await run_repo.update_status(run_id, final_status)
-
-            finished = SSEFinishedEvent(
-                status=final_status,
-                total_steps=step_count,
-                duration_ms=total_duration,
-            )
-            yield f"event: finished\ndata: {finished.model_dump_json()}\n\n"
-
-        except Exception as e:
-            await run_repo.update_status(run_id, "failed")
-            error = SSEErrorEvent(error=str(e))
-            yield f"event: error\ndata: {error.model_dump_json()}\n\n"
+        async for event in event_manager.subscribe(run_id):
+            if event is None:
+                break
+            yield event
 
     return StreamingResponse(
         event_generator(),
