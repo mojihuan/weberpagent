@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db, init_db, Task
- from backend.db.schemas import TaskCreate, TaskUpdate, TaskResponse
+from backend.db.schemas import TaskCreate, TaskUpdate, TaskResponse
 from backend.db.repository import TaskRepository
 
 
