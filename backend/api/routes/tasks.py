@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db import get_db, init_db, Task
+from backend.db import get_db
 from backend.db.schemas import TaskCreate, TaskUpdate, TaskResponse
 from backend.db.repository import TaskRepository
 
@@ -17,7 +17,7 @@ def get_task_repo(db: AsyncSession = Depends(get_db)) -> TaskRepository:
 
 @router.get("", response_model=list[TaskResponse])
 async def list_tasks(
-    repo: TaskRepository = Depends(get_db),
+    repo: TaskRepository = Depends(get_task_repo),
 ):
     return await repo.list()
 
@@ -25,7 +25,7 @@ async def list_tasks(
 @router.post("", response_model=TaskResponse)
 async def create_task(
     data: TaskCreate,
-    repo: TaskRepository = Depends(get_db),
+    repo: TaskRepository = Depends(get_task_repo),
 ):
     return await repo.create(data)
 
@@ -33,7 +33,7 @@ async def create_task(
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(
     task_id: str,
-    repo: TaskRepository = Depends(get_db),
+    repo: TaskRepository = Depends(get_task_repo),
 ):
     task = await repo.get(task_id)
     if not task:
@@ -45,7 +45,7 @@ async def get_task(
 async def update_task(
     task_id: str,
     data: TaskUpdate,
-    repo: TaskRepository = Depends(get_db),
+    repo: TaskRepository = Depends(get_task_repo),
 ):
     if not data.model_dump(exclude_unset=True):
         raise HTTPException(status_code=400, detail="No update data provided")
@@ -59,7 +59,7 @@ async def update_task(
 @router.delete("/{task_id}")
 async def delete_task(
     task_id: str,
-    repo: TaskRepository = Depends(get_db),
+    repo: TaskRepository = Depends(get_task_repo),
 ):
     if not await repo.delete(task_id):
         raise HTTPException(status_code=404, detail="Task not found")
