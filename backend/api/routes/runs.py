@@ -1,6 +1,8 @@
 """执行管理路由"""
 
 import asyncio
+import logging
+import traceback
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
@@ -20,39 +22,54 @@ from backend.db.schemas import (
 from backend.core.agent_service import AgentService
 from backend.core.event_manager import event_manager
 
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
 
 async def run_agent_background(run_id: str, task_name: str, task_description: str, max_steps: int):
     """后台执行 agent 任务"""
+    logger.info(f"[{run_id}] 开始后台执行: task_name={task_name}, max_steps={max_steps}")
+
     async with async_session() as session:
         run_repo = RunRepository(session)
         step_repo = StepRepository(session)
         agent_service = AgentService()
 
-        await run_repo.update_status(run_id, "running")
+        try:
+            await run_repo.update_status(run_id, "running")
+            logger.info(f"[{run_id}] 状态更新为 running")
+        except Exception as e:
+            logger.error(f"[{run_id}] 更新状态失败: {e}")
+            raise
 
         # 发送 started 事件
         started = SSEStartedEvent(run_id=run_id, task_name=task_name)
         await event_manager.publish(run_id, f"event: started\ndata: {started.model_dump_json()}\n\n")
+        logger.info(f"[{run_id}] 已发送 started 事件")
 
         step_count = 0
 
         async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None):
             nonlocal step_count
             step_count = step
+            logger.info(f"[{run_id}] 步骤 {step}: action={action[:50]}...")
 
             # 保存步骤到数据库
-            step_data = {
-                "step_index": step,
-                "action": action,
-                "reasoning": reasoning,
-                "screenshot_path": screenshot_path,
-                "status": "success",
-                "duration_ms": 0,
-            }
-            await step_repo.add_step(run_id, step_data)
+            try:
+                step_data = {
+                    "step_index": step,
+                    "action": action,
+                    "reasoning": reasoning,
+                    "screenshot_path": screenshot_path,
+                    "status": "success",
+                    "duration_ms": 0,
+                }
+                await step_repo.add_step(run_id, step_data)
+                logger.debug(f"[{run_id}] 步骤 {step} 已保存到数据库")
+            except Exception as e:
+                logger.error(f"[{run_id}] 保存步骤失败: {e}")
 
             # 构造截图 URL
             screenshot_url = f"/api/runs/{run_id}/screenshots/{step}" if screenshot_path else None
@@ -69,12 +86,14 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
             await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
 
         try:
+            logger.info(f"[{run_id}] 开始执行 agent_service.run_with_streaming...")
             result = await agent_service.run_with_streaming(
                 task=task_description,
                 run_id=run_id,
                 on_step=on_step,
                 max_steps=max_steps,
             )
+            logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
 
             # 发送 finished 事件
             final_status = "success" if result.is_successful() else "failed"
@@ -87,16 +106,22 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
                 duration_ms=0,
             )
             await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
+            logger.info(f"[{run_id}] 已发送 finished 事件, status={final_status}")
 
         except Exception as e:
+            logger.error(f"[{run_id}] 执行失败: {e}")
+            logger.error(f"[{run_id}] 异常堆栈:\n{traceback.format_exc()}")
+
             await run_repo.update_status(run_id, "failed")
             event_manager.set_status(run_id, "failed")
 
             error = SSEErrorEvent(error=str(e))
             await event_manager.publish(run_id, f"event: error\ndata: {error.model_dump_json()}\n\n")
+            logger.info(f"[{run_id}] 已发送 error 事件")
 
         finally:
             await event_manager.publish(run_id, None)  # 结束信号
+            logger.info(f"[{run_id}] 后台执行结束")
 
 
 def get_task_repo(db: AsyncSession = Depends(get_db)) -> TaskRepository:

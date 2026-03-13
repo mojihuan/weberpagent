@@ -136,11 +136,19 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
     base_url = config.get("base_url")
     temperature = config.get("temperature", 0.1)
 
-    openai_chat = OpenAIChat(
-        model=model,
-        api_key=api_key,
-        base_url=base_url,
-        temperature=temperature,
-    )
+    logger.info(f"create_llm: model={model}, base_url={base_url}, temperature={temperature}")
+    logger.debug(f"create_llm: api_key={'*' * 8 if api_key else 'from env'}")
 
-    return openai_chat.llm
+    try:
+        openai_chat = OpenAIChat(
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            temperature=temperature,
+        )
+        llm = openai_chat.llm
+        logger.info(f"create_llm: 成功创建 ChatOpenAI, model_name={getattr(llm, 'model_name', 'unknown')}")
+        return llm
+    except Exception as e:
+        logger.error(f"create_llm: 创建失败 - {e}")
+        raise
