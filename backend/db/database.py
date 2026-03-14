@@ -15,8 +15,15 @@ class Base(DeclarativeBase):
     pass
 
 
-# 异步引擎
-engine = create_async_engine(DATABASE_URL, echo=False)
+# 异步引擎 with explicit pool configuration
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_size=5,        # Connection pool size
+    max_overflow=0,     # No overflow connections for SQLite
+    pool_pre_ping=True, # Validate connections before use
+    pool_recycle=3600,  # Recycle connections after 1 hour
+)
 
 # 异步会话工厂
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
