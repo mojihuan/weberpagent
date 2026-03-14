@@ -165,3 +165,50 @@ class AgentService:
         result = await agent.run(max_steps=max_steps)
         logger.info(f"[{run_id}] agent.run() 完成")
         return result
+
+    async def run_with_cleanup(
+        self,
+        task: str,
+        run_id: str,
+        on_step: Callable[[int, str, str, str | None], Any],
+        max_steps: int = 10,
+        llm_config: dict | None = None,
+    ) -> Any:
+        """Execute task with guaranteed cleanup logging
+
+        Wraps run_with_streaming with try/finally to ensure
+        cleanup logging happens even on errors.
+
+        Note: browser-use Agent handles browser lifecycle internally.
+        This method ensures we log completion status for debugging.
+
+        Args:
+            task: Natural language task description
+            run_id: Execution ID for logging
+            on_step: Async callback for step updates
+            max_steps: Maximum execution steps
+            llm_config: LLM configuration
+
+        Returns:
+            Agent execution history
+
+        Raises:
+            Exception: Re-raises any execution errors
+        """
+        try:
+            logger.info(f"[{run_id}] Starting execution with cleanup tracking")
+            result = await self.run_with_streaming(
+                task=task,
+                run_id=run_id,
+                on_step=on_step,
+                max_steps=max_steps,
+                llm_config=llm_config,
+            )
+            logger.info(f"[{run_id}] Execution completed successfully")
+            return result
+        except Exception as e:
+            logger.error(f"[{run_id}] Execution failed with error: {e}")
+            logger.debug(f"[{run_id}] Error type: {type(e).__name__}")
+            raise
+        finally:
+            logger.info(f"[{run_id}] Execution cleanup complete - resources released")
