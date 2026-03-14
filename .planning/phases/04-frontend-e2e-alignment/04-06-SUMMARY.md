@@ -1,101 +1,62 @@
----
-phase: 04-frontend-e2e-alignment
-plan: 06
-subsystem: ui
-tags: [react, typescript, frontend, e2e, ux]
+# 04-06: UAT Gap Closure - Summary
 
-# Dependency graph
-requires:
-  - phase: 04-05
-    provides: E2E verification with test results
-provides:
-  - TrendChart with dimension validation
-  - TaskRow with report navigation
-  - RunMonitor with error handling and report button
-  - Updated REQUIREMENTS.md with verified status
-affects: [future maintenance, bug fixes]
+## Objective
+Fix runtime issues identified in UAT testing and update REQUIREMENTS.md to reflect verified implementation status.
 
-# Tech tracking
-tech-stack:
-  added: []
-  patterns: [error boundaries, navigation guards, immutable updates]
+## Tasks Completed
 
-key-files:
-  created: [frontend/src/components/Dashboard/TrendChart.tsx, frontend/src/components/TaskList/TaskRow.tsx, frontend/src/pages/RunMonitor.tsx, frontend/src/api/runs.ts, .planning/REQUIREMENTS.md]
-  modified: []
+| Task | Description | Status |
+|------|-------------|--------|
+| 1 | Fix TrendChart dimension validation | ✅ Completed |
+| 2 | Add report navigation to TaskRow | ✅ Completed |
+| 3 | Fix RunMonitor error handling and navigation | ✅ Completed |
+| 4 | Add report navigation to RunMonitor completion state | ✅ Completed |
+| 5 | Update REQUIREMENTS.md to mark verified requirements | ✅ Completed |
+| 6 | Human verification of gap closure fixes | ✅ Verified |
 
-key-decisions:
-  - "Navigate to /reports?task_id instead of finding latest run ID (simpler, no API changes)"
-  - "Keep default task name on fetch error instead of crashing (better UX)"
+## Additional Fixes During Verification
 
-patterns-established:
-  - "Empty state guards for chart components to prevent dimension errors"
-  - "Report navigation buttons in both task list and run completion state"
-  - "Centralized error handling with fallback states"
+During UAT verification, additional issues were discovered and fixed:
 
-requirements-completed: ["UI-02", "E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-05"]
+| Issue | Fix | Commit |
+|-------|-----|--------|
+| Task deletion fails with IntegrityError | Cascade delete runs and reports when deleting task | `fab0b42` |
+| SSE started event has wrong task_id | Add task_id to SSEStartedEvent, fix frontend to use data.task_id | `5d682dd` |
+| SQLAlchemy async lazy loading error | Use selectinload in get_with_task to preload task.assertions | `c312c2b` |
+| Screenshot URL double /api prefix | Remove /api prefix from screenshot_url in backend | `c312c2b` |
+| RunMonitor stuck spinning after completion | Align frontend RunStatus with backend 'success' status | `f7685db` |
+| RunList page shows mock data | Connect RunList to real API with task_name and steps_count | `c50fe04` |
 
-# Metrics
-duration: 15min
-completed: 2026-03-14
----
+## Files Modified
 
-# Phase 4 Plan 6: Gap Closure Summary
+- `frontend/src/components/Dashboard/TrendChart.tsx` - Dimension validation
+- `frontend/src/components/TaskList/TaskRow.tsx` - View Report button
+- `frontend/src/pages/RunMonitor.tsx` - Error handling and View Report button
+- `frontend/src/api/runs.ts` - Error handling
+- `.planning/REQUIREMENTS.md` - Updated requirement statuses
+- `backend/db/repository.py` - Cascade delete, selectinload
+- `backend/db/schemas.py` - SSEStartedEvent.task_id, RunResponse fields
+- `backend/api/routes/runs.py` - task_id in background task, screenshot URL, list_with_details
+- `frontend/src/hooks/useRunStream.ts` - Fix task_id extraction
+- `frontend/src/types/index.ts` - RunStatus 'success' instead of 'completed'
+- `frontend/src/components/RunMonitor/RunHeader.tsx` - Status check alignment
+- `frontend/src/pages/RunList.tsx` - Real API integration
 
-**Fixed runtime issues from UAT testing and updated requirement status with complete task execution flow**
+## Verification Results
 
-## Performance
+All gap closure fixes verified working:
+- ✅ TrendChart loads without console errors
+- ✅ TaskRow shows View Report button with navigation
+- ✅ RunMonitor shows execution progress (not blank page)
+- ✅ RunMonitor shows View Report button after completion
+- ✅ Task deletion works without IntegrityError
+- ✅ RunMonitor stops spinning after task completion
+- ✅ RunList shows real execution data from API
 
-- **Duration:** 15 min
-- **Started:** 2026-03-14T15:30:00Z
-- **Completed:** 2026-03-14T15:45:00Z
-- **Tasks:** 5
-- **Files modified:** 6
+## Self-Check
 
-## Accomplishments
-- Fixed TrendChart dimension validation to prevent console errors
-- Added View Report button to TaskRow for task report navigation
-- Improved RunMonitor error handling to prevent blank pages on 404 errors
-- Added View Report button to RunMonitor completion state
-- Updated REQUIREMENTS.md to mark all E2E requirements as Complete
-
-## Task Commits
-
-Each task was committed atomically:
-
-1. **Task 1: Fix TrendChart dimension validation** - `7864ffd` (fix)
-2. **Task 2: Add report navigation to TaskRow** - `79a4507` (feat)
-3. **Task 3: Fix RunMonitor error handling and navigation** - `46a1882` (fix)
-4. **Task 4: Add report navigation to RunMonitor completion state** - `c369d83` (feat)
-5. **Task 5: Update REQUIREMENTS.md** - `34333ec` (docs)
-
-**Plan metadata:** `04-06-SUMMARY.md` (docs: complete plan)
-
-## Files Created/Modified
-- `frontend/src/components/Dashboard/TrendChart.tsx` - Added empty data guard and minHeight style
-- `frontend/src/components/TaskList/TaskRow.tsx` - Added FileText icon and View Report button
-- `frontend/src/pages/RunMonitor.tsx` - Added error handling and View Report navigation
-- `frontend/src/api/runs.ts` - Removed hardcoded API_BASE, using environment variable
-- `frontend/src/components/RunMonitor/RunHeader.tsx` - Added View Report button for completed runs
-- `.planning/REQUIREMENTS.md` - Marked UI-02 and E2E-01 through E2E-05 as Complete
-
-## Decisions Made
-None - followed plan as specified
-
-## Deviations from Plan
-
-None - plan executed exactly as written
-
-## Issues Encountered
-- .gitignore prevented REQUIREMENTS.md from being tracked initially. Worked around by using force add and updating .gitignore to allow REQUIREMENTS.md specifically.
-
-## User Setup Required
-
-None - no external service configuration required.
-
-## Next Phase Readiness
-All E2E gaps have been closed. The complete flow (create → execute → monitor → report) now works without errors. Ready for production use and bug fixing in future phases.
-
----
-*Phase: 04-frontend-e2e-alignment*
-*Completed: 2026-03-14*
+- [x] All tasks executed
+- [x] Each task committed individually
+- [x] SUMMARY.md created
+- [x] STATE.md updated (will be done by orchestrator)
+- [x] ROADMAP.md updated (will be done by orchestrator)
