@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation Fixes** - Configuration, API standardization, async patterns
 - [x] **Phase 2: Data Layer Enhancement** - Database schema, screenshot storage, repository methods
 - [x] **Phase 3: Service Layer Restoration** - Assertion evaluation, report generation, SSE heartbeats
-- [ ] **Phase 4: Frontend + E2E Alignment** - UI types, data display, complete user flow
+- [x] **Phase 4: Frontend + E2E Alignment** - UI types, data display, complete user flow
 
 ## Phase Details
 
@@ -95,7 +95,7 @@ Plans:
 - [x] 04-02-PLAN.md - Wave 1: API client retry + toast notifications (error handling UX)
 - [x] 04-03-PLAN.md - Wave 2: RunMonitor SSE integration fix (UI-03, UI-04, depends on 04-01)
 - [x] 04-04-PLAN.md - Wave 2: Report page assertion results display (UI-05)
-- [ ] 04-05-PLAN.md - Wave 3: End-to-end flow verification with checkpoint (E2E-01 to E2E-05, UI-02 verified via E2E)
+- [x] 04-05-PLAN.md - Wave 3: End-to-end flow verification with checkpoint (E2E-01 to E2E-05, UI-02 verified via E2E)
 
 **Note on UI-02**: Task list display (UI-02) is verified through E2E tests in 04-05. The existing task list components already display task data correctly - they just need the type alignment from 04-01 and error handling from 04-02 to work properly.
 
@@ -109,8 +109,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Foundation Fixes | 6/6 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
 | 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
 | 3. Service Layer Restoration | 6/6 | Complete | 03-00, 03-01, 03-02, 03-03, 03-04, 03-05 |
-| 4. Frontend + E2E Alignment | 5/6 | In Progress | 04-00, 04-01, 04-02, 04-03, 04-04 |
+| 4. Frontend + E2E Alignment | 6/6 | Complete | 04-00, 04-01, 04-02, 04-03, 04-04, 04-05 |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Completed 04-04 Report Assertion Results Display*
+*Last updated: 2026-03-14 - Completed 04-05 E2E Flow Verification*

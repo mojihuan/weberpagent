@@ -19,6 +19,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes import tasks, runs, reports, dashboard
+from backend.db.database import init_db
 
 
 @asynccontextmanager
@@ -32,6 +33,11 @@ async def lifespan(app: FastAPI):
     logging.getLogger('browser_use').setLevel(logging.DEBUG)
     logging.getLogger('cdp_use').setLevel(logging.DEBUG)
     print("Starting Browser-Use API Server...")
+
+    # 初始化数据库表
+    await init_db()
+    print("Database tables initialized.")
+
     yield
     print("Shutting down Browser-Use API Server...")
 
