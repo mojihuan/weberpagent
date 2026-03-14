@@ -123,7 +123,7 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
             - model: 模型名称，默认 gpt-4o
             - api_key: API Key，默认从环境变量读取
             - base_url: API Base URL，支持 OpenAI 兼容接口
-            - temperature: 温度参数，默认 0.1
+            - temperature: 温度参数，默认 0.0（确定性输出）
 
     Returns:
         ChatOpenAI 实例，可直接传递给 browser-use Agent
@@ -134,7 +134,7 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
     model = config.get("model", "gpt-4o")
     api_key = config.get("api_key")
     base_url = config.get("base_url")
-    temperature = config.get("temperature", 0.1)
+    temperature = config.get("temperature", 0.0)
 
     logger.info(f"create_llm: model={model}, base_url={base_url}, temperature={temperature}")
     logger.debug(f"create_llm: api_key={'*' * 8 if api_key else 'from env'}")
