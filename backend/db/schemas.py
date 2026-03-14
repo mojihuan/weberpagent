@@ -129,8 +129,9 @@ class ReportResponse(BaseModel):
 
 
 class ReportDetailResponse(ReportResponse):
-    """报告详情响应（包含 steps）"""
+    """报告详情响应（包含 steps 和 assertion_results）"""
     steps: List[StepResponse] = []
+    assertion_results: List["AssertionResultResponse"] = []
 
 
 class ReportListParams(BaseModel):

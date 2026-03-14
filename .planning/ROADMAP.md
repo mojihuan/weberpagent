@@ -91,9 +91,9 @@ Plans:
 
 Plans:
 - [x] 04-00-PLAN.md - Wave 0: E2E infrastructure setup (Playwright config, sonner install)
-- [ ] 04-01-PLAN.md - Wave 1: Frontend type alignment with backend (UI-01, UI-06)
-- [ ] 04-02-PLAN.md - Wave 1: API client retry + toast notifications (error handling UX)
-- [ ] 04-03-PLAN.md - Wave 2: RunMonitor SSE integration fix (UI-03, UI-04, depends on 04-01)
+- [x] 04-01-PLAN.md - Wave 1: Frontend type alignment with backend (UI-01, UI-06)
+- [x] 04-02-PLAN.md - Wave 1: API client retry + toast notifications (error handling UX)
+- [x] 04-03-PLAN.md - Wave 2: RunMonitor SSE integration fix (UI-03, UI-04, depends on 04-01)
 - [ ] 04-04-PLAN.md - Wave 2: Report page assertion results display (UI-05)
 - [ ] 04-05-PLAN.md - Wave 3: End-to-end flow verification with checkpoint (E2E-01 to E2E-05, UI-02 verified via E2E)
 
@@ -109,8 +109,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Foundation Fixes | 6/6 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
 | 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
 | 3. Service Layer Restoration | 6/6 | Complete | 03-00, 03-01, 03-02, 03-03, 03-04, 03-05 |
-| 4. Frontend + E2E Alignment | 1/6 | In Progress | 04-00 |
+| 4. Frontend + E2E Alignment | 4/6 | In Progress | 04-00, 04-01, 04-02, 04-03 |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Completed 04-00 E2E Infrastructure Setup*
+*Last updated: 2026-03-14 - Completed 04-03 RunMonitor SSE Integration Fix*
