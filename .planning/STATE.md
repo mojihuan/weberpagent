@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 04-00 E2E Infrastructure Setup
-last_updated: "2026-03-14T13:31:27Z"
-last_activity: 2026-03-14 -- Completed 04-00 E2E Infrastructure Setup
+stopped_at: Completed 04-01 Frontend Type Alignment
+last_updated: "2026-03-14T13:36:34Z"
+last_activity: 2026-03-14 -- Completed 04-01 Frontend Type Alignment
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 21
-  completed_plans: 17
-  percent: 81
+  completed_plans: 18
+  percent: 86
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 4 of 4 (Frontend + E2E Alignment)
-Plan: 0 of 5 in current phase
+Plan: 1 of 5 in current phase
 Status: In Progress
-Last activity: 2026-03-14 -- Completed 04-00 E2E Infrastructure Setup
+Last activity: 2026-03-14 -- Completed 04-01 Frontend Type Alignment
 
-Progress: [............] 0% (phase)
+Progress: [===........] 20% (phase)
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [............] 0% (phase)
 | Phase 03-service-layer-restoration P02 | 1 | 1 task | 1 file |
 | Phase 03-service-layer-restoration P05 | 1 | 1 task | 2 files |
 | Phase 04-frontend-e2e-alignment P00 | 4 | 4 tasks | 5 files |
+| Phase 04-frontend-e2e-alignment P01 | 2 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - [04-00]: Created root package.json for Playwright since E2E tests live at project root
 - [04-00]: Used http://localhost:8080 instead of /api/health endpoint (may not exist)
 - [04-00]: Tests use .skip to be enabled incrementally as UI is fixed
+- [04-01]: RunStatus type uses backend values (pending/running/completed/failed) replacing old values
+- [04-01]: StatusBadge includes 'success' as legacy alias for backward compatibility
+- [04-01]: SSE event types added for type safety in streaming hooks
 
 ### Pending Todos
 
@@ -116,5 +120,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T13:31:27Z
-Stopped at: Completed 04-00 E2E Infrastructure Setup
+Last session: 2026-03-14T13:36:34Z
+Stopped at: Completed 04-01 Frontend Type Alignment
