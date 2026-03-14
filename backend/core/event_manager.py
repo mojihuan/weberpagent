@@ -13,15 +13,26 @@ class EventManager:
     - 存储事件历史，支持重新连接
     - 支持多个并发订阅者
     - 自动清理完成的执行
+    - 支持 SSE 心跳以保持连接活跃
     """
 
-    def __init__(self):
+    def __init__(self, heartbeat_interval: float = 20.0):
+        """
+        初始化 EventManager
+
+        Args:
+            heartbeat_interval: 心跳间隔（秒），默认 20 秒
+        """
         # run_id -> 事件列表
         self._events: dict[str, list[str | None]] = defaultdict(list)
         # run_id -> 订阅者队列列表
         self._subscribers: dict[str, list[asyncio.Queue]] = defaultdict(list)
         # run_id -> 执行状态
         self._status: dict[str, str] = {}
+        # 心跳间隔（秒）
+        self._heartbeat_interval = heartbeat_interval
+        # run_id -> 心跳任务
+        self._heartbeat_tasks: dict[str, asyncio.Task] = {}
 
     async def publish(self, run_id: str, event: str | None) -> None:
         """
@@ -39,18 +50,39 @@ class EventManager:
         for queue in self._subscribers.get(run_id, []):
             await queue.put(event)
 
+    async def _send_heartbeat(self, run_id: str) -> None:
+        """
+        后台任务：周期性发送心跳注释
+
+        SSE 注释格式 (:heartbeat) 会被 EventSource 客户端忽略，
+        用于保持连接活跃。
+
+        Args:
+            run_id: 执行 ID
+        """
+        while not self.is_finished(run_id):
+            await asyncio.sleep(self._heartbeat_interval)
+            if not self.is_finished(run_id):
+                # 发布心跳注释到所有订阅者
+                for queue in self._subscribers.get(run_id, []):
+                    await queue.put(":heartbeat\n\n")
+
     async def subscribe(self, run_id: str) -> AsyncGenerator[str | None, None]:
         """
-        订阅 run 的事件流
+        订阅 run 的事件流（带心跳支持）
 
         Args:
             run_id: 执行 ID
 
         Yields:
-            SSE 事件字符串，None 表示流结束
+            SSE 事件字符串（包括心跳注释），None 表示流结束
         """
         queue: asyncio.Queue[str | None] = asyncio.Queue()
         self._subscribers[run_id].append(queue)
+
+        # 启动心跳任务
+        heartbeat_task = asyncio.create_task(self._send_heartbeat(run_id))
+        self._heartbeat_tasks[run_id] = heartbeat_task
 
         try:
             # 先发送历史事件
@@ -61,7 +93,7 @@ class EventManager:
             if self.is_finished(run_id):
                 return
 
-            # 等待新事件
+            # 等待新事件（包括心跳）
             while True:
                 event = await queue.get()
                 yield event
@@ -71,6 +103,17 @@ class EventManager:
             # 移除订阅者
             if queue in self._subscribers[run_id]:
                 self._subscribers[run_id].remove(queue)
+
+            # 取消心跳任务
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task
+            except asyncio.CancelledError:
+                pass
+
+            # 清理心跳任务引用
+            if run_id in self._heartbeat_tasks:
+                del self._heartbeat_tasks[run_id]
 
     def set_status(self, run_id: str, status: str) -> None:
         """

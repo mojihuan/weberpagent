@@ -164,26 +164,16 @@ class TestEventManagerHeartbeat:
         manager = EventManager(heartbeat_interval=0.1)
         run_id = "test-heartbeat-3"
 
-        subscription_task = None
+        gen = manager.subscribe(run_id)
 
-        async def subscribe_and_cancel():
-            nonlocal subscription_task
-            async for event in manager.subscribe(run_id):
+        # 启动订阅并获取第一个事件（无，因为是空的）
+        try:
+            async for event in gen:
                 # 立即取消
                 break
-
-        # 启动订阅
-        subscription_task = asyncio.create_task(subscribe_and_cancel())
-
-        # 等待订阅完成
-        try:
-            await asyncio.wait_for(subscription_task, timeout=1.0)
-        except asyncio.TimeoutError:
-            subscription_task.cancel()
-            try:
-                await subscription_task
-            except asyncio.CancelledError:
-                pass
+        finally:
+            # 显式关闭生成器以确保 finally 块执行
+            await gen.aclose()
 
         # 验证心跳任务已清理
         assert run_id not in manager._heartbeat_tasks
