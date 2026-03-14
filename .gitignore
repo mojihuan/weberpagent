@@ -251,3 +251,24 @@ screenshots/
 
 # Backup folder
 _backup/
+
+# E2E test dependencies (root level)
+/package.json
+/package-lock.json
+/node_modules/
+
+# E2E test results
+test-results/
+
+# Test screenshots
+data/screenshots/
+
+# Playwright MCP logs
+.playwright-mcp/
+
+# Temporary files
+echo
+*.tmp
+
+# Python egg info (ensure ignored)
+*.egg-info/
