@@ -32,7 +32,10 @@ export function RunMonitor() {
         .then(task => {
           if (task) setTaskName(task.name)
         })
-        .catch(console.error)
+        .catch(error => {
+          console.error('Failed to fetch task:', error)
+          // Keep default task name instead of crashing
+        })
     }
   }, [run?.task_id])
 

@@ -2,8 +2,6 @@
 import { apiClient } from './client'
 import type { Run } from '../types'
 
-const API_BASE = 'http://localhost:8080/api'
-
 // 创建执行记录
 export async function createRun(taskId: string): Promise<Run> {
   return apiClient<Run>(`/runs?task_id=${taskId}`, {
@@ -31,6 +29,7 @@ export async function stopRun(runId: string): Promise<{ status: string }> {
 
 // 获取截图 URL
 export function getScreenshotUrl(runId: string, stepIndex: number): string {
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
   return `${API_BASE}/runs/${runId}/screenshots/${stepIndex}`
 }
 
