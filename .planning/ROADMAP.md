@@ -87,14 +87,17 @@ Plans:
   3. Execution monitor shows real-time step updates including screenshots via SSE
   4. Report page displays assertion results with pass/fail status for each step
   5. User can complete the full flow: create task -> execute -> monitor -> view report without errors
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves (including Wave 0 infrastructure setup)
 
 Plans:
-- [ ] 04-01: Frontend type alignment with backend
-- [ ] 04-02: Task list display fix
-- [ ] 04-03: Execution monitor SSE integration
-- [ ] 04-04: Report page implementation
-- [ ] 04-05: End-to-end flow verification
+- [x] 04-00-PLAN.md - Wave 0: E2E infrastructure setup (Playwright config, sonner install)
+- [ ] 04-01-PLAN.md - Wave 1: Frontend type alignment with backend (UI-01, UI-06)
+- [ ] 04-02-PLAN.md - Wave 1: API client retry + toast notifications (error handling UX)
+- [ ] 04-03-PLAN.md - Wave 2: RunMonitor SSE integration fix (UI-03, UI-04, depends on 04-01)
+- [ ] 04-04-PLAN.md - Wave 2: Report page assertion results display (UI-05)
+- [ ] 04-05-PLAN.md - Wave 3: End-to-end flow verification with checkpoint (E2E-01 to E2E-05, UI-02 verified via E2E)
+
+**Note on UI-02**: Task list display (UI-02) is verified through E2E tests in 04-05. The existing task list components already display task data correctly - they just need the type alignment from 04-01 and error handling from 04-02 to work properly.
 
 ## Progress
 
@@ -103,11 +106,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Fixes | 5/5 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
+| 1. Foundation Fixes | 6/6 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
 | 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
 | 3. Service Layer Restoration | 6/6 | Complete | 03-00, 03-01, 03-02, 03-03, 03-04, 03-05 |
-| 4. Frontend + E2E Alignment | 0/5 | Not started | - |
+| 4. Frontend + E2E Alignment | 1/6 | In Progress | 04-00 |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Phase 3 complete*
+*Last updated: 2026-03-14 - Completed 04-00 E2E Infrastructure Setup*

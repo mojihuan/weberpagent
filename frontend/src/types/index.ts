@@ -27,14 +27,60 @@ export interface UpdateTaskDto {
   status?: 'draft' | 'ready'
 }
 
+// RunStatus 执行状态
+export type RunStatus = 'pending' | 'running' | 'completed' | 'failed'
+
 // Run 执行记录
 export interface Run {
   id: string
   task_id: string
-  status: 'running' | 'success' | 'failed' | 'stopped'
+  status: RunStatus
   started_at: string
   finished_at?: string
   steps: Step[]
+}
+
+// Assertion 断言定义
+export interface Assertion {
+  id: string
+  task_id: string
+  name: string
+  type: 'url_contains' | 'text_exists' | 'no_errors'
+  expected: string
+  created_at: string
+}
+
+// AssertionResult 断言执行结果
+export interface AssertionResult {
+  id: string
+  run_id: string
+  assertion_id: string
+  assertion_name?: string
+  status: 'pass' | 'fail'
+  message: string | null
+  actual_value: string | null
+  created_at: string
+}
+
+// SSE Event Types
+export interface SSEStartedEvent {
+  run_id: string
+  task_name: string
+}
+
+export interface SSEStepEvent {
+  index: number
+  action: string
+  reasoning: string | null
+  screenshot_url: string | null
+  status: string
+  duration_ms: number | null
+}
+
+export interface SSEFinishedEvent {
+  status: string
+  total_steps: number
+  duration_ms: number
 }
 
 // Step 单步执行
@@ -83,4 +129,10 @@ export interface RecentRun {
   status: 'success' | 'failed' | 'running'
   started_at: string
   duration_ms: number
+}
+
+// ReportDetailResponse 报告详情（包含步骤和断言结果）
+export interface ReportDetailResponse extends Report {
+  steps: Step[]
+  assertion_results?: AssertionResult[]
 }

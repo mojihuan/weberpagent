@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
-status: completed
-stopped_at: Completed 03-05 Background task status updates
-last_updated: "2026-03-14T12:09:01.562Z"
-last_activity: 2026-03-14 -- Completed 03-05 Background task status updates
+status: in_progress
+stopped_at: Completed 04-00 E2E Infrastructure Setup
+last_updated: "2026-03-14T13:31:27Z"
+last_activity: 2026-03-14 -- Completed 04-00 E2E Infrastructure Setup
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_plans: 21
+  completed_plans: 17
+  percent: 81
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** QA uses natural language to write test cases, AI executes automatically and generates reports
-**Current focus:** Phase 3 - Service Layer Restoration (Complete)
+**Current focus:** Phase 4 - Frontend + E2E Alignment
 
 ## Current Position
 
-Phase: 3 of 4 (Service Layer Restoration)
-Plan: 5 of 5 in current phase
-Status: Complete
-Last activity: 2026-03-14 -- Completed 03-05 Background task status updates
+Phase: 4 of 4 (Frontend + E2E Alignment)
+Plan: 0 of 5 in current phase
+Status: In Progress
+Last activity: 2026-03-14 -- Completed 04-00 E2E Infrastructure Setup
 
-Progress: [===========..] 100% (phase)
+Progress: [............] 0% (phase)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 17
 - Average duration: 6 min
-- Total execution time: 1.4 hours
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
@@ -46,10 +46,10 @@ Progress: [===========..] 100% (phase)
 | 1. Foundation Fixes | 5 | 5 | 7 min |
 | 2. Data Layer Enhancement | 4 | 4 | 5 min |
 | 3. Service Layer Restoration | 5 | 5 | 5 min |
-| 4. Frontend + E2E Alignment | 0 | 5 | -- |
+| 4. Frontend + E2E Alignment | 1 | 5 | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 5, 7, 5, 8, 5 min
+- Last 5 plans: 8, 5, 5, 5, 3 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -67,6 +67,7 @@ Progress: [===========..] 100% (phase)
 | Phase 03-service-layer-restoration P01 | 2 | 2 tasks | 4 files |
 | Phase 03-service-layer-restoration P02 | 1 | 1 task | 1 file |
 | Phase 03-service-layer-restoration P05 | 1 | 1 task | 2 files |
+| Phase 04-frontend-e2e-alignment P00 | 4 | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [03-05]: ReportService.generate_report() replaces inline report creation in run_agent_background
 - [03-05]: AssertionService.evaluate_all() called before final status determination
 - [03-05]: Failed assertions change overall run status to "failed"
+- [04-00]: Created root package.json for Playwright since E2E tests live at project root
+- [04-00]: Used http://localhost:8080 instead of /api/health endpoint (may not exist)
+- [04-00]: Tests use .skip to be enabled incrementally as UI is fixed
 
 ### Pending Todos
 
@@ -112,5 +116,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T11:00:00Z
-Stopped at: Completed 03-05 Background task status updates
+Last session: 2026-03-14T13:31:27Z
+Stopped at: Completed 04-00 E2E Infrastructure Setup
