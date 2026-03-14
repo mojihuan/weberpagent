@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 02-00 test scaffolding
-last_updated: "2026-03-14T08:58:00Z"
-last_activity: 2026-03-14 -- Completed 02-00 test scaffolding
+stopped_at: Completed 02-01 Assertion ORM models
+last_updated: "2026-03-14T09:01:21Z"
+last_activity: 2026-03-14 -- Completed 02-01 Assertion ORM models
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -26,31 +26,31 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 2 of 4 (Data Layer Enhancement)
-Plan: 0 of 4 in current phase
+Plan: 1 of 4 in current phase
 Status: In Progress
-Last activity: 2026-03-14 -- Completed 02-00 test scaffolding
+Last activity: 2026-03-14 -- Completed 02-01 Assertion ORM models
 
-Progress: [=====-----] 50% (phase)
+Progress: [=======---] 75% (phase)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 7 min
-- Total execution time: 0.6 hours
+- Total plans completed: 8
+- Average duration: 6 min
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation Fixes | 5 | 5 | 7 min |
-| 2. Data Layer Enhancement | 1 | 4 | 5 min |
+| 2. Data Layer Enhancement | 2 | 4 | 6 min |
 | 3. Service Layer Restoration | 0 | 5 | -- |
 | 4. Frontend + E2E Alignment | 0 | 5 | -- |
 
 **Recent Trend:**
-- Last 5 plans: --
-- Trend: --
+- Last 5 plans: 5, 7, 5, 8 min
+- Trend: Stable
 
 *Updated after each plan completion*
 | Phase 01-foundation-fixes P00 | 1 | 1 task | 3 files |
@@ -59,6 +59,7 @@ Progress: [=====-----] 50% (phase)
 | Phase 01-foundation-fixes P04 | 4 | 4 tasks | 4 files |
 | Phase 01-foundation-fixes P05 | 3 | 3 tasks | 3 files |
 | Phase 02-data-layer-enhancement P00 | 3 | 3 tasks | 3 files |
+| Phase 02-data-layer-enhancement P01 | 3 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [01-04]: LLM temperature=0.0 for deterministic output, centralized Settings for all LLM config
 - [02-00]: Test stubs use skip markers pointing to implementing plans (02-01, 02-02)
 - [02-00]: Fixtures provide data dicts only - no model-dependent fixtures
+- [02-01]: Cascade delete on parent side (Task, Run) using cascade='all, delete-orphan'
+- [02-01]: DateTime fields verified via SQLAlchemy inspection, not runtime values (set on flush)
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T08:58:00Z
-Stopped at: Completed 02-00 test scaffolding
-Resume file: .planning/phases/02-data-layer-enhancement/02-01-PLAN.md
+Last session: 2026-03-14T09:01:21Z
+Stopped at: Completed 02-01 Assertion ORM models
+Resume file: .planning/phases/02-data-layer-enhancement/02-02-PLAN.md

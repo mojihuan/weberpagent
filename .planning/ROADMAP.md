@@ -52,8 +52,8 @@ Plans:
 **Plans**: 4 plans in 3 waves (including Wave 0 test scaffolding)
 
 Plans:
-- [ ] 02-00-PLAN.md - Wave 0 test scaffolding for model and repository tests
-- [ ] 02-01-PLAN.md - Assertion and AssertionResult ORM model creation (Wave 1, DATA-01, DATA-02, DATA-03)
+- [x] 02-00-PLAN.md - Wave 0 test scaffolding for model and repository tests
+- [x] 02-01-PLAN.md - Assertion and AssertionResult ORM model creation (Wave 1, DATA-01, DATA-02, DATA-03)
 - [ ] 02-02-PLAN.md - RunRepository.get_steps() method implementation (Wave 1, DATA-05)
 - [ ] 02-03-PLAN.md - Pydantic schemas and screenshot verification (Wave 2, DATA-04 verification, depends on 02-01, 02-02)
 
@@ -103,10 +103,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Fixes | 5/5 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
-| 2. Data Layer Enhancement | 0/4 | Not started | - |
+| 2. Data Layer Enhancement | 2/4 | In progress | 02-00, 02-01 |
 | 3. Service Layer Restoration | 0/5 | Not started | - |
 | 4. Frontend + E2E Alignment | 0/5 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Marked DATA-04 as verification-only (pre-existing)*
+*Last updated: 2026-03-14 - Completed 02-01 Assertion ORM models*

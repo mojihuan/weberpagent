@@ -6,12 +6,14 @@ from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # 添加项目根目录到路径
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from backend.llm import get_llm
+from backend.db.database import async_session, init_db, engine, Base
 
 load_dotenv()
 
@@ -91,3 +93,28 @@ def sample_assertion_result_data():
         "message": "Element found and visible",
         "actual_value": "#login-button",
     }
+
+
+# =============================================================================
+# Phase 2: Repository test fixtures (plan 02-02)
+# =============================================================================
+
+
+@pytest.fixture
+async def db_session():
+    """Async database session for repository tests.
+
+    Creates a fresh in-memory SQLite database for each test,
+    initializes tables, and cleans up after the test.
+    """
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # Create session
+    async with async_session() as session:
+        yield session
+
+    # Clean up - drop all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
