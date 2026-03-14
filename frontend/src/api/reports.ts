@@ -1,6 +1,6 @@
 // frontend/src/api/reports.ts
 import { apiClient } from './client'
-import type { Report, Step } from '../types'
+import type { Report, Step, AssertionResult } from '../types'
 
 interface StepApiResponse {
   id: string
@@ -28,8 +28,19 @@ interface ReportApiResponse {
   created_at: string
 }
 
+interface AssertionResultApiResponse {
+  id: string
+  run_id: string
+  assertion_id: string
+  status: string
+  message: string | null
+  actual_value: string | null
+  created_at: string
+}
+
 interface ReportDetailApiResponse extends ReportApiResponse {
   steps: StepApiResponse[]
+  assertion_results: AssertionResultApiResponse[]
 }
 
 interface ReportsListApiResponse {
@@ -66,6 +77,18 @@ function transformStep(step: StepApiResponse): Step {
   }
 }
 
+function transformAssertionResult(result: AssertionResultApiResponse): AssertionResult {
+  return {
+    id: result.id,
+    run_id: result.run_id,
+    assertion_id: result.assertion_id,
+    status: result.status as 'pass' | 'fail',
+    message: result.message,
+    actual_value: result.actual_value,
+    created_at: result.created_at,
+  }
+}
+
 export interface ReportDetailResponse extends Report {
   steps: Step[]
 }
@@ -94,5 +117,6 @@ export async function getReport(reportId: string): Promise<ReportDetailResponse>
   return {
     ...transformReport(response),
     steps: response.steps.map(transformStep),
+    assertion_results: (response.assertion_results || []).map(transformAssertionResult),
   }
 }
