@@ -71,7 +71,7 @@ Plans:
 
 Plans:
 - [ ] 03-00-PLAN.md - Wave 0 test scaffolding for service layer tests
-- [ ] 03-01-PLAN.md - AssertionService ORM adaptation + AssertionResultRepository (Wave 1, SVC-01)
+- [x] 03-01-PLAN.md - AssertionService ORM adaptation + AssertionResultRepository (Wave 1, SVC-01)
 - [ ] 03-02-PLAN.md - ReportService creation (Wave 1, SVC-02)
 - [x] 03-03-PLAN.md - LLM temperature=0 verification (Wave 1, SVC-03)
 - [ ] 03-04-PLAN.md - SSE EventManager heartbeat + LLM retry (Wave 1, SVC-04)
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Foundation Fixes | 5/5 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
 | 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
-| 3. Service Layer Restoration | 2/6 | In Progress|  |
+| 3. Service Layer Restoration | 3/6 | In Progress | 03-03, 03-04 |
 | 4. Frontend + E2E Alignment | 0/5 | Not started | - |
 
 ---

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
-status: in-progress
-stopped_at: Completed 03-04 SSE Heartbeat and LLM Retry
-last_updated: "2026-03-14T10:35:00Z"
-last_activity: 2026-03-14 -- Completed 03-04 SSE Heartbeat and LLM Retry
+status: completed
+stopped_at: Completed 03-01 AssertionService ORM adaptation
+last_updated: "2026-03-14T10:40:00.000Z"
+last_activity: 2026-03-14 -- Completed 03-01 AssertionService ORM adaptation
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 19
-  completed_plans: 12
+  total_plans: 16
+  completed_plans: 13
   percent: 63
 ---
 
@@ -26,16 +26,16 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 3 of 4 (Service Layer Restoration)
-Plan: 4 of 5 in current phase
+Plan: 1 of 5 in current phase
 Status: Complete
-Last activity: 2026-03-14 -- Completed 03-04 SSE Heartbeat and LLM Retry
+Last activity: 2026-03-14 -- Completed 03-01 AssertionService ORM adaptation
 
-Progress: [=======...] 63% (phase)
+Progress: [=========..] 81% (phase)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 14
 - Average duration: 6 min
 - Total execution time: 1.2 hours
 
@@ -45,11 +45,11 @@ Progress: [=======...] 63% (phase)
 |-------|-------|-------|----------|
 | 1. Foundation Fixes | 5 | 5 | 7 min |
 | 2. Data Layer Enhancement | 4 | 4 | 5 min |
-| 3. Service Layer Restoration | 2 | 5 | 5 min |
+| 3. Service Layer Restoration | 3 | 5 | 5 min |
 | 4. Frontend + E2E Alignment | 0 | 5 | -- |
 
 **Recent Trend:**
-- Last 5 plans: 8, 3, 8, 5 min
+- Last 5 plans: 5, 7, 5, 8 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -64,6 +64,7 @@ Progress: [=======...] 63% (phase)
 | Phase 02-data-layer-enhancement P03 | 3 | 3 tasks | 3 files |
 | Phase 03-service-layer-restoration P03 | 1 | 1 task | 1 file |
 | Phase 03-service-layer-restoration P04 | 2 | 2 tasks | 2 files |
+| Phase 03-service-layer-restoration P01 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [03-04]: Heartbeat interval: 20 seconds (configurable via heartbeat_interval parameter)
 - [03-04]: LLM retry: exponential backoff (1s, 2s, 4s) with max 3 attempts
 - [03-04]: Non-retryable errors: 401, 403, invalid API key, quota exceeded
+- [03-01]: AssertionService check methods return tuple (passed, message, actual_value)
+- [03-01]: evaluate_all() returns list[AssertionResult] ORM objects with Chinese error messages
 
 ### Pending Todos
 
@@ -104,6 +107,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T10:35:00Z
-Stopped at: Completed 03-04 SSE Heartbeat and LLM Retry
-Resume file: .planning/phases/03-service-layer-restoration/03-05-PLAN.md
+Last session: 2026-03-14T10:40:00Z
+Stopped at: Completed 03-01 AssertionService ORM adaptation
