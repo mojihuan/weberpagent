@@ -95,6 +95,19 @@ class RunRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars())
 
+    async def list_with_details(self) -> List[Run]:
+        """获取执行列表，包含任务名称和步骤数"""
+        stmt = (
+            select(Run)
+            .options(
+                selectinload(Run.task),
+                selectinload(Run.steps),
+            )
+            .order_by(Run.created_at.desc())
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
     async def update_status(self, run_id: str, status: str) -> Optional[Run]:
         run = await self.get(run_id)
         if not run:

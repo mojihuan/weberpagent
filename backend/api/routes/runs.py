@@ -186,8 +186,20 @@ async def list_runs(
     run_repo: RunRepository = Depends(get_run_repo),
 ):
     """获取执行列表"""
-    runs = await run_repo.list()
-    return [RunResponse.model_validate(r) for r in runs]
+    runs = await run_repo.list_with_details()
+    return [
+        RunResponse(
+            id=run.id,
+            task_id=run.task_id,
+            status=run.status,
+            started_at=run.started_at,
+            finished_at=run.finished_at,
+            created_at=run.created_at,
+            task_name=run.task.name if run.task else None,
+            steps_count=len(run.steps) if run.steps else 0,
+        )
+        for run in runs
+    ]
 
 
 @router.post("", response_model=RunResponse)

@@ -55,6 +55,9 @@ class RunResponse(BaseModel):
     started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
     created_at: datetime
+    # 额外字段（列表页需要）
+    task_name: Optional[str] = None
+    steps_count: int = 0
 
     class Config:
         from_attributes = True
