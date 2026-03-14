@@ -5,7 +5,7 @@ from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.models import Task, Run, Step, Report
+from backend.db.models import Task, Run, Step, Report, AssertionResult
 from backend.db.schemas import TaskCreate, TaskUpdate
 
 
@@ -208,3 +208,41 @@ class ReportRepository:
         reports = list(result.scalars())
 
         return reports, total
+
+
+class AssertionResultRepository:
+    """断言结果仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(
+        self,
+        run_id: str,
+        assertion_id: str,
+        status: str,
+        message: str | None = None,
+        actual_value: str | None = None,
+    ) -> AssertionResult:
+        """Create and persist assertion result."""
+        result = AssertionResult(
+            run_id=run_id,
+            assertion_id=assertion_id,
+            status=status,
+            message=message,
+            actual_value=actual_value,
+        )
+        self.session.add(result)
+        await self.session.commit()
+        await self.session.refresh(result)
+        return result
+
+    async def list_by_run(self, run_id: str) -> List[AssertionResult]:
+        """List all assertion results for a run."""
+        stmt = (
+            select(AssertionResult)
+            .where(AssertionResult.run_id == run_id)
+            .order_by(AssertionResult.created_at)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
