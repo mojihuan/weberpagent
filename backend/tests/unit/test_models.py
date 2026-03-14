@@ -116,26 +116,59 @@ def test_assertion_task_relationship(sample_task_data, sample_assertion_data):
 
 
 # ============================================================================
-# Task 2: AssertionResult Model Tests (skip until Task 2)
+# Task 2: AssertionResult Model Tests
 # ============================================================================
 
 
-@pytest.mark.skip(reason="AssertionResult model will be implemented in Task 2")
 def test_assertion_result_model():
     """AssertionResult model has id, run_id, assertion_id, status, message, actual_value, created_at fields"""
-    pass
+    from backend.db.models import AssertionResult
+
+    assertion_result = AssertionResult(
+        id="res12345",
+        run_id="run12345",
+        assertion_id="assert123",
+        status="pass",
+        message="URL matched expected pattern",
+        actual_value="/login/page",
+    )
+
+    assert assertion_result.id == "res12345"
+    assert assertion_result.run_id == "run12345"
+    assert assertion_result.assertion_id == "assert123"
+    assert assertion_result.status == "pass"
+    assert assertion_result.message == "URL matched expected pattern"
+    assert assertion_result.actual_value == "/login/page"
+    # created_at is set on flush to database, field definition is verified via inspection
+    from sqlalchemy import inspect
+    mapper = inspect(AssertionResult)
+    assert "created_at" in mapper.columns
 
 
-@pytest.mark.skip(reason="AssertionResult model will be implemented in Task 2")
 def test_assertion_result_run_id_foreign_key():
     """AssertionResult.run_id is ForeignKey to runs.id"""
-    pass
+    from sqlalchemy import inspect
+    from backend.db.models import AssertionResult
+
+    mapper = inspect(AssertionResult)
+    run_id_column = mapper.columns["run_id"]
+
+    assert run_id_column.foreign_keys is not None
+    fk = list(run_id_column.foreign_keys)[0]
+    assert fk.target_fullname == "runs.id"
 
 
-@pytest.mark.skip(reason="AssertionResult model will be implemented in Task 2")
 def test_assertion_result_assertion_id_foreign_key():
     """AssertionResult.assertion_id is ForeignKey to assertions.id"""
-    pass
+    from sqlalchemy import inspect
+    from backend.db.models import AssertionResult
+
+    mapper = inspect(AssertionResult)
+    assertion_id_column = mapper.columns["assertion_id"]
+
+    assert assertion_id_column.foreign_keys is not None
+    fk = list(assertion_id_column.foreign_keys)[0]
+    assert fk.target_fullname == "assertions.id"
 
 
 # ============================================================================

@@ -48,6 +48,9 @@ class Run(Base):
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")
     steps: Mapped[List["Step"]] = relationship("Step", back_populates="run", order_by="Step.step_index")
+    assertion_results: Mapped[List["AssertionResult"]] = relationship(
+        "AssertionResult", back_populates="run", cascade="all, delete-orphan"
+    )
 
 
 class Assertion(Base):
@@ -63,7 +66,24 @@ class Assertion(Base):
 
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="assertions")
-    # results relationship will be added in Task 2 when AssertionResult is created
+    results: Mapped[List["AssertionResult"]] = relationship("AssertionResult", back_populates="assertion")
+
+
+class AssertionResult(Base):
+    """断言结果模型"""
+    __tablename__ = "assertion_results"
+
+    id: Mapped[str] = mapped_column(String(8), primary_key=True, default=generate_id)
+    run_id: Mapped[str] = mapped_column(String(8), ForeignKey("runs.id"), nullable=False)
+    assertion_id: Mapped[str] = mapped_column(String(8), ForeignKey("assertions.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)  # pass, fail
+    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # explanation
+    actual_value: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # actual captured value
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    # 关系
+    run: Mapped["Run"] = relationship("Run", back_populates="assertion_results")
+    assertion: Mapped["Assertion"] = relationship("Assertion", back_populates="results")
 
 
 class Step(Base):
