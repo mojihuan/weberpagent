@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 02-03 Pydantic Schemas
-last_updated: "2026-03-14T09:15:46Z"
-last_activity: 2026-03-14 -- Completed 02-03 Pydantic Schemas
+status: in-progress
+stopped_at: Completed 03-04 SSE Heartbeat and LLM Retry
+last_updated: "2026-03-14T10:35:00Z"
+last_activity: 2026-03-14 -- Completed 03-04 SSE Heartbeat and LLM Retry
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  completed_phases: 2
+  total_plans: 19
+  completed_plans: 12
+  percent: 63
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** QA uses natural language to write test cases, AI executes automatically and generates reports
-**Current focus:** Phase 2 - Data Layer Enhancement
+**Current focus:** Phase 3 - Service Layer Restoration
 
 ## Current Position
 
-Phase: 2 of 4 (Data Layer Enhancement)
-Plan: 3 of 4 in current phase
+Phase: 3 of 4 (Service Layer Restoration)
+Plan: 4 of 5 in current phase
 Status: Complete
-Last activity: 2026-03-14 -- Completed 02-03 Pydantic Schemas
+Last activity: 2026-03-14 -- Completed 03-04 SSE Heartbeat and LLM Retry
 
-Progress: [==========] 75% (phase)
+Progress: [=======...] 63% (phase)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 12
 - Average duration: 6 min
-- Total execution time: 1.0 hours
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -45,11 +45,11 @@ Progress: [==========] 75% (phase)
 |-------|-------|-------|----------|
 | 1. Foundation Fixes | 5 | 5 | 7 min |
 | 2. Data Layer Enhancement | 4 | 4 | 5 min |
-| 3. Service Layer Restoration | 0 | 5 | -- |
+| 3. Service Layer Restoration | 2 | 5 | 5 min |
 | 4. Frontend + E2E Alignment | 0 | 5 | -- |
 
 **Recent Trend:**
-- Last 5 plans: 5, 7, 5, 8 min
+- Last 5 plans: 8, 3, 8, 5 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -62,6 +62,8 @@ Progress: [==========] 75% (phase)
 | Phase 02-data-layer-enhancement P01 | 3 | 3 tasks | 2 files |
 | Phase 02-data-layer-enhancement P02 | 1 | 1 task | 3 files |
 | Phase 02-data-layer-enhancement P03 | 3 | 3 tasks | 3 files |
+| Phase 03-service-layer-restoration P03 | 1 | 1 task | 1 file |
+| Phase 03-service-layer-restoration P04 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +88,11 @@ Recent decisions affecting current work:
 - [02-02]: RunRepository.get_steps follows existing StepRepository.list_by_run pattern
 - [02-03]: AssertionResponse and AssertionResultResponse schemas use class Config with from_attributes=True (matching existing pattern)
 - [02-03]: Screenshot storage verified as file-based (VARCHAR path, not BLOB)
+- [03-03]: TestLLMTemperature class verifies temperature=0 flows from Settings through get_llm_config() to create_llm()
+- [03-04]: SSE heartbeat uses comment format (:heartbeat) invisible to EventSource clients
+- [03-04]: Heartbeat interval: 20 seconds (configurable via heartbeat_interval parameter)
+- [03-04]: LLM retry: exponential backoff (1s, 2s, 4s) with max 3 attempts
+- [03-04]: Non-retryable errors: 401, 403, invalid API key, quota exceeded
 
 ### Pending Todos
 
@@ -97,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T09:15:46Z
-Stopped at: Completed 02-03 Pydantic Schemas
-Resume file: .planning/phases/02-data-layer-enhancement/02-04-PLAN.md
+Last session: 2026-03-14T10:35:00Z
+Stopped at: Completed 03-04 SSE Heartbeat and LLM Retry
+Resume file: .planning/phases/03-service-layer-restoration/03-05-PLAN.md
