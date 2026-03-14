@@ -28,7 +28,7 @@ export interface UpdateTaskDto {
 }
 
 // RunStatus 执行状态
-export type RunStatus = 'pending' | 'running' | 'completed' | 'failed'
+export type RunStatus = 'pending' | 'running' | 'success' | 'failed'
 
 // Run 执行记录
 export interface Run {

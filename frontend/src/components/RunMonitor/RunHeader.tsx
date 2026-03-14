@@ -36,7 +36,7 @@ export function RunHeader({
             停止执行
           </Button>
         )}
-        {!isRunning && onViewReport && (status === 'completed' || status === 'failed') && (
+        {!isRunning && onViewReport && (status === 'success' || status === 'failed') && (
           <Button variant="primary" onClick={onViewReport}>
             <FileText className="w-4 h-4 mr-1" />
             查看报告
