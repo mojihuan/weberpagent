@@ -102,6 +102,12 @@ class RunRepository:
         await self.session.refresh(step)
         return step
 
+    async def get_steps(self, run_id: str) -> List[Step]:
+        """Get all steps for a run, ordered by step_index."""
+        stmt = select(Step).where(Step.run_id == run_id).order_by(Step.step_index)
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
 
 class StepRepository:
     """步骤仓库"""
