@@ -248,3 +248,6 @@ coverage/
 screenshots/
 
 .mcp.json
+
+# Backup folder
+backup/
