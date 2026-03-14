@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import os
 import traceback
 from datetime import datetime
 
@@ -10,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.config import get_settings
 from backend.db import get_db
 from backend.db.database import async_session
 from backend.db.repository import TaskRepository, RunRepository, StepRepository, ReportRepository
@@ -27,18 +27,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_llm_config() -> dict:
-    """获取 LLM 配置，从环境变量读取
+    """获取 LLM 配置，从集中配置读取
 
-    默认使用阿里云 DashScope + qwen3.5-plus
+    使用 temperature=0 确保确定性输出
     """
+    settings = get_settings()
     return {
-        "model": os.getenv("LLM_MODEL", "qwen3.5-plus"),
-        "api_key": os.getenv("DASHSCOPE_API_KEY") or os.getenv("OPENAI_API_KEY"),
-        "base_url": os.getenv(
-            "LLM_BASE_URL",
-            "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        ),
-        "temperature": float(os.getenv("LLM_TEMPERATURE", "0.1")),
+        "model": settings.llm_model,
+        "api_key": settings.dashscope_api_key or settings.openai_api_key,
+        "base_url": settings.llm_base_url,
+        "temperature": settings.llm_temperature,
     }
 
 
