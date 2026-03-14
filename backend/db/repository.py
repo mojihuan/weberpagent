@@ -47,6 +47,12 @@ class TaskRepository:
         task = await self.get(task_id)
         if not task:
             return False
+
+        # 先删除关联的 runs（会级联删除 steps、reports、assertion_results）
+        from sqlalchemy import delete as sql_delete
+        await self.session.execute(sql_delete(Run).where(Run.task_id == task_id))
+        await self.session.execute(sql_delete(Report).where(Report.task_id == task_id))
+
         await self.session.delete(task)
         await self.session.commit()
         return True
