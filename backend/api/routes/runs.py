@@ -106,8 +106,8 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
             await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
 
         try:
-            logger.info(f"[{run_id}] 开始执行 agent_service.run_with_streaming...")
-            result = await agent_service.run_with_streaming(
+            logger.info(f"[{run_id}] 开始执行 agent_service.run_with_cleanup...")
+            result = await agent_service.run_with_cleanup(
                 task=task_description,
                 run_id=run_id,
                 on_step=on_step,
