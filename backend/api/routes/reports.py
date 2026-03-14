@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db
-from backend.db.repository import ReportRepository, StepRepository
-from backend.db.schemas import ReportResponse, ReportDetailResponse, StepResponse
+from backend.db.repository import ReportRepository, StepRepository, AssertionResultRepository
+from backend.db.schemas import ReportResponse, ReportDetailResponse, StepResponse, AssertionResultResponse
 
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -17,6 +17,10 @@ def get_report_repo(db: AsyncSession = Depends(get_db)) -> ReportRepository:
 
 def get_step_repo(db: AsyncSession = Depends(get_db)) -> StepRepository:
     return StepRepository(db)
+
+
+def get_assertion_result_repo(db: AsyncSession = Depends(get_db)) -> AssertionResultRepository:
+    return AssertionResultRepository(db)
 
 
 @router.get("", response_model=dict)
@@ -47,6 +51,7 @@ async def get_report(
     report_id: str,
     report_repo: ReportRepository = Depends(get_report_repo),
     step_repo: StepRepository = Depends(get_step_repo),
+    assertion_result_repo: AssertionResultRepository = Depends(get_assertion_result_repo),
 ):
     """获取报告详情"""
     report = await report_repo.get(report_id)
@@ -71,6 +76,21 @@ async def get_report(
         for s in steps
     ]
 
+    # 获取断言结果
+    assertion_results = await assertion_result_repo.list_by_run(report.run_id)
+    assertion_result_responses = [
+        AssertionResultResponse(
+            id=ar.id,
+            run_id=ar.run_id,
+            assertion_id=ar.assertion_id,
+            status=ar.status,
+            message=ar.message,
+            actual_value=ar.actual_value,
+            created_at=ar.created_at,
+        )
+        for ar in assertion_results
+    ]
+
     return ReportDetailResponse(
         id=report.id,
         run_id=report.run_id,
@@ -83,4 +103,5 @@ async def get_report(
         duration_ms=report.duration_ms,
         created_at=report.created_at,
         steps=step_responses,
+        assertion_results=assertion_result_responses,
     )
