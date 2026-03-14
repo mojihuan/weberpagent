@@ -72,10 +72,10 @@ Plans:
 Plans:
 - [ ] 03-00-PLAN.md - Wave 0 test scaffolding for service layer tests
 - [x] 03-01-PLAN.md - AssertionService ORM adaptation + AssertionResultRepository (Wave 1, SVC-01)
-- [ ] 03-02-PLAN.md - ReportService creation (Wave 1, SVC-02)
+- [x] 03-02-PLAN.md - ReportService creation (Wave 1, SVC-02)
 - [x] 03-03-PLAN.md - LLM temperature=0 verification (Wave 1, SVC-03)
-- [ ] 03-04-PLAN.md - SSE EventManager heartbeat + LLM retry (Wave 1, SVC-04)
-- [ ] 03-05-PLAN.md - Background task status updates (Wave 2, depends on 03-01, 03-02, SVC-05)
+- [x] 03-04-PLAN.md - SSE EventManager heartbeat + LLM retry (Wave 1, SVC-04)
+- [x] 03-05-PLAN.md - Background task status updates (Wave 2, depends on 03-01, 03-02, SVC-05)
 
 ### Phase 4: Frontend + E2E Alignment
 **Goal**: Fully functional UI with correct data display and complete end-to-end user flow
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Foundation Fixes | 5/5 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
 | 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
-| 3. Service Layer Restoration | 3/6 | In Progress | 03-03, 03-04 |
+| 3. Service Layer Restoration | 5/6 | In Progress | 03-01, 03-02, 03-03, 03-04, 03-05 |
 | 4. Frontend + E2E Alignment | 0/5 | Not started | - |
 
 ---
