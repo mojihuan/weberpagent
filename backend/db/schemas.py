@@ -84,6 +84,7 @@ class StepResponse(BaseModel):
 class SSEStartedEvent(BaseModel):
     """SSE started 事件"""
     run_id: str
+    task_id: str
     task_name: str
 
 

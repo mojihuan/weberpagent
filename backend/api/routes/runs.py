@@ -45,9 +45,9 @@ def get_llm_config() -> dict:
 router = APIRouter(prefix="/runs", tags=["runs"])
 
 
-async def run_agent_background(run_id: str, task_name: str, task_description: str, max_steps: int):
+async def run_agent_background(run_id: str, task_id: str, task_name: str, task_description: str, max_steps: int):
     """后台执行 agent 任务"""
-    logger.info(f"[{run_id}] 开始后台执行: task_name={task_name}, max_steps={max_steps}")
+    logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
 
     # 获取 LLM 配置
     llm_config = get_llm_config()
@@ -67,7 +67,7 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
             raise
 
         # 发送 started 事件
-        started = SSEStartedEvent(run_id=run_id, task_name=task_name)
+        started = SSEStartedEvent(run_id=run_id, task_id=task_id, task_name=task_name)
         await event_manager.publish(run_id, f"event: started\ndata: {started.model_dump_json()}\n\n")
         logger.info(f"[{run_id}] 已发送 started 事件")
 
@@ -208,6 +208,7 @@ async def create_run(
     background_tasks.add_task(
         run_agent_background,
         run.id,
+        task_id,
         task.name,
         task.description,
         task.max_steps,

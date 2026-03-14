@@ -44,7 +44,7 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
       const data = JSON.parse(e.data)
       setRun({
         id: runId,
-        task_id: data.run_id || '',
+        task_id: data.task_id || '',
         status: 'running',
         started_at: new Date().toISOString(),
         steps: [],
