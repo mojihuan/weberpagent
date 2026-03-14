@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { RunHeader, StepTimeline, ScreenshotPanel, ReasoningLog } from '../components/RunMonitor'
 import { ImageViewer } from '../components/shared'
 import { useRunStream } from '../hooks/useRunStream'
@@ -7,6 +7,7 @@ import { tasksApi } from '../api/tasks'
 
 export function RunMonitor() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   const { run, disconnect } = useRunStream({
     runId: id || '',
@@ -43,6 +44,10 @@ export function RunMonitor() {
     disconnect()
   }
 
+  const handleViewReport = () => {
+    navigate(`/reports/${id}`)
+  }
+
   const handleStepClick = (index: number) => {
     setViewIndex(index)
   }
@@ -77,6 +82,7 @@ export function RunMonitor() {
         currentStep={run.steps.length}
         totalSteps={run.steps.length > 0 ? run.steps.length : 10}
         onStop={handleStop}
+        onViewReport={handleViewReport}
       />
 
       {/* Main Content */}

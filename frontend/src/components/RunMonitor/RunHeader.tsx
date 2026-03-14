@@ -1,4 +1,4 @@
-import { Square } from 'lucide-react'
+import { Square, FileText } from 'lucide-react'
 import type { Run } from '../../types'
 import { Button } from '../Button'
 import { StatusBadge } from '../shared'
@@ -9,6 +9,7 @@ interface RunHeaderProps {
   currentStep: number
   totalSteps: number
   onStop: () => void
+  onViewReport?: () => void
 }
 
 export function RunHeader({
@@ -17,6 +18,7 @@ export function RunHeader({
   currentStep,
   totalSteps,
   onStop,
+  onViewReport,
 }: RunHeaderProps) {
   const progress = totalSteps > 0 ? (currentStep / totalSteps) * 100 : 0
   const isRunning = status === 'running'
@@ -32,6 +34,12 @@ export function RunHeader({
           <Button variant="secondary" onClick={onStop} className="text-red-600 hover:bg-red-50">
             <Square className="w-4 h-4 mr-1" />
             停止执行
+          </Button>
+        )}
+        {!isRunning && onViewReport && (status === 'completed' || status === 'failed') && (
+          <Button variant="primary" onClick={onViewReport}>
+            <FileText className="w-4 h-4 mr-1" />
+            查看报告
           </Button>
         )}
       </div>
