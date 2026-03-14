@@ -29,6 +29,9 @@ class Task(Base):
 
     # 关系
     runs: Mapped[List["Run"]] = relationship("Run", back_populates="task")
+    assertions: Mapped[List["Assertion"]] = relationship(
+        "Assertion", back_populates="task", cascade="all, delete-orphan"
+    )
 
 
 class Run(Base):
@@ -45,6 +48,22 @@ class Run(Base):
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")
     steps: Mapped[List["Step"]] = relationship("Step", back_populates="run", order_by="Step.step_index")
+
+
+class Assertion(Base):
+    """断言模型"""
+    __tablename__ = "assertions"
+
+    id: Mapped[str] = mapped_column(String(8), primary_key=True, default=generate_id)
+    task_id: Mapped[str] = mapped_column(String(8), ForeignKey("tasks.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    type: Mapped[str] = mapped_column(String(50), nullable=False)  # url_contains, text_exists, no_errors
+    expected: Mapped[str] = mapped_column(Text, nullable=False)  # JSON string or plain text
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    # 关系
+    task: Mapped["Task"] = relationship("Task", back_populates="assertions")
+    # results relationship will be added in Task 2 when AssertionResult is created
 
 
 class Step(Base):
