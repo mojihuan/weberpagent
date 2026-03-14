@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 include = ["backend*"]
 
 [project]
-name = "jianzhi-ui-test"
+name = "aiDriveUITest"
 version = "0.1.0"
 description = "AI + Playwright UI 自动化测试 POC"
 requires-python = ">=3.11"
 dependencies = [
-    "browser-use>=0.12.0",
+    "browser-use>=0.12.2",
     "langchain-openai>=0.3.0",
     "langchain-core>=0.3.0",
     "playwright>=1.40.0",
