@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Play, Pencil, Trash2 } from 'lucide-react'
+import { Play, FileText, Pencil, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { Task } from '../../types'
 import { StatusBadge } from '../shared'
@@ -103,6 +103,13 @@ export function TaskRow({ task, selected, onSelect, onEdit, onDelete }: TaskRowP
             title="删除"
           >
             <Trash2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => navigate(`/reports?task_id=${task.id}`)}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-500"
+            title="查看报告"
+          >
+            <FileText className="w-4 h-4" />
           </button>
         </div>
       </td>
