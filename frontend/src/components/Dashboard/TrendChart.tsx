@@ -25,8 +25,16 @@ export function TrendChart({ data, loading }: TrendChartProps) {
     )
   }
 
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-5 h-80 flex items-center justify-center">
+        <span className="text-gray-400">暂无数据</span>
+      </div>
+    )
+  }
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 h-80">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 h-80" style={{ minHeight: '320px' }}>
       <h3 className="text-base font-medium text-gray-900 mb-4">7 天执行趋势</h3>
       <div className="h-60">
         <ResponsiveContainer width="100%" height="100%">
