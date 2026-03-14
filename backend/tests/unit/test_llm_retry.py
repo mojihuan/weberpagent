@@ -74,7 +74,7 @@ class TestShouldRetryLlmError:
 class TestCreateLlmRetry:
     """测试 create_llm 重试逻辑"""
 
-    @patch("backend.llm.factory.BrowserUseChatOpenAI")
+    @patch("browser_use.llm.openai.chat.ChatOpenAI")
     def test_create_llm_success_no_retry(self, mock_chat_openai):
         """测试成功创建 LLM 不触发重试"""
         mock_instance = MagicMock()
@@ -87,7 +87,7 @@ class TestCreateLlmRetry:
         assert result == mock_instance
         assert mock_chat_openai.call_count == 1
 
-    @patch("backend.llm.factory.BrowserUseChatOpenAI")
+    @patch("browser_use.llm.openai.chat.ChatOpenAI")
     def test_retry_on_timeout(self, mock_chat_openai):
         """测试 TimeoutError 触发重试"""
         # 第一次调用失败，第二次成功
@@ -104,7 +104,7 @@ class TestCreateLlmRetry:
         assert result == mock_instance
         assert mock_chat_openai.call_count == 2
 
-    @patch("backend.llm.factory.BrowserUseChatOpenAI")
+    @patch("browser_use.llm.openai.chat.ChatOpenAI")
     def test_retry_on_connection_error(self, mock_chat_openai):
         """测试 ConnectionError 触发重试"""
         mock_instance = MagicMock()
@@ -120,7 +120,7 @@ class TestCreateLlmRetry:
         assert result == mock_instance
         assert mock_chat_openai.call_count == 2
 
-    @patch("backend.llm.factory.BrowserUseChatOpenAI")
+    @patch("browser_use.llm.openai.chat.ChatOpenAI")
     def test_no_retry_on_auth_error(self, mock_chat_openai):
         """测试认证错误不重试，直接抛出"""
         mock_chat_openai.side_effect = Exception("Error 401: Unauthorized")
@@ -131,7 +131,7 @@ class TestCreateLlmRetry:
         # 认证错误不应重试，只调用一次
         assert mock_chat_openai.call_count == 1
 
-    @patch("backend.llm.factory.BrowserUseChatOpenAI")
+    @patch("browser_use.llm.openai.chat.ChatOpenAI")
     def test_max_retries_exceeded(self, mock_chat_openai):
         """测试超过最大重试次数后抛出异常"""
         mock_chat_openai.side_effect = TimeoutError("Connection timed out")
@@ -139,10 +139,10 @@ class TestCreateLlmRetry:
         with pytest.raises(TimeoutError, match="timed out"):
             create_llm({"model": "gpt-4o", "api_key": "test-key"})
 
-        # 初始调用 + 3 次重试 = 4 次（tenacity stop_after_attempt(3) 意味着总共 3 次）
+        # 初始调用 + 2 次重试 = 3 次（tenacity stop_after_attempt(3) 意味着总共最多 3 次尝试）
         assert mock_chat_openai.call_count == 3
 
-    @patch("backend.llm.factory.BrowserUseChatOpenAI")
+    @patch("browser_use.llm.openai.chat.ChatOpenAI")
     def test_exponential_backoff(self, mock_chat_openai):
         """测试指数退避重试（1s, 2s, 4s）"""
         import time

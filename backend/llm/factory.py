@@ -7,10 +7,48 @@
 import logging
 from typing import Type, Optional
 
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log,
+)
+
 from .base import BaseLLM
 from .config import LLMConfig, get_config
 
 logger = logging.getLogger(__name__)
+
+# 可重试的错误类型
+RETRYABLE_ERRORS = (
+    TimeoutError,
+    ConnectionError,
+)
+
+
+def _should_retry_llm_error(exception: Exception) -> bool:
+    """判断 LLM 错误是否可重试
+
+    不可重试：认证错误 (401/403)、配额、无效 API Key
+    可重试：超时、连接错误、速率限制 (429/503)
+
+    Args:
+        exception: 异常实例
+
+    Returns:
+        True 如果可重试，False 否则
+    """
+    error_str = str(exception).lower()
+
+    # 不可重试的模式
+    non_retryable = ["401", "403", "unauthorized", "invalid api key", "quota", "insufficient"]
+    if any(pattern in error_str for pattern in non_retryable):
+        return False
+
+    # 可重试的模式
+    retryable = ["429", "503", "timeout", "rate limit", "connection", "timed out", "connect"]
+    return any(pattern in error_str for pattern in retryable)
 
 # 尝试导入可用的 LLM 实现
 _LLM_CLASS: Optional[Type[BaseLLM]] = None
@@ -115,8 +153,21 @@ def get_llm(module_path: str) -> BaseLLM:
     return LLMFactory.create(module_path)
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=4),
+    retry=retry_if_exception_type(RETRYABLE_ERRORS),
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+    reraise=True,
+)
 def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
-    """创建 browser-use 兼容的 ChatOpenAI 实例
+    """创建 browser-use 兼容的 ChatOpenAI 实例（带重试逻辑）
+
+    重试配置：
+    - 最大尝试次数：3
+    - 等待时间：指数退避 (1s, 2s, 4s)
+    - 可重试：超时、连接错误、速率限制 (429/503)
+    - 不可重试：认证失败 (401/403)、配额、无效 API Key
 
     Args:
         llm_config: 可选的 LLM 配置字典
@@ -127,6 +178,9 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
 
     Returns:
         ChatOpenAI 实例，可直接传递给 browser-use Agent
+
+    Raises:
+        Exception: 创建失败且不可重试或超过最大重试次数
     """
     from browser_use.llm.openai.chat import ChatOpenAI as BrowserUseChatOpenAI
 
@@ -135,6 +189,11 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
     api_key = config.get("api_key")
     base_url = config.get("base_url")
     temperature = config.get("temperature", 0.0)
+
+    # 记录重试信息
+    attempt_number = create_llm.retry.statistics.get("attempt_number", 0)
+    if attempt_number > 0:
+        logger.warning(f"LLM 调用重试，第 {attempt_number} 次")
 
     logger.info(f"create_llm: model={model}, base_url={base_url}, temperature={temperature}")
     logger.debug(f"create_llm: api_key={'*' * 8 if api_key else 'from env'}")
@@ -151,5 +210,12 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
         logger.info(f"create_llm: 成功创建 ChatOpenAI, model={llm.model}, provider={llm.provider}")
         return llm
     except Exception as e:
-        logger.error(f"create_llm: 创建失败 - {e}")
-        raise
+        error_type = type(e).__name__
+        logger.error(f"create_llm: 创建失败 - {error_type}: {e}")
+
+        # 检查是否为不可重试错误
+        if not _should_retry_llm_error(e):
+            logger.error("create_llm: 不可重试错误，放弃重试")
+            raise
+
+        raise  # 让 tenacity 处理重试
