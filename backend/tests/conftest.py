@@ -58,3 +58,36 @@ def erp_config():
         "username": os.getenv("ERP_USERNAME", "test_user"),
         "password": os.getenv("ERP_PASSWORD", ""),
     }
+
+
+# =============================================================================
+# Phase 2: Assertion test fixtures (plan 02-00)
+# =============================================================================
+
+
+@pytest.fixture
+def sample_assertion_data():
+    """Sample data dict for creating Assertion.
+
+    Used by tests in plans 02-01 and 02-02.
+    Does not include id or task_id - those are set by the test.
+    """
+    return {
+        "name": "Check login button visible",
+        "type": "element_visible",
+        "expected": "#login-button",
+    }
+
+
+@pytest.fixture
+def sample_assertion_result_data():
+    """Sample data dict for creating AssertionResult.
+
+    Used by tests in plans 02-01 and 02-02.
+    Does not include id, run_id, or assertion_id - those are set by the test.
+    """
+    return {
+        "status": "passed",
+        "message": "Element found and visible",
+        "actual_value": "#login-button",
+    }
