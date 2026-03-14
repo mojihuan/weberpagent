@@ -22,6 +22,8 @@ from backend.db.schemas import (
 )
 from backend.core.agent_service import AgentService
 from backend.core.event_manager import event_manager
+from backend.core.report_service import ReportService
+from backend.core.assertion_service import AssertionService
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +56,8 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
     async with async_session() as session:
         run_repo = RunRepository(session)
         agent_service = AgentService()
+        report_service = ReportService(session)
+        assertion_service = AssertionService(session)
 
         try:
             await run_repo.update_status(run_id, "running")
@@ -114,11 +118,29 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
             )
             logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
 
-            # 发送 finished 事件
+            # 确定最终状态
             final_status = "success" if result.is_successful() else "failed"
+
+            # 评估断言（如果任务有断言）
+            run = await run_repo.get_with_task(run_id)
+            if run and run.task and run.task.assertions:
+                assertion_results = await assertion_service.evaluate_all(
+                    run_id=run_id,
+                    assertions=run.task.assertions,
+                    history=result,
+                )
+                # 如果任何断言失败，整体状态为失败
+                if any(ar.status == "fail" for ar in assertion_results):
+                    final_status = "failed"
+                    logger.info(f"[{run_id}] 断言评估完成，存在失败断言，状态设为 failed")
+                else:
+                    logger.info(f"[{run_id}] 断言评估完成，全部通过")
+
+            # 更新状态
             await run_repo.update_status(run_id, final_status)
             event_manager.set_status(run_id, final_status)
 
+            # 发送 finished 事件
             finished = SSEFinishedEvent(
                 status=final_status,
                 total_steps=step_count,
@@ -127,39 +149,9 @@ async def run_agent_background(run_id: str, task_name: str, task_description: st
             await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
             logger.info(f"[{run_id}] 已发送 finished 事件, status={final_status}")
 
-            # 生成报告
-            try:
-                # 获取 run 信息以计算执行时间
-                run = await run_repo.get(run_id)
-                duration_ms = 0
-                if run and run.started_at and run.finished_at:
-                    duration_ms = int((run.finished_at - run.started_at).total_seconds() * 1000)
-
-                # 获取步骤统计
-                steps = await run_repo.get_steps(run_id)
-                success_steps = sum(1 for s in steps if s.status == "success")
-                failed_steps = sum(1 for s in steps if s.status == "failed")
-
-                # 获取 task 信息
-                task_repo = TaskRepository(session)
-                task = await task_repo.get(run.task_id) if run else None
-                task_name = task.name if task else "Unknown"
-
-                # 创建报告
-                report_repo = ReportRepository(session)
-                await report_repo.create(
-                    run_id=run_id,
-                    task_id=run.task_id if run else "",
-                    task_name=task_name,
-                    status=final_status,
-                    total_steps=step_count,
-                    success_steps=success_steps,
-                    failed_steps=failed_steps,
-                    duration_ms=duration_ms,
-                )
-                logger.info(f"[{run_id}] 报告已生成")
-            except Exception as report_error:
-                logger.error(f"[{run_id}] 生成报告失败: {report_error}")
+            # 使用 ReportService 生成报告
+            await report_service.generate_report(run_id)
+            logger.info(f"[{run_id}] 报告已生成")
 
         except Exception as e:
             logger.error(f"[{run_id}] 执行失败: {e}")
