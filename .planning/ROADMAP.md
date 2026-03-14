@@ -42,20 +42,20 @@ Plans:
 ### Phase 2: Data Layer Enhancement
 **Goal**: Complete database schema with optimized screenshot storage and working repository methods
 **Depends on**: Phase 1
-**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04 (verification-only), DATA-05
 **Success Criteria** (what must be TRUE):
-  1. Assertion model stores type, expected_value, actual_value for each assertion
-  2. AssertionResult model captures pass/fail status with explanatory messages
-  3. Run records properly link to their associated assertions
-  4. Screenshots are stored as files on disk, not as BLOBs in the database
+  1. Assertion model stores type, expected for each assertion (actual_value is on AssertionResult)
+  2. AssertionResult model captures pass/fail status with messages and actual values
+  3. Run records properly link to their associated assertion results
+  4. Screenshots are stored as files on disk, not as BLOBs in the database (pre-existing, verify only)
   5. RunRepository.get_steps() returns all step data for a given run
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves (including Wave 0 test scaffolding)
 
 Plans:
-- [ ] 02-01: Assertion and AssertionResult model creation
-- [ ] 02-02: Run-Assertion relationship configuration
-- [ ] 02-03: Screenshot file storage implementation
-- [ ] 02-04: RunRepository.get_steps() method implementation
+- [ ] 02-00-PLAN.md - Wave 0 test scaffolding for model and repository tests
+- [ ] 02-01-PLAN.md - Assertion and AssertionResult ORM model creation (Wave 1, DATA-01, DATA-02, DATA-03)
+- [ ] 02-02-PLAN.md - RunRepository.get_steps() method implementation (Wave 1, DATA-05)
+- [ ] 02-03-PLAN.md - Pydantic schemas and screenshot verification (Wave 2, DATA-04 verification, depends on 02-01, 02-02)
 
 ### Phase 3: Service Layer Restoration
 **Goal**: Working assertion evaluation, automated report generation, and reliable SSE streaming
@@ -109,4 +109,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14*
+*Last updated: 2026-03-14 - Marked DATA-04 as verification-only (pre-existing)*
