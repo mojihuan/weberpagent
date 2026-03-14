@@ -1,6 +1,8 @@
 """FastAPI 应用入口"""
 
 import os
+import uuid
+import traceback
 
 # 禁用代理 - 避免 httpx 自动读取系统代理配置导致 LLM 调用超时
 # 必须在 import 其他模块之前执行，确保 httpx 不会读取到代理配置
@@ -10,8 +12,11 @@ for proxy_var in ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes import tasks, runs, reports, dashboard
 
@@ -52,6 +57,63 @@ app.include_router(tasks.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
+
+
+# Global exception handlers for consistent API response format
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTP exceptions with consistent format"""
+    request_id = str(uuid.uuid4())
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": f"HTTP_{exc.status_code}",
+                "message": str(exc.detail),
+                "request_id": request_id
+            }
+        }
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with consistent format"""
+    request_id = str(uuid.uuid4())
+    return JSONResponse(
+        status_code=400,
+        content={
+            "success": False,
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Request validation failed",
+                "request_id": request_id,
+                "details": exc.errors()
+            }
+        }
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle unexpected exceptions"""
+    request_id = str(uuid.uuid4())
+    logger = logging.getLogger(__name__)
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred",
+                "request_id": request_id,
+                "stack": traceback.format_exc() if logging.getLogger().level == logging.DEBUG else None
+            }
+        }
+    )
 
 
 @app.get("/")
