@@ -13,7 +13,7 @@ This roadmap stabilizes an existing AI-driven UI testing platform. Starting from
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Fixes** - Configuration, API standardization, async patterns
-- [ ] **Phase 2: Data Layer Enhancement** - Database schema, screenshot storage, repository methods
+- [x] **Phase 2: Data Layer Enhancement** - Database schema, screenshot storage, repository methods
 - [ ] **Phase 3: Service Layer Restoration** - Assertion evaluation, report generation, SSE heartbeats
 - [ ] **Phase 4: Frontend + E2E Alignment** - UI types, data display, complete user flow
 
@@ -54,8 +54,8 @@ Plans:
 Plans:
 - [x] 02-00-PLAN.md - Wave 0 test scaffolding for model and repository tests
 - [x] 02-01-PLAN.md - Assertion and AssertionResult ORM model creation (Wave 1, DATA-01, DATA-02, DATA-03)
-- [ ] 02-02-PLAN.md - RunRepository.get_steps() method implementation (Wave 1, DATA-05)
-- [ ] 02-03-PLAN.md - Pydantic schemas and screenshot verification (Wave 2, DATA-04 verification, depends on 02-01, 02-02)
+- [x] 02-02-PLAN.md - RunRepository.get_steps() method implementation (Wave 1, DATA-05)
+- [x] 02-03-PLAN.md - Pydantic schemas and screenshot verification (Wave 2, DATA-04 verification, depends on 02-01, 02-02)
 
 ### Phase 3: Service Layer Restoration
 **Goal**: Working assertion evaluation, automated report generation, and reliable SSE streaming
@@ -103,10 +103,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Fixes | 5/5 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
-| 2. Data Layer Enhancement | 2/4 | In progress | 02-00, 02-01 |
+| 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
 | 3. Service Layer Restoration | 0/5 | Not started | - |
 | 4. Frontend + E2E Alignment | 0/5 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Completed 02-01 Assertion ORM models*
+*Last updated: 2026-03-14 - Completed 02-03 Pydantic Schemas (Phase 2 complete)*
