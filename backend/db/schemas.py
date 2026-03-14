@@ -139,3 +139,43 @@ class ReportListParams(BaseModel):
     date: Optional[str] = None
     page: int = 1
     page_size: int = 10
+
+
+# === Assertion Schemas ===
+
+
+class AssertionResponse(BaseModel):
+    """断言响应"""
+    id: str
+    task_id: str
+    name: str
+    type: str  # url_contains, text_exists, no_errors
+    expected: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AssertionCreate(BaseModel):
+    """创建断言请求"""
+    name: str = Field(..., min_length=1, max_length=200)
+    type: str = Field(..., pattern="^(url_contains|text_exists|no_errors)$")
+    expected: str = Field(..., min_length=1)
+
+
+# === AssertionResult Schemas ===
+
+
+class AssertionResultResponse(BaseModel):
+    """断言结果响应"""
+    id: str
+    run_id: str
+    assertion_id: str
+    status: str  # pass, fail
+    message: Optional[str] = None
+    actual_value: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

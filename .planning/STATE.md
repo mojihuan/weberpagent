@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 02-01 Assertion ORM models
-last_updated: "2026-03-14T09:01:21Z"
-last_activity: 2026-03-14 -- Completed 02-01 Assertion ORM models
+stopped_at: Completed 02-02 RunRepository get_steps
+last_updated: "2026-03-14T09:12:00Z"
+last_activity: 2026-03-14 -- Completed 02-02 RunRepository get_steps
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -26,25 +26,25 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 2 of 4 (Data Layer Enhancement)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In Progress
-Last activity: 2026-03-14 -- Completed 02-01 Assertion ORM models
+Last activity: 2026-03-14 -- Completed 02-02 RunRepository get_steps
 
-Progress: [=======---] 75% (phase)
+Progress: [========--] 50% (phase)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 6 min
-- Total execution time: 0.8 hours
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation Fixes | 5 | 5 | 7 min |
-| 2. Data Layer Enhancement | 2 | 4 | 6 min |
+| 2. Data Layer Enhancement | 3 | 4 | 5 min |
 | 3. Service Layer Restoration | 0 | 5 | -- |
 | 4. Frontend + E2E Alignment | 0 | 5 | -- |
 
@@ -60,6 +60,7 @@ Progress: [=======---] 75% (phase)
 | Phase 01-foundation-fixes P05 | 3 | 3 tasks | 3 files |
 | Phase 02-data-layer-enhancement P00 | 3 | 3 tasks | 3 files |
 | Phase 02-data-layer-enhancement P01 | 3 | 3 tasks | 2 files |
+| Phase 02-data-layer-enhancement P02 | 1 | 1 task | 3 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [02-00]: Fixtures provide data dicts only - no model-dependent fixtures
 - [02-01]: Cascade delete on parent side (Task, Run) using cascade='all, delete-orphan'
 - [02-01]: DateTime fields verified via SQLAlchemy inspection, not runtime values (set on flush)
+- [02-02]: RunRepository.get_steps follows existing StepRepository.list_by_run pattern
 
 ### Pending Todos
 
@@ -92,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T09:01:21Z
-Stopped at: Completed 02-01 Assertion ORM models
-Resume file: .planning/phases/02-data-layer-enhancement/02-02-PLAN.md
+Last session: 2026-03-14T09:12:00Z
+Stopped at: Completed 02-02 RunRepository get_steps
+Resume file: .planning/phases/02-data-layer-enhancement/02-03-PLAN.md
