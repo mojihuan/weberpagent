@@ -250,4 +250,4 @@ screenshots/
 .mcp.json
 
 # Backup folder
-backup/
+_backup/

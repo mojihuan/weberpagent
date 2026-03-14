@@ -128,7 +128,7 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
     Returns:
         ChatOpenAI 实例，可直接传递给 browser-use Agent
     """
-    from .openai import OpenAIChat
+    from browser_use.llm.openai.chat import ChatOpenAI as BrowserUseChatOpenAI
 
     config = llm_config or {}
     model = config.get("model", "gpt-4o")
@@ -140,20 +140,15 @@ def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
     logger.debug(f"create_llm: api_key={'*' * 8 if api_key else 'from env'}")
 
     try:
-        openai_chat = OpenAIChat(
+        # 使用 browser-use 原生的 ChatOpenAI，原生支持 provider 属性
+        llm = BrowserUseChatOpenAI(
             model=model,
             api_key=api_key,
             base_url=base_url,
             temperature=temperature,
         )
-        llm = openai_chat.llm
 
-        # 修复 browser-use 兼容性问题
-        # browser-use 0.12.1 尝试访问 llm.provider 属性
-        # 但 langchain_openai.ChatOpenAI 没有这个属性
-        llm.provider = "openai"
-
-        logger.info(f"create_llm: 成功创建 ChatOpenAI, model_name={getattr(llm, 'model_name', 'unknown')}, provider={getattr(llm, 'provider', 'unknown')}")
+        logger.info(f"create_llm: 成功创建 ChatOpenAI, model={llm.model}, provider={llm.provider}")
         return llm
     except Exception as e:
         logger.error(f"create_llm: 创建失败 - {e}")

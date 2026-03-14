@@ -107,3 +107,35 @@ class SSEFinishedEvent(BaseModel):
 class SSEErrorEvent(BaseModel):
     """SSE error 事件"""
     error: str
+
+
+# === Report Schemas ===
+
+class ReportResponse(BaseModel):
+    """报告响应"""
+    id: str
+    run_id: str
+    task_id: str
+    task_name: str
+    status: str  # success, failed
+    total_steps: int
+    success_steps: int
+    failed_steps: int
+    duration_ms: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ReportDetailResponse(ReportResponse):
+    """报告详情响应（包含 steps）"""
+    steps: List[StepResponse] = []
+
+
+class ReportListParams(BaseModel):
+    """报告列表查询参数"""
+    status: Optional[str] = None  # success, failed, all
+    date: Optional[str] = None
+    page: int = 1
+    page_size: int = 10

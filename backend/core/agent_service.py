@@ -1,9 +1,10 @@
 """Agent 服务 - 封装 browser-use Agent"""
 
+import base64
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from browser_use import Agent
 
@@ -25,12 +26,12 @@ class AgentService:
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
 
     async def save_screenshot(
-        self, screenshot_bytes: bytes, run_id: str, step_index: int
+        self, screenshot_data: Union[bytes, str], run_id: str, step_index: int
     ) -> str:
         """保存截图到本地文件
 
         Args:
-            screenshot_bytes: 截图的二进制数据
+            screenshot_data: 截图数据（可以是 bytes 或 base64 编码的字符串）
             run_id: 执行 ID
             step_index: 步骤索引
 
@@ -39,6 +40,19 @@ class AgentService:
         """
         filename = f"{run_id}_{step_index}.png"
         filepath = self.screenshots_dir / filename
+
+        # 处理不同类型的输入
+        if isinstance(screenshot_data, str):
+            # 如果是字符串，尝试 base64 解码
+            try:
+                screenshot_bytes = base64.b64decode(screenshot_data)
+            except Exception as e:
+                logger.warning(f"[{run_id}] base64 解码失败，尝试直接编码: {e}")
+                # 如果不是 base64，可能是普通的字符串路径或其他格式
+                screenshot_bytes = screenshot_data.encode('utf-8')
+        else:
+            screenshot_bytes = screenshot_data
+
         filepath.write_bytes(screenshot_bytes)
         return str(filepath)
 
@@ -97,15 +111,30 @@ class AgentService:
 
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
-            # 提取动作和推理
+            # 提取动作和推理 - 从 agent_output 顶层获取
             action = ""
             reasoning = ""
-            if agent_output and hasattr(agent_output, "action"):
-                actions = agent_output.action
-                if actions and len(actions) > 0:
-                    first_action = actions[0]
-                    action = getattr(first_action, "action", "")
-                    reasoning = getattr(first_action, "reasoning", "")
+            if agent_output:
+                # 获取动作名称（第一个动作的类型）
+                if hasattr(agent_output, "action") and agent_output.action:
+                    first_action = agent_output.action[0]
+                    # ActionModel 是动态模型，获取第一个非 None 的动作类型
+                    action_dict = first_action.model_dump(exclude_none=True, mode='json')
+                    if action_dict:
+                        action_name = list(action_dict.keys())[0]
+                        action_params = action_dict[action_name]
+                        # 格式化为可读字符串
+                        action = f"{action_name}: {action_params}" if action_params else action_name
+
+                # 获取推理信息（evaluation + memory + next_goal）
+                parts = []
+                if hasattr(agent_output, "evaluation_previous_goal") and agent_output.evaluation_previous_goal:
+                    parts.append(f"Eval: {agent_output.evaluation_previous_goal}")
+                if hasattr(agent_output, "memory") and agent_output.memory:
+                    parts.append(f"Memory: {agent_output.memory}")
+                if hasattr(agent_output, "next_goal") and agent_output.next_goal:
+                    parts.append(f"Goal: {agent_output.next_goal}")
+                reasoning = " | ".join(parts) if parts else ""
 
             # 提取截图
             screenshot_path = None
