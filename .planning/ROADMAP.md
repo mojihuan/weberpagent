@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Fixes** - Configuration, API standardization, async patterns
 - [x] **Phase 2: Data Layer Enhancement** - Database schema, screenshot storage, repository methods
-- [ ] **Phase 3: Service Layer Restoration** - Assertion evaluation, report generation, SSE heartbeats
+- [x] **Phase 3: Service Layer Restoration** - Assertion evaluation, report generation, SSE heartbeats
 - [ ] **Phase 4: Frontend + E2E Alignment** - UI types, data display, complete user flow
 
 ## Phase Details
@@ -70,7 +70,7 @@ Plans:
 **Plans**: 6 plans in 3 waves (including Wave 0 test scaffolding)
 
 Plans:
-- [ ] 03-00-PLAN.md - Wave 0 test scaffolding for service layer tests
+- [x] 03-00-PLAN.md - Wave 0 test scaffolding for service layer tests
 - [x] 03-01-PLAN.md - AssertionService ORM adaptation + AssertionResultRepository (Wave 1, SVC-01)
 - [x] 03-02-PLAN.md - ReportService creation (Wave 1, SVC-02)
 - [x] 03-03-PLAN.md - LLM temperature=0 verification (Wave 1, SVC-03)
@@ -105,9 +105,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Foundation Fixes | 5/5 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
 | 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
-| 3. Service Layer Restoration | 5/6 | In Progress | 03-01, 03-02, 03-03, 03-04, 03-05 |
+| 3. Service Layer Restoration | 6/6 | Complete | 03-00, 03-01, 03-02, 03-03, 03-04, 03-05 |
 | 4. Frontend + E2E Alignment | 0/5 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Phase 3 in progress (03-03 complete)*
+*Last updated: 2026-03-14 - Phase 3 complete*
