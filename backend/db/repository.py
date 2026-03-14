@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.db.models import Task, Run, Step, Report, AssertionResult
 from backend.db.schemas import TaskCreate, TaskUpdate
@@ -75,11 +76,16 @@ class RunRepository:
         return await self.session.get(Run, run_id)
 
     async def get_with_task(self, run_id: str) -> Optional[Run]:
-        """获取执行记录及其关联的任务"""
-        run = await self.get(run_id)
-        if run:
-            await self.session.refresh(run, ["task"])
-        return run
+        """获取执行记录及其关联的任务（包含断言）"""
+        stmt = (
+            select(Run)
+            .where(Run.id == run_id)
+            .options(
+                selectinload(Run.task).selectinload(Task.assertions)
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def list(self, task_id: Optional[str] = None) -> List[Run]:
         stmt = select(Run)

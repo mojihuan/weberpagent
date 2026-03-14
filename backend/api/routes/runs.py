@@ -93,8 +93,8 @@ async def run_agent_background(run_id: str, task_id: str, task_name: str, task_d
             except Exception as e:
                 logger.error(f"[{run_id}] 保存步骤失败: {e}")
 
-            # 构造截图 URL
-            screenshot_url = f"/api/runs/{run_id}/screenshots/{step}" if screenshot_path else None
+            # 构造截图 URL（相对路径，前端会添加 API_BASE）
+            screenshot_url = f"/runs/{run_id}/screenshots/{step}" if screenshot_path else None
 
             # 发送 step 事件
             event = SSEStepEvent(
