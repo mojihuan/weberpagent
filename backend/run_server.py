@@ -33,8 +33,7 @@ def main():
         "backend.api.main:app",
         host="0.0.0.0",
         port=8080,
-        reload=True,  # 开发模式启用热重载
-        reload_dirs=["backend"],  # 监控 backend 目录变化
+        reload=False,  # Windows + Python 3.14 需要禁用热重载，否则子进程无法正确设置事件循环
     )
 
 
