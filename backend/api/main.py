@@ -1,5 +1,14 @@
 """FastAPI 应用入口"""
 
+import sys
+import asyncio
+
+# Windows asyncio 子进程兼容性修复
+# browser_use 使用 asyncio.create_subprocess_exec 启动浏览器
+# Windows 默认的 SelectorEventLoop 不支持子进程操作，需要 ProactorEventLoop
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 import os
 import uuid
 import traceback
