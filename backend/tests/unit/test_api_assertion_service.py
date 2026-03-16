@@ -149,6 +149,15 @@ class TestCheckTimeWithinRange:
         assert isinstance(passed, bool)
         assert isinstance(msg, str)
 
+    def test_custom_tolerance(self, service):
+        """测试自定义容差"""
+        time_30s_ago = datetime.now() - timedelta(seconds=30)
+        # 容差 20 秒，30 秒应该超出
+        passed, msg = service.check_time_within_range(time_30s_ago, tolerance_seconds=20)
+
+        assert passed is False
+        assert "20" in msg
+
 
 class TestCheckExactMatch:
     """精确匹配断言测试"""
@@ -189,6 +198,29 @@ class TestCheckExactMatch:
         assert "100" in msg
         assert "200" in msg
 
+    def test_exact_match_none_values(self, service):
+        """测试 None 值比较"""
+        passed, msg = service.check_exact_match(None, None)
+
+        assert passed is True
+        assert msg == ""
+
+    def test_exact_match_none_vs_value(self, service):
+        """测试 None 与非 None 比较"""
+        passed, msg = service.check_exact_match(None, "value")
+
+        assert passed is False
+
+    def test_exact_match_bool_values(self, service):
+        """测试布尔值比较"""
+        passed, msg = service.check_exact_match(True, True)
+
+        assert passed is True
+
+        passed, msg = service.check_exact_match(True, False)
+
+        assert passed is False
+
 
 class TestCheckContainsMatch:
     """包含匹配断言测试"""
@@ -225,6 +257,18 @@ class TestCheckContainsMatch:
         passed, msg = service.check_contains_match("Hello", "hello")
 
         assert passed is False  # 大小写敏感
+
+    def test_contains_match_empty_string(self, service):
+        """测试空字符串始终包含"""
+        passed, msg = service.check_contains_match("anything", "")
+
+        assert passed is True
+
+    def test_contains_match_number_in_string(self, service):
+        """测试字符串中包含数字"""
+        passed, msg = service.check_contains_match("Order #12345", "12345")
+
+        assert passed is True
 
 
 class TestCheckDecimalApprox:
@@ -272,6 +316,36 @@ class TestCheckDecimalApprox:
         assert passed is True
         assert msg == ""
 
+    def test_decimal_approx_custom_tolerance(self, service):
+        """测试自定义容差"""
+        # 默认容差 0.01，差值 0.02 应该失败
+        passed, msg = service.check_decimal_approx(100.02, 100.00)
+
+        assert passed is False
+
+        # 自定义容差 0.05，差值 0.02 应该通过
+        passed, msg = service.check_decimal_approx(100.02, 100.00, tolerance=0.05)
+
+        assert passed is True
+
+    def test_decimal_approx_boundary(self, service):
+        """测试边界值"""
+        # 差值略小于容差（避免浮点精度问题）
+        passed, msg = service.check_decimal_approx(100.009, 100.00, tolerance=0.01)
+
+        assert passed is True
+
+        # 差值略大于容差
+        passed, msg = service.check_decimal_approx(100.02, 100.00, tolerance=0.01)
+
+        assert passed is False
+
+    def test_decimal_approx_large_numbers(self, service):
+        """测试大数比较"""
+        passed, msg = service.check_decimal_approx(1000000.005, 1000000.00, tolerance=0.01)
+
+        assert passed is True
+
 
 class TestExecuteMethods:
     """执行方法测试"""
@@ -311,6 +385,25 @@ class TestExecuteMethods:
         assert "语法错误" in result.error
 
     @pytest.mark.asyncio
+    async def test_execute_single_assertion_error(self, service):
+        """测试 execute_single 断言失败"""
+        code = "assert False, 'Test assertion failed'"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is False
+        assert "断言失败" in result.error
+
+    @pytest.mark.asyncio
+    async def test_execute_single_with_context(self, service):
+        """测试执行时可以访问 context"""
+        service.context["order_id"] = "12345"
+        code = "context['order_id_value'] = context['order_id']"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        assert service.context.get("order_id_value") == "12345"
+
+    @pytest.mark.asyncio
     async def test_execute_all_multiple_assertions(self, service):
         """测试 execute_all 执行多个断言返回所有结果"""
         assertions = [
@@ -322,6 +415,19 @@ class TestExecuteMethods:
 
         assert len(results) == 3
         assert all(r.success for r in results)
+
+    @pytest.mark.asyncio
+    async def test_execute_all_skips_empty(self, service):
+        """测试 execute_all 跳过空代码"""
+        assertions = [
+            "x = 1",
+            "",
+            "   ",
+            "y = 2",
+        ]
+        results = await service.execute_all(assertions)
+
+        assert len(results) == 2  # 只执行非空的
 
     @pytest.mark.asyncio
     async def test_execute_all_collects_all_results(self, service):
