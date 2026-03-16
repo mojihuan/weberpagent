@@ -26,6 +26,8 @@ class Task(Base):
     status: Mapped[str] = mapped_column(String(20), default="draft")  # draft, ready
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+    # 前置条件（JSON 字符串数组）
+    preconditions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # 关系
     runs: Mapped[List["Run"]] = relationship("Run", back_populates="task")
