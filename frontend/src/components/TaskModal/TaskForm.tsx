@@ -15,6 +15,7 @@ interface FormData {
   target_url: string
   max_steps: number
   preconditions: string[]
+  api_assertions: string[]
 }
 
 interface FormErrors {
@@ -29,6 +30,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     target_url: initialData?.target_url || '',
     max_steps: initialData?.max_steps || 20,
     preconditions: initialData?.preconditions || [''],
+    api_assertions: initialData?.api_assertions || [''],
   })
   const [errors, setErrors] = useState<FormErrors>({})
 
@@ -40,6 +42,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         target_url: initialData.target_url,
         max_steps: initialData.max_steps,
         preconditions: initialData.preconditions || [''],
+        api_assertions: initialData.api_assertions || [''],
       })
     }
   }, [initialData])
@@ -72,7 +75,8 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     if (validate()) {
       onSubmit({
         ...formData,
-        preconditions: formData.preconditions.filter(p => p.trim())
+        preconditions: formData.preconditions.filter(p => p.trim()),
+        api_assertions: formData.api_assertions.filter(a => a.trim()),
       })
     }
   }
@@ -97,6 +101,24 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     setFormData(prev => ({
       ...prev,
       preconditions: prev.preconditions.map((p, i) => i === index ? value : p)
+    }))
+  }
+
+  const handleAddApiAssertion = () => {
+    setFormData(prev => ({ ...prev, api_assertions: [...prev.api_assertions, ''] }))
+  }
+
+  const handleRemoveApiAssertion = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      api_assertions: prev.api_assertions.filter((_, i) => i !== index),
+    }))
+  }
+
+  const handleApiAssertionChange = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      api_assertions: prev.api_assertions.map((a, i) => i === index ? value : a),
     }))
   }
 
@@ -217,6 +239,44 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
             className="text-sm text-blue-500 hover:text-blue-600"
           >
             + 添加前置条件
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          接口断言 <span className="text-gray-400 text-xs">(可选)</span>
+        </label>
+        <p className="text-xs text-gray-500 mb-2">
+          输入 Python 代码进行 API 断言，支持时间断言、数据匹配等
+        </p>
+        <div className="space-y-2">
+          {formData.api_assertions.map((assertion, index) => (
+            <div key={index} className="flex gap-2">
+              <textarea
+                value={assertion}
+                onChange={e => handleApiAssertionChange(index, e.target.value)}
+                placeholder="例如：result = api.get_order({{order_id}}); assert result['status'] == 'success'"
+                rows={4}
+                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
+              />
+              {formData.api_assertions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveApiAssertion(index)}
+                  className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"
+                >
+                  删除
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddApiAssertion}
+            className="text-sm text-blue-500 hover:text-blue-600"
+          >
+            + 添加接口断言
           </button>
         </div>
       </div>
