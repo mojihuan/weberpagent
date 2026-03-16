@@ -1,7 +1,7 @@
 """Pydantic 请求/响应模型"""
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 from pydantic import BaseModel, Field
 
 
@@ -114,6 +114,16 @@ class SSEFinishedEvent(BaseModel):
 class SSEErrorEvent(BaseModel):
     """SSE error 事件"""
     error: str
+
+
+class SSEPreconditionEvent(BaseModel):
+    """SSE precondition 事件"""
+    index: int
+    code: str
+    status: str  # running, success, failed
+    error: Optional[str] = None
+    duration_ms: Optional[int] = None
+    variables: Optional[dict[str, Any]] = None  # 设置的变量
 
 
 # === Report Schemas ===
