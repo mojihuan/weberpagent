@@ -1,5 +1,6 @@
 """数据库操作封装"""
 
+import json
 from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import select, func
@@ -16,8 +17,23 @@ class TaskRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    def _serialize_preconditions(self, preconditions: List[str] | None) -> str | None:
+        """Serialize preconditions list to JSON string."""
+        if preconditions is None:
+            return None
+        return json.dumps(preconditions, ensure_ascii=False)
+
+    def _deserialize_preconditions(self, preconditions: str | None) -> List[str] | None:
+        """Deserialize preconditions JSON string to list."""
+        if preconditions is None:
+            return None
+        return json.loads(preconditions)
+
     async def create(self, data: TaskCreate) -> Task:
-        task = Task(**data.model_dump())
+        task_data = data.model_dump()
+        if task_data.get("preconditions") is not None:
+            task_data["preconditions"] = self._serialize_preconditions(task_data["preconditions"])
+        task = Task(**task_data)
         self.session.add(task)
         await self.session.commit()
         await self.session.refresh(task)
@@ -38,7 +54,10 @@ class TaskRepository:
         task = await self.get(task_id)
         if not task:
             return None
-        for key, value in data.model_dump(exclude_unset=True).items():
+        update_data = data.model_dump(exclude_unset=True)
+        if "preconditions" in update_data and update_data["preconditions"] is not None:
+            update_data["preconditions"] = self._serialize_preconditions(update_data["preconditions"])
+        for key, value in update_data.items():
             setattr(task, key, value)
         task.updated_at = datetime.now()
         await self.session.commit()
