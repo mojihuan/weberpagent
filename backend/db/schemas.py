@@ -129,6 +129,16 @@ class SSEPreconditionEvent(BaseModel):
     variables: Optional[dict[str, Any]] = None  # 设置的变量
 
 
+class SSEApiAssertionEvent(BaseModel):
+    """SSE 接口断言事件"""
+    index: int
+    code: str
+    status: str  # running, success, failed
+    error: Optional[str] = None
+    duration_ms: int = 0
+    field_results: Optional[List[dict[str, Any]]] = None
+
+
 # === Report Schemas ===
 
 class ReportResponse(BaseModel):
