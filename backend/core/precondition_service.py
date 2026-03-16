@@ -1,0 +1,138 @@
+"""前置条件执行服务"""
+
+import asyncio
+import logging
+import sys
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PreconditionResult:
+    """单个前置条件执行结果"""
+    index: int
+    code: str
+    success: bool = False
+    error: str | None = None
+    duration_ms: int = 0
+    variables: dict[str, Any] = field(default_factory=dict)
+
+
+class PreconditionService:
+    """前置条件执行服务
+
+    使用 exec() 执行用户提供的 Python 代码，
+    通过 context['变量名'] 存储结果供后续步骤使用。
+    """
+
+    def __init__(self, external_module_path: str | None = None):
+        """初始化服务
+
+        Args:
+            external_module_path: 外部 API 模块路径（可选）
+        """
+        self.external_module_path = external_module_path
+        self.context: dict[str, Any] = {}
+
+    def _setup_execution_env(self) -> dict:
+        """创建执行环境
+
+        Returns:
+            exec() 使用的全局命名空间
+        """
+        # 临时添加外部模块路径
+        if self.external_module_path:
+            path = Path(self.external_module_path)
+            if path.exists() and str(path) not in sys.path:
+                sys.path.insert(0, str(path))
+                logger.info(f"添加外部模块路径: {path}")
+
+        # 受限的全局环境
+        return {
+            '__builtins__': __builtins__,
+            'context': self.context,
+        }
+
+    async def execute_single(
+        self,
+        code: str,
+        index: int,
+        timeout: float = 30.0
+    ) -> PreconditionResult:
+        """执行单个前置条件
+
+        Args:
+            code: Python 代码字符串
+            index: 前置条件索引（用于日志）
+            timeout: 超时时间（秒）
+
+        Returns:
+            执行结果
+        """
+        result = PreconditionResult(index=index, code=code)
+        start_time = time.time()
+
+        env = self._setup_execution_env()
+
+        try:
+            loop = asyncio.get_event_loop()
+            await asyncio.wait_for(
+                loop.run_in_executor(None, lambda: exec(code, env)),
+                timeout=timeout
+            )
+            result.success = True
+            result.variables = dict(self.context)  # 快照当前变量
+            logger.info(f"前置条件 {index} 执行成功，变量: {list(result.variables.keys())}")
+        except asyncio.TimeoutError:
+            result.error = f"执行超时（超过 {timeout} 秒）"
+            logger.warning(f"前置条件 {index} 超时")
+        except SyntaxError as e:
+            result.error = f"语法错误: {e.msg} (行 {e.lineno})"
+            logger.error(f"前置条件 {index} 语法错误: {e}")
+        except Exception as e:
+            result.error = f"执行错误: {str(e)}"
+            logger.error(f"前置条件 {index} 执行错误: {e}", exc_info=True)
+
+        result.duration_ms = int((time.time() - start_time) * 1000)
+        return result
+
+    async def execute_all(
+        self,
+        preconditions: list[str],
+        timeout_each: float = 30.0
+    ) -> tuple[bool, list[PreconditionResult]]:
+        """执行所有前置条件，任一失败则停止
+
+        Args:
+            preconditions: 前置条件代码列表
+            timeout_each: 每个前置条件的超时时间
+
+        Returns:
+            (是否全部成功, 结果列表)
+        """
+        results = []
+
+        for i, code in enumerate(preconditions):
+            if not code.strip():
+                continue
+
+            result = await self.execute_single(code, i, timeout_each)
+            results.append(result)
+
+            if not result.success:
+                logger.error(f"前置条件 {i} 失败，停止执行")
+                return False, results
+
+        return True, results
+
+    def get_context(self) -> dict[str, Any]:
+        """获取当前执行上下文（变量存储）
+
+        Returns:
+            context 字典的副本
+        """
+        return dict(self.context)
