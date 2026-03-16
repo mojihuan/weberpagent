@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { Layers, CheckCircle, XCircle, Clock } from 'lucide-react'
-import { ReportHeader, SummaryCard, StepItem, AssertionResults } from '../components/Report'
+import { ReportHeader, SummaryCard, StepItem, AssertionResults, ApiAssertionResults } from '../components/Report'
 import { getReport, type ReportDetailResponse } from '../api/reports'
 
 export function ReportDetail() {
@@ -72,9 +72,17 @@ export function ReportDetail() {
         />
       </div>
 
-      {/* 断言结果 */}
+      {/* UI 断言结果 */}
       {data.assertion_results && data.assertion_results.length > 0 && (
         <AssertionResults results={data.assertion_results} />
+      )}
+
+      {/* 接口断言结果 */}
+      {data.api_assertion_results && data.api_assertion_results.length > 0 && (
+        <ApiAssertionResults
+          results={data.api_assertion_results}
+          passRate={data.api_pass_rate || 'N/A'}
+        />
       )}
 
       {/* 步骤列表 */}
