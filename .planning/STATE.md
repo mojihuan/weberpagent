@@ -1,36 +1,49 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.1
+milestone: v0.2
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 04-05 E2E Flow Verification
-last_updated: "2026-03-14T16:15:17.971Z"
-last_activity: 2026-03-14 -- Completed 04-06 gap closure fixes, awaiting human verification
+status: Phase 5 In Progress
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-16T07:13:21.543Z"
+last_activity: 2026-03-16 -- Completed 05-01 (Task model + frontend form)
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-14)
+See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** QA uses natural language to write test cases, AI executes automatically and generates reports
-**Current focus:** Phase 4 - Frontend + E2E Alignment
+**Current focus:** v0.2 - 前置条件、接口断言、动态数据
 
 ## Current Position
 
-Phase: 4 of 4 (Frontend + E2E Alignment)
-Plan: 6 of 6 in current phase (CHECKPOINT - HUMAN VERIFY)
-Status: Awaiting Verification
-Last activity: 2026-03-14 -- Completed 04-06 gap closure fixes, awaiting human verification
+Phase: 5 - 前置条件系统 (In Progress)
+Plan: 05-01 completed, ready for 05-02
+Status: Phase 5 In Progress (1/4 plans)
+Last activity: 2026-03-16 -- Completed 05-01 (Task model + frontend form)
 
-Progress: [===========] 100% (phase)
+Progress: [███░░░░░░░] 25% (milestone)
+
+## Phase 5 Plan Overview
+
+| Plan | Objective | Wave | Requirements | Tasks |
+|------|-----------|------|--------------|-------|
+| 05-01 | Task 模型扩展 + 前端表单 | 1 | PRE-01 | 5 |
+| 05-02 | PreconditionService 执行服务 | 1 | PRE-02 | 2 |
+| 05-03 | 外部模块加载 | 2 | PRE-03 | 3 |
+| 05-04 | 变量替换 + 执行流程集成 | 2 | PRE-04 | 5 |
+
+**Wave Structure:**
+- Wave 1: 05-01, 05-02 (parallel)
+- Wave 2: 05-03, 05-04 (depend on Wave 1)
 
 ## Performance Metrics
 
@@ -53,26 +66,7 @@ Progress: [===========] 100% (phase)
 - Trend: Stable
 
 *Updated after each plan completion*
-| Phase 01-foundation-fixes P00 | 1 | 1 task | 3 files |
-| Phase 01-foundation-fixes P01 | 4 | 4 tasks | 5 files |
-| Phase 01-foundation-fixes P02 | 3 | 4 tasks | 4 files |
-| Phase 01-foundation-fixes P04 | 4 | 4 tasks | 4 files |
-| Phase 01-foundation-fixes P05 | 3 | 3 tasks | 3 files |
-| Phase 02-data-layer-enhancement P00 | 3 | 3 tasks | 3 files |
-| Phase 02-data-layer-enhancement P01 | 3 | 3 tasks | 2 files |
-| Phase 02-data-layer-enhancement P02 | 1 | 1 task | 3 files |
-| Phase 02-data-layer-enhancement P03 | 3 | 3 tasks | 3 files |
-| Phase 03-service-layer-restoration P03 | 1 | 1 task | 1 file |
-| Phase 03-service-layer-restoration P04 | 2 | 2 tasks | 2 files |
-| Phase 03-service-layer-restoration P01 | 2 | 2 tasks | 4 files |
-| Phase 03-service-layer-restoration P02 | 1 | 1 task | 1 file |
-| Phase 03-service-layer-restoration P05 | 1 | 1 task | 2 files |
-| Phase 04-frontend-e2e-alignment P00 | 4 | 4 tasks | 5 files |
-| Phase 04-frontend-e2e-alignment P01 | 2 | 3 tasks | 2 files |
-| Phase 04-frontend-e2e-alignment P02 | 2 | 2 tasks | 2 files |
-| Phase 04-frontend-e2e-alignment P03 | 2 | 2 tasks | 1 file |
-| Phase 04-frontend-e2e-alignment P04 | 5 | 5 tasks | 6 files |
-| Phase 04-frontend-e2e-alignment P05 | 2 | 2 tasks | 2 files |
+| Phase 05 P01 | 5 min | 5 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -83,41 +77,12 @@ Recent decisions affecting current work:
 
 - [Roadmap]: 4-phase structure adopted (Foundation -> Data -> Service -> Frontend+E2E)
 - [Scope]: 26 v1 requirements mapped, 100% coverage
-- [01-03]: Use pool_size=5 with pool_pre_ping for SQLite async engine
-- [01-00]: Created only missing test stubs (FND-04, FND-05) as FND-01 through FND-03 already have real implementations
-- [Phase 01-foundation-fixes]: Used ConfigDict instead of class Config for Pydantic V2 compatibility
-- [Phase 01-foundation-fixes]: LLM_TEMPERATURE default set to 0.0 for deterministic output
-- [Phase 01-foundation-fixes]: Validation errors (422) converted to 400 for consistency
-- [01-05]: Use wrapper pattern with try/finally for cleanup logging (browser-use handles browser lifecycle internally)
-- [01-04]: LLM temperature=0.0 for deterministic output, centralized Settings for all LLM config
-- [02-00]: Test stubs use skip markers pointing to implementing plans (02-01, 02-02)
-- [02-00]: Fixtures provide data dicts only - no model-dependent fixtures
-- [02-01]: Cascade delete on parent side (Task, Run) using cascade='all, delete-orphan'
-- [02-01]: DateTime fields verified via SQLAlchemy inspection, not runtime values (set on flush)
-- [02-02]: RunRepository.get_steps follows existing StepRepository.list_by_run pattern
-- [02-03]: AssertionResponse and AssertionResultResponse schemas use class Config with from_attributes=True (matching existing pattern)
-- [02-03]: Screenshot storage verified as file-based (VARCHAR path, not BLOB)
-- [03-03]: TestLLMTemperature class verifies temperature=0 flows from Settings through get_llm_config() to create_llm()
-- [03-04]: SSE heartbeat uses comment format (:heartbeat) invisible to EventSource clients
-- [03-04]: Heartbeat interval: 20 seconds (configurable via heartbeat_interval parameter)
-- [03-04]: LLM retry: exponential backoff (1s, 2s, 4s) with max 3 attempts
-- [03-04]: Non-retryable errors: 401, 403, invalid API key, quota exceeded
-- [03-01]: AssertionService check methods return tuple (passed, message, actual_value)
-- [03-01]: evaluate_all() returns list[AssertionResult] ORM objects with Chinese error messages
-- [03-05]: ReportService.generate_report() replaces inline report creation in run_agent_background
-- [03-05]: AssertionService.evaluate_all() called before final status determination
-- [03-05]: Failed assertions change overall run status to "failed"
-- [04-00]: Created root package.json for Playwright since E2E tests live at project root
-- [04-00]: Used http://localhost:8080 instead of /api/health endpoint (may not exist)
-- [04-00]: Tests use .skip to be enabled incrementally as UI is fixed
-- [04-01]: RunStatus type uses backend values (pending/running/completed/failed) replacing old values
-- [04-01]: StatusBadge includes 'success' as legacy alias for backward compatibility
-- [04-01]: SSE event types added for type safety in streaming hooks
-- [04-03]: useRunStream uses VITE_API_BASE environment variable with localhost fallback
-- [04-04]: Assertion pass rate shown as percentage with count (e.g., "75% (3/4)")
-- [04-04]: Failed assertions show message in red with actual value
-- [04-04]: AssertionResults component placed between summary cards and steps list
-- [04-05]: E2E tests enabled with conditional skip for empty states; selector gaps documented for future phases
+- [Phase 5]: 前置条件使用 Python 代码格式，通过 context['变量名'] 存储结果
+- [Phase 5]: 使用 exec() + asyncio.wait_for() 执行代码，30 秒超时
+- [Phase 5]: 使用 Jinja2 进行 {{变量名}} 替换
+- [Phase 5]: 外部模块路径通过 ERP_API_MODULE_PATH 环境变量配置
+- [Phase 5]: 前置条件失败时立即终止整个测试
+- [Phase 05]: Store preconditions as JSON string in Text column, use Optional[List[str]] in schemas
 
 ### Pending Todos
 
@@ -129,5 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T15:30:00Z
-Stopped at: Completed 04-05 E2E Flow Verification
+Last session: 2026-03-16T07:13:21.542Z
+Stopped at: Completed 05-01-PLAN.md
+Next step: Run `/gsd:execute-phase 05` to start execution

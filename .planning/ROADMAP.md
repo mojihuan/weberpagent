@@ -1,116 +1,81 @@
-# Roadmap: aiDriveUITest v0.1
+# Roadmap: aiDriveUITest v0.2
 
 ## Overview
 
-This roadmap stabilizes an existing AI-driven UI testing platform. Starting from foundation fixes (configuration, async patterns), we enhance the data layer (schema, storage), restore service layer functionality (assertions, reports), and finally align the frontend for complete end-to-end flow. Each phase builds on the previous, ensuring the core value - natural language test execution - works reliably.
+v0.2 聚焦于让产品真正可用于生产环境。通过集成前置条件系统、接口断言和动态数据支持，让 QA 能够用自然语言完成完整的测试流程。
 
 ## Phases
 
 **Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+- Phase 1-4: v0.1 已完成
+- Phase 5-7: v0.2 新增
 
-Decimal phases appear between their surrounding integers in numeric order.
+---
 
-- [x] **Phase 1: Foundation Fixes** - Configuration, API standardization, async patterns
-- [x] **Phase 2: Data Layer Enhancement** - Database schema, screenshot storage, repository methods
-- [x] **Phase 3: Service Layer Restoration** - Assertion evaluation, report generation, SSE heartbeats
-- [x] **Phase 4: Frontend + E2E Alignment** - UI types, data display, complete user flow
-
-## Phase Details
-
-### Phase 1: Foundation Fixes
-**Goal**: Stable foundation with proper configuration, consistent API responses, and correct async patterns
-**Depends on**: Nothing (first phase)
-**Requirements**: FND-01, FND-02, FND-03, FND-04, FND-05
+### Phase 5: 前置条件系统
+**Goal**: 支持 API 方式执行前置条件，快速造数据
+**Depends on**: Phase 4 (v0.1)
+**Requirements**: PRE-01, PRE-02, PRE-03, PRE-04
 **Success Criteria** (what must be TRUE):
-  1. All configuration values (API URLs, LLM settings) come from environment variables with no hardcoded values
-  2. All API endpoints return responses in the same format (success, data, error, meta fields)
-  3. Database operations never block the event loop during concurrent requests
-  4. LLM test execution produces consistent results for the same input (temperature=0)
-  5. Browser processes are always cleaned up even when errors occur
-**Plans**: 6 plans in 3 waves (including Wave 0 test scaffolding)
+  1. 用户可以在测试用例描述中定义前置条件步骤
+  2. 前置条件通过 API 调用执行，不启动浏览器
+  3. 支持调用现有项目的 API 封装方法
+  4. 前置条件执行结果可以传递给后续测试步骤
+**Plans**: 4 plans in 2 waves
 
 Plans:
-- [x] 01-00-PLAN.md - Wave 0 test scaffolding (creates test stub files)
-- [x] 01-01-PLAN.md - Environment configuration centralization (Wave 1, FND-01)
-- [x] 01-02-PLAN.md - API response format standardization (Wave 1, FND-02)
-- [x] 01-03-PLAN.md - Async database patterns verification (Wave 1, FND-03)
-- [x] 01-04-PLAN.md - LLM deterministic configuration (Wave 2, depends on 01-01, FND-04)
-- [x] 01-05-PLAN.md - Browser cleanup pattern implementation (Wave 2, FND-05)
+- [ ] 05-01-PLAN.md - 前置条件语法设计（自然语言识别）
+- [ ] 05-02-PLAN.md - API 调用框架集成
+- [ ] 05-03-PLAN.md - 现有项目方法复用机制
+- [ ] 05-04-PLAN.md - 前置条件结果传递
 
-### Phase 2: Data Layer Enhancement
-**Goal**: Complete database schema with optimized screenshot storage and working repository methods
-**Depends on**: Phase 1
-**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04 (verification-only), DATA-05
+### Phase 6: 接口断言集成
+**Goal**: 支持通过 API 调用验证测试结果
+**Depends on**: Phase 5
+**Requirements**: API-01, API-02, API-03, API-04
 **Success Criteria** (what must be TRUE):
-  1. Assertion model stores type, expected for each assertion (actual_value is on AssertionResult)
-  2. AssertionResult model captures pass/fail status with messages and actual values
-  3. Run records properly link to their associated assertion results
-  4. Screenshots are stored as files on disk, not as BLOBs in the database (pre-existing, verify only)
-  5. RunRepository.get_steps() returns all step data for a given run
-**Plans**: 4 plans in 3 waves (including Wave 0 test scaffolding)
+  1. 用户可以在测试用例中定义 API 断言
+  2. 时间断言支持 ±1 分钟范围验证
+  3. 数据断言支持精确匹配和包含匹配
+  4. 断言结果展示在测试报告中
+**Plans**: 4 plans in 2 waves
 
 Plans:
-- [x] 02-00-PLAN.md - Wave 0 test scaffolding for model and repository tests
-- [x] 02-01-PLAN.md - Assertion and AssertionResult ORM model creation (Wave 1, DATA-01, DATA-02, DATA-03)
-- [x] 02-02-PLAN.md - RunRepository.get_steps() method implementation (Wave 1, DATA-05)
-- [x] 02-03-PLAN.md - Pydantic schemas and screenshot verification (Wave 2, DATA-04 verification, depends on 02-01, 02-02)
+- [ ] 06-01-PLAN.md - 断言语法设计（自然语言识别）
+- [ ] 06-02-PLAN.md - BaseAssert 类移植
+- [ ] 06-03-PLAN.md - 时间断言实现
+- [ ] 06-04-PLAN.md - 断言结果报告集成
 
-### Phase 3: Service Layer Restoration
-**Goal**: Working assertion evaluation, automated report generation, and reliable SSE streaming
-**Depends on**: Phase 2
-**Requirements**: SVC-01, SVC-02, SVC-03, SVC-04, SVC-05
+### Phase 7: 动态数据支持
+**Goal**: 支持随机数生成、动态数据获取和数据缓存
+**Depends on**: Phase 6
+**Requirements**: DYN-01, DYN-02, DYN-03, DYN-04
 **Success Criteria** (what must be TRUE):
-  1. AssertionService evaluates assertions against run results and produces pass/fail outcomes
-  2. ReportService generates test reports containing all step details, screenshots, and assertion results
-  3. AgentService uses temperature=0 for deterministic test execution
-  4. SSE connections receive heartbeat events every 15-30 seconds to maintain connection
-  5. All background tasks update database status on completion or error
-**Plans**: 6 plans in 3 waves (including Wave 0 test scaffolding)
+  1. 支持生成 SF 物流单号、手机号等随机数据
+  2. 支持从 API 接口获取数据并用于测试
+  3. 支持跨步骤缓存数据供后续复用
+  4. 支持时间计算（now ± N 分钟）
+**Plans**: 4 plans in 2 waves
 
 Plans:
-- [x] 03-00-PLAN.md - Wave 0 test scaffolding for service layer tests
-- [x] 03-01-PLAN.md - AssertionService ORM adaptation + AssertionResultRepository (Wave 1, SVC-01)
-- [x] 03-02-PLAN.md - ReportService creation (Wave 1, SVC-02)
-- [x] 03-03-PLAN.md - LLM temperature=0 verification (Wave 1, SVC-03)
-- [x] 03-04-PLAN.md - SSE EventManager heartbeat + LLM retry (Wave 1, SVC-04)
-- [x] 03-05-PLAN.md - Background task status updates (Wave 2, depends on 03-01, 03-02, SVC-05)
+- [ ] 07-01-PLAN.md - 随机数生成器移植（BaseRandomMixin）
+- [ ] 07-02-PLAN.md - API 数据获取机制
+- [ ] 07-03-PLAN.md - 数据缓存系统
+- [ ] 07-04-PLAN.md - 时间计算工具
 
-### Phase 4: Frontend + E2E Alignment
-**Goal**: Fully functional UI with correct data display and complete end-to-end user flow
-**Depends on**: Phase 3
-**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, E2E-01, E2E-02, E2E-03, E2E-04, E2E-05
-**Success Criteria** (what must be TRUE):
-  1. Frontend TypeScript types match backend Pydantic schemas exactly
-  2. Task list displays all tasks with correct names, descriptions, and statuses
-  3. Execution monitor shows real-time step updates including screenshots via SSE
-  4. Report page displays assertion results with pass/fail status for each step
-  5. User can complete the full flow: create task -> execute -> monitor -> view report without errors
-**Plans**: 6 plans in 4 waves (including Wave 0 infrastructure setup)
-
-Plans:
-- [x] 04-00-PLAN.md - Wave 0: E2E infrastructure setup (Playwright config, sonner install)
-- [x] 04-01-PLAN.md - Wave 1: Frontend type alignment with backend (UI-01, UI-06)
-- [x] 04-02-PLAN.md - Wave 1: API client retry + toast notifications (error handling UX)
-- [x] 04-03-PLAN.md - Wave 2: RunMonitor SSE integration fix (UI-03, UI-04, depends on 04-01)
-- [x] 04-04-PLAN.md - Wave 2: Report page assertion results display (UI-05)
-- [x] 04-05-PLAN.md - Wave 3: End-to-end flow verification with checkpoint (E2E-01 to E2E-05, UI-02 verified via E2E)
-
-**Note on UI-02**: Task list display (UI-02) is verified through E2E tests in 04-05. The existing task list components already display task data correctly - they just need the type alignment from 04-01 and error handling from 04-02 to work properly.
+---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4
+Phases execute in numeric order: 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Fixes | 6/6 | Complete | 01-00, 01-01, 01-02, 01-03, 01-04, 01-05 |
-| 2. Data Layer Enhancement | 4/4 | Complete | 02-00, 02-01, 02-02, 02-03 |
-| 3. Service Layer Restoration | 6/6 | Complete | 03-00, 03-01, 03-02, 03-03, 03-04, 03-05 |
-| 4. Frontend + E2E Alignment | 6/6 | Complete | 04-00, 04-01, 04-02, 04-03, 04-04, 04-05 |
+| 5. 前置条件系统 | 0/4 | Not Started | — |
+| 6. 接口断言集成 | 0/4 | Not Started | — |
+| 7. 动态数据支持 | 0/4 | Not Started | — |
 
 ---
-*Roadmap created: 2026-03-14*
-*Last updated: 2026-03-14 - Completed 04-05 E2E Flow Verification*
+*Roadmap created: 2026-03-16*
+*Last updated: 2026-03-16 - v0.2 planning*

@@ -1,11 +1,11 @@
-# Requirements: aiDriveUITest v0.1
+# Requirements: aiDriveUITest
 
 **Defined:** 2026-03-14
 **Core Value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
 
-## v1 Requirements
+---
 
-Requirements for v0.1 release. Each maps to roadmap phases.
+## v0.1 Requirements (Complete)
 
 ### Foundation
 
@@ -25,9 +25,9 @@ Requirements for v0.1 release. Each maps to roadmap phases.
 
 ### Service Layer
 
-- [x] **SVC-01**: AssertionService validates assertions against run results
+- [x] **SVC-01**: AssertionService validates assertions against Run results
 - [x] **SVC-02**: ReportService generates test reports with all step details
-- [x] **SVC-03**: AgentService uses proper LLM configuration (temperature=0)
+- [x] **SVC-03**: AgentService uses proper LLM configuration (Temperature=0)
 - [x] **SVC-04**: SSE EventManager includes heartbeat events (15-30s interval)
 - [x] **SVC-05**: All background tasks update database status on completion/error
 
@@ -35,7 +35,7 @@ Requirements for v0.1 release. Each maps to roadmap phases.
 
 - [x] **UI-01**: API types match backend response schemas exactly
 - [x] **UI-02**: Task list displays all tasks with correct data
-- [x] **UI-03**: Execution monitor shows real-time step updates via SSE
+- [x] **UI-03**: Execution Monitor shows real-time step updates via SSE
 - [x] **UI-04**: Screenshot panel displays images from correct paths
 - [x] **UI-05**: Report page shows assertion results and step details
 - [x] **UI-06**: API base URL is configurable via environment variable
@@ -48,47 +48,61 @@ Requirements for v0.1 release. Each maps to roadmap phases.
 - [x] **E2E-04**: User can view final test report with assertion results
 - [x] **E2E-05**: Complete flow works without errors (create -> execute -> monitor -> report)
 
-## v2 Requirements
+---
 
-Deferred to future release. Tracked but not in current roadmap.
+## v0.2 Requirements (Current Milestone)
 
-### Authentication
+### 前置条件系统
 
-- **AUTH-01**: User can sign up with email and password
-- **AUTH-02**: User session persists across browser refresh
-- **AUTH-03**: User can only access their own tasks and reports
+- [x] **PRE-01**: 用户可以在测试用例中定义前置条件步骤
+- [ ] **PRE-02**: 前置条件通过 API 调用执行（不用 UI）
+- [ ] **PRE-03**: 支持复用现有项目的 API 封装方法
+- [ ] **PRE-04**: 前置条件执行结果可用于后续步骤
 
-### Task Scheduling
+### 接口断言集成
 
-- **SCHED-01**: User can schedule tasks to run at specific times
-- **SCHED-02**: User can set up recurring task execution
-- **SCHED-03**: Task dependencies and execution order
+- [ ] **API-01**: 用户可以通过 API 调用进行接口断言
+- [ ] **API-02**: 用户可以进行时间断言（±1 分钟范围）
+- [ ] **API-03**: 用户可以进行数据断言（匹配预期值）
+- [ ] **API-04**: 断言结果展示在测试报告中
 
-### Advanced Features
+### 动态数据支持
 
-- **ADV-01**: Test data management (CRUD for test fixtures)
-- **ADV-02**: Task templates with variable substitution
-- **ADV-03**: Multi-browser support (Firefox, Safari)
-- **ADV-04**: Video recording of test execution
-- **ADV-05**: Parallel test execution
+- [ ] **DYN-01**: 支持随机数生成（SF 物流单号、手机号等）
+- [ ] **DYN-02**: 支持从 API 接口获取动态数据
+- [ ] **DYN-03**: 支持跨步骤数据缓存和复用
+- [ ] **DYN-04**: 支持时间计算（now ± 1 分钟）
+
+---
+
+## v0.3 Requirements (Future)
+
+Deferred to future release.
+
+### 批量执行
+
+- **BATCH-01**: Excel 用例导入
+- **BATCH-02**: 批量运行测试用例
+- **BATCH-03**: 批量执行结果汇总
+
+---
 
 ## Out of Scope
 
-Explicitly excluded from v0.1. Documented to prevent scope creep.
+Explicitly excluded from v0.2.
 
 | Feature | Reason |
 |---------|--------|
-| User authentication | v0.1 is single-user local use only |
-| Task scheduling | Non-essential for core flow validation |
-| Test data management | Complex feature, defer to v0.2 |
-| Multi-browser support | Focus on Chromium first |
-| Video recording | Storage costs, not critical for v0.1 |
-| Docker deployment | Local development environment only for v0.1 |
-| PostgreSQL migration | SQLite sufficient for v0.1 scale |
+| 用户认证/权限管理 | v0.2 单用户本地使用 |
+| 服务器部署 | 仅需本地开发环境 |
+| 批量执行 | 推迟到 v0.3 |
+| 多语言支持 | 只支持中文 |
+
+---
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -100,7 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-01 | Phase 2 | Complete |
 | DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
-| DATA-04 | Phase 2 | Complete (pre-existing) |
+| DATA-04 | Phase 2 | Complete |
 | DATA-05 | Phase 2 | Complete |
 | SVC-01 | Phase 3 | Complete |
 | SVC-02 | Phase 3 | Complete |
@@ -118,12 +132,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-03 | Phase 4 | Complete |
 | E2E-04 | Phase 4 | Complete |
 | E2E-05 | Phase 4 | Complete |
+| PRE-01 | Phase 5 | Complete |
+| PRE-02 | Phase 5 | Pending |
+| PRE-03 | Phase 5 | Pending |
+| PRE-04 | Phase 5 | Pending |
+| API-01 | Phase 6 | Pending |
+| API-02 | Phase 6 | Pending |
+| API-03 | Phase 6 | Pending |
+| API-04 | Phase 6 | Pending |
+| DYN-01 | Phase 7 | Pending |
+| DYN-02 | Phase 7 | Pending |
+| DYN-03 | Phase 7 | Pending |
+| DYN-04 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 26 total
-- Mapped to phases: 26
-- Unmapped: 0
+- v0.1 requirements: 26 total, 26 mapped, 0 unmapped ✓
+- v0.2 requirements: 12 total, 12 mapped, 0 unmapped ✓
 
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-14 - UI-05 complete (Report assertion results display)*
+*Last updated: 2026-03-16 after v0.2 planning*
