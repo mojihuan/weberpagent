@@ -7,6 +7,7 @@
 ## ✨ 核心功能
 
 - 🗣️ **自然语言用例** - 用中文描述测试步骤，AI 自动理解并执行
+- 📋 **前置条件支持** - 执行 Python 代码准备测试环境，支持变量传递
 - 📊 **实时执行监控** - SSE 推送执行进度，可视化每一步操作
 - 📈 **自动生成报告** - 完整的测试报告，包含截图、断言结果、耗时统计
 - 🎯 **智能断言** - 支持 URL 检查、文本存在、无错误等多种断言类型
@@ -127,15 +128,33 @@ npm install
 ```
 
 **5. 启动服务**
+
+<Tabs>
+<Tab value="macos-linux">
+
 ```bash
-# 终端 1: 启动后端
-# uv 方式：
+# macOS / Linux
 uv run uvicorn backend.api.main:app --reload --port 8080
+```
 
-# pip/conda 方式（需先激活环境）：
-uvicorn backend.api.main:app --reload --port 8080
+</Tab>
+<Tab value="windows">
 
-# 终端 2: 启动前端
+```bash
+# Windows（必须使用专用启动脚本）
+uv run python backend/run_server.py
+```
+
+> ⚠️ **Windows 注意事项**：
+> - 必须使用 `run_server.py` 启动，不能直接用 `uvicorn` 命令
+> - 原因：browser-use 使用 asyncio 子进程启动浏览器，Windows 需要特殊的事件循环配置
+> - 启动脚本会自动设置 `ProactorEventLoop`，确保子进程正常工作
+
+</Tab>
+</Tabs>
+
+```bash
+# 终端 2: 启动前端（所有系统）
 cd frontend && npm run dev
 ```
 
@@ -164,6 +183,7 @@ pytest backend/tests/ -v         # pip/conda 方式
 3. 填写任务信息：
    - **任务名称**：如「ERP 登录测试」
    - **任务描述**：用自然语言描述测试步骤
+   - **前置条件**（可选）：执行 Python 代码准备环境
    - **断言配置**（可选）：添加验证条件
 
 **示例任务描述**：
@@ -174,6 +194,27 @@ pytest backend/tests/ -v         # pip/conda 方式
 3. 输入用户名 admin 和密码
 4. 点击登录按钮
 5. 确认跳转到首页
+```
+
+**带前置条件的示例**：
+
+前置条件：
+```python
+import requests
+resp = requests.post('https://erptest.example.com/api/login', json={
+    'username': 'admin',
+    'password': 'password123'
+})
+context['token'] = resp.json()['token']
+context['order_no'] = 'ORD-2024-001'
+```
+
+任务描述：
+```
+验证订单详情页面：
+1. 使用登录态访问订单页面
+2. 搜索订单号 {{order_no}}
+3. 确认订单状态为「已发货」
 ```
 
 ### 执行与监控
@@ -192,6 +233,109 @@ pytest backend/tests/ -v         # pip/conda 方式
 - **断言结果**：URL 检查、文本存在等断言的通过情况
 - **步骤详情**：每一步的操作类型、AI 推理、截图
 - **错误信息**：失败时的详细错误堆栈
+
+### 前置条件（Preconditions）
+
+前置条件允许你在 UI 测试开始前执行 Python 代码，用于：
+- 登录获取 token
+- 准备测试数据（创建订单、用户等）
+- 调用现有项目的 API 封装方法
+- 将执行结果传递给后续测试步骤
+
+#### 基本用法
+
+在任务表单的「前置条件」区域输入 Python 代码，使用 `context['变量名']` 存储结果：
+
+```python
+# 示例 1: 登录获取 token
+import requests
+resp = requests.post('https://api.example.com/login', json={
+    'username': 'admin',
+    'password': 'password123'
+})
+context['token'] = resp.json()['token']
+context['user_id'] = resp.json()['user_id']
+```
+
+```python
+# 示例 2: 准备测试数据
+import time
+context['order_no'] = f'TEST-{int(time.time())}'
+context['timestamp'] = int(time.time() * 1000)
+```
+
+#### 在测试描述中使用变量
+
+前置条件执行后，可以在任务描述中使用 `{{变量名}}` 语法引用变量：
+
+```
+登录系统后检查订单：
+1. 使用 token {{token}} 访问订单页面
+2. 搜索订单号 {{order_no}}
+3. 确认订单详情正确
+```
+
+#### 复用现有项目的 API 封装
+
+如果已有 ERP 项目的 API 封装代码，可以配置外部模块路径：
+
+```env
+# .env 配置
+ERP_API_MODULE_PATH=/path/to/your/erp/api/module
+```
+
+然后在前置条件中直接导入使用：
+
+```python
+# 假设你的模块结构：/path/to/erp_api/auth.py
+from erp_api.auth import login, get_user_info
+
+token = login('admin', 'password')
+context['token'] = token
+context['user'] = get_user_info(token)
+```
+
+#### ⚠️ 重要注意事项
+
+| 注意点 | 说明 |
+|--------|------|
+| **超时控制** | 每个前置条件默认 30 秒超时，超时会终止执行 |
+| **执行顺序** | 多个前置条件按顺序执行，任一失败则停止 |
+| **变量覆盖** | 后续前置条件可以覆盖之前设置的变量 |
+| **安全性** | 代码在受限环境中执行，但请勿执行不可信代码 |
+| **异常处理** | 代码中的异常会导致前置条件失败，请妥善处理 |
+
+#### 最佳实践
+
+```python
+# ✅ 推荐：添加错误处理
+import requests
+try:
+    resp = requests.post('https://api.example.com/login', json={
+        'username': 'admin',
+        'password': 'password123'
+    }, timeout=10)
+    resp.raise_for_status()
+    context['token'] = resp.json()['token']
+except Exception as e:
+    raise Exception(f'登录失败: {e}')
+
+# ❌ 不推荐：没有错误处理
+import requests
+resp = requests.post('https://api.example.com/login', json={...})
+context['token'] = resp.json()['token']  # 可能因网络问题失败
+```
+
+```python
+# ✅ 推荐：使用环境变量
+import os
+username = os.getenv('ERP_USERNAME')
+password = os.getenv('ERP_PASSWORD')
+
+# ❌ 不推荐：硬编码凭据
+username = 'admin'
+password = 'password123'
+```
 
 ### 断言类型
 
@@ -248,7 +392,12 @@ AZURE_OPENAI_DEPLOYMENT=gpt-4o
 ERP_BASE_URL=https://erp.example.com
 ERP_USERNAME=test_user
 ERP_PASSWORD=your_password
+
+# 外部 API 模块路径（用于前置条件复用现有 API 封装）
+ERP_API_MODULE_PATH=/path/to/your/erp/api/module
 ```
+
+> 💡 `ERP_API_MODULE_PATH` 允许在前置条件中导入现有项目的 API 封装模块，避免重复编写认证、数据准备等代码。
 
 ### 浏览器配置
 
@@ -452,6 +601,7 @@ server {
 | `ERP_BASE_URL` | 目标系统地址 | ✅ |
 | `ERP_USERNAME` | 测试账号用户名 | ✅ |
 | `ERP_PASSWORD` | 测试账号密码 | ✅ |
+| `ERP_API_MODULE_PATH` | 外部 API 模块路径（前置条件） | ❌ |
 | `LOG_LEVEL` | 日志级别 | ❌ |
 | `DATA_DIR` | 数据存储目录 | ❌ |
 
@@ -477,6 +627,16 @@ npm install
 ```
 
 ### 运行问题
+
+**Q: Windows 上出现 `NotImplementedError` 错误？**
+
+这是 Windows asyncio 子进程兼容性问题。解决方案：
+```bash
+# 必须使用专用启动脚本
+uv run python backend/run_server.py
+
+# 不要使用 uvicorn 命令直接启动
+```
 
 **Q: LLM 调用返回错误？**
 
