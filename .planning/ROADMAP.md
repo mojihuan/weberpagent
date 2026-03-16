@@ -24,10 +24,10 @@ v0.2 聚焦于让产品真正可用于生产环境。通过集成前置条件系
 **Plans**: 4 plans in 2 waves
 
 Plans:
-- [ ] 05-01-PLAN.md - 前置条件语法设计（自然语言识别）
-- [ ] 05-02-PLAN.md - API 调用框架集成
-- [ ] 05-03-PLAN.md - 现有项目方法复用机制
-- [ ] 05-04-PLAN.md - 前置条件结果传递
+- [x] 05-01-PLAN.md - 前置条件语法设计（自然语言识别）
+- [x] 05-02-PLAN.md - API 调用框架集成
+- [x] 05-03-PLAN.md - 现有项目方法复用机制
+- [x] 05-04-PLAN.md - 前置条件结果传递
 
 ### Phase 6: 接口断言集成
 **Goal**: 支持通过 API 调用验证测试结果
@@ -41,7 +41,7 @@ Plans:
 **Plans**: 4 plans in 2 waves
 
 Plans:
-- [ ] 06-01-PLAN.md - 断言语法设计（自然语言识别）
+- [x] 06-01-PLAN.md - 断言语法设计（自然语言识别）
 - [ ] 06-02-PLAN.md - BaseAssert 类移植
 - [ ] 06-03-PLAN.md - 时间断言实现
 - [ ] 06-04-PLAN.md - 断言结果报告集成
@@ -72,10 +72,10 @@ Phases execute in numeric order: 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 5. 前置条件系统 | 0/4 | Not Started | — |
-| 6. 接口断言集成 | 0/4 | Not Started | — |
+| 5. 前置条件系统 | 4/4 | Complete | 2026-03-16 |
+| 6. 接口断言集成 | 1/4 | In Progress | 06-01 |
 | 7. 动态数据支持 | 0/4 | Not Started | — |
 
 ---
 *Roadmap created: 2026-03-16*
-*Last updated: 2026-03-16 - v0.2 planning*
+*Last updated: 2026-03-16 - Phase 6 In Progress (1/4 plans)*

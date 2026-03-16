@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-03-16T07:31:40.365Z"
-last_activity: 2026-03-16 -- Completed 05-02 (PreconditionService execution service)
+stopped_at: Phase 6 - 06-01 completed
+last_updated: "2026-03-16T13:53:00Z"
+last_activity: 2026-03-16 -- Completed 06-01 (Task model extension for api_assertions)
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 50
+  total_plans: 12
+  completed_plans: 5
+  percent: 42
 ---
 
 # Project State
@@ -25,32 +25,32 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 5 - 前置条件系统 (In Progress)
-Plan: 05-02 completed, ready for 05-03
-Status: Phase 5 In Progress (2/4 plans)
-Last activity: 2026-03-16 -- Completed 05-02 (PreconditionService execution service)
+Phase: 6 - 接口断言集成 (In Progress)
+Plan: 06-01 completed, ready for 06-02
+Status: Phase 6 In Progress (1/4 plans)
+Last activity: 2026-03-16 -- Completed 06-01 (Task model extension for api_assertions)
 
-Progress: [█████░░░░░] 50% (milestone)
+Progress: [████░░░░░░] 42% (milestone)
 
-## Phase 5 Plan Overview
+## Phase 6 Plan Overview
 
 | Plan | Objective | Wave | Requirements | Tasks |
 |------|-----------|------|--------------|-------|
-| 05-01 | Task 模型扩展 + 前端表单 | 1 | PRE-01 | 5 |
-| 05-02 | PreconditionService 执行服务 | 1 | PRE-02 | 2 |
-| 05-03 | 外部模块加载 | 2 | PRE-03 | 3 |
-| 05-04 | 变量替换 + 执行流程集成 | 2 | PRE-04 | 5 |
+| 06-01 | Task 模型扩展 + 前端表单 | 1 | API-01 | 5 |
+| 06-02 | ApiAssertionService 执行服务 | 1 | API-02 | 3 |
+| 06-03 | 时间断言实现 | 2 | API-03 | 3 |
+| 06-04 | 断言结果报告集成 | 2 | API-04 | 4 |
 
 **Wave Structure:**
-- Wave 1: 05-01, 05-02 (parallel)
-- Wave 2: 05-03, 05-04 (depend on Wave 1)
+- Wave 1: 06-01, 06-02 (parallel)
+- Wave 2: 06-03, 06-04 (depend on Wave 1)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 6 min
-- Total execution time: 1.6 hours
+- Total execution time: 1.7 hours
 
 **By Phase:**
 
@@ -60,16 +60,15 @@ Progress: [█████░░░░░] 50% (milestone)
 | 2. Data Layer Enhancement | 4 | 4 | 5 min |
 | 3. Service Layer Restoration | 6 | 6 | 5 min |
 | 4. Frontend + E2E Alignment | 6 | 6 | 3 min |
+| 5. 前置条件系统 | 4 | 4 | 4 min |
+| 6. 接口断言集成 | 1 | 1 | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 5, 5, 3, 5, 3 min
+- Last 5 plans: 3, 5, 3, 5, 4 min
 - Trend: Stable
 
 *Updated after each plan completion*
-| Phase 05 P01 | 5 min | 5 tasks | 5 files |
-| Phase 05 P02 | 3 min | 2 tasks | 2 files |
-| Phase 05 P05-04 | 5 min | 5   --files6 tasks | - files |
-| Phase 05 P03 | 3 | 3 tasks | 2 files |
+| Phase 06 P01 | 4 min | 5 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -90,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 05]: 30-second default timeout via asyncio.wait_for() + run_in_executor()
 - [Phase 05]: Fail-fast pattern in execute_all() - stop on first failure
 - [Phase 05]: Task 1 (ERP_API_MODULE_PATH config) was already completed in previous plan
+- [Phase 06]: Store api_assertions as JSON string in Text column, same pattern as preconditions
+- [Phase 06]: Use Optional[List[str]] type in schemas for consistency
 
 ### Pending Todos
 
@@ -101,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T07:31:02.263Z
-Stopped at: Completed 05-04-PLAN.md
-Next step: Run `/gsd:execute-phase 05` to continue with 05-03
+Last session: 2026-03-16T13:53:00Z
+Stopped at: Phase 6 - 06-01 completed
+Next step: Run `/gsd:execute-phase 06` to continue with 06-02
