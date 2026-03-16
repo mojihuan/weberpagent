@@ -22,12 +22,15 @@ from backend.db.schemas import (
     SSEFinishedEvent,
     SSEErrorEvent,
     SSEPreconditionEvent,
+    SSEApiAssertionEvent,
 )
 from backend.core.agent_service import AgentService
 from backend.core.event_manager import event_manager
 from backend.core.report_service import ReportService
 from backend.core.assertion_service import AssertionService
 from backend.core.precondition_service import PreconditionService
+from backend.core.api_assertion_service import ApiAssertionService
+from backend.db.repository import AssertionResultRepository
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +59,7 @@ async def run_agent_background(
     task_description: str,
     max_steps: int,
     preconditions: list[str] | None = None,
+    api_assertions: list[str] | None = None,
 ):
     """后台执行 agent 任务"""
     logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
@@ -203,6 +207,78 @@ async def run_agent_background(
                 else:
                     logger.info(f"[{run_id}] 断言评估完成，全部通过")
 
+            # === 接口断言执行（新增） ===
+            if api_assertions:
+                api_assertion_service = ApiAssertionService(external_module_path=external_module_path)
+                api_assertion_service.context = context  # 复用前置条件上下文
+                assertion_result_repo = AssertionResultRepository(session)
+
+                for i, code in enumerate(api_assertions):
+                    if not code.strip():
+                        continue
+
+                    # 发送 api_assertion 事件（running）
+                    code_display = code[:100] + "..." if len(code) > 100 else code
+                    api_event = SSEApiAssertionEvent(
+                        index=i,
+                        code=code_display,
+                        status="running",
+                    )
+                    await event_manager.publish(run_id, f"event: api_assertion\ndata: {api_event.model_dump_json()}\n\n")
+
+                    # 执行接口断言
+                    api_result = await api_assertion_service.execute_single(code, i)
+
+                    # 发送 api_assertion 事件（success/failed）
+                    api_event = SSEApiAssertionEvent(
+                        index=i,
+                        code=code_display,
+                        status="success" if api_result.success else "failed",
+                        error=api_result.error,
+                        duration_ms=api_result.duration_ms,
+                        field_results=[
+                            {
+                                "field_name": fr.field_name,
+                                "expected": fr.expected,
+                                "actual": fr.actual,
+                                "passed": fr.passed,
+                                "message": fr.message,
+                                "assertion_type": fr.assertion_type,
+                            }
+                            for fr in api_result.field_results
+                        ] if api_result.field_results else None,
+                    )
+                    await event_manager.publish(run_id, f"event: api_assertion\ndata: {api_event.model_dump_json()}\n\n")
+
+                    # 存储断言结果到数据库
+                    if api_result.success and api_result.field_results:
+                        for field_result in api_result.field_results:
+                            await assertion_result_repo.create(
+                                run_id=run_id,
+                                assertion_id=f"api_{api_result.index}_{field_result.field_name}",
+                                status="pass" if field_result.passed else "fail",
+                                message=field_result.message,
+                                actual_value=str(field_result.actual),
+                            )
+                    elif not api_result.success:
+                        # 执行失败的断言
+                        await assertion_result_repo.create(
+                            run_id=run_id,
+                            assertion_id=f"api_{api_result.index}",
+                            status="fail",
+                            message=api_result.error or "断言执行失败",
+                            actual_value="",
+                        )
+
+                # 更新最终状态：如果有任何 API 断言失败
+                api_results = await api_assertion_service.execute_all(
+                    [a for a in api_assertions if a.strip()]
+                )
+                if any(not r.success for r in api_results):
+                    final_status = "failed"
+                    logger.info(f"[{run_id}] 接口断言存在失败，状态设为 failed")
+            # === 接口断言执行结束 ===
+
             # 更新状态
             await run_repo.update_status(run_id, final_status)
             event_manager.set_status(run_id, final_status)
@@ -291,6 +367,14 @@ async def create_run(
         except json.JSONDecodeError:
             logger.warning(f"Task {task_id} preconditions JSON 解析失败")
 
+    # 解析 api_assertions
+    api_assertions = None
+    if task.api_assertions:
+        try:
+            api_assertions = json.loads(task.api_assertions)
+        except json.JSONDecodeError:
+            logger.warning(f"Task {task_id} api_assertions JSON 解析失败")
+
     # 启动后台执行
     background_tasks.add_task(
         run_agent_background,
@@ -299,7 +383,8 @@ async def create_run(
         task.name,
         task.description,
         task.max_steps,
-        preconditions,  # 新增参数
+        preconditions,
+        api_assertions,  # 新增参数
     )
 
     return run
