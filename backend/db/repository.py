@@ -29,10 +29,24 @@ class TaskRepository:
             return None
         return json.loads(preconditions)
 
+    def _serialize_api_assertions(self, api_assertions: List[str] | None) -> str | None:
+        """Serialize api_assertions list to JSON string."""
+        if api_assertions is None:
+            return None
+        return json.dumps(api_assertions, ensure_ascii=False)
+
+    def _deserialize_api_assertions(self, api_assertions: str | None) -> List[str] | None:
+        """Deserialize api_assertions JSON string to list."""
+        if api_assertions is None:
+            return None
+        return json.loads(api_assertions)
+
     async def create(self, data: TaskCreate) -> Task:
         task_data = data.model_dump()
         if task_data.get("preconditions") is not None:
             task_data["preconditions"] = self._serialize_preconditions(task_data["preconditions"])
+        if task_data.get("api_assertions") is not None:
+            task_data["api_assertions"] = self._serialize_api_assertions(task_data["api_assertions"])
         task = Task(**task_data)
         self.session.add(task)
         await self.session.commit()
@@ -57,6 +71,8 @@ class TaskRepository:
         update_data = data.model_dump(exclude_unset=True)
         if "preconditions" in update_data and update_data["preconditions"] is not None:
             update_data["preconditions"] = self._serialize_preconditions(update_data["preconditions"])
+        if "api_assertions" in update_data and update_data["api_assertions"] is not None:
+            update_data["api_assertions"] = self._serialize_api_assertions(update_data["api_assertions"])
         for key, value in update_data.items():
             setattr(task, key, value)
         task.updated_at = datetime.now()
