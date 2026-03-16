@@ -109,14 +109,28 @@ class ReportService:
         # Get assertion results
         assertion_results = await self.assertion_result_repo.list_by_run(run_id)
 
+        # Separate UI assertions from API assertions
+        ui_assertion_results = [
+            ar for ar in assertion_results
+            if not ar.assertion_id.startswith("api_")
+        ]
+        api_assertion_results = [
+            ar for ar in assertion_results
+            if ar.assertion_id.startswith("api_")
+        ]
+
         # Calculate pass rate
         pass_rate = self.calculate_pass_rate(assertion_results)
+        api_pass_rate = self.calculate_pass_rate(api_assertion_results) if api_assertion_results else "N/A"
 
         return {
             "report": report,
             "steps": steps,
             "assertion_results": assertion_results,
+            "ui_assertion_results": ui_assertion_results,
+            "api_assertion_results": api_assertion_results,
             "pass_rate": pass_rate,
+            "api_pass_rate": api_pass_rate,
         }
 
     @staticmethod
