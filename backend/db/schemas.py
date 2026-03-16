@@ -14,6 +14,7 @@ class TaskBase(BaseModel):
     target_url: str = Field(default="", max_length=500)
     max_steps: int = Field(default=10, ge=1, le=100)
     preconditions: Optional[List[str]] = Field(default=None, description="前置条件代码列表")
+    api_assertions: Optional[List[str]] = Field(default=None, description="接口断言代码列表")
 
 
 class TaskCreate(TaskBase):
@@ -29,6 +30,7 @@ class TaskUpdate(BaseModel):
     max_steps: Optional[int] = Field(None, ge=1, le=100)
     status: Optional[str] = Field(None, pattern="^(draft|ready)$")
     preconditions: Optional[List[str]] = Field(None, description="前置条件代码列表")
+    api_assertions: Optional[List[str]] = Field(None, description="接口断言代码列表")
 
 
 class TaskResponse(TaskBase):
@@ -38,6 +40,7 @@ class TaskResponse(TaskBase):
     created_at: datetime
     updated_at: datetime
     preconditions: Optional[List[str]] = None
+    api_assertions: Optional[List[str]] = None
 
     class Config:
         from_attributes = True
