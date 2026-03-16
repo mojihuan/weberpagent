@@ -14,6 +14,7 @@ interface FormData {
   description: string
   target_url: string
   max_steps: number
+  preconditions: string[]
 }
 
 interface FormErrors {
@@ -27,6 +28,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     description: initialData?.description || '',
     target_url: initialData?.target_url || '',
     max_steps: initialData?.max_steps || 20,
+    preconditions: initialData?.preconditions || [''],
   })
   const [errors, setErrors] = useState<FormErrors>({})
 
@@ -37,6 +39,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         description: initialData.description,
         target_url: initialData.target_url,
         max_steps: initialData.max_steps,
+        preconditions: initialData.preconditions || [''],
       })
     }
   }, [initialData])
@@ -67,13 +70,34 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (validate()) {
-      onSubmit(formData)
+      onSubmit({
+        ...formData,
+        preconditions: formData.preconditions.filter(p => p.trim())
+      })
     }
   }
 
   const handleStepsChange = (delta: number) => {
     const newSteps = Math.max(1, Math.min(50, formData.max_steps + delta))
     setFormData(prev => ({ ...prev, max_steps: newSteps }))
+  }
+
+  const handleAddPrecondition = () => {
+    setFormData(prev => ({ ...prev, preconditions: [...prev.preconditions, ''] }))
+  }
+
+  const handleRemovePrecondition = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      preconditions: prev.preconditions.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handlePreconditionChange = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      preconditions: prev.preconditions.map((p, i) => i === index ? value : p)
+    }))
   }
 
   return (
@@ -156,6 +180,44 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
             +5
           </button>
           <span className="text-sm text-gray-500 ml-2">范围 1-50</span>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          前置条件 <span className="text-gray-400 text-xs">(可选)</span>
+        </label>
+        <p className="text-xs text-gray-500 mb-2">
+          输入 Python 代码，在前置条件中通过 context['变量名'] 存储结果
+        </p>
+        <div className="space-y-2">
+          {formData.preconditions.map((precondition, index) => (
+            <div key={index} className="flex gap-2">
+              <textarea
+                value={precondition}
+                onChange={e => handlePreconditionChange(index, e.target.value)}
+                placeholder="例如：context['token'] = login_and_get_token()"
+                rows={4}
+                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
+              />
+              {formData.preconditions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemovePrecondition(index)}
+                  className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"
+                >
+                  删除
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddPrecondition}
+            className="text-sm text-blue-500 hover:text-blue-600"
+          >
+            + 添加前置条件
+          </button>
         </div>
       </div>
 
