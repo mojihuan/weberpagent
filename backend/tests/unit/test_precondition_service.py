@@ -122,3 +122,82 @@ context['parsed_name'] = data['name']
 
         assert success is True
         assert len(results) == 1  # 只有第三个被执行
+
+
+class TestPreconditionServiceSubstitution:
+    """变量替换测试"""
+
+    @pytest.fixture
+    def service(self):
+        return PreconditionService()
+
+    def test_substitute_variables_simple(self, service):
+        """测试简单变量替换"""
+        context = {'order_id': 'ORD-12345'}
+        text = "查询订单 {{order_id}}"
+        result = PreconditionService.substitute_variables(text, context)
+
+        assert result == "查询订单 ORD-12345"
+
+    def test_substitute_variables_multiple(self, service):
+        """测试多个变量替换"""
+        context = {'order_id': 'ORD-001', 'user_name': '张三'}
+        text = "订单 {{order_id}} 的收件人是 {{user_name}}"
+        result = PreconditionService.substitute_variables(text, context)
+
+        assert result == "订单 ORD-001 的收件人是 张三"
+
+    def test_substitute_variables_no_match(self, service):
+        """测试无变量文本不处理"""
+        context = {'order_id': 'ORD-001'}
+        text = "普通文本没有变量"
+        result = PreconditionService.substitute_variables(text, context)
+
+        assert result == "普通文本没有变量"
+
+    def test_substitute_variables_empty_text(self, service):
+        """测试空文本"""
+        context = {'order_id': 'ORD-001'}
+        result = PreconditionService.substitute_variables("", context)
+        assert result == ""
+
+        result = PreconditionService.substitute_variables(None, context)
+        assert result is None
+
+    def test_substitute_variables_undefined_error(self, service):
+        """测试未定义变量报错"""
+        from jinja2 import UndefinedError
+
+        context = {'order_id': 'ORD-001'}
+        text = "订单 {{undefined_var}}"
+
+        with pytest.raises(UndefinedError):
+            PreconditionService.substitute_variables(text, context)
+
+    def test_substitute_variables_with_dict_access(self, service):
+        """测试字典属性访问（Jinja2 特性）"""
+        context = {'order': {'id': 'ORD-001', 'name': '测试订单'}}
+        text = "订单 ID: {{order.id}}, 名称: {{order.name}}"
+        result = PreconditionService.substitute_variables(text, context)
+
+        assert result == "订单 ID: ORD-001, 名称: 测试订单"
+
+    @pytest.mark.asyncio
+    async def test_full_flow_with_substitution(self, service):
+        """测试完整流程：执行前置条件 + 变量替换（PRE-04）"""
+        # 执行前置条件设置变量
+        code1 = "context['order_id'] = 'ORD-99999'"
+        code2 = "context['user_name'] = '测试用户'"
+
+        result1 = await service.execute_single(code1, 0)
+        result2 = await service.execute_single(code2, 1)
+
+        assert result1.success is True
+        assert result2.success is True
+
+        # 获取 context 并进行变量替换
+        context = service.get_context()
+        text = "查询订单 {{order_id}}，验证收件人是 {{user_name}}"
+        substituted = PreconditionService.substitute_variables(text, context)
+
+        assert substituted == "查询订单 ORD-99999，验证收件人是 测试用户"
