@@ -55,7 +55,7 @@
 ### 前置条件系统
 
 - [x] **PRE-01**: 用户可以在测试用例中定义前置条件步骤
-- [ ] **PRE-02**: 前置条件通过 API 调用执行（不用 UI）
+- [x] **PRE-02**: 前置条件通过 API 调用执行（不用 UI）
 - [ ] **PRE-03**: 支持复用现有项目的 API 封装方法
 - [ ] **PRE-04**: 前置条件执行结果可用于后续步骤
 
@@ -133,7 +133,7 @@ Which phases cover which requirements.
 | E2E-04 | Phase 4 | Complete |
 | E2E-05 | Phase 4 | Complete |
 | PRE-01 | Phase 5 | Complete |
-| PRE-02 | Phase 5 | Pending |
+| PRE-02 | Phase 5 | Complete |
 | PRE-03 | Phase 5 | Pending |
 | PRE-04 | Phase 5 | Pending |
 | API-01 | Phase 6 | Pending |
