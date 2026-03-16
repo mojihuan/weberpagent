@@ -201,3 +201,100 @@ class TestPreconditionServiceSubstitution:
         substituted = PreconditionService.substitute_variables(text, context)
 
         assert substituted == "查询订单 ORD-99999，验证收件人是 测试用户"
+
+
+class TestPreconditionServiceExternalModule:
+    """外部模块加载测试"""
+
+    @pytest.mark.asyncio
+    async def test_load_external_module(self, tmp_path):
+        """测试加载外部模块（PRE-03）"""
+        # 创建临时模块
+        module_dir = tmp_path / "test_api"
+        module_dir.mkdir()
+        api_file = module_dir / "test_api.py"
+        api_file.write_text('''
+class TestApi:
+    def __init__(self):
+        self.base_url = "http://test.com"
+
+    def get_data(self):
+        return {"status": "ok"}
+''')
+        # 添加 __init__.py
+        (module_dir / "__init__.py").write_text("")
+
+        service = PreconditionService(external_module_path=str(module_dir.parent))
+
+        code = '''
+from test_api.test_api import TestApi
+api = TestApi()
+context['api_result'] = api.get_data()
+'''
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True, f"Error: {result.error}"
+        assert result.variables.get('api_result') == {"status": "ok"}
+
+    @pytest.mark.asyncio
+    async def test_invalid_module_path(self):
+        """测试无效模块路径"""
+        service = PreconditionService(external_module_path="/nonexistent/path")
+        valid, msg = service.validate_external_module_path()
+
+        assert valid is False
+        assert "不存在" in msg
+
+    @pytest.mark.asyncio
+    async def test_no_external_module_path(self):
+        """测试未配置外部模块路径"""
+        service = PreconditionService()
+        valid, msg = service.validate_external_module_path()
+
+        assert valid is True
+        assert "未配置" in msg
+
+    @pytest.mark.asyncio
+    async def test_module_import_error(self, tmp_path):
+        """测试模块导入错误"""
+        module_dir = tmp_path / "broken_api"
+        module_dir.mkdir()
+        broken_file = module_dir / "broken.py"
+        broken_file.write_text("import nonexistent_module")  # 故意导入不存在的模块
+        (module_dir / "__init__.py").write_text("")
+
+        service = PreconditionService(external_module_path=str(module_dir.parent))
+
+        code = "from broken_api import broken"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is False
+        assert "执行错误" in result.error or "ModuleNotFoundError" in result.error
+
+    @pytest.mark.asyncio
+    async def test_context_with_external_api(self, tmp_path):
+        """测试使用外部 API 并存储结果到 context"""
+        module_dir = tmp_path / "erp_api"
+        module_dir.mkdir()
+        api_file = module_dir / "order_api.py"
+        api_file.write_text('''
+class OrderApi:
+    def create_order(self, name):
+        return {"id": "ORD-001", "name": name}
+''')
+        (module_dir / "__init__.py").write_text("")
+
+        service = PreconditionService(external_module_path=str(module_dir.parent))
+
+        code = '''
+from erp_api.order_api import OrderApi
+api = OrderApi()
+order = api.create_order("测试订单")
+context['order_id'] = order['id']
+context['order_name'] = order['name']
+'''
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        assert result.variables.get('order_id') == "ORD-001"
+        assert result.variables.get('order_name') == "测试订单"
