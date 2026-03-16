@@ -46,18 +46,39 @@ class PreconditionService:
         Returns:
             exec() 使用的全局命名空间
         """
-        # 临时添加外部模块路径
+        # 添加外部模块路径
         if self.external_module_path:
             path = Path(self.external_module_path)
-            if path.exists() and str(path) not in sys.path:
+            if not path.exists():
+                logger.warning(f"外部模块路径不存在: {path}")
+            elif str(path) not in sys.path:
                 sys.path.insert(0, str(path))
                 logger.info(f"添加外部模块路径: {path}")
+            else:
+                logger.debug(f"外部模块路径已在 sys.path 中: {path}")
 
         # 受限的全局环境
         return {
             '__builtins__': __builtins__,
             'context': self.context,
         }
+
+    def validate_external_module_path(self) -> tuple[bool, str]:
+        """验证外部模块路径是否有效
+
+        Returns:
+            (是否有效, 错误信息或成功消息)
+        """
+        if not self.external_module_path:
+            return True, "未配置外部模块路径"
+
+        path = Path(self.external_module_path)
+        if not path.exists():
+            return False, f"模块路径不存在: {self.external_module_path}"
+        if not path.is_dir():
+            return False, f"模块路径不是目录: {self.external_module_path}"
+
+        return True, f"外部模块路径有效: {self.external_module_path}"
 
     async def execute_single(
         self,
