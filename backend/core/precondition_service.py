@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from jinja2 import Environment, StrictUndefined, UndefinedError
+
 logger = logging.getLogger(__name__)
 
 
@@ -136,3 +138,31 @@ class PreconditionService:
             context 字典的副本
         """
         return dict(self.context)
+
+    @staticmethod
+    def substitute_variables(text: str, context: dict[str, Any]) -> str:
+        """使用 Jinja2 进行变量替换
+
+        将文本中的 {{变量名}} 替换为 context 中的对应值。
+        如果变量未定义，会抛出 UndefinedError。
+
+        Args:
+            text: 包含 {{变量名}} 的文本
+            context: 变量上下文
+
+        Returns:
+            替换后的文本
+
+        Raises:
+            UndefinedError: 变量未定义时
+        """
+        if not text or '{{' not in text:
+            return text
+
+        env = Environment(
+            variable_start_string='{{',
+            variable_end_string='}}',
+            undefined=StrictUndefined,  # 未定义变量时报错
+        )
+        template = env.from_string(text)
+        return template.render(**context)
