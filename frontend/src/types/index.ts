@@ -68,6 +68,26 @@ export interface AssertionResult {
   created_at: string
 }
 
+// ApiAssertionFieldResult 接口断言字段结果
+export interface ApiAssertionFieldResult {
+  field_name: string
+  expected: any
+  actual: any
+  passed: boolean
+  message: string
+  assertion_type: string
+}
+
+// SSEApiAssertionEvent SSE 接口断言事件
+export interface SSEApiAssertionEvent {
+  index: number
+  code: string
+  status: 'running' | 'success' | 'failed'
+  error?: string
+  duration_ms: number
+  field_results?: ApiAssertionFieldResult[]
+}
+
 // SSE Event Types
 export interface SSEStartedEvent {
   run_id: string
@@ -141,4 +161,8 @@ export interface RecentRun {
 export interface ReportDetailResponse extends Report {
   steps: Step[]
   assertion_results?: AssertionResult[]
+  ui_assertion_results?: AssertionResult[]
+  api_assertion_results?: AssertionResult[]
+  pass_rate?: string
+  api_pass_rate?: string
 }
