@@ -6,6 +6,7 @@ export interface Task {
   target_url: string
   max_steps: number
   preconditions?: string[]
+  api_assertions?: string[]
   status: 'draft' | 'ready'
   created_at: string
   updated_at: string
@@ -18,6 +19,7 @@ export interface CreateTaskDto {
   target_url: string
   max_steps: number
   preconditions?: string[]
+  api_assertions?: string[]
 }
 
 // UpdateTaskDto 更新任务请求
@@ -28,6 +30,7 @@ export interface UpdateTaskDto {
   max_steps?: number
   status?: 'draft' | 'ready'
   preconditions?: string[]
+  api_assertions?: string[]
 }
 
 // RunStatus 执行状态
