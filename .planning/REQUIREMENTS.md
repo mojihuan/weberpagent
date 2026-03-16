@@ -64,7 +64,7 @@
 - [ ] **API-01**: 用户可以通过 API 调用进行接口断言
 - [x] **API-02**: 用户可以进行时间断言（±1 分钟范围）
 - [x] **API-03**: 用户可以进行数据断言（匹配预期值）
-- [ ] **API-04**: 断言结果展示在测试报告中
+- [x] **API-04**: 断言结果展示在测试报告中
 
 ### 动态数据支持
 
@@ -139,7 +139,7 @@ Which phases cover which requirements.
 | API-01 | Phase 6 | Pending |
 | API-02 | Phase 6 | Complete |
 | API-03 | Phase 6 | Complete |
-| API-04 | Phase 6 | Pending |
+| API-04 | Phase 6 | Complete |
 | DYN-01 | Phase 7 | Pending |
 | DYN-02 | Phase 7 | Pending |
 | DYN-03 | Phase 7 | Pending |
