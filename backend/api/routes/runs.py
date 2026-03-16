@@ -1,9 +1,11 @@
 """执行管理路由"""
 
 import asyncio
+import json
 import logging
 import traceback
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
@@ -19,11 +21,13 @@ from backend.db.schemas import (
     SSEStepEvent,
     SSEFinishedEvent,
     SSEErrorEvent,
+    SSEPreconditionEvent,
 )
 from backend.core.agent_service import AgentService
 from backend.core.event_manager import event_manager
 from backend.core.report_service import ReportService
 from backend.core.assertion_service import AssertionService
+from backend.core.precondition_service import PreconditionService
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +49,14 @@ def get_llm_config() -> dict:
 router = APIRouter(prefix="/runs", tags=["runs"])
 
 
-async def run_agent_background(run_id: str, task_id: str, task_name: str, task_description: str, max_steps: int):
+async def run_agent_background(
+    run_id: str,
+    task_id: str,
+    task_name: str,
+    task_description: str,
+    max_steps: int,
+    preconditions: list[str] | None = None,
+):
     """后台执行 agent 任务"""
     logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
 
@@ -53,11 +64,67 @@ async def run_agent_background(run_id: str, task_id: str, task_name: str, task_d
     llm_config = get_llm_config()
     logger.info(f"[{run_id}] LLM 配置: model={llm_config['model']}, base_url={llm_config['base_url']}")
 
+    # 获取外部模块路径配置
+    settings = get_settings()
+    external_module_path = settings.erp_api_module_path
+
     async with async_session() as session:
         run_repo = RunRepository(session)
         agent_service = AgentService()
         report_service = ReportService(session)
         assertion_service = AssertionService(session)
+
+        # === 执行前置条件 ===
+        context: dict[str, Any] = {}
+
+        if preconditions:
+            precondition_service = PreconditionService(external_module_path=external_module_path)
+
+            for i, code in enumerate(preconditions):
+                if not code.strip():
+                    continue
+
+                # 发送 precondition 事件（running）
+                code_display = code[:100] + "..." if len(code) > 100 else code
+                pre_event = SSEPreconditionEvent(
+                    index=i,
+                    code=code_display,
+                    status="running",
+                )
+                await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
+
+                # 执行前置条件
+                result = await precondition_service.execute_single(code, i)
+
+                # 发送 precondition 事件（success/failed）
+                pre_event = SSEPreconditionEvent(
+                    index=i,
+                    code=code_display,
+                    status="success" if result.success else "failed",
+                    error=result.error,
+                    duration_ms=result.duration_ms,
+                    variables=result.variables if result.success else None,
+                )
+                await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
+
+                if not result.success:
+                    # 前置条件失败，终止执行
+                    await run_repo.update_status(run_id, "failed")
+                    event_manager.set_status(run_id, "failed")
+                    finished = SSEFinishedEvent(status="failed", total_steps=0, duration_ms=0)
+                    await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
+                    await event_manager.publish(run_id, None)
+                    return
+
+            # 获取 context 用于变量替换
+            context = precondition_service.get_context()
+            logger.info(f"[{run_id}] 前置条件执行完成，变量: {list(context.keys())}")
+
+            # 替换 task_description 中的变量
+            task_description = PreconditionService.substitute_variables(task_description, context)
+            logger.info(f"[{run_id}] 变量替换后的任务描述: {task_description[:100]}...")
+
+        # === 前置条件执行结束 ===
 
         try:
             await run_repo.update_status(run_id, "running")
@@ -216,6 +283,14 @@ async def create_run(
 
     run = await run_repo.create(task_id=task_id)
 
+    # 解析 preconditions
+    preconditions = None
+    if task.preconditions:
+        try:
+            preconditions = json.loads(task.preconditions)
+        except json.JSONDecodeError:
+            logger.warning(f"Task {task_id} preconditions JSON 解析失败")
+
     # 启动后台执行
     background_tasks.add_task(
         run_agent_background,
@@ -224,6 +299,7 @@ async def create_run(
         task.name,
         task.description,
         task.max_steps,
+        preconditions,  # 新增参数
     )
 
     return run

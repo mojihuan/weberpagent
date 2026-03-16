@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     erp_username: str = ""
     erp_password: str = ""
 
+    # 外部 API 模块路径（用于前置条件中复用现有项目的 API 封装）
+    # 例如：/path/to/your/erp-test-project
+    # 设置后可在前置条件代码中 import api.xxx
+    erp_api_module_path: str | None = None
+
     # Database Configuration
     database_url: str = "sqlite+aiosqlite:///./data/database.db"
 
