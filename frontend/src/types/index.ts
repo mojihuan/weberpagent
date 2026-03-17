@@ -44,6 +44,8 @@ export interface Run {
   started_at: string
   finished_at?: string
   steps: Step[]
+  preconditions?: SSEPreconditionEvent[]
+  api_assertions?: SSEApiAssertionEvent[]
 }
 
 // Assertion 断言定义
@@ -86,6 +88,16 @@ export interface SSEApiAssertionEvent {
   error?: string
   duration_ms: number
   field_results?: ApiAssertionFieldResult[]
+}
+
+// SSEPreconditionEvent SSE 前置条件事件
+export interface SSEPreconditionEvent {
+  index: number
+  code: string
+  status: 'running' | 'success' | 'failed'
+  error?: string
+  duration_ms?: number
+  variables?: Record<string, any>
 }
 
 // SSE Event Types
