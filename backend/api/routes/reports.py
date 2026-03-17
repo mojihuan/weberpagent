@@ -44,9 +44,18 @@ async def get_report(
     report_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """获取报告详情"""
+    """获取报告详情
+
+    支持通过 report_id 或 run_id 查询报告。
+    优先使用 report_id，如果未找到则尝试使用 run_id。
+    """
     report_repo = ReportRepository(db)
     report = await report_repo.get(report_id)
+
+    # If not found by report_id, try by run_id
+    if not report:
+        report = await report_repo.get_by_run_id(report_id)
+
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
 
