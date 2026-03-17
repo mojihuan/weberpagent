@@ -399,6 +399,71 @@ ERP_API_MODULE_PATH=/path/to/your/erp/api/module
 
 > 💡 `ERP_API_MODULE_PATH` 允许在前置条件中导入现有项目的 API 封装模块，避免重复编写认证、数据准备等代码。
 
+### webseleniumerp Configuration
+
+To use external precondition operations from the webseleniumerp project, you need to configure the project path and create a settings file.
+
+#### 1. Configure Environment Variable
+
+Add the path to your webseleniumerp project in `.env`:
+
+```env
+WEBSERP_PATH=/path/to/your/webseleniumerp
+```
+
+The path should point to the root directory of webseleniumerp containing `base_prerequisites.py`.
+
+#### 2. Create config/settings.py
+
+The webseleniumerp project requires a `config/settings.py` file. This file is in `.gitignore` and must be created manually.
+
+Create `webseleniumerp/config/settings.py` with the following content:
+
+```python
+# webseleniumerp/config/settings.py
+
+# Data paths for test data files
+DATA_PATHS = {
+    'test_data': '/path/to/your/test/data',
+    'excel_files': '/path/to/your/excel/files',
+    # Add other paths as needed by your precondition operations
+}
+```
+
+> **Note**: The actual paths depend on your test environment. Update them to match your local setup.
+
+#### 3. Verify Configuration
+
+Start the server to verify your configuration:
+
+```bash
+uv run uvicorn backend.api.main:app --reload --port 8080
+```
+
+If configuration is invalid, you will see an error message with specific instructions for fixing the issue:
+
+```
+[CONFIG ERROR] WEBSERP_PATH directory not found: /invalid/path
+  Solution: Verify the path in your .env file
+```
+
+#### Available Operations
+
+Once configured, you can use operations from webseleniumerp in your precondition code:
+
+| Operation Code | Description |
+|----------------|-------------|
+| FA1 | Finance - Create account |
+| HC1 | Inventory - Create stock |
+| ... | See webseleniumerp documentation for full list |
+
+To use these operations in your precondition:
+
+```python
+# In task precondition
+self.pre.operations(data=['FA1', 'HC1'])
+```
+
 ### 浏览器配置
 
 ```env
