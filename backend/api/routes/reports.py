@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db
-from backend.db.repository import ReportRepository, StepRepository, AssertionResultRepository
+from backend.db.repository import ReportRepository
 from backend.db.schemas import ReportResponse, ReportDetailResponse, StepResponse, AssertionResultResponse
+from backend.core.report_service import ReportService
 
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -13,14 +14,6 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 def get_report_repo(db: AsyncSession = Depends(get_db)) -> ReportRepository:
     return ReportRepository(db)
-
-
-def get_step_repo(db: AsyncSession = Depends(get_db)) -> StepRepository:
-    return StepRepository(db)
-
-
-def get_assertion_result_repo(db: AsyncSession = Depends(get_db)) -> AssertionResultRepository:
-    return AssertionResultRepository(db)
 
 
 @router.get("", response_model=dict)
@@ -49,17 +42,22 @@ async def list_reports(
 @router.get("/{report_id}", response_model=ReportDetailResponse)
 async def get_report(
     report_id: str,
-    report_repo: ReportRepository = Depends(get_report_repo),
-    step_repo: StepRepository = Depends(get_step_repo),
-    assertion_result_repo: AssertionResultRepository = Depends(get_assertion_result_repo),
+    db: AsyncSession = Depends(get_db),
 ):
     """获取报告详情"""
+    report_repo = ReportRepository(db)
     report = await report_repo.get(report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
 
-    # 获取关联的 steps
-    steps = await step_repo.list_by_run(report.run_id)
+    # Use ReportService for complete data
+    report_service = ReportService(db)
+    data = await report_service.get_report_data(report.run_id)
+
+    if not data:
+        raise HTTPException(status_code=404, detail="Report data not found")
+
+    # Transform steps
     step_responses = [
         StepResponse(
             id=s.id,
@@ -73,23 +71,23 @@ async def get_report(
             duration_ms=s.duration_ms,
             created_at=s.created_at,
         )
-        for s in steps
+        for s in data["steps"]
     ]
 
-    # 获取断言结果
-    assertion_results = await assertion_result_repo.list_by_run(report.run_id)
-    assertion_result_responses = [
-        AssertionResultResponse(
-            id=ar.id,
-            run_id=ar.run_id,
-            assertion_id=ar.assertion_id,
-            status=ar.status,
-            message=ar.message,
-            actual_value=ar.actual_value,
-            created_at=ar.created_at,
-        )
-        for ar in assertion_results
-    ]
+    # Transform assertion results
+    def transform_assertion_results(results):
+        return [
+            AssertionResultResponse(
+                id=ar.id,
+                run_id=ar.run_id,
+                assertion_id=ar.assertion_id,
+                status=ar.status,
+                message=ar.message,
+                actual_value=ar.actual_value,
+                created_at=ar.created_at,
+            )
+            for ar in results
+        ]
 
     return ReportDetailResponse(
         id=report.id,
@@ -103,5 +101,9 @@ async def get_report(
         duration_ms=report.duration_ms,
         created_at=report.created_at,
         steps=step_responses,
-        assertion_results=assertion_result_responses,
+        assertion_results=transform_assertion_results(data["assertion_results"]),
+        ui_assertion_results=transform_assertion_results(data["ui_assertion_results"]),
+        api_assertion_results=transform_assertion_results(data["api_assertion_results"]),
+        pass_rate=data["pass_rate"],
+        api_pass_rate=data["api_pass_rate"],
     )
