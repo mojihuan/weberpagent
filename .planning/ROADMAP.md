@@ -32,7 +32,7 @@
 ### ⏸️ v0.2.1 测试用例调通 (Partially Complete - Blocked)
 **Milestone Goal:** 调通核心测试用例的端到端执行流程
 **Status:** Phase 10 blocked by erp_api module - missing required functions
-- [x] **Phase 9: 登录用例调通** - ✓ Complete
+- [x] **Phase 9: 登录用例调通** - Complete
 - [ ] **Phase 10: 销售出库用例调通** - 2/4 plans complete (blocked)
 - [ ] **Phase 11: Bug 修复** - Deferred
 - [ ] **Phase 12: 文档指南** - Deferred
@@ -92,7 +92,7 @@ Plans:
 **Milestone Goal:** 将 webseleniumerp 项目的 base_prerequisites.py 集成到当前平台
 **Status:** In Progress
 - [x] **Phase 13: 配置基础** - 3/3 plans (Complete)
-- [ ] **Phase 14: 后端桥接模块** - 0/? plans
+- [ ] **Phase 14: 后端桥接模块** - 0/3 plans
 - [ ] **Phase 15: 前端集成** - 0/? plans
 - [ ] **Phase 16: 端到端验证** - 0/? plans
 ## Phase Details
@@ -118,7 +118,11 @@ Plans:
   2. 实现 get_available_operations() 返回操作码列表及描述
   3. 提供 `/api/external-operations` API 端点
   4. 实现操作码执行功能，与现有 PreconditionService 集成
-**Plans**: ? plans
+**Plans**: 3 plans
+Plans:
+- [ ] 14-01: Create ExternalPreconditionBridge module with source parsing
+- [ ] 14-02: Create /api/external-operations API endpoint
+- [ ] 14-03: Verify PreconditionService integration with bridge-generated code
 ### Phase 15: 前端集成
 **Goal**: 在前置条件编辑器中添加操作码选择器
 **Depends on**: Phase 14 (后端桥接模块)
@@ -155,9 +159,9 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 11. Bug 修复 | v0.2.1 | 0/2 | Deferred | - |
 | 12. 文档指南 | v0.2.1 | 0/2 | Deferred | - |
 | 13. 配置基础 | v0.3 | 3/3 | Complete | 2026-03-17 |
-| 14. 后端桥接模块 | v0.3 | 0/? | Not started | - |
+| 14. 后端桥接模块 | v0.3 | 0/3 | Planning | - |
 | 15. 前端集成 | v0.3 | 0/? | Not started | - |
 | 16. 端到端验证 | v0.3 | 0/? | Not started | - |
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-17 - v0.3 milestone started*
+*Last updated: 2026-03-17 - Phase 14 plans created*
