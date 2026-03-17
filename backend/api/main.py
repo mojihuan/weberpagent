@@ -28,6 +28,8 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes import tasks, runs, reports, dashboard
+from backend.config.settings import get_settings
+from backend.config.validators import validate_weberp_path
 from backend.db.database import init_db
 
 
@@ -46,6 +48,13 @@ async def lifespan(app: FastAPI):
     # 初始化数据库表
     await init_db()
     print("Database tables initialized.")
+
+    # Validate WEBSERP_PATH if configured
+    settings = get_settings()
+    if settings.weberp_path:
+        print(f"Validating WEBSERP_PATH: {settings.weberp_path}")
+        validate_weberp_path(settings.weberp_path)
+        print("WEBSERP_PATH validation passed.")
 
     yield
     print("Shutting down Browser-Use API Server...")
