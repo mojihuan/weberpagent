@@ -131,7 +131,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 7. 动态数据支持 | v0.2 | 4/4 | Complete | 2026-03-17 |
 | 8. 前端实时监控完善 | v0.2 | 3/3 | Complete | 2026-03-17 |
 | 9. 登录用例调通 | v0.2.1 | 0/2 | Not started | - |
-| 10. 销售出库用例调通 | v0.2.1 | 0/4 | Not started | - |
+| 10. 销售出库用例调通 | 2/4 | In Progress|  | - |
 | 11. Bug 修复 | v0.2.1 | 0/2 | Not started | - |
 | 12. 文档指南 | v0.2.1 | 0/2 | Not started | - |
 
