@@ -69,8 +69,8 @@
 ### 动态数据支持
 
 - [x] **DYN-01**: 支持随机数生成（SF 物流单号、手机号等）
-- [ ] **DYN-02**: 支持从 API 接口获取动态数据
-- [ ] **DYN-03**: 支持跨步骤数据缓存和复用
+- [x] **DYN-02**: 支持从 API 接口获取动态数据
+- [x] **DYN-03**: 支持跨步骤数据缓存和复用
 - [x] **DYN-04**: 支持时间计算（now ± 1 分钟）
 
 ---
@@ -136,13 +136,13 @@ Which phases cover which requirements.
 | PRE-02 | Phase 5 | Complete |
 | PRE-03 | Phase 5 | Complete |
 | PRE-04 | Phase 5 | Complete |
-| API-01 | Phase 6 | Pending |
+| API-01 | Phase 8 (Gap Closure) | Pending |
 | API-02 | Phase 6 | Complete |
 | API-03 | Phase 6 | Complete |
 | API-04 | Phase 6 | Complete |
 | DYN-01 | Phase 7 | Complete |
-| DYN-02 | Phase 7 | Pending |
-| DYN-03 | Phase 7 | Pending |
+| DYN-02 | Phase 7 | Complete |
+| DYN-03 | Phase 7 | Complete |
 | DYN-04 | Phase 7 | Complete |
 
 **Coverage:**
@@ -151,4 +151,4 @@ Which phases cover which requirements.
 
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-16 after v0.2 planning*
+*Last updated: 2026-03-17 - API-01 assigned to Phase 8 gap closure*

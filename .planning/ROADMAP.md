@@ -63,6 +63,18 @@ Plans:
 - [ ] 07-03-PLAN.md - PreconditionService 集成
 - [ ] 07-04-PLAN.md - 端到端验证
 
+### Phase 8: 前端实时监控完善
+**Goal**: 修复前端 SSE 事件处理和报告数据完整性
+**Depends on**: Phase 7
+**Requirements**: API-01 (gap closure)
+**Gap Closure**: Closes gaps from v0.2-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. useRunStream 处理 precondition 和 api_assertion SSE 事件
+  2. 前端 ReportDetailResponse 包含 api_assertion_results 和 api_pass_rate
+  3. 后端 reports.py 使用 ReportService.get_report_data() 返回完整断言数据
+  4. 报告页面正确显示 API 断言结果
+**Plans**: 2-3 plans (to be planned)
+
 ---
 
 ## Progress
@@ -75,7 +87,8 @@ Phases execute in numeric order: 5 -> 6 -> 7
 | 5. 前置条件系统 | 4/4 | Complete | 2026-03-16 |
 | 6. 接口断言集成 | 1/4 | In Progress | 06-01 |
 | 7. 动态数据支持 | 0/4 | Planned | — |
+| 8. 前端实时监控完善 | 0/3 | Planned | — |
 
 ---
 *Roadmap created: 2026-03-16*
-*Last updated: 2026-03-17 - Phase 7 plans created*
+*Last updated: 2026-03-17 - Phase 8 gap closure phase added*
