@@ -28,7 +28,7 @@
 ### 配置 (CONFIG)
 - [x] **CONFIG-01**: 用户可以在 .env 中配置 WEBSERP_PATH 指向 webseleniumerp 项目路径
 - [x] **CONFIG-02**: 系统启动时验证 WEBSERP_PATH 路径有效性
-- [ ] **CONFIG-03**: 提供 webseleniumerp 的 config/settings.py 模板文档
+- [x] **CONFIG-03**: 提供 webseleniumerp 的 config/settings.py 模板文档
 ### 后端桥接模块 (BRIDGE)
 - [ ] **BRIDGE-01**: 创建 ExternalPreconditionBridge 模块，隔离外部项目导入
 - [ ] **BRIDGE-02**: 实现 get_available_operations() 返回操作码列表及描述
@@ -60,7 +60,7 @@
 |-------------|-------|--------|
 | CONFIG-01 | Phase 13 | Complete |
 | CONFIG-02 | Phase 13 | Complete |
-| CONFIG-03 | Phase 13 | Pending |
+| CONFIG-03 | Phase 13 | Complete |
 | BRIDGE-01 | Phase 14 | Pending |
 | BRIDGE-02 | Phase 14 | Pending |
 | BRIDGE-03 | Phase 14 | Pending |
