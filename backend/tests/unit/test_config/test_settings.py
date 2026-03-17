@@ -17,10 +17,10 @@ class TestWeberpPathSettings:
             assert settings.weberp_path is None
 
     def test_weberp_path_from_env(self):
-        """weberp_path loads from WEBSERP_PATH env var."""
+        """weberp_path loads from WEBERP_PATH env var."""
         with patch.dict(
             os.environ,
-            {"WEBSERP_PATH": "/path/to/webseleniumerp"},
+            {"WEBERP_PATH": "/path/to/webseleniumerp"},
             clear=True
         ):
             settings = Settings()
@@ -35,7 +35,7 @@ class TestWeberpPathSettings:
 
         with patch.dict(
             os.environ,
-            {"WEBSERP_PATH": "/another/path"},
+            {"WEBERP_PATH": "/another/path"},
             clear=True
         ):
             settings = Settings()

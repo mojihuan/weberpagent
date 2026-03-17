@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     # 设置后可在前置条件代码中 import api.xxx
     erp_api_module_path: str | None = None
 
+    # External webseleniumerp project path for precondition operations
+    # Points to the webseleniumerp project containing base_prerequisites.py
+    # Set this to enable importing external precondition operations (FA1, HC1, etc.)
+    # Example: /Users/you/projects/webseleniumerp
+    weberp_path: str | None = None
+
     # Database Configuration
     database_url: str = "sqlite+aiosqlite:///./data/database.db"
 
