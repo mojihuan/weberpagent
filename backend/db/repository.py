@@ -65,7 +65,7 @@ class TaskRepository:
         return list(result.scalars())
 
     async def update(self, task_id: str, data: TaskUpdate) -> Optional[Task]:
-        task = await self.get(task_id)
+        task = await self.session.get(Task, task_id)
         if not task:
             return None
         update_data = data.model_dump(exclude_unset=True)
@@ -77,6 +77,7 @@ class TaskRepository:
             setattr(task, key, value)
         task.updated_at = datetime.now()
         await self.session.commit()
+        await self.session.refresh(task)
         return task
 
     async def delete(self, task_id: str) -> bool:

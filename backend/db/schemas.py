@@ -1,8 +1,9 @@
 """Pydantic 请求/响应模型"""
 
+import json
 from datetime import datetime
 from typing import Optional, List, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # === Task Schemas ===
@@ -41,6 +42,21 @@ class TaskResponse(TaskBase):
     updated_at: datetime
     preconditions: Optional[List[str]] = None
     api_assertions: Optional[List[str]] = None
+
+    @field_validator('preconditions', 'api_assertions', mode='before')
+    @classmethod
+    def deserialize_json_list(cls, v):
+        """Deserialize JSON string to list if needed."""
+        if v is None:
+            return None
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return None
+        return None
 
     class Config:
         from_attributes = True

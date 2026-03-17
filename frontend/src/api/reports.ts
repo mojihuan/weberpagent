@@ -69,12 +69,28 @@ function transformReport(report: ReportApiResponse): Report {
   }
 }
 
+const API_BASE_FOR_IMAGES = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:8080'
+
 function transformStep(step: StepApiResponse): Step {
+  // Build complete screenshot URL
+  // Backend returns: /api/runs/{run_id}/screenshots/{step}
+  // We need: http://localhost:8080/api/runs/{run_id}/screenshots/{step}
+  let screenshotUrl = step.screenshot_url || ''
+  if (screenshotUrl && !screenshotUrl.startsWith('http')) {
+    // If it's a relative URL starting with /api, use API_BASE_FOR_IMAGES
+    if (screenshotUrl.startsWith('/api/')) {
+      screenshotUrl = `${API_BASE_FOR_IMAGES}${screenshotUrl}`
+    } else {
+      // Otherwise prepend the full API base
+      screenshotUrl = `${API_BASE_FOR_IMAGES}/api${screenshotUrl}`
+    }
+  }
+
   return {
     index: step.step_index,
     action: step.action,
     reasoning: step.reasoning,
-    screenshot: step.screenshot_url || '',
+    screenshot: screenshotUrl,
     status: step.status as 'success' | 'failed',
     error: step.error || undefined,
     duration_ms: step.duration_ms,
