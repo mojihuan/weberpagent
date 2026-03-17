@@ -1,17 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.3
-milestone_name: 批量执行
-status: planning
-stopped_at: Milestone v0.3 started
-last_updated: "2026-03-17T09:30:00.000Z"
-last_activity: 2026-03-17 -- Started v0.3 milestone, Phase 10 blocked by erp_api module deferred
+milestone_name: 前置条件集成
+status: in_progress
+last_updated: "2026-03-17T13:24:00Z"
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 8
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 5
+  percent: 17
 ---
 
 # Project State
@@ -21,32 +19,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** v0.3 批量执行 - 新里程碑规划
+**Current focus:** v0.3 前置条件集成
 
 ## Current Position
 
-Milestone: v0.3 批量执行
-Phase: 13 of 15 (Excel 用例导入)
-Status: **PLANNING**
+Milestone: v0.3 前置条件集成
+Phase: 13-配置基础
+Plan: 01 (completed)
+Status: **EXECUTING**
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 17%
 
 ## Milestone v0.3 Overview
 
-### Phase 13: Excel 用例导入
-- 支持从 Excel 文件批量导入测试用例
-- 解析 Excel 格式，转换为 Task 数据结构
-- 处理导入冲突和错误
+**Goal:** 将 webseleniumerp 项目的 base_prerequisites.py 集成到当前平台
 
-### Phase 14: 批量运行测试用例
-- 支持多选测试用例
-- 批量执行队列管理
-- 执行进度实时展示
-
-### Phase 15: 批量执行结果汇总
-- 汇总展示批量执行结果
-- 统计通过率、失败率
-- 支持导出执行报告
+**Key Features:**
+- 外部前置条件模块路径配置 (WEBSERP_PATH)
+- 前端可视化选择前置条件操作码 (如 FA1, HC1)
+- 前置条件执行结果展示
 
 ## Previous Milestone (v0.2.1)
 
@@ -76,9 +67,14 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T09:30:00.000Z
-Current milestone: v0.3 批量执行
+Last session: 2026-03-17T13:24:00Z
+Current milestone: v0.3 前置条件集成
 
 **Next step:**
-- `/gsd:new-milestone` - 规划 v0.3 详细需求
-- `/gsd:discuss-phase 13` - 讨论 Excel 用例导入阶段
+- Continue Phase 13: Plan 02 (启动验证)
+- Or complete remaining plans in Phase 13
+
+## Decisions
+
+### Phase 13-01: WEBSERP_PATH Configuration
+- Env var name follows pydantic-settings convention: `weberp_path` maps to `WEBERP_PATH`
