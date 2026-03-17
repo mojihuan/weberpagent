@@ -58,10 +58,10 @@ Plans:
 **Plans**: 4 plans in 2 waves
 
 Plans:
-- [ ] 07-01-PLAN.md - 随机数生成器移植（BaseRandomMixin）
-- [ ] 07-02-PLAN.md - API 数据获取机制
-- [ ] 07-03-PLAN.md - 数据缓存系统
-- [ ] 07-04-PLAN.md - 时间计算工具
+- [ ] 07-01-PLAN.md - 随机数生成器移植（BaseRandomMixin 简化版）
+- [ ] 07-02-PLAN.md - 时间计算工具
+- [ ] 07-03-PLAN.md - PreconditionService 集成
+- [ ] 07-04-PLAN.md - 端到端验证
 
 ---
 
@@ -74,8 +74,8 @@ Phases execute in numeric order: 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 5. 前置条件系统 | 4/4 | Complete | 2026-03-16 |
 | 6. 接口断言集成 | 1/4 | In Progress | 06-01 |
-| 7. 动态数据支持 | 0/4 | Not Started | — |
+| 7. 动态数据支持 | 0/4 | Planned | — |
 
 ---
 *Roadmap created: 2026-03-16*
-*Last updated: 2026-03-16 - Phase 6 In Progress (1/4 plans)*
+*Last updated: 2026-03-17 - Phase 7 plans created*
