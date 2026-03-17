@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3
-milestone_name: 批量执行
-status: executing
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-17T08:34:27.468Z"
-last_activity: 2026-03-17 -- Phase 10 Plan 02 executed, dynamic data verification complete
+milestone: v0.2.1
+milestone_name: 测试用例调通
+status: blocked
+stopped_at: Phase 10 blocked by erp_api module
+last_updated: "2026-03-17T09:15:00.000Z"
+last_activity: 2026-03-17 -- Phase 10 blocked, erp_api module missing required functions
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 4
-  percent: 67
+  total_plans: 10
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 10 - 销售出库用例调通 (IN PROGRESS)
+**Current focus:** Phase 10 - 销售出库用例调通 (BLOCKED)
 
 ## Current Position
 
 Phase: 10 of 12 (销售出库用例调通)
-Plan: 2 of 4 in current phase
-Status: **IN PROGRESS**
-Last activity: 2026-03-17 -- Phase 10 Plan 02 executed, dynamic data verification complete
+Plan: 2 of 4 in current phase (stopped at 10-03)
+Status: **BLOCKED**
+Blocker: `erp_api` 模块缺少必要函数 (`get_current_user`, `get_order` 等)
 
-Progress: [███████░░░] 67%
+Progress: [█████░░░░░] 50%
 
 ## Milestone History
 
@@ -42,48 +42,42 @@ Progress: [███████░░░] 67%
 - 4 phases, 22 plans completed
 - Key features: 任务管理, AI 执行, 实时监控, 测试报告, 页面断言
 
-## Performance Metrics (v0.2)
+## Phase 10 Status
 
-**Velocity:**
-- Total plans completed: 15
-- Average duration: 5 min
-- Total execution time: ~1.5 hours
+| Plan | Status | Notes |
+|------|--------|-------|
+| 10-01 | ✓ Complete | 销售出库任务创建，前置条件验证 |
+| 10-02 | ✓ Complete | 动态数据方法验证 |
+| 10-03 | ○ Blocked | API 断言配置 - 需要 erp_api 模块 |
+| 10-04 | ○ Blocked | 端到端执行 - 需要 erp_api 模块 |
 
-**By Phase:**
+## Blockers
 
-| Phase | Plans | Avg/Plan |
-|-------|-------|----------|
-| 5. 前置条件系统 | 4 | 5 min |
-| 6. 接口断言集成 | 4 | 20 min |
-| 7. 动态数据支持 | 4 | 3 min |
-| 8. 前端实时监控完善 | 3 | 2 min |
-| Phase 10-销售出库用例调通 P02 | 6min | 2 tasks | 0 files |
+### erp_api 模块缺失 (Blocking)
+- 需要实现与真实 ERP 系统的集成
+- 缺少函数: `get_current_user()`, `get_order()` 等
+- 解决方案: 下一里程碑实现
+
+详见: `.planning/phases/10-销售出库用例调通/10-BUGS.md`
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-
-Key patterns established in v0.2:
-- 前置条件使用 Python 代码格式，通过 exec() 执行
-- Jinja2 变量替换，StrictUndefined 防止静默失败
-- ApiAssertionService 收集所有结果（非终止模式）
-- 报告中分离 UI/API 断言结果
-- 动态数据函数直接注入到前置条件执行环境
-- [Phase 10-销售出库用例调通]: Programmatic verification used for dynamic data methods instead of manual E2E verification
+- Phase 10 延迟完成，等待 erp_api 模块实现
+- 可继续 Phase 11 (Bug 修复) 或直接进入下一里程碑
 
 ### Pending Todos
 
-None yet.
-
-### Blockers/Concerns
-
-- Nyquist Wave 0 tasks pending (tests defined but not run) — low priority
-- Pre-existing TypeScript errors in ApiAssertionResults.tsx, RunList.tsx (not blocking)
+- [ ] 实现 erp_api 模块（与真实 ERP 系统集成）
+- [ ] 重新执行 Phase 10-03, 10-04
 
 ## Session Continuity
 
-Last session: 2026-03-17T08:34:27.466Z
-Stopped at: Completed 10-02-PLAN.md
-Next step: Run `/gsd:execute-phase 10` to continue with Plan 10-03 (API assertion configuration)
+Last session: 2026-03-17T09:15:00.000Z
+Stopped at: Phase 10 blocked by erp_api module
+
+**Options:**
+1. `/gsd:execute-phase 11` - 继续修复已发现的 Bug
+2. `/gsd:add-phase` - 添加 erp_api 模块实现阶段
+3. `/gsd:progress` - 查看完整进度并决定下一步
