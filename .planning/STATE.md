@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 08-02-PLAN.md (SSE Event Handlers)
-last_updated: "2026-03-17T02:25:16Z"
-last_activity: 2026-03-17 -- Completed 08-02 (SSE Event Handlers)
+stopped_at: Completed 08-03-PLAN.md (Frontend Reports API Client Update)
+last_updated: "2026-03-17T02:29:47Z"
+last_activity: 2026-03-17 -- Completed 08-03 (Frontend Reports API Client Update)
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 16
-  completed_plans: 14
-  percent: 88
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 ## Current Position
 
 Phase: 8 - 前端实时监控完善 (In Progress)
-Plan: 08-02 completed
-Status: Phase 8 Plan 2/4 complete
-Last activity: 2026-03-17 -- Completed 08-02 (SSE Event Handlers)
+Plan: 08-03 completed
+Status: Phase 8 Plan 3/4 complete
+Last activity: 2026-03-17 -- Completed 08-03 (Frontend Reports API Client Update)
 
-Progress: [█████████░] 88% (milestone)
+Progress: [█████████░] 94% (milestone)
 
 ## Phase 6 Plan Overview
 
@@ -108,6 +108,7 @@ Recent decisions affecting current work:
 - [Phase 07-04]: Use unique module directory names in tests to avoid Python import cache conflicts
 - [Phase 08-01]: ReportService.get_report_data() is the single source of truth for report data with assertion separation
 - [Phase 08-02]: SSEPreconditionEvent type matches backend schema, useRunStream handles 'precondition' and 'api_assertion' events
+- [Phase 08-03]: Frontend ReportDetailResponse includes ui_assertion_results, api_assertion_results, pass_rate, api_pass_rate fields
 
 ### Pending Todos
 
@@ -119,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:25:16Z
-Stopped at: Completed 08-02-PLAN.md (SSE Event Handlers)
-Next step: Continue with 08-03 plan for RunMonitor component display.
+Last session: 2026-03-17T02:29:47Z
+Stopped at: Completed 08-03-PLAN.md (Frontend Reports API Client Update)
+Next step: Continue with 08-04 plan for RunMonitor component display.
