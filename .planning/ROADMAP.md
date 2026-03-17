@@ -4,8 +4,8 @@
 
 - ✅ **v0.1 MVP** — Phases 1-4 (shipped 2026-03-14)
 - ✅ **v0.2 前置条件、接口断言、动态数据** — Phases 5-8 (shipped 2026-03-17)
-- 🚧 **v0.2.1 测试用例调通** — Phases 9-12 (in progress)
-- 📋 **v0.3 批量执行** — Phases 13+ (planned)
+- ⏸️ **v0.2.1 测试用例调通** — Phases 9-12 (partially complete, blocked by erp_api module)
+- 🚧 **v0.3 批量执行** — Phases 13+ (current)
 
 ## Phases
 
@@ -39,14 +39,16 @@
 
 </details>
 
-### 🚧 v0.2.1 测试用例调通 (In Progress)
+### ⏸️ v0.2.1 测试用例调通 (Partially Complete - Blocked)
 
 **Milestone Goal:** 调通核心测试用例的端到端执行流程
 
-- [ ] **Phase 9: 登录用例调通** - 验证基础执行流程
-- [ ] **Phase 10: 销售出库用例调通** - 验证复杂场景（前置条件、动态数据、断言）
-- [ ] **Phase 11: Bug 修复** - 修复调通过程中发现的 Bug
-- [ ] **Phase 12: 文档指南** - 提供前端填写指南
+**Status:** Phase 10 blocked by erp_api module - missing required functions
+
+- [x] **Phase 9: 登录用例调通** - ✓ Complete
+- [ ] **Phase 10: 销售出库用例调通** - 2/4 plans complete (blocked)
+- [ ] **Phase 11: Bug 修复** - Deferred
+- [ ] **Phase 12: 文档指南** - Deferred
 
 ## Phase Details
 
@@ -109,16 +111,18 @@ Plans:
 - [ ] 12-01: 编写登录用例前端填写指南
 - [ ] 12-02: 编写销售出库用例前端填写指南
 
-### 📋 v0.3 批量执行 (Planned)
+### 🚧 v0.3 批量执行 (Current)
 
-- [ ] Phase 13: Excel 用例导入 (待规划)
-- [ ] Phase 14: 批量运行测试用例 (待规划)
-- [ ] Phase 15: 批量执行结果汇总 (待规划)
+**Milestone Goal:** 支持批量导入和执行测试用例
+
+- [ ] **Phase 13: Excel 用例导入** - 支持从 Excel 批量导入测试用例
+- [ ] **Phase 14: 批量运行测试用例** - 支持批量选择和执行多个测试用例
+- [ ] **Phase 15: 批量执行结果汇总** - 汇总展示批量执行结果
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 → 10 → 11 → 12
+Phases execute in numeric order: 13 → 14 → 15
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -130,11 +134,14 @@ Phases execute in numeric order: 9 → 10 → 11 → 12
 | 6. 接口断言集成 | v0.2 | 4/4 | Complete | 2026-03-16 |
 | 7. 动态数据支持 | v0.2 | 4/4 | Complete | 2026-03-17 |
 | 8. 前端实时监控完善 | v0.2 | 3/3 | Complete | 2026-03-17 |
-| 9. 登录用例调通 | v0.2.1 | 0/2 | Not started | - |
-| 10. 销售出库用例调通 | 2/4 | In Progress|  | - |
-| 11. Bug 修复 | v0.2.1 | 0/2 | Not started | - |
-| 12. 文档指南 | v0.2.1 | 0/2 | Not started | - |
+| 9. 登录用例调通 | v0.2.1 | 2/2 | Complete | 2026-03-17 |
+| 10. 销售出库用例调通 | v0.2.1 | 2/4 | Blocked | - |
+| 11. Bug 修复 | v0.2.1 | 0/2 | Deferred | - |
+| 12. 文档指南 | v0.2.1 | 0/2 | Deferred | - |
+| 13. Excel 用例导入 | v0.3 | 0/? | Not started | - |
+| 14. 批量运行测试用例 | v0.3 | 0/? | Not started | - |
+| 15. 批量执行结果汇总 | v0.3 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-17 - v0.2.1 roadmap created*
+*Last updated: 2026-03-17 - v0.3 milestone started*
