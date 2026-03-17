@@ -61,7 +61,7 @@
 
 ### 接口断言集成
 
-- [ ] **API-01**: 用户可以通过 API 调用进行接口断言
+- [x] **API-01**: 用户可以通过 API 调用进行接口断言
 - [x] **API-02**: 用户可以进行时间断言（±1 分钟范围）
 - [x] **API-03**: 用户可以进行数据断言（匹配预期值）
 - [x] **API-04**: 断言结果展示在测试报告中
@@ -136,7 +136,7 @@ Which phases cover which requirements.
 | PRE-02 | Phase 5 | Complete |
 | PRE-03 | Phase 5 | Complete |
 | PRE-04 | Phase 5 | Complete |
-| API-01 | Phase 8 (Gap Closure) | Pending |
+| API-01 | Phase 8 (Gap Closure) | Complete |
 | API-02 | Phase 6 | Complete |
 | API-03 | Phase 6 | Complete |
 | API-04 | Phase 6 | Complete |
