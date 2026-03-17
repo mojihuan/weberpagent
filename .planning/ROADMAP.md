@@ -73,22 +73,28 @@ Plans:
   2. 前端 ReportDetailResponse 包含 api_assertion_results 和 api_pass_rate
   3. 后端 reports.py 使用 ReportService.get_report_data() 返回完整断言数据
   4. 报告页面正确显示 API 断言结果
-**Plans**: 2-3 plans (to be planned)
+**Plans**: 4 plans in 2 waves
+
+Plans:
+- [x] 08-01-PLAN.md - 后端报告 API 更新（使用 ReportService.get_report_data()）
+- [ ] 08-02-PLAN.md - 前端 SSE 事件处理（添加 precondition/api_assertion 处理器）
+- [ ] 08-03-PLAN.md - 前端报告 API 客户端更新（转换新响应字段）
+- [ ] 08-04-PLAN.md - 报告页面显示 API 断言结果
 
 ---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 5 -> 6 -> 7
+Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 5. 前置条件系统 | 4/4 | Complete | 2026-03-16 |
-| 6. 接口断言集成 | 1/4 | In Progress | 06-01 |
-| 7. 动态数据支持 | 0/4 | Planned | — |
-| 8. 前端实时监控完善 | 0/3 | Planned | — |
+| 6. 接口断言集成 | 4/4 | Complete | 2026-03-16 |
+| 7. 动态数据支持 | 4/4 | Complete | 2026-03-17 |
+| 8. 前端实时监控完善 | 1/4 | In Progress | 08-01 |
 
 ---
 *Roadmap created: 2026-03-16*
-*Last updated: 2026-03-17 - Phase 8 gap closure phase added*
+*Last updated: 2026-03-17 - Phase 8-01 completed*
