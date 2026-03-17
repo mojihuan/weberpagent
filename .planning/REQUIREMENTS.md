@@ -68,10 +68,10 @@
 
 ### 动态数据支持
 
-- [ ] **DYN-01**: 支持随机数生成（SF 物流单号、手机号等）
+- [x] **DYN-01**: 支持随机数生成（SF 物流单号、手机号等）
 - [ ] **DYN-02**: 支持从 API 接口获取动态数据
 - [ ] **DYN-03**: 支持跨步骤数据缓存和复用
-- [ ] **DYN-04**: 支持时间计算（now ± 1 分钟）
+- [x] **DYN-04**: 支持时间计算（now ± 1 分钟）
 
 ---
 
@@ -140,10 +140,10 @@ Which phases cover which requirements.
 | API-02 | Phase 6 | Complete |
 | API-03 | Phase 6 | Complete |
 | API-04 | Phase 6 | Complete |
-| DYN-01 | Phase 7 | Pending |
+| DYN-01 | Phase 7 | Complete |
 | DYN-02 | Phase 7 | Pending |
 | DYN-03 | Phase 7 | Pending |
-| DYN-04 | Phase 7 | Pending |
+| DYN-04 | Phase 7 | Complete |
 
 **Coverage:**
 - v0.1 requirements: 26 total, 26 mapped, 0 unmapped ✓
