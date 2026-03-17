@@ -10,6 +10,15 @@ from typing import Any
 
 from jinja2 import Environment, StrictUndefined, UndefinedError
 
+from backend.core.random_generators import (
+    random_imei,
+    random_numbers,
+    random_phone,
+    random_serial,
+    sf_waybill,
+)
+from backend.core.time_utils import time_now
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,6 +52,8 @@ class PreconditionService:
     def _setup_execution_env(self) -> dict:
         """创建执行环境
 
+        包含动态数据辅助函数，供前置条件代码调用。
+
         Returns:
             exec() 使用的全局命名空间
         """
@@ -57,10 +68,18 @@ class PreconditionService:
             else:
                 logger.debug(f"外部模块路径已在 sys.path 中: {path}")
 
-        # 受限的全局环境
+        # 受限的全局环境 + 动态数据辅助函数
         return {
             '__builtins__': __builtins__,
             'context': self.context,
+            # 随机数生成函数
+            'sf_waybill': sf_waybill,
+            'random_phone': random_phone,
+            'random_imei': random_imei,
+            'random_serial': random_serial,
+            'random_numbers': random_numbers,
+            # 时间计算函数
+            'time_now': time_now,
         }
 
     def validate_external_module_path(self) -> tuple[bool, str]:
