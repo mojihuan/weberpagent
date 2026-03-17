@@ -1,6 +1,6 @@
 // frontend/src/hooks/useRunStream.ts
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Run, Step } from '../types'
+import type { Run, Step, SSEPreconditionEvent, SSEApiAssertionEvent } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
 
@@ -48,6 +48,8 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
         status: 'running',
         started_at: new Date().toISOString(),
         steps: [],
+        preconditions: [],
+        api_assertions: [],
       })
       setIsConnected(true)
       isConnectedRef.current = true
@@ -73,6 +75,24 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
           ...prev,
           steps: [...prev.steps, newStep],
         }
+      })
+    })
+
+    eventSource.addEventListener('precondition', (e: MessageEvent) => {
+      const data: SSEPreconditionEvent = JSON.parse(e.data)
+      setRun(prev => {
+        if (!prev) return prev
+        const preconditions = [...(prev.preconditions || []), data]
+        return { ...prev, preconditions }
+      })
+    })
+
+    eventSource.addEventListener('api_assertion', (e: MessageEvent) => {
+      const data: SSEApiAssertionEvent = JSON.parse(e.data)
+      setRun(prev => {
+        if (!prev) return prev
+        const api_assertions = [...(prev.api_assertions || []), data]
+        return { ...prev, api_assertions }
       })
     })
 
