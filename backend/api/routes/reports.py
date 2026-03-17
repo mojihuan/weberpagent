@@ -65,7 +65,7 @@ async def get_report(
             step_index=s.step_index,
             action=s.action,
             reasoning=s.reasoning,
-            screenshot_url=f"/api/run/{s.run_id}/screenshots/{s.step_index}" if s.screenshot_path else None,
+            screenshot_url=f"/api/runs/{s.run_id}/screenshots/{s.step_index}" if s.screenshot_path else None,
             status=s.status,
             error=s.error,
             duration_ms=s.duration_ms,
