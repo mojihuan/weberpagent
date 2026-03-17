@@ -162,6 +162,10 @@ class ReportDetailResponse(ReportResponse):
     """报告详情响应（包含 steps 和 assertion_results）"""
     steps: List[StepResponse] = []
     assertion_results: List["AssertionResultResponse"] = []
+    ui_assertion_results: Optional[List["AssertionResultResponse"]] = None
+    api_assertion_results: Optional[List["AssertionResultResponse"]] = None
+    pass_rate: Optional[str] = None
+    api_pass_rate: Optional[str] = None
 
 
 class ReportListParams(BaseModel):
