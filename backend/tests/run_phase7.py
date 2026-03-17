@@ -1,102 +1,89 @@
-"""Phase 7 运行入口 - 采购单场景分模块测试
+#!/usr/bin/env python
+"""Phase 7 验证脚本
+
+验证动态数据支持功能：
+- DYN-01: 随机数生成（SF 物流单号、手机号等）
+- DYN-02: API 数据获取
+- DYN-03: 跨步骤数据缓存
+- DYN-04: 时间计算
 
 用法:
-    python -m backend.tests.run_phase7 --module m1
-    python -m backend.tests.run_phase7 --all
-    python -m backend.tests.run_phase7 --integration
+    uv run python backend/tests/run_phase7.py
+    uv run python backend/tests/run_phase7.py --modules --all
 """
 
-import argparse
-import asyncio
+import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+def run_test(test_path: str, description: str) -> bool:
+    """运行测试并返回结果"""
+    print(f"\n{'='*60}")
+    print(f"Running: {description}")
+    print(f"Test: {test_path}")
+    print('='*60)
 
-async def run_module(module: str):
-    """运行单个模块测试"""
-    print(f"\n{'='*50}")
-    print(f"运行模块: {module.upper()}")
-    print(f"{'='*50}\n")
-
-    if module == "m1":
-        from backend.tests.modules.test_m1_login import run_test
-        await run_test()
-    elif module == "m2":
-        from backend.tests.modules.test_m2_sidebar_l1 import run_test
-        await run_test()
-    elif module == "m3":
-        from backend.tests.modules.test_m3_sidebar_l2 import run_test
-        await run_test()
-    elif module == "m4":
-        from backend.tests.modules.test_m4_form import run_test
-        await run_test()
-    elif module == "m5":
-        from backend.tests.modules.test_m5_submit import run_test
-        await run_test()
-    else:
-        print(f"未知模块: {module}")
-        return False
-
-    return True
-
-
-async def run_all_modules():
-    """按顺序运行所有模块"""
-    modules = ["m1", "m2", "m3", "m4", "m5"]
-    results = {}
-
-    for module in modules:
-        try:
-            success = await run_module(module)
-            results[module] = success
-            if not success:
-                print(f"\n❌ 模块 {module.upper()} 失败，停止后续测试")
-                break
-        except Exception as e:
-            print(f"\n❌ 模块 {module.upper()} 异常: {e}")
-            results[module] = False
-            break
-
-    # 打印汇总
-    print(f"\n{'='*50}")
-    print("模块测试汇总")
-    print(f"{'='*50}")
-    for module, success in results.items():
-        status = "✅ 通过" if success else "❌ 失败"
-        print(f"  {module.upper()}: {status}")
-
-    return all(results.values())
-
-
-async def run_integration():
-    """运行整合测试"""
-    print(f"\n{'='*50}")
-    print("运行整合测试")
-    print(f"{'='*50}\n")
-
-    from backend.tests.modules.test_integration import run_test
-    await run_test()
+    result = subprocess.run(
+        ["uv", "run", "pytest", test_path, "-v"],
+        capture_output=False,
+    )
+    return result.returncode == 0
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Phase 7 模块测试")
-    parser.add_argument("--module", "-m", help="运行指定模块 (m1-m5)")
-    parser.add_argument("--all", "-a", action="store_true", help="运行所有模块")
-    parser.add_argument("--integration", "-i", action="store_true", help="运行整合测试")
+    """运行所有 Phase 7 验证"""
+    print("\n" + "="*60)
+    print("Phase 7: 动态数据支持 - 验证开始")
+    print("="*60)
 
-    args = parser.parse_args()
+    results = {}
 
-    if args.module:
-        asyncio.run(run_module(args.module))
-    elif args.all:
-        asyncio.run(run_all_modules())
-    elif args.integration:
-        asyncio.run(run_integration())
+    # DYN-01: 随机数生成器
+    results["DYN-01 (随机数生成器)"] = run_test(
+        "backend/tests/unit/test_random_generators.py",
+        "随机数生成器单元测试"
+    )
+
+    # DYN-04: 时间计算工具
+    results["DYN-04 (时间计算)"] = run_test(
+        "backend/tests/unit/test_time_utils.py",
+        "时间计算工具单元测试"
+    )
+
+    # DYN-01, DYN-03, DYN-04: PreconditionService 集成
+    results["DYN-01/03/04 (集成)"] = run_test(
+        "backend/tests/unit/test_precondition_service.py",
+        "PreconditionService 动态数据集成测试"
+    )
+
+    # DYN-01, DYN-02, DYN-03, DYN-04: 端到端流程
+    results["DYN-01/02/03/04 (端到端)"] = run_test(
+        "backend/tests/integration/test_dynamic_data_flow.py",
+        "动态数据端到端集成测试"
+    )
+
+    # 输出结果摘要
+    print("\n" + "="*60)
+    print("Phase 7 验证结果摘要")
+    print("="*60)
+
+    all_passed = True
+    for name, passed in results.items():
+        status = "PASS" if passed else "FAIL"
+        print(f"  {status}: {name}")
+        if not passed:
+            all_passed = False
+
+    print("="*60)
+
+    if all_passed:
+        print("\nPhase 7 验证全部通过!")
+        return 0
     else:
-        parser.print_help()
+        print("\nPhase 7 验证存在失败项")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
