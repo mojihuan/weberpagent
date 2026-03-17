@@ -298,3 +298,111 @@ context['order_name'] = order['name']
         assert result.success is True
         assert result.variables.get('order_id') == "ORD-001"
         assert result.variables.get('order_name') == "测试订单"
+
+
+class TestPreconditionServiceDynamicData:
+    """动态数据集成测试 (Phase 7)"""
+
+    @pytest.fixture
+    def service(self):
+        return PreconditionService()
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_sf_waybill(self, service):
+        """测试 SF 物流单号生成 (DYN-01)"""
+        code = "context['order_no'] = sf_waybill()"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        order_no = result.variables.get('order_no')
+        assert order_no is not None
+        assert order_no.startswith("SF")
+        assert len(order_no) == 14
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_random_phone(self, service):
+        """测试手机号生成 (DYN-01)"""
+        code = "context['phone'] = random_phone()"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        phone = result.variables.get('phone')
+        assert phone is not None
+        assert phone.startswith("13")
+        assert len(phone) == 11
+        assert phone.isdigit()
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_random_imei(self, service):
+        """测试 IMEI 生成 (DYN-01)"""
+        code = "context['imei'] = random_imei()"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        imei = result.variables.get('imei')
+        assert imei is not None
+        assert imei.startswith("I")
+        assert len(imei) == 15
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_time_now(self, service):
+        """测试当前时间获取 (DYN-04)"""
+        code = "context['current_time'] = time_now()"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        current_time = result.variables.get('current_time')
+        assert current_time is not None
+        # 验证格式可以解析
+        from datetime import datetime
+        parsed = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
+        assert isinstance(parsed, datetime)
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_time_offset(self, service):
+        """测试时间偏移计算 (DYN-04)"""
+        code = "context['future_time'] = time_now(30)"
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        future_time = result.variables.get('future_time')
+        assert future_time is not None
+
+        from datetime import datetime, timedelta
+        parsed = datetime.strptime(future_time, "%Y-%m-%d %H:%M:%S")
+        expected = datetime.now() + timedelta(minutes=30)
+        # 允许 2 秒误差
+        assert abs((parsed - expected).total_seconds()) < 2
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_multiple_functions(self, service):
+        """测试多个动态数据函数组合使用"""
+        code = '''
+context['order_no'] = sf_waybill()
+context['phone'] = random_phone()
+context['imei'] = random_imei()
+context['time'] = time_now()
+'''
+        result = await service.execute_single(code, 0)
+
+        assert result.success is True
+        assert result.variables.get('order_no', '').startswith('SF')
+        assert result.variables.get('phone', '').startswith('13')
+        assert result.variables.get('imei', '').startswith('I')
+        assert result.variables.get('time') is not None
+
+    @pytest.mark.asyncio
+    async def test_dynamic_data_substitution(self, service):
+        """测试动态数据 + 变量替换 (DYN-03)"""
+        # 先执行前置条件生成动态数据
+        code = "context['order_no'] = sf_waybill()"
+        result = await service.execute_single(code, 0)
+        assert result.success is True
+
+        # 获取 context 并进行变量替换
+        context = service.get_context()
+        text = "查询订单 {{order_no}}"
+        substituted = PreconditionService.substitute_variables(text, context)
+
+        assert substituted.startswith("查询订单 SF")
+        assert len(substituted) == len("查询订单 ") + 14
