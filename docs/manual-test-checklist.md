@@ -4,10 +4,10 @@
 
 ## 前置条件
 
-- [ ] 已克隆 webseleniumerp 项目到本地
-- [ ] 已在 webseleniumerp 中创建 `config/settings.py`（参见 README.md 模板）
-- [ ] 后端服务运行中：`uv run uvicorn backend.api.main:app --reload --port 8080`
-- [ ] 前端服务运行中：`cd frontend && npm run dev`
+- [x] 已克隆 webseleniumerp 项目到本地
+- [x] 已在 webseleniumerp 中创建 `config/settings.py`（参见 README.md 模板）
+- [x] 后端服务运行中：`uv run uvicorn backend.api.main:app --reload --port 8080`
+- [x] 前端服务运行中：`cd frontend && npm run dev`
 
 ## 环境配置
 
@@ -25,19 +25,20 @@
 
 ### 测试步骤：
 
-1. [ ] 打开前端页面 http://localhost:5173
-2. [ ] 进入任务创建页面
-3. [ ] 点击前置条件文本框上方的"选择操作码"按钮
-4. [ ] 验证：弹窗显示按模块分组的操作码列表
-5. [ ] 选择操作码：FA1, HC1
-6. [ ] 点击"确认"按钮
-7. [ ] 验证：前置条件文本框包含生成的代码：
+1. - [x] 打开前端页面 http://localhost:5173
+2. - [x] 进入任务创建页面
+3. - [x] 点击前置条件文本框上方的"选择操作码"按钮
+4. - [x] 验证：弹窗显示按模块分组的操作码列表
+5. - [x] 选择操作码：FA1, HC1
+6. - [x] 点击"确认"按钮
+7. - [x] 验证：前置条件文本框包含生成的代码：
+   
    - `sys.path.insert(0, '/path/to/webseleniumerp')`
    - `from common.base_prerequisites import PreFront`
    - `pre_front.operations(['FA1', 'HC1'])`
-8. [ ] 创建并运行任务
-9. [ ] 验证：任务执行包含前置条件步骤
-10. [ ] 验证：前置条件执行显示成功状态
+8. - [ ] 创建并运行任务
+9. - [ ] 验证：任务执行包含前置条件步骤
+10. - [ ] 验证：前置条件执行显示成功状态
 
 ### 预期结果：
 

@@ -17,8 +17,8 @@
 
 - [x] **UI-01**: DataMethodSelector 组件（复用 OperationCodeSelector 的模块分组模式）
 - [x] **UI-02**: 参数配置表单（动态生成 i/j/k 等参数输入框）
-- [ ] **UI-03**: 字段提取路径配置（支持 `[0].imei` 语法）
-- [ ] **UI-04**: 变量命名配置（生成变量赋值代码）
+- [x] **UI-03**: 字段提取路径配置（支持 `[0].imei` 语法）
+- [x] **UI-04**: 变量命名配置（生成变量赋值代码）
 
 ### 集成
 
@@ -55,8 +55,8 @@
 | DATA-03 | Phase 17 | Complete |
 | UI-01 | Phase 18 | Complete |
 | UI-02 | Phase 18 | Complete |
-| UI-03 | Phase 18 | Pending |
-| UI-04 | Phase 18 | Pending |
+| UI-03 | Phase 18 | Complete |
+| UI-04 | Phase 18 | Complete |
 | INT-01 | Phase 19 | Pending |
 | INT-02 | Phase 19 | Pending |
 | INT-03 | Phase 19 | Pending |

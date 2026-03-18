@@ -92,6 +92,7 @@ class AgentService:
         on_step: Callable[[int, str, str, str | None], Any],
         max_steps: int = 10,
         llm_config: dict | None = None,
+        target_url: str | None = None,
     ) -> Any:
         """带流式回调的执行
 
@@ -101,6 +102,7 @@ class AgentService:
             on_step: 异步步骤回调函数 (step_index, action, reasoning, screenshot_path)
             max_steps: 最大执行步数
             llm_config: LLM 配置
+            target_url: 目标 URL（执行前先导航到此页面）
 
         Returns:
             Agent 执行历史
@@ -153,9 +155,15 @@ class AgentService:
             else:
                 on_step(step, action, reasoning, screenshot_path)
 
-        logger.info(f"[{run_id}] 创建 Agent: task={task[:50]}..., max_steps={max_steps}")
+        # 如果有目标 URL，拼接到任务描述前面
+        actual_task = task
+        if target_url:
+            actual_task = f"目标URL: {target_url}\n\n任务:\n{task}"
+            logger.info(f"[{run_id}] 已将目标 URL 拼接到任务描述中")
+
+        logger.info(f"[{run_id}] 创建 Agent: task={actual_task[:80]}..., max_steps={max_steps}")
         agent = Agent(
-            task=task,
+            task=actual_task,
             llm=llm,
             max_actions_per_step=5,
             register_new_step_callback=step_callback,
@@ -173,6 +181,7 @@ class AgentService:
         on_step: Callable[[int, str, str, str | None], Any],
         max_steps: int = 10,
         llm_config: dict | None = None,
+        target_url: str | None = None,
     ) -> Any:
         """Execute task with guaranteed cleanup logging
 
@@ -188,6 +197,7 @@ class AgentService:
             on_step: Async callback for step updates
             max_steps: Maximum execution steps
             llm_config: LLM configuration
+            target_url: Target URL to navigate to before execution
 
         Returns:
             Agent execution history
@@ -203,6 +213,7 @@ class AgentService:
                 on_step=on_step,
                 max_steps=max_steps,
                 llm_config=llm_config,
+                target_url=target_url,
             )
             logger.info(f"[{run_id}] Execution completed successfully")
             return result

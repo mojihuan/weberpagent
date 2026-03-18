@@ -170,6 +170,59 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
     })
   }
 
+  // Step 4: Update variable name for an extraction
+  const updateVariableName = (key: string, extractionIndex: number, newName: string) => {
+    setMethodConfigs(prev => {
+      const next = new Map(prev)
+      const config = next.get(key)
+      if (config) {
+        const newExtractions = [...config.extractions]
+        newExtractions[extractionIndex] = {
+          ...newExtractions[extractionIndex],
+          variableName: newName
+        }
+        next.set(key, { ...config, extractions: newExtractions })
+      }
+      return next
+    })
+  }
+
+  // Step 4: Detect duplicate variable names
+  const getVariableConflicts = (): Set<string> => {
+    const allNames: string[] = []
+    const conflicts = new Set<string>()
+    methodConfigs.forEach(config => {
+      config.extractions.forEach(ex => {
+        if (allNames.includes(ex.variableName)) {
+          conflicts.add(ex.variableName)
+        }
+        allNames.push(ex.variableName)
+      })
+    })
+    return conflicts
+  }
+
+  // Step 4: Generate Python code preview
+  const generateCode = (): string => {
+    const lines: string[] = []
+    methodConfigs.forEach(config => {
+      if (config.extractions.length === 0) return
+
+      const params = Object.entries(config.parameters)
+        .map(([k, v]) => `${k}=${typeof v === 'string' ? `'${v}'` : v}`)
+        .join(', ')
+      const methodCall = `context.get_data('${config.methodName}', ${params})`
+
+      config.extractions.forEach(ex => {
+        const pathAccess = ex.path
+          .replace(/\[(\d+)\]/g, '[$1]')
+          .replace(/\.([^.[]+)/g, "['$1']")
+        lines.push(`${ex.variableName} = ${methodCall}${pathAccess}`)
+      })
+    })
+    return lines.join('\n')
+  }
+
   // Fetch methods when modal opens
   useEffect(() => {
     if (!open) return
@@ -474,9 +527,70 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
           </div>
         )
       case 3:
+        // Step 4: Variable Naming and Code Preview
+        const conflicts = getVariableConflicts()
+        const hasExtractions = Array.from(methodConfigs.values()).some(c => c.extractions.length > 0)
+
         return (
-          <div className="text-center py-8 text-gray-500">
-            Step 4: Variable naming content will be implemented in next plan
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Review and edit variable names for extracted fields. Duplicate names are highlighted.
+            </p>
+
+            {!hasExtractions && (
+              <div className="text-center py-8 text-gray-500">
+                No fields selected for extraction. Go back to Step 3 to select fields.
+              </div>
+            )}
+
+            {Array.from(methodConfigs.entries()).map(([key, config]) => {
+              if (config.extractions.length === 0) return null
+
+              return (
+                <div key={key} className="p-4 border border-gray-200 rounded-lg">
+                  <h4 className="font-medium mb-3">
+                    <span className="text-gray-500 text-sm">{config.className}.</span>
+                    {config.methodName}
+                  </h4>
+                  <div className="space-y-2">
+                    {config.extractions.map((ex, idx) => {
+                      const hasConflict = conflicts.has(ex.variableName)
+                      return (
+                        <div key={idx} className="flex items-center gap-3">
+                          <code className="bg-gray-100 px-2 py-1 rounded text-sm flex-shrink-0 max-w-[200px] truncate" title={ex.path}>
+                            {ex.path}
+                          </code>
+                          <span className="text-gray-400">=</span>
+                          <input
+                            type="text"
+                            value={ex.variableName}
+                            onChange={e => updateVariableName(key, idx, e.target.value)}
+                            className={`flex-1 px-2 py-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              hasConflict ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'
+                            }`}
+                          />
+                          {hasConflict && (
+                            <span className="text-xs text-yellow-600 flex-shrink-0">
+                              Duplicate name
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Code Preview */}
+            {hasExtractions && (
+              <div className="mt-4 p-4 bg-gray-900 rounded-lg">
+                <div className="text-gray-400 text-sm mb-2">Generated Code:</div>
+                <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap overflow-auto">
+                  {generateCode()}
+                </pre>
+              </div>
+            )}
           </div>
         )
       default:
@@ -595,7 +709,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
             {currentStep === STEPS.length - 1 && (
               <button
                 onClick={handleConfirm}
-                disabled={selectedMethodKeys.size === 0}
+                disabled={selectedMethodKeys.size === 0 || !Array.from(methodConfigs.values()).some(c => c.extractions.length > 0)}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 Confirm

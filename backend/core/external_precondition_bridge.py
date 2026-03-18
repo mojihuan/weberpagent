@@ -8,6 +8,7 @@ import sys
 import logging
 import inspect
 import re
+import asyncio
 from pathlib import Path
 from typing import Any, get_type_hints
 
@@ -261,6 +262,105 @@ def get_data_methods_grouped() -> list[dict]:
         logger.error(f"Failed to scan base_params module: {e}", exc_info=True)
         _data_methods_cache = []
         return _data_methods_cache
+
+
+async def execute_data_method(
+    class_name: str,
+    method_name: str,
+    params: dict,
+    timeout: float = 30.0
+) -> dict:
+    """Execute a data method with timeout protection.
+
+    Args:
+        class_name: Name of the class in base_params module
+        method_name: Name of the method to execute
+        params: Dictionary of parameters to pass to the method
+        timeout: Maximum execution time in seconds
+
+    Returns:
+        dict with success, data/error, and error_type fields
+    """
+    # Load the class
+    cls, error = load_base_params_class()
+    if error:
+        return {
+            "success": False,
+            "error": error,
+            "error_type": "ImportError"
+        }
+
+    # Get the class by name
+    try:
+        target_class = None
+        for name, obj in inspect.getmembers(
+            inspect.getmodule(cls),
+            predicate=inspect.isclass
+        ):
+            if name == class_name:
+                target_class = obj
+                break
+
+        if target_class is None:
+            return {
+                "success": False,
+                "error": f"Class '{class_name}' not found in base_params module",
+                "error_type": "NotFoundError"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to find class: {e}",
+            "error_type": "SystemError"
+        }
+
+    # Get the method
+    try:
+        instance = target_class()
+        method = getattr(instance, method_name, None)
+        if method is None:
+            return {
+                "success": False,
+                "error": f"Method '{method_name}' not found in class '{class_name}'",
+                "error_type": "NotFoundError"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to instantiate class: {e}",
+            "error_type": "InstantiationError"
+        }
+
+    # Execute with timeout
+    try:
+        loop = asyncio.get_event_loop()
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, lambda: method(**params)),
+            timeout=timeout
+        )
+        return {
+            "success": True,
+            "data": result
+        }
+    except asyncio.TimeoutError:
+        return {
+            "success": False,
+            "error": f"Execution timeout ({timeout}s)",
+            "error_type": "TimeoutError"
+        }
+    except TypeError as e:
+        return {
+            "success": False,
+            "error": f"Parameter error: {e}",
+            "error_type": "ParameterError"
+        }
+    except Exception as e:
+        logger.error(f"Failed to execute method: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": "ExecutionError"
+        }
 
 
 def get_unavailable_reason() -> str | None:

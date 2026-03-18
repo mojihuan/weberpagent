@@ -27,15 +27,16 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 3. 前端集成 - OperationCodeSelector 组件, 模块分组显示, 代码生成
 4. 端到端验证 - E2E 测试, 错误场景测试, 手动测试检查清单
 
-## Next Milestone: v0.3.1 前置条件数据传递
+## Current Milestone: v0.3.1 数据获取方法集成
 
-**Goal:** 扩展前置条件系统，支持从 FA1/HC1 等操作获取返回数据（如 IMEI）并传递给后续步骤
+**Goal:** 扫描 webseleniumerp 的 base_params.py 中的 xxx_data() 查询方法，支持前端选择和参数配置，获取的数据可作为变量传递给测试步骤
 
 **Target features:**
-- 执行 FA1/HC1 后获取返回数据
-- 自动提取关键字段（如 IMEI）存入 context
-- 在后续步骤中使用 `{{imei}}` 引用
-- 支持调用 webseleniumerp 的 `inventory_list_data()` 等数据获取方法
+- 扫描 base_params.py 获取所有 xxx_data() 查询方法
+- 前端表单列出数据获取方法（按模块分组）
+- 参数配置 UI（支持 i/j/k 等筛选参数）
+- 字段提取路径配置（如 `[0].imei`）
+- 生成变量名并在测试步骤中使用 `{{变量名}}`
 
 ## Requirements
 
@@ -59,12 +60,13 @@ v0.1-v0.3 已交付功能：
 
 ### Active
 
-v0.3.1 前置条件数据传递需求：
+v0.3.1 数据获取方法集成需求：
 
-- [ ] 执行 FA1/HC1 后获取返回数据
-- [ ] 自动提取关键字段存入 context
-- [ ] 在后续步骤中引用前置条件返回值
-- [ ] 支持数据获取方法 (inventory_list_data 等)
+- [ ] 扫描 base_params.py 获取 xxx_data() 查询方法
+- [ ] 前端表单列出数据获取方法（按模块分组）
+- [ ] 参数配置 UI（支持 i/j/k 等筛选参数）
+- [ ] 字段提取路径配置（如 `[0].imei`）
+- [ ] 生成变量名并在测试步骤中使用 `{{变量名}}`
 
 ### Out of Scope
 

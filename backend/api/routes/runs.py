@@ -60,6 +60,7 @@ async def run_agent_background(
     max_steps: int,
     preconditions: list[str] | None = None,
     api_assertions: list[str] | None = None,
+    target_url: str | None = None,
 ):
     """后台执行 agent 任务"""
     logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
@@ -186,6 +187,7 @@ async def run_agent_background(
                 on_step=on_step,
                 max_steps=max_steps,
                 llm_config=llm_config,
+                target_url=target_url,
             )
             logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
 
@@ -385,6 +387,7 @@ async def create_run(
         task.max_steps,
         preconditions,
         api_assertions,  # 新增参数
+        task.target_url,  # 目标 URL
     )
 
     return run
