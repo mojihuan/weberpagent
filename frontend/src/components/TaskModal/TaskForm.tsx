@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import type { Task, CreateTaskDto } from '../../types'
+import { Code, AlertCircle } from 'lucide-react'
+import type { Task, CreateTaskDto, OperationsResponse } from '../../types'
+import { OperationCodeSelector } from './OperationCodeSelector'
+import { externalOperationsApi } from '../../api/externalOperations'
 
 interface TaskFormProps {
   initialData?: Task
@@ -33,6 +36,13 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     api_assertions: initialData?.api_assertions || [''],
   })
   const [errors, setErrors] = useState<FormErrors>({})
+
+  // Operation code selector state
+  const [selectorOpen, setSelectorOpen] = useState(false)
+  const [selectorIndex, setSelectorIndex] = useState<number | null>(null)
+  const [operationsLoading, setOperationsLoading] = useState(false)
+  const [operationsAvailable, setOperationsAvailable] = useState(true)
+  const [operationsError, setOperationsError] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialData) {
@@ -120,6 +130,53 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
       ...prev,
       api_assertions: prev.api_assertions.map((a, i) => i === index ? value : a),
     }))
+  }
+
+  const handleOpenSelector = async (index: number) => {
+    setSelectorIndex(index)
+    setOperationsLoading(true)
+    setOperationsError(null)
+
+    try {
+      const response: OperationsResponse = await externalOperationsApi.list()
+      setOperationsAvailable(response.available)
+      if (!response.available) {
+        setOperationsError(response.error || 'External module not available')
+      }
+      setSelectorOpen(true)
+    } catch {
+      setOperationsAvailable(false)
+      setOperationsError('External precondition module not available. Please check WEBSERP_PATH configuration.')
+    } finally {
+      setOperationsLoading(false)
+    }
+  }
+
+  const handleSelectorConfirm = async (selectedCodes: string[]) => {
+    if (selectorIndex === null || selectedCodes.length === 0) return
+
+    try {
+      const response = await externalOperationsApi.generate(selectedCodes)
+      const currentPrecondition = formData.preconditions[selectorIndex] || ''
+      const newCode = response.code
+
+      // Append code: if empty, insert directly; otherwise add newline first
+      const updatedPrecondition = currentPrecondition.trim()
+        ? currentPrecondition + '\n' + newCode
+        : newCode
+
+      handlePreconditionChange(selectorIndex, updatedPrecondition)
+    } catch {
+      // Error already shown by apiClient toast
+    }
+
+    setSelectorOpen(false)
+    setSelectorIndex(null)
+  }
+
+  const handleSelectorCancel = () => {
+    setSelectorOpen(false)
+    setSelectorIndex(null)
   }
 
   return (
@@ -214,23 +271,51 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         </p>
         <div className="space-y-2">
           {formData.preconditions.map((precondition, index) => (
-            <div key={index} className="flex gap-2">
-              <textarea
-                value={precondition}
-                onChange={e => handlePreconditionChange(index, e.target.value)}
-                placeholder="例如：context['token'] = login_and_get_token()"
-                rows={4}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-              />
-              {formData.preconditions.length > 1 && (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleRemovePrecondition(index)}
-                  className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  onClick={() => handleOpenSelector(index)}
+                  disabled={operationsLoading || !operationsAvailable}
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border ${
+                    operationsAvailable
+                      ? 'border-blue-200 text-blue-600 hover:bg-blue-50 disabled:opacity-50'
+                      : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                  title={operationsError || ''}
                 >
-                  删除
+                  {operationsLoading ? (
+                    <span className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+                  ) : (
+                    <Code className="w-4 h-4" />
+                  )}
+                  选择操作码
                 </button>
-              )}
+                {!operationsAvailable && operationsError && (
+                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <AlertCircle className="w-3 h-3" />
+                    {operationsError}
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <textarea
+                  value={precondition}
+                  onChange={e => handlePreconditionChange(index, e.target.value)}
+                  placeholder="例如：context['token'] = login_and_get_token()"
+                  rows={4}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
+                />
+                {formData.preconditions.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePrecondition(index)}
+                    className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    删除
+                  </button>
+                )}
+              </div>
             </div>
           ))}
           <button
@@ -298,6 +383,13 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
           {loading ? '处理中...' : mode === 'create' ? '创建任务' : '保存修改'}
         </button>
       </div>
+
+      {/* Operation Code Selector Modal */}
+      <OperationCodeSelector
+        open={selectorOpen}
+        onConfirm={handleSelectorConfirm}
+        onCancel={handleSelectorCancel}
+      />
     </form>
   )
 }
