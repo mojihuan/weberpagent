@@ -29,12 +29,12 @@ def validate_weberp_path(path: str) -> None:
         print("  Example: WEBSERP_PATH=/Users/you/projects/webseleniumerp")
         sys.exit(1)
 
-    # Check 2: base_prerequisites.py exists
-    base_prereq = weberp_dir / "base_prerequisites.py"
+    # Check 2: common/base_prerequisites.py exists
+    base_prereq = weberp_dir / "common" / "base_prerequisites.py"
     if not base_prereq.exists():
-        print(f"\n[CONFIG ERROR] base_prerequisites.py not found at: {base_prereq}")
+        print(f"\n[CONFIG ERROR] common/base_prerequisites.py not found at: {base_prereq}")
         print("  Solution: Ensure webseleniumerp project is correctly cloned")
-        print("  The project should contain base_prerequisites.py at its root")
+        print("  The project should contain common/base_prerequisites.py")
         sys.exit(1)
 
     # Check 3: config/settings.py exists
