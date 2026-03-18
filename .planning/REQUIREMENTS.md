@@ -33,7 +33,7 @@
 - [x] **BRIDGE-01**: 创建 ExternalPreconditionBridge 模块，隔离外部项目导入
 - [x] **BRIDGE-02**: 实现 get_available_operations() 返回操作码列表及描述
 - [x] **BRIDGE-03**: 提供 `/api/external-operations` API 端点
-- [ ] **BRIDGE-04**: 实现操作码执行功能，与现有 PreconditionService 集成
+- [x] **BRIDGE-04**: 实现操作码执行功能，与现有 PreconditionService 集成
 ### 前端集成 (FRONTEND)
 - [ ] **FRONT-01**: 前置条件编辑器中添加操作码选择器组件
 - [ ] **FRONT-02**: 操作码按模块分组显示 (配件、财务、运营、平台等)
@@ -64,7 +64,7 @@
 | BRIDGE-01 | Phase 14 | Complete |
 | BRIDGE-02 | Phase 14 | Complete |
 | BRIDGE-03 | Phase 14 | Complete |
-| BRIDGE-04 | Phase 14 | Pending |
+| BRIDGE-04 | Phase 14 | Complete |
 | FRONT-01 | Phase 15 | Pending |
 | FRONT-02 | Phase 15 | Pending |
 | FRONT-03 | Phase 15 | Pending |
