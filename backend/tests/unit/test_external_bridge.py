@@ -9,9 +9,13 @@ from backend.core.external_precondition_bridge import (
     get_operations_grouped,
     generate_precondition_code,
     reset_cache,
+    load_base_params_class,
     _pre_front_class,
     _operations_cache,
     _modules_cache,
+    _base_params_class,
+    _base_params_import_error,
+    _data_methods_cache,
 )
 
 
@@ -120,3 +124,51 @@ class TestExternalPreconditionBridgeCache:
 
         # Both should return same empty result (cached)
         assert result1 == result2 == []
+
+
+class TestDataMethodsDiscovery:
+    """Tests for data method discovery from base_params.py."""
+
+    def test_load_base_params_class_unavailable(self):
+        """Test load_base_params_class() returns (None, error) when module unavailable."""
+        cls, error = load_base_params_class()
+
+        # Without WEBSERP_PATH configured, base_params should not be loadable
+        assert cls is None
+        assert error is not None
+        assert isinstance(error, str)
+        # Should mention import failure or configuration
+        assert "Failed to import" in error or "not configured" in error.lower()
+
+    def test_load_base_params_class_caches_result(self):
+        """Test load_base_params_class() caches result and returns same instance."""
+        from backend.core import external_precondition_bridge
+
+        # First call
+        cls1, error1 = load_base_params_class()
+
+        # Verify cache is set
+        cached_class = external_precondition_bridge._base_params_class
+        cached_error = external_precondition_bridge._base_params_import_error
+
+        # Second call should return cached values
+        cls2, error2 = load_base_params_class()
+
+        # Either class or error should be cached
+        assert cls1 == cls2
+        assert error1 == error2
+
+    def test_reset_cache_clears_base_params_state(self):
+        """Test reset_cache() clears base_params related singleton state."""
+        from backend.core import external_precondition_bridge
+
+        # Trigger lazy loading
+        load_base_params_class()
+
+        # Reset cache
+        reset_cache()
+
+        # Verify base_params state is reset
+        assert external_precondition_bridge._base_params_class is None
+        assert external_precondition_bridge._base_params_import_error is None
+        assert external_precondition_bridge._data_methods_cache is None

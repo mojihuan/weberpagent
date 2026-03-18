@@ -20,6 +20,11 @@ _operations_cache: dict[str, str] | None = None
 _modules_cache: list[dict] | None = None
 _path_configured = False
 
+# Data methods discovery state
+_base_params_class = None
+_base_params_import_error = None
+_data_methods_cache: list[dict] | None = None
+
 
 def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
     """Configure external module path.
@@ -96,6 +101,48 @@ def is_available() -> bool:
     """Check if external module is available."""
     cls, _ = load_pre_front_class()
     return cls is not None
+
+
+def load_base_params_class() -> tuple[type | None, str | None]:
+    """Load base_params module class lazily.
+
+    Returns:
+        (class_or_none, error_or_none)
+    """
+    global _base_params_class, _base_params_import_error
+
+    if _base_params_class is not None:
+        return _base_params_class, None
+
+    if _base_params_import_error is not None:
+        return None, _base_params_import_error
+
+    # Configure path from settings if not already done
+    if not _path_configured:
+        from backend.config import get_settings
+        settings = get_settings()
+        if settings.weberp_path:
+            success, msg = configure_external_path(settings.weberp_path)
+            if not success:
+                _base_params_import_error = msg
+                return None, _base_params_import_error
+
+    try:
+        from common.base_params import BaseParams
+        _base_params_class = BaseParams
+        logger.info("Successfully loaded BaseParams class")
+        return _base_params_class, None
+    except ImportError as e:
+        _base_params_import_error = (
+            f"Failed to import BaseParams: {e}. "
+            f"Ensure config/settings.py exists in webseleniumerp."
+        )
+        logger.error(_base_params_import_error)
+        return None, _base_params_import_error
+    except Exception as e:
+        _base_params_import_error = f"Unexpected error loading BaseParams: {e}"
+        logger.error(_base_params_import_error, exc_info=True)
+        return None, _base_params_import_error
 
 
 def get_unavailable_reason() -> str | None:
@@ -233,8 +280,12 @@ def execute_operations(operation_codes: list[str]) -> tuple[bool, str, dict[str,
 def reset_cache():
     """Reset all cached data (for testing)."""
     global _pre_front_class, _import_error, _operations_cache, _modules_cache, _path_configured
+    global _base_params_class, _base_params_import_error, _data_methods_cache
     _pre_front_class = None
     _import_error = None
     _operations_cache = None
     _modules_cache = None
     _path_configured = False
+    _base_params_class = None
+    _base_params_import_error = None
+    _data_methods_cache = None
