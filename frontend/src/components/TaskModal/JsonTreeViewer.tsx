@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { ChevronRight, ChevronDown, Check } from 'lucide-react'
 
 interface JsonTreeViewerProps {
@@ -28,7 +28,7 @@ function JsonNode({
   selectedPaths,
   expandedPaths,
   toggleExpand,
-}: JsonNodeProps): JSX.Element {
+}: JsonNodeProps): React.ReactElement {
   if (depth > maxDepth) {
     return <span className="text-gray-400">...</span>
   }
@@ -189,7 +189,7 @@ export function JsonTreeViewer({
   onFieldClick,
   selectedPaths = [],
   maxDepth = 10,
-}: JsonTreeViewerProps): JSX.Element {
+}: JsonTreeViewerProps): React.ReactElement {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set(['']))
 
   const toggleExpand = (path: string) => {

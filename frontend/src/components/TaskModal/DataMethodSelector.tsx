@@ -488,7 +488,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
                     </div>
                   )}
 
-                  {isCurrentPreview && previewData && (
+                  {isCurrentPreview && previewData !== null && (
                     <>
                       <div className="border border-gray-100 rounded p-2 mb-3 bg-gray-50 max-h-64 overflow-auto">
                         <JsonTreeViewer
