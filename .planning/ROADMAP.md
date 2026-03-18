@@ -56,7 +56,7 @@
 ---
 
 ## v0.3.1 数据获取方法集成 (Phases 17-19)
-- [ ] **Phase 17: 后端数据获取桥接** - 扫描 base_params.py 并提供数据获取 API
+- [x] **Phase 17: 后端数据获取桥接** - 扫描 base_params.py 并提供数据获取 API (completed 2026-03-18)
 - [ ] **Phase 18: 前端数据选择器** - DataMethodSelector 组件及参数配置 UI
 - [ ] **Phase 19: 集成与变量传递** - 前置条件代码生成与 Jinja2 变量替换
 ---
@@ -71,7 +71,7 @@
   2. API 返回每个方法的参数签名信息（参数名、类型）
   3. 用户调用执行 API 可获取指定方法的 JSON 数据结果
   4. 当 WEBSERP_PATH 未配置时，API 返回清晰的错误提示
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 17-01-PLAN.md - Extend bridge module for data method discovery (DATA-01)
 - [ ] 17-02-PLAN.md - Create data method list API endpoint (DATA-02)
@@ -117,7 +117,7 @@ Plans:
 | 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
-| 17. 后端数据获取桥接 | 2/3 | In Progress|  | - |
+| 17. 后端数据获取桥接 | 2/3 | Complete    | 2026-03-18 | - |
 | 18. 前端数据选择器 | v0.3.1 | 0/4 | Not started | - |
 | 19. 集成与变量传递 | v0.3.1 | 0/3 | Not started | - |
 ---

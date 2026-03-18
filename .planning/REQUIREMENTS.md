@@ -11,7 +11,7 @@
 
 - [x] **DATA-01**: 扫描 base_params.py 获取所有 `xxx_data()` 方法的签名和参数信息
 - [x] **DATA-02**: 提供数据获取方法列表 API（按模块分组，包含方法描述）
-- [ ] **DATA-03**: 执行数据获取方法并返回 JSON 结果
+- [x] **DATA-03**: 执行数据获取方法并返回 JSON 结果
 
 ### 前端
 
@@ -52,7 +52,7 @@
 |-------------|-------|--------|
 | DATA-01 | Phase 17 | Complete |
 | DATA-02 | Phase 17 | Complete |
-| DATA-03 | Phase 17 | Pending |
+| DATA-03 | Phase 17 | Complete |
 | UI-01 | Phase 18 | Pending |
 | UI-02 | Phase 18 | Pending |
 | UI-03 | Phase 18 | Pending |
