@@ -1,0 +1,240 @@
+"""Bridge module for webseleniumerp integration.
+
+This module isolates all external project imports and provides
+a clean API for operation code discovery and execution.
+"""
+
+import sys
+import logging
+import inspect
+import re
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+# Module-level singleton state
+_pre_front_class = None
+_import_error = None
+_operations_cache: dict[str, str] | None = None
+_modules_cache: list[dict] | None = None
+_path_configured = False
+
+
+def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
+    """Configure external module path.
+
+    Args:
+        weberp_path: Path to webseleniumerp project root
+
+    Returns:
+        (success, message)
+    """
+    global _path_configured
+
+    if not weberp_path:
+        return True, "WEBSERP_PATH not configured (optional feature)"
+
+    path = Path(weberp_path)
+    if not path.exists():
+        return False, f"WEBSERP_PATH does not exist: {weberp_path}"
+    if not path.is_dir():
+        return False, f"WEBSERP_PATH is not a directory: {weberp_path}"
+
+    path_str = str(path.resolve())
+    if path_str not in sys.path:
+        sys.path.insert(0, path_str)
+        logger.info(f"Added to sys.path: {path_str}")
+
+    _path_configured = True
+    return True, f"Path configured: {weberp_path}"
+
+
+def load_pre_front_class() -> tuple[type | None, str | None]:
+    """Load PreFront class lazily.
+
+    Returns:
+        (class_or_none, error_or_none)
+    """
+    global _pre_front_class, _import_error
+
+    if _pre_front_class is not None:
+        return _pre_front_class, None
+
+    if _import_error is not None:
+        return None, _import_error
+
+    # Configure path from settings if not already done
+    if not _path_configured:
+        from backend.config import get_settings
+        settings = get_settings()
+        if settings.weberp_path:
+            success, msg = configure_external_path(settings.weberp_path)
+            if not success:
+                _import_error = msg
+                return None, _import_error
+
+    try:
+        from common.base_prerequisites import PreFront
+        _pre_front_class = PreFront
+        logger.info("Successfully loaded PreFront class")
+        return _pre_front_class, None
+    except ImportError as e:
+        _import_error = (
+            f"Failed to import PreFront: {e}. "
+            f"Ensure config/settings.py exists in webseleniumerp."
+        )
+        logger.error(_import_error)
+        return None, _import_error
+    except Exception as e:
+        _import_error = f"Unexpected error loading PreFront: {e}"
+        logger.error(_import_error, exc_info=True)
+        return None, _import_error
+
+
+def is_available() -> bool:
+    """Check if external module is available."""
+    cls, _ = load_pre_front_class()
+    return cls is not None
+
+
+def get_unavailable_reason() -> str | None:
+    """Get reason why external module is unavailable."""
+    cls, err = load_pre_front_class()
+    if cls is not None:
+        return None
+    return err or "External module not configured"
+
+
+def _parse_operations_from_source() -> tuple[dict[str, str], list[dict]]:
+    """Parse operations from source code.
+
+    Returns:
+        (operations_dict, modules_list)
+    """
+    global _operations_cache, _modules_cache
+
+    if _operations_cache is not None and _modules_cache is not None:
+        return _operations_cache, _modules_cache
+
+    PreFront, error = load_pre_front_class()
+    if error:
+        _operations_cache = {}
+        _modules_cache = []
+        return _operations_cache, _modules_cache
+
+    try:
+        source = inspect.getsource(PreFront.operations)
+    except (OSError, TypeError) as e:
+        logger.error(f"Failed to get source: {e}")
+        _operations_cache = {}
+        _modules_cache = []
+        return _operations_cache, _modules_cache
+
+    operations = {}
+    modules_dict: dict[str, list] = {}
+
+    lines = source.split('\n')
+    current_module = "未分组"
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Module comment: # 配件管理|配件采购|新增采购
+        if stripped.startswith('#') and '|' in stripped:
+            parts = stripped[1:].strip().split('|')
+            if len(parts) >= 2:
+                current_module = f"{parts[0]} - {parts[1]}"
+            else:
+                current_module = parts[0] if parts else "未分组"
+
+        # Operation code: 'FA1': [self.request...]
+        elif "'" in stripped and "': [" in stripped:
+            match = re.search(r"'([A-Z0-9@]+)'", stripped)
+            if match:
+                code = match.group(1)
+                desc_match = re.search(r"#\s*(.+)$", stripped)
+                description = desc_match.group(1) if desc_match else code
+                operations[code] = description
+
+                if current_module not in modules_dict:
+                    modules_dict[current_module] = []
+                modules_dict[current_module].append({
+                    "code": code,
+                    "description": description
+                })
+
+    _operations_cache = operations
+    _modules_cache = [
+        {"name": name, "operations": ops}
+        for name, ops in modules_dict.items()
+    ]
+
+    return _operations_cache, _modules_cache
+
+
+def get_available_operations() -> dict[str, str]:
+    """Get all available operation codes with descriptions."""
+    operations, _ = _parse_operations_from_source()
+    return operations
+
+
+def get_operations_grouped() -> list[dict]:
+    """Get operations grouped by module."""
+    _, modules = _parse_operations_from_source()
+    return modules
+
+
+def generate_precondition_code(operation_codes: list[str], weberp_path: str) -> str:
+    """Generate precondition code for selected operation codes.
+
+    Args:
+        operation_codes: List of operation codes to execute
+        weberp_path: Path to webseleniumerp for sys.path
+
+    Returns:
+        Python code string for PreconditionService
+    """
+    codes_str = ", ".join(f"'{c}'" for c in operation_codes)
+    return f'''import sys
+sys.path.insert(0, '{weberp_path}')
+
+from common.base_prerequisites import PreFront
+
+pre_front = PreFront()
+pre_front.operations([{codes_str}])
+
+context['precondition_result'] = 'success'
+'''
+
+
+def execute_operations(operation_codes: list[str]) -> tuple[bool, str, dict[str, Any]]:
+    """Execute precondition operations directly.
+
+    Args:
+        operation_codes: List of operation codes to execute
+
+    Returns:
+        (success, message, context_data)
+    """
+    PreFront, error = load_pre_front_class()
+    if error:
+        return False, error, {}
+
+    try:
+        pre_front = PreFront()
+        pre_front.operations(operation_codes)
+        return True, f"Executed operations: {operation_codes}", {}
+    except Exception as e:
+        logger.error(f"Failed to execute operations: {e}", exc_info=True)
+        return False, str(e), {}
+
+
+def reset_cache():
+    """Reset all cached data (for testing)."""
+    global _pre_front_class, _import_error, _operations_cache, _modules_cache, _path_configured
+    _pre_front_class = None
+    _import_error = None
+    _operations_cache = None
+    _modules_cache = None
+    _path_configured = False
