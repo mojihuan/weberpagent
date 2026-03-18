@@ -178,3 +178,29 @@ export interface ReportDetailResponse extends Report {
   pass_rate?: string
   api_pass_rate?: string
 }
+
+// External Operations - External precondition operations from webseleniumerp
+export interface OperationItem {
+  code: string
+  description: string
+}
+
+export interface ModuleGroup {
+  name: string
+  operations: OperationItem[]
+}
+
+export interface OperationsResponse {
+  available: boolean
+  modules: ModuleGroup[]
+  total: number
+  error?: string
+}
+
+export interface GenerateRequest {
+  operation_codes: string[]
+}
+
+export interface GenerateResponse {
+  code: string
+}
