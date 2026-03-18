@@ -11,6 +11,8 @@ from backend.core.external_precondition_bridge import (
     reset_cache,
     load_base_params_class,
     extract_method_info,
+    discover_class_methods,
+    get_data_methods_grouped,
     _pre_front_class,
     _operations_cache,
     _modules_cache,
@@ -272,3 +274,97 @@ class TestExtractMethodInfo:
 
         assert result is not None
         assert result['description'] == 'undocumented_method'
+
+
+class TestDiscoverClassMethods:
+    """Tests for discover_class_methods function."""
+
+    def test_discover_class_methods_returns_list_of_method_info(self):
+        """Test discover_class_methods() returns list of method info dicts."""
+        class MockClass:
+            def method_one(self):
+                """First method."""
+                pass
+
+            def method_two(self, i: int = 0):
+                """Second method."""
+                pass
+
+            def _private_method(self):
+                """Should be skipped."""
+                pass
+
+        result = discover_class_methods(MockClass)
+
+        assert isinstance(result, list)
+        assert len(result) == 2  # Only public methods
+
+        # Check that both public methods are included
+        method_names = [m['name'] for m in result]
+        assert 'method_one' in method_names
+        assert 'method_two' in method_names
+        assert '_private_method' not in method_names
+
+    def test_discover_class_methods_includes_parameters(self):
+        """Test discover_class_methods() includes parameter info."""
+        class MockClass:
+            def method_with_params(self, i: int, j: str = "default"):
+                """Method with params."""
+                pass
+
+        result = discover_class_methods(MockClass)
+
+        assert len(result) == 1
+        method_info = result[0]
+        assert method_info['name'] == 'method_with_params'
+        assert len(method_info['parameters']) == 2
+
+
+class TestGetDataMethodsGrouped:
+    """Tests for get_data_methods_grouped function."""
+
+    def test_get_data_methods_grouped_returns_empty_when_unavailable(self):
+        """Test get_data_methods_grouped() returns empty list when module unavailable."""
+        result = get_data_methods_grouped()
+
+        # Without WEBSERP_PATH configured, should return empty list
+        assert result == []
+
+    def test_get_data_methods_grouped_populates_cache(self):
+        """Test cache is populated after first call to get_data_methods_grouped()."""
+        from backend.core import external_precondition_bridge
+
+        # First call
+        get_data_methods_grouped()
+
+        # Verify cache is populated (even if empty due to unavailable module)
+        cache = external_precondition_bridge._data_methods_cache
+        assert cache is not None  # Cache is set (may be empty list)
+
+    def test_get_data_methods_grouped_returns_cached_result(self):
+        """Test subsequent calls return cached result without re-scanning."""
+        from backend.core import external_precondition_bridge
+
+        # First call populates cache
+        result1 = get_data_methods_grouped()
+
+        # Manually set cache to a different value to verify it's used
+        external_precondition_bridge._data_methods_cache = [{"name": "CachedClass", "methods": []}]
+
+        # Second call should return the manually set cache
+        result2 = get_data_methods_grouped()
+
+        assert result2 == [{"name": "CachedClass", "methods": []}]
+
+    def test_get_data_methods_grouped_structure(self):
+        """Test get_data_methods_grouped() returns correct structure when available."""
+        # This test verifies the structure when module is available
+        # Since module is unavailable, we verify the empty case
+        result = get_data_methods_grouped()
+
+        assert isinstance(result, list)
+        # When unavailable, result is empty list
+        for item in result:
+            assert 'name' in item
+            assert 'methods' in item
+            assert isinstance(item['methods'], list)

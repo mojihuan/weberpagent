@@ -202,6 +202,67 @@ def extract_method_info(cls: type, method_name: str) -> dict | None:
     }
 
 
+def discover_class_methods(cls: type) -> list[dict]:
+    """Discover all public methods in a class.
+
+    Args:
+        cls: The class to scan for methods
+
+    Returns:
+        List of method info dicts
+    """
+    methods = []
+    for name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
+        if not name.startswith('_'):
+            method_info = extract_method_info(cls, name)
+            if method_info is not None:
+                methods.append(method_info)
+    return methods
+
+
+def get_data_methods_grouped() -> list[dict]:
+    """Get data methods grouped by class name.
+
+    Returns:
+        List of class groups with their methods
+    """
+    global _data_methods_cache
+
+    if _data_methods_cache is not None:
+        return _data_methods_cache
+
+    # Load base_params module
+    cls, error = load_base_params_class()
+    if error:
+        _data_methods_cache = []
+        return _data_methods_cache
+
+    try:
+        # Import the base_params module to scan for all classes
+        import common.base_params as base_params_module
+
+        classes = []
+        for name, obj in inspect.getmembers(base_params_module, predicate=inspect.isclass):
+            # Skip imported classes (only include classes defined in the module)
+            if obj.__module__ != 'common.base_params':
+                continue
+
+            # Discover methods for this class
+            methods = discover_class_methods(obj)
+            if methods:  # Only include classes with public methods
+                classes.append({
+                    "name": name,
+                    "methods": methods
+                })
+
+        _data_methods_cache = classes
+        return _data_methods_cache
+    except Exception as e:
+        logger.error(f"Failed to scan base_params module: {e}", exc_info=True)
+        _data_methods_cache = []
+        return _data_methods_cache
+
+
 def get_unavailable_reason() -> str | None:
     """Get reason why external module is unavailable."""
     cls, err = load_pre_front_class()
