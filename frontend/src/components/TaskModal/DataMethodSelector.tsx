@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
-import { X, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { X, Check, ChevronLeft, ChevronRight, Search, Play } from 'lucide-react'
 import type { DataMethodConfig, DataMethodsResponse, DataMethodInfo } from '../../types'
 import { externalDataMethodsApi } from '../../api/externalDataMethods'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
+import { JsonTreeViewer } from './JsonTreeViewer'
 
 const STEPS = ['Select Method', 'Configure Parameters', 'Extraction Path', 'Variable Naming'] as const
 
@@ -21,13 +22,160 @@ interface DataMethodSelectorProps {
 
 export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSelectorProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [_methods, setMethods] = useState<DataMethodsResponse | null>(null)
-  const [selectedMethods, setSelectedMethods] = useState<SelectedMethod[]>([])
+  const [methods, setMethods] = useState<DataMethodsResponse>({ available: false, classes: [], total: 0 })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_previewData, setPreviewData] = useState<unknown>(null)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_previewLoading, _setPreviewLoading] = useState(false)
+
+  // Step 1 state: search and multi-select
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedMethodKeys, setSelectedMethodKeys] = useState<Set<string>>(new Set())
+  // Key format: "className:methodName"
+
+  // Step 2 state: method configurations with parameters
+  const [methodConfigs, setMethodConfigs] = useState<Map<string, DataMethodConfig>>(new Map())
+
+  // Step 3 state: data preview
+  const [previewData, setPreviewData] = useState<unknown>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [currentPreviewKey, setCurrentPreviewKey] = useState<string | null>(null)
+
+  // Filter methods based on search query (following OperationCodeSelector pattern)
+  const filteredClasses = useMemo(() => {
+    if (!searchQuery.trim()) return methods.classes
+    const query = searchQuery.toLowerCase()
+    return methods.classes
+      .map(cls => ({
+        ...cls,
+        methods: cls.methods.filter(
+          m => m.name.toLowerCase().includes(query) ||
+               m.description.toLowerCase().includes(query)
+        )
+      }))
+      .filter(cls => cls.methods.length > 0)
+  }, [methods.classes, searchQuery])
+
+  // Toggle method selection
+  const toggleMethod = (className: string, methodName: string) => {
+    const key = `${className}:${methodName}`
+    setSelectedMethodKeys(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }
+
+  // Remove a selected method
+  const removeMethod = (key: string) => {
+    setSelectedMethodKeys(prev => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+  }
+
+  // Update a parameter value for a method config
+  const updateParameter = (key: string, paramName: string, value: any) => {
+    setMethodConfigs(prev => {
+      const next = new Map(prev)
+      const config = next.get(key)
+      if (config) {
+        next.set(key, {
+          ...config,
+          parameters: { ...config.parameters, [paramName]: value }
+        })
+      }
+      return next
+    })
+  }
+
+  // Check if all required parameters are filled for Step 2 validation
+  const hasAllRequiredParams = (): boolean => {
+    for (const key of selectedMethodKeys) {
+      const [className, methodName] = key.split(':')
+      const cls = methods.classes.find(c => c.name === className)
+      const method = cls?.methods.find(m => m.name === methodName)
+      const config = methodConfigs.get(key)
+
+      if (!method || !config) return false
+
+      for (const param of method.parameters) {
+        if (param.required) {
+          const value = config.parameters[param.name]
+          if (value === undefined || value === null || value === '') {
+            return false
+          }
+        }
+      }
+    }
+    return true
+  }
+
+  // Step 3: Preview data function
+  const previewMethodData = async (key: string) => {
+    const config = methodConfigs.get(key)
+    if (!config) return
+
+    setCurrentPreviewKey(key)
+    setPreviewLoading(true)
+    setPreviewError(null)
+    try {
+      const response = await externalDataMethodsApi.execute(
+        config.className,
+        config.methodName,
+        config.parameters
+      )
+      if (response.success) {
+        setPreviewData(response.data)
+      } else {
+        setPreviewError(response.error || 'Execution failed')
+      }
+    } catch {
+      setPreviewError('Failed to execute method')
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  // Step 3: Add field extraction
+  const addExtraction = (key: string, path: string) => {
+    setMethodConfigs(prev => {
+      const next = new Map(prev)
+      const config = next.get(key)
+      if (config) {
+        // Extract default variable name from path (last segment)
+        const segments = path.split(/[.\[\]]/).filter(Boolean)
+        const defaultName = segments[segments.length - 1] || 'value'
+        // Check if path already exists
+        if (!config.extractions.some(e => e.path === path)) {
+          next.set(key, {
+            ...config,
+            extractions: [...config.extractions, { path, variableName: defaultName }]
+          })
+        }
+      }
+      return next
+    })
+  }
+
+  // Step 3: Remove field extraction
+  const removeExtraction = (key: string, index: number) => {
+    setMethodConfigs(prev => {
+      const next = new Map(prev)
+      const config = next.get(key)
+      if (config) {
+        next.set(key, {
+          ...config,
+          extractions: config.extractions.filter((_, i) => i !== index)
+        })
+      }
+      return next
+    })
+  }
 
   // Fetch methods when modal opens
   useEffect(() => {
@@ -53,8 +201,12 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
     fetchMethods()
     // Reset state when modal opens
     setCurrentStep(0)
-    setSelectedMethods([])
     setPreviewData(null)
+    setPreviewError(null)
+    setCurrentPreviewKey(null)
+    setSelectedMethodKeys(new Set())
+    setSearchQuery('')
+    setMethodConfigs(new Map())
   }, [open])
 
   const handleCancel = () => {
@@ -69,17 +221,36 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
+      // Initialize configs when moving from Step 1 to Step 2
+      if (currentStep === 0) {
+        const newConfigs = new Map(methodConfigs)
+        selectedMethodKeys.forEach(key => {
+          if (!newConfigs.has(key)) {
+            const [className, methodName] = key.split(':')
+            const cls = methods.classes.find(c => c.name === className)
+            const method = cls?.methods.find(m => m.name === methodName)
+            const params: Record<string, any> = {}
+            method?.parameters.forEach(p => {
+              if (p.default !== null) {
+                params[p.name] = p.type === 'int' ? parseInt(p.default) : p.default
+              }
+            })
+            newConfigs.set(key, {
+              className,
+              methodName,
+              parameters: params,
+              extractions: []
+            })
+          }
+        })
+        setMethodConfigs(newConfigs)
+      }
       setCurrentStep(currentStep + 1)
     }
   }
 
   const handleConfirm = () => {
-    const configs: DataMethodConfig[] = selectedMethods.map(sm => ({
-      className: sm.className,
-      methodName: sm.method.name,
-      parameters: sm.parameters,
-      extractions: sm.extractions,
-    }))
+    const configs: DataMethodConfig[] = Array.from(methodConfigs.values())
     onConfirm(configs)
   }
 
@@ -92,21 +263,221 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
+        // Step 1: Method Selection with search and multi-select
         return (
-          <div className="text-center py-8 text-gray-500">
-            Step 1: Method selection content will be implemented in next plan
-          </div>
+          <>
+            {/* Search input */}
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by method name or description..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Empty state */}
+            {!loading && !error && filteredClasses.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No matching data methods found
+              </div>
+            )}
+
+            {/* Grouped list of methods */}
+            {!loading && !error && filteredClasses.map(cls => (
+              <div key={cls.name} className="mb-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">{cls.name}</h4>
+                <div className="space-y-1">
+                  {cls.methods.map(m => {
+                    const methodKey = `${cls.name}:${m.name}`
+                    const isSelected = selectedMethodKeys.has(methodKey)
+                    return (
+                      <label
+                        key={methodKey}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleMethod(cls.name, m.name)}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                        />
+                        <span className="font-mono text-sm text-blue-600">{m.name}</span>
+                        <span className="text-sm text-gray-600 flex-1">{m.description}</span>
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                          {m.parameters.length} params
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Selected count display */}
+            {selectedMethodKeys.size > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="text-sm text-gray-600 mb-2">Selected ({selectedMethodKeys.size}):</div>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(selectedMethodKeys).map(key => {
+                    const [className, methodName] = key.split(':')
+                    return (
+                      <span
+                        key={key}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+                      >
+                        {className}.{methodName}
+                        <button
+                          onClick={() => removeMethod(key)}
+                          className="hover:text-blue-900"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </>
         )
       case 1:
+        // Step 2: Parameter Configuration
         return (
-          <div className="text-center py-8 text-gray-500">
-            Step 2: Parameter configuration content will be implemented in next plan
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Configure parameters for each selected method. Required parameters are marked with *.
+            </p>
+            {Array.from(selectedMethodKeys).map(key => {
+              const [className, methodName] = key.split(':')
+              const cls = methods.classes.find(c => c.name === className)
+              const method = cls?.methods.find(m => m.name === methodName)
+              const config = methodConfigs.get(key)
+
+              if (!method || !config) return null
+
+              return (
+                <div key={key} className="p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">
+                      <span className="text-gray-500 text-sm">{className}.</span>
+                      {methodName}
+                    </h4>
+                    {method.description && (
+                      <span className="text-xs text-gray-400">{method.description}</span>
+                    )}
+                  </div>
+                  {method.parameters.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">No parameters required</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {method.parameters.map(param => (
+                        <div key={param.name} className="flex items-center gap-3">
+                          <label className="w-32 text-sm text-gray-700 flex-shrink-0">
+                            {param.name}
+                            {param.required && <span className="text-red-500 ml-1">*</span>}
+                          </label>
+                          <input
+                            type={param.type === 'int' ? 'number' : 'text'}
+                            value={config.parameters[param.name] ?? ''}
+                            onChange={e => updateParameter(
+                              key,
+                              param.name,
+                              param.type === 'int' ? parseInt(e.target.value) || 0 : e.target.value
+                            )}
+                            placeholder={param.type}
+                            className="flex-1 px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          {param.default !== null && (
+                            <span className="text-xs text-gray-400">
+                              default: {param.default}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )
       case 2:
+        // Step 3: Data Preview and Field Extraction
         return (
-          <div className="text-center py-8 text-gray-500">
-            Step 3: Extraction path content will be implemented in next plan
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Preview data by executing the method, then click on fields to select them for extraction.
+            </p>
+            {Array.from(selectedMethodKeys).map(key => {
+              const config = methodConfigs.get(key)
+              const isCurrentPreview = currentPreviewKey === key
+
+              if (!config) return null
+
+              return (
+                <div key={key} className="p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">
+                      <span className="text-gray-500 text-sm">{config.className}.</span>
+                      {config.methodName}
+                    </h4>
+                    <button
+                      onClick={() => previewMethodData(key)}
+                      disabled={previewLoading && isCurrentPreview}
+                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                    >
+                      <Play className="w-4 h-4" />
+                      {previewLoading && isCurrentPreview ? 'Loading...' : 'Preview Data'}
+                    </button>
+                  </div>
+
+                  {isCurrentPreview && previewError && (
+                    <div className="text-red-500 text-sm mb-2 p-2 bg-red-50 rounded">
+                      {previewError}
+                    </div>
+                  )}
+
+                  {isCurrentPreview && previewData && (
+                    <>
+                      <div className="border border-gray-100 rounded p-2 mb-3 bg-gray-50 max-h-64 overflow-auto">
+                        <JsonTreeViewer
+                          data={previewData}
+                          onFieldClick={(path) => addExtraction(key, path)}
+                          selectedPaths={config.extractions.map(e => e.path)}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-500 mb-2">
+                        Click on a field value to extract it
+                      </div>
+                    </>
+                  )}
+
+                  {config.extractions.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      <div className="text-sm font-medium text-gray-700">Selected fields:</div>
+                      {config.extractions.map((extraction, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm">
+                          <code className="bg-gray-100 px-2 py-1 rounded">{extraction.path}</code>
+                          <span className="text-gray-400">-&gt;</span>
+                          <code className="text-blue-600">{extraction.variableName}</code>
+                          <button
+                            onClick={() => removeExtraction(key, idx)}
+                            className="text-red-400 hover:text-red-600 ml-auto"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )
       case 3:
