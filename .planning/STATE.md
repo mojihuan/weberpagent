@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: 前置条件集成
-status: in_progress
-last_updated: "2026-03-17T14:25:00Z"
+status: planning
+last_updated: "2026-03-18T00:38:01Z"
 progress:
   total_phases: 8
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 7
-  percent: 25
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 8
+  percent: 33
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Milestone: v0.3 前置条件集成
-Phase: 13-配置基础
-Plan: 03 (completed)
+Phase: 14-后端桥接模块
+Plan: 01 (completed)
 Status: **EXECUTING**
 
-Progress: [███░░░░░░░] 25%
+Progress: [████░░░░░░] 33%
 
 ## Milestone v0.3 Overview
 
@@ -41,7 +41,7 @@ Progress: [███░░░░░░░] 25%
 
 ## Previous Milestone (v0.2.1)
 
-**Status:** Partially Complete (Blocked)
+**Status:** Ready to plan
 
 | Phase | Status | Notes |
 |-------|--------|-------|
@@ -67,11 +67,11 @@ Progress: [███░░░░░░░] 25%
 
 ## Session Continuity
 
-Last session: 2026-03-17T14:25:00Z
+Last session: 2026-03-18T00:38:01Z
 Current milestone: v0.3 前置条件集成
 
 **Next step:**
-- Phase 13 complete - proceed to Phase 14 (ExternalPreconditionBridge implementation)
+- Phase 14-01 complete - proceed to Phase 14-02 (API endpoint for external operations)
 
 ## Decisions
 
@@ -85,3 +85,8 @@ Current milestone: v0.3 前置条件集成
 ### Phase 13-03: README Documentation
 - Added webseleniumerp Configuration section between Target System Configuration and Browser Configuration
 - Included copy-paste ready config/settings.py template with DATA_PATHS
+
+### Phase 14-01: ExternalPreconditionBridge Module
+- Use module-level globals for singleton state instead of class-based singleton
+- Import get_settings inside functions to prevent circular imports
+- Cache parsed operations in memory after first parse

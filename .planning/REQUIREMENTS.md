@@ -30,8 +30,8 @@
 - [x] **CONFIG-02**: 系统启动时验证 WEBSERP_PATH 路径有效性
 - [x] **CONFIG-03**: 提供 webseleniumerp 的 config/settings.py 模板文档
 ### 后端桥接模块 (BRIDGE)
-- [ ] **BRIDGE-01**: 创建 ExternalPreconditionBridge 模块，隔离外部项目导入
-- [ ] **BRIDGE-02**: 实现 get_available_operations() 返回操作码列表及描述
+- [x] **BRIDGE-01**: 创建 ExternalPreconditionBridge 模块，隔离外部项目导入
+- [x] **BRIDGE-02**: 实现 get_available_operations() 返回操作码列表及描述
 - [ ] **BRIDGE-03**: 提供 `/api/external-operations` API 端点
 - [ ] **BRIDGE-04**: 实现操作码执行功能，与现有 PreconditionService 集成
 ### 前端集成 (FRONTEND)
@@ -61,8 +61,8 @@
 | CONFIG-01 | Phase 13 | Complete |
 | CONFIG-02 | Phase 13 | Complete |
 | CONFIG-03 | Phase 13 | Complete |
-| BRIDGE-01 | Phase 14 | Pending |
-| BRIDGE-02 | Phase 14 | Pending |
+| BRIDGE-01 | Phase 14 | Complete |
+| BRIDGE-02 | Phase 14 | Complete |
 | BRIDGE-03 | Phase 14 | Pending |
 | BRIDGE-04 | Phase 14 | Pending |
 | FRONT-01 | Phase 15 | Pending |
