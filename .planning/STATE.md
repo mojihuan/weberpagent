@@ -1,134 +1,102 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3
-milestone_name: 前置条件集成
-status: completed
-last_updated: "2026-03-18T05:48:03.551Z"
+milestone: v0.1
+milestone_name: milestone
+status: in_progress
+last_updated: "2026-03-18T09:20:30Z"
+last_activity: 2026-03-18 - Completed 17-02 plan
 progress:
-  total_phases: 8
-  completed_phases: 6
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 2
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-17)
+See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** v0.3 前置条件集成 - COMPLETE
+**Current focus:** v0.3.1 数据获取方法集成 - IN Progress
 
 ## Current Position
 
-Milestone: v0.3 前置条件集成
-Phase: 16-端到端验证
-Plan: 03 (completed)
-Status: **COMPLETE**
+Milestone: v0.3.1 数据获取方法集成
+Phase: 17 - 后端数据获取桥接 (In progress)
+Plan: 17-02
+Status: Complete - Data methods list API implemented
+Last activity: 2026-03-18 - Completed 17-02 plan
 
-Progress: [██████████] 100%
+## Milestone v0.3.1 Overview
 
-## Milestone v0.3 Overview
-
-**Goal:** 将 webseleniumerp 项目的 base_prerequisites.py 集成到当前平台
+**Goal:** 扫描 webseleniumerp 的 base_params.py 中的 xxx_data() 查询方法，支持前端选择和参数配置，获取的数据可作为变量传递给测试步骤
 
 **Key Features:**
-- 外部前置条件模块路径配置 (WEBSERP_PATH)
-- 前端可视化选择前置条件操作码 (如 FA1, HC1)
-- 前置条件执行结果展示
+- 扫描 base_params.py 获取所有 xxx_data() 查询方法
+- 前端表单列出数据获取方法（按模块分组）
+- 参数配置 UI（支持 i/j/k 等筛选参数）
+- 字段提取路径配置（如 `[0].imei`）
+- 生成变量名并在测试步骤中使用 `{{变量名}}`
 
-## Previous Milestone (v0.2.1)
+## Milestone v0.3.1 Phases
 
-**Status:** v0.3 milestone complete
+| Phase | Goal | Requirements | Status |
+|-------|------|--------------|--------|
+| 17. 后端数据获取桥接 | API 获取 xxx_data() 方法列表和执行结果 | DATA-01, DATA-02, DATA-03 | **2/3 complete** |
+| 18. 前端数据选择器 | DataMethodSelector 组件及参数配置 UI | UI-01, UI-02, UI-03, UI-04 | Not started |
+| 19. 集成与变量传递 | 代码注入与 Jinja2 变量替换 | INT-01, INT-02, INT-03 | Not started |
+
+## Previous Milestone (v0.3)
+
+**Status:** Complete (shipped 2026-03-18)
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| 9. 登录用例调通 | ✓ Complete | 2/2 plans |
-| 10. 销售出库用例调通 | ⏸ Blocked | 2/4 plans, needs erp_api module |
-| 11. Bug 修复 | Deferred | Pending |
-| 12. 文档指南 | Deferred | Pending |
+| 13. 配置基础 | Complete | 3/3 plans |
+| 14. 后端桥接模块 | Complete | 3/3 plans |
+| 15. 前端集成 | Complete | 3/3 plans |
+| 16. 端到端验证 | Complete | 3/3 plans |
 
-**Blocker:** `erp_api` 模块缺少必要函数 - 需要后续实现
+**Key accomplishments:**
+1. 配置基础 - WEBSERP_PATH 环境变量, 启动验证, 文档模板
+2. 后端桥接模块 - ExternalPreconditionBridge, 操作码 API, PreconditionService 集成
+3. 前端集成 - OperationCodeSelector 组件, 模块分组显示, 代码生成
+4. 端到端验证 - E2E 测试, 错误场景测试, 手动测试检查清单
 
 ## Accumulated Context
 
 ### Known Issues (from Phase 10)
 - Bug #1: 任务详情页 API 缺失 (P1) - 需要实现 `/tasks/{id}/runs` 和 `/tasks/{id}/stats`
-- Bug #2: target_url 未传递给 Agent - ✓ 已修复
-- Issue #3: erp_api 模块缺少必要函数 - Blocking
+- Issue #3: erp_api 模块缺少必要函数 - Deferred
 
-### Pending Work
-- [ ] 实现 erp_api 模块（与真实 ERP 系统集成）
-- [ ] 完成 Phase 10-03, 10-04
-- [ ] Phase 11 Bug 修复
-- [ ] Phase 12 文档指南
+### Tech Debt
+- Nyquist Wave 0 tasks pending (tests defined but not run)
+- Pre-existing TypeScript errors in ApiAssertionResults.tsx, RunList.tsx (not blocking)
+- Phase 11-12 (Bug 修复、文档指南) 推迟到后续版本
 
 ## Session Continuity
 
-Last session: 2026-03-18T10:30:00Z
-Current milestone: v0.3 前置条件集成 - COMPLETE
-
-**Milestone v0.3 Achieved:**
-- Phase 13: 配置基础 - Complete (3/3 plans)
-- Phase 14: 后端桥接模块 - Complete (3/3 plans)
-- Phase 15: 前端集成 - Complete (3/3 plans)
-- Phase 16: 端到端验证 - Complete (3/3 plans)
+Last session: 2026-03-18T09:13:36.224Z
+Current milestone: v0.3.1 数据获取方法集成 - ROADMAP CREATED
 
 **Next step:**
-- v0.3 milestone complete
-- Ready to plan v0.4 or return to v0.2.1 blocked work
+- Run `/gsd:execute-phase 17-03` to complete Phase 17 (data method execution API)
 
 ## Decisions
 
-### Phase 13-01: WEBSERP_PATH Configuration
-- Env var name follows pydantic-settings convention: `weberp_path` maps to `WEBERP_PATH`
-- [Phase 15-02]: Modal width set to max-w-2xl for grouped operations display
-- [Phase 15-02]: Selection state resets when modal reopens for fresh selection
+### v0.3.1 Roadmap Decisions
+- Phase numbering continues from 17 (v0.3 ended at Phase 16)
+- 3 phases derived from 10 v1 requirements
+- Standard granularity applied (natural phase boundaries preserved)
+- Phase 17 depends on Phase 16 (ExternalPreconditionBridge infrastructure)
 
-### Phase 13-02: WEBSERP_PATH Startup Validation
-- Use ast.parse instead of importlib for syntax validation to avoid executing external code
-- Validation only runs when WEBSERP_PATH is set (not None) - optional feature
+### Phase 17-01 Decisions
+- Use get_type_hints() instead of regex for type extraction (more reliable)
+- Cache method signatures at module level (performance optimization)
+- Return empty list when module unavailable (graceful degradation)
 
-### Phase 13-03: README Documentation
-- Added webseleniumerp Configuration section between Target System Configuration and Browser Configuration
-- Included copy-paste ready config/settings.py template with DATA_PATHS
-
-### Phase 14-01: ExternalPreconditionBridge Module
-- Use module-level globals for singleton state instead of class-based singleton
-- Import get_settings inside functions to prevent circular imports
-- Cache parsed operations in memory after first parse
-
-### Phase 14-02: External Operations API Endpoint
-- Use HTTP 503 (Service Unavailable) for external module unavailability
-- Error detail includes message, reason, and fix keys for clear troubleshooting
-- Tests patch at route module level (not bridge module level) for correct function resolution
-
-### Phase 14-03: PreconditionService Bridge Integration
-- PreconditionService needs no modification - already compatible with bridge-generated code pattern
-- Tests use tmp_path fixtures to mock PreFront-like modules for isolation
-
-### Phase 15-01: Frontend Types and API Module
-- TypeScript interfaces match backend Pydantic models exactly
-- API module follows existing tasks.ts pattern with apiClient wrapper
-
-### Phase 15-03: TaskForm OperationCodeSelector Integration
-- Button placed above each precondition textarea for per-precondition code selection
-- Code appends with newline prefix if textarea is non-empty, inserts directly if empty
-- Global loading/error state shared across all buttons for simplicity
-
-### Phase 16-01: E2E Precondition Integration Tests
-- Use mock_webseleniumerp fixture with tmp_path for test isolation
-- Reset bridge cache before and after each test with autouse fixture
-- Tests verify complete flow from bridge config to PreconditionService execution
-
-### Phase 16-02: Error Scenario Tests
-- Use route-level patching for API 503 tests (matches test_external_operations.py pattern)
-- Clear 'common' module from sys.modules for test isolation between tests that import external modules
-- Test execution exceptions directly via PreconditionService with simple error code
-
-### Phase 16-03: Manual Test Checklist
-- Checklist translated to Chinese for QA accessibility
-- 5 test cases covering VAL-01 (complete flow) and VAL-02 (4 error scenarios)
-- All tests passed user verification in real environment
+### Phase 17-02 Decisions
+- Combined Task 1+2 since Pydantic models and endpoint are in same file
+- Used same 503 error pattern as external_operations.py for consistency

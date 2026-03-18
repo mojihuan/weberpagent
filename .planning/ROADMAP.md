@@ -71,7 +71,7 @@
   2. API 返回每个方法的参数签名信息（参数名、类型）
   3. 用户调用执行 API 可获取指定方法的 JSON 数据结果
   4. 当 WEBSERP_PATH 未配置时，API 返回清晰的错误提示
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 17-01-PLAN.md - Extend bridge module for data method discovery (DATA-01)
 - [ ] 17-02-PLAN.md - Create data method list API endpoint (DATA-02)
@@ -117,7 +117,7 @@ Plans:
 | 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
-| 17. 后端数据获取桥接 | v0.3.1 | 0/3 | Not started | - |
+| 17. 后端数据获取桥接 | 2/3 | In Progress|  | - |
 | 18. 前端数据选择器 | v0.3.1 | 0/4 | Not started | - |
 | 19. 集成与变量传递 | v0.3.1 | 0/3 | Not started | - |
 ---

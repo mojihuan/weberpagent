@@ -1,80 +1,89 @@
-# Requirements: aiDriveUITest
+# Requirements: aiDriveUITest v0.3.1
 
-**Defined:** 2026-03-17
+**Defined:** 2026-03-18
 **Core Value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-## v0.2.1 Requirements (Partially Complete - Blocked)
 
-本里程碑目标是调通核心测试用例的端到端执行。
-### 登录用例
-- [x] **LOGN-01**: 用户可以在前端创建登录测试任务（4 步骤)
-- [x] **LOGN-02**: 登录用例可以端到端执行成功
-- [x] **LOGN-03**: 执行结果在报告中正确展示
-### 销售出库用例
-- [ ] **SALE-01**: 用户可以在前端配置前置条件 `self.pre.operations(data=['FA1', 'HC1'])`
-- [x] **SALE-02**: 用户可以在步骤中使用动态数据方法 `self.copy()` 和 `self.affix()`
-- [x] **SALE-03**: 用户可以在步骤中使用随机数方法 `self.sf`
-- [ ] **SALE-04**: 用户可以配置 API 断言验证销售单号、状态、时间
-- [ ] **SALE-05**: 销售出库用例可以端到端执行成功
-- [ ] **SALE-06**: 前置条件执行结果正确传递到测试步骤中
-- [ ] **SALE-07**: API 断言结果在报告中正确展示
-### Bug 修复
-- [ ] **BUGS-01**: 调通过程中发现的执行引擎 Bug 已修复
-- [ ] **BUGS-02**: 调通过程中发现的前端 Bug 已修复
-### 文档指南
-- [ ] **DOCS-01**: 提供登录用例的前端填写指南
-- [ ] **DOCS-02**: 提供销售出库用例的前端填写指南（含前置条件、动态数据、断言配置）
-## v0.3 Requirements (Current Milestone)
-**Goal:** 将 webseleniumerp 项目的 base_prerequisites.py 集成到当前平台
-### 配置 (CONFIG)
-- [x] **CONFIG-01**: 用户可以在 .env 中配置 WEBSERP_PATH 指向 webseleniumerp 项目路径
-- [x] **CONFIG-02**: 系统启动时验证 WEBSERP_PATH 路径有效性
-- [x] **CONFIG-03**: 提供 webseleniumerp 的 config/settings.py 模板文档
-### 后端桥接模块 (BRIDGE)
-- [x] **BRIDGE-01**: 创建 ExternalPreconditionBridge 模块，隔离外部项目导入
-- [x] **BRIDGE-02**: 实现 get_available_operations() 返回操作码列表及描述
-- [x] **BRIDGE-03**: 提供 `/api/external-operations` API 端点
-- [x] **BRIDGE-04**: 实现操作码执行功能，与现有 PreconditionService 集成
-### 前端集成 (FRONTEND)
-- [x] **FRONT-01**: 前置条件编辑器中添加操作码选择器组件
-- [x] **FRONT-02**: 操作码按模块分组显示 (配件、财务、运营、平台等)
-- [x] **FRONT-03**: 支持多选操作码
-- [x] **FRONT-04**: 选中操作码后自动生成 Python 代码模板
-### 验证 (VALIDATE)
-- [x] **VAL-01**: 完整流程测试： 选择操作码 → 执行前置条件 → 查看结果
-- [x] **VAL-02**: 错误处理： 外部项目缺失、配置错误、执行失败
-## v0.4 Requirements (Deferred)
-推迟到后续版本：
-### 批量执行
-- **BATCH-01**: Excel 导入测试用例
-- **BATCH-02**: 批量运行测试用例
-- **BATCH-03**: 批量执行结果汇总
+## v1 Requirements (v0.3.1)
+
+数据获取方法集成需求，支持从 webseleniumerp 的 base_params.py 获取查询数据并传递给测试步骤。
+
+### 后端
+
+- [x] **DATA-01**: 扫描 base_params.py 获取所有 `xxx_data()` 方法的签名和参数信息
+- [x] **DATA-02**: 提供数据获取方法列表 API（按模块分组，包含方法描述）
+- [ ] **DATA-03**: 执行数据获取方法并返回 JSON 结果
+
+### 前端
+
+- [ ] **UI-01**: DataMethodSelector 组件（复用 OperationCodeSelector 的模块分组模式）
+- [ ] **UI-02**: 参数配置表单（动态生成 i/j/k 等参数输入框）
+- [ ] **UI-03**: 字段提取路径配置（支持 `[0].imei` 语法）
+- [ ] **UI-04**: 变量命名配置（生成变量赋值代码）
+
+### 集成
+
+- [ ] **INT-01**: 前置条件代码生成（将数据获取代码注入前置条件块）
+- [ ] **INT-02**: context 变量存储（数据获取结果存入执行上下文）
+- [ ] **INT-03**: Jinja2 变量替换（测试步骤中使用 `{{imei}}` 引用）
+
+## v2 Requirements (Future)
+
+推迟到后续版本的需求。
+
+- **INT-04**: 支持链式数据获取（一个方法的输出作为另一个方法的输入）
+- **UI-05**: 数据预览功能（执行前预览获取的数据）
+- **DATA-04**: 数据缓存机制（避免重复查询）
+
 ## Out of Scope
+
+明确排除的功能和原因。
+
 | Feature | Reason |
 |---------|--------|
-| 用户认证/权限管理 | 单用户本地使用 |
-| 服务器部署 | 只需本地开发环境运行 |
-| 多语言支持 | 只支持中文 |
-| 修改 webseleniumerp 项目代码 | 只读取，不修改外部项目 |
+| 数据修改方法 | 只支持查询类 xxx_data() 方法，不支持写入操作 |
+| 自定义 Python 代码 | 数据获取通过 UI 配置，不开放自由代码编辑 |
+| 跨任务数据共享 | 数据仅在当前任务执行上下文有效 |
+
 ## Traceability
+
+需求到阶段的映射。
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONFIG-01 | Phase 13 | Complete |
-| CONFIG-02 | Phase 13 | Complete |
-| CONFIG-03 | Phase 13 | Complete |
-| BRIDGE-01 | Phase 14 | Complete |
-| BRIDGE-02 | Phase 14 | Complete |
-| BRIDGE-03 | Phase 14 | Complete |
-| BRIDGE-04 | Phase 14 | Complete |
-| FRONT-01 | Phase 15 | Complete |
-| FRONT-02 | Phase 15 | Complete |
-| FRONT-03 | Phase 15 | Complete |
-| FRONT-04 | Phase 15 | Complete |
-| VAL-01 | Phase 16 | Complete |
-| VAL-02 | Phase 16 | Complete |
+| DATA-01 | Phase 17 | Complete |
+| DATA-02 | Phase 17 | Complete |
+| DATA-03 | Phase 17 | Pending |
+| UI-01 | Phase 18 | Pending |
+| UI-02 | Phase 18 | Pending |
+| UI-03 | Phase 18 | Pending |
+| UI-04 | Phase 18 | Pending |
+| INT-01 | Phase 19 | Pending |
+| INT-02 | Phase 19 | Pending |
+| INT-03 | Phase 19 | Pending |
+
 **Coverage:**
-- v0.3 requirements: 13 total
-- Mapped to phases: 13
-- Unmapped: 0 ✓
+- v1 requirements: 10 total
+- Mapped to phases: 10
+- Unmapped: 0
+
+## 用例示例
+
+```
+前置条件配置:
+1. 选择数据获取方法: inventory_list_data (库存|库存列表)
+2. 配置参数: i=2, j=13
+3. 配置提取路径: [0].imei
+4. 配置变量名: imei
+
+生成的前置条件代码:
+```python
+imei = context.get_data('inventory_list_data', i=2, j=13)[0]['imei']
+```
+
+测试步骤:
+"输入 {{imei}} 到 IMEI 输入框"
+```
+
 ---
-*Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after v0.3 milestone definition*
+*Requirements defined: 2026-03-18*
+*Last updated: 2026-03-18 - v0.3.1 roadmap created, traceability updated*
