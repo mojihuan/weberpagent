@@ -41,7 +41,7 @@
 - [x] **FRONT-04**: 选中操作码后自动生成 Python 代码模板
 ### 验证 (VALIDATE)
 - [x] **VAL-01**: 完整流程测试： 选择操作码 → 执行前置条件 → 查看结果
-- [ ] **VAL-02**: 错误处理： 外部项目缺失、配置错误、执行失败
+- [x] **VAL-02**: 错误处理： 外部项目缺失、配置错误、执行失败
 ## v0.4 Requirements (Deferred)
 推迟到后续版本：
 ### 批量执行
@@ -70,7 +70,7 @@
 | FRONT-03 | Phase 15 | Complete |
 | FRONT-04 | Phase 15 | Complete |
 | VAL-01 | Phase 16 | Complete |
-| VAL-02 | Phase 16 | Pending |
+| VAL-02 | Phase 16 | Complete |
 **Coverage:**
 - v0.3 requirements: 13 total
 - Mapped to phases: 13

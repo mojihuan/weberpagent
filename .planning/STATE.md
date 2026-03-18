@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 Milestone: v0.3 前置条件集成
 Phase: 16-端到端验证
-Plan: 01 (completed)
+Plan: 02 (completed)
 Status: **EXECUTING**
 
-Progress: [████████░░] 87%
+Progress: [█████████░] 93%
 
 ## Milestone v0.3 Overview
 
@@ -67,12 +67,12 @@ Progress: [████████░░] 87%
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:20:58Z
+Last session: 2026-03-18T02:48:00Z
 Current milestone: v0.3 前置条件集成
 
 **Next step:**
-- Phase 16-01 complete - E2E integration tests for complete precondition flow
-- Ready for Phase 16-02 error scenario tests
+- Phase 16-02 complete - Error scenario tests for VAL-02
+- Ready for Phase 16-03
 
 ## Decisions
 
@@ -116,3 +116,8 @@ Current milestone: v0.3 前置条件集成
 - Use mock_webseleniumerp fixture with tmp_path for test isolation
 - Reset bridge cache before and after each test with autouse fixture
 - Tests verify complete flow from bridge config to PreconditionService execution
+
+### Phase 16-02: Error Scenario Tests
+- Use route-level patching for API 503 tests (matches test_external_operations.py pattern)
+- Clear 'common' module from sys.modules for test isolation between tests that import external modules
+- Test execution exceptions directly via PreconditionService with simple error code
