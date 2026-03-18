@@ -10,6 +10,7 @@ from backend.core.external_precondition_bridge import (
     generate_precondition_code,
     reset_cache,
     load_base_params_class,
+    extract_method_info,
     _pre_front_class,
     _operations_cache,
     _modules_cache,
@@ -172,3 +173,102 @@ class TestDataMethodsDiscovery:
         assert external_precondition_bridge._base_params_class is None
         assert external_precondition_bridge._base_params_import_error is None
         assert external_precondition_bridge._data_methods_cache is None
+
+
+class TestExtractMethodInfo:
+    """Tests for extract_method_info function."""
+
+    def test_extract_method_info_skips_private_methods(self):
+        """Test extract_method_info() returns None for private methods."""
+        class MockClass:
+            def _private_method(self):
+                pass
+
+        result = extract_method_info(MockClass, '_private_method')
+        assert result is None
+
+    def test_extract_method_info_returns_correct_structure(self):
+        """Test extract_method_info() returns dict with name, description, parameters."""
+        class MockClass:
+            def public_method(self):
+                """This is a test method."""
+                pass
+
+        result = extract_method_info(MockClass, 'public_method')
+
+        assert result is not None
+        assert result['name'] == 'public_method'
+        assert 'description' in result
+        assert 'parameters' in result
+        assert isinstance(result['parameters'], list)
+
+    def test_extract_method_info_extracts_parameters_with_types(self):
+        """Test extract_method_info() extracts parameters with type hints."""
+        class MockClass:
+            def method_with_params(self, i: int, j: str, k: float):
+                """Method with parameters."""
+                pass
+
+        result = extract_method_info(MockClass, 'method_with_params')
+
+        assert result is not None
+        params = result['parameters']
+        assert len(params) == 3
+
+        # Check first parameter
+        assert params[0]['name'] == 'i'
+        assert params[0]['type'] == 'int'
+        assert params[0]['required'] is True
+        assert params[0]['default'] is None
+
+        # Check second parameter
+        assert params[1]['name'] == 'j'
+        assert params[1]['type'] == 'str'
+
+    def test_extract_method_info_required_flag_no_default(self):
+        """Test parameters without default are marked as required."""
+        class MockClass:
+            def method(self, required_param, optional_param=10):
+                """Method with mixed params."""
+                pass
+
+        result = extract_method_info(MockClass, 'method')
+
+        assert result is not None
+        params = result['parameters']
+        assert len(params) == 2
+
+        # required_param has no default
+        assert params[0]['name'] == 'required_param'
+        assert params[0]['required'] is True
+        assert params[0]['default'] is None
+
+        # optional_param has default
+        assert params[1]['name'] == 'optional_param'
+        assert params[1]['required'] is False
+        assert params[1]['default'] == '10'
+
+    def test_extract_method_info_description_from_docstring(self):
+        """Test description is extracted from docstring first line."""
+        class MockClass:
+            def documented_method(self):
+                """Get inventory list data.
+                This is a longer description.
+                """
+                pass
+
+        result = extract_method_info(MockClass, 'documented_method')
+
+        assert result is not None
+        assert 'Get inventory list data' in result['description']
+
+    def test_extract_method_info_description_fallback_to_name(self):
+        """Test description falls back to method name when no docstring."""
+        class MockClass:
+            def undocumented_method(self):
+                pass
+
+        result = extract_method_info(MockClass, 'undocumented_method')
+
+        assert result is not None
+        assert result['description'] == 'undocumented_method'

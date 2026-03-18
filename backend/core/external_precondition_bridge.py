@@ -9,7 +9,7 @@ import logging
 import inspect
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, get_type_hints
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +143,63 @@ def load_base_params_class() -> tuple[type | None, str | None]:
         _base_params_import_error = f"Unexpected error loading BaseParams: {e}"
         logger.error(_base_params_import_error, exc_info=True)
         return None, _base_params_import_error
+
+
+def extract_method_info(cls: type, method_name: str) -> dict | None:
+    """Extract method information including parameters with types.
+
+    Args:
+        cls: The class containing the method
+        method_name: Name of the method to extract info from
+
+    Returns:
+        dict with name, description, and parameters, or None for private methods
+    """
+    # Skip private methods
+    if method_name.startswith('_'):
+        return None
+
+    method = getattr(cls, method_name, None)
+    if method is None:
+        return None
+
+    try:
+        sig = inspect.signature(method)
+        type_hints = get_type_hints(method)
+    except (ValueError, TypeError) as e:
+        logger.warning(f"Cannot get signature for {method_name}: {e}")
+        return None
+
+    parameters = []
+    for param_name, param in sig.parameters.items():
+        # Skip 'self' parameter
+        if param_name == 'self':
+            continue
+
+        # Determine type
+        param_type = type_hints.get(param_name, Any)
+        type_str = getattr(param_type, '__name__', str(param_type))
+        if type_str.startswith('typing.'):
+            type_str = str(param_type).replace('typing.', '')
+
+        # Determine if required and default value
+        has_default = param.default != inspect.Parameter.empty
+        parameters.append({
+            "name": param_name,
+            "type": type_str,
+            "required": not has_default,
+            "default": repr(param.default) if has_default else None
+        })
+
+    # Extract description from docstring
+    docstring = method.__doc__ or ""
+    description = docstring.strip().split('\n')[0] if docstring.strip() else method_name
+
+    return {
+        "name": method_name,
+        "description": description,
+        "parameters": parameters
+    }
 
 
 def get_unavailable_reason() -> str | None:
