@@ -5,7 +5,7 @@
 - ✅ **v0.1 MVP** — Phases 1-4 (shipped 2026-03-14)
 - ✅ **v0.2 前置条件、接口断言、动态数据** — Phases 5-8 (shipped 2026-03-17)
 - ⏸️ **v0.2.1 测试用例调通** — Phases 9-12 (partially complete, blocked by erp_api module)
-- 🚧 **v0.3 前置条件集成** — Phases 13+ (current)
+- ✅ **v0.3 前置条件集成** — Phases 13-16 (shipped 2026-03-18)
 
 ## Phases
 <details>
@@ -88,13 +88,19 @@ Plans:
 Plans:
 - [ ] 12-01: 编写登录用例前端填写指南
 - [ ] 12-02: 编写销售出库用例前端填写指南
-### 🚧 v0.3 前置条件集成 (Current)
+### ✅ v0.3 前置条件集成 (Complete)
 **Milestone Goal:** 将 webseleniumerp 项目的 base_prerequisites.py 集成到当前平台
-**Status:** In Progress
+**Status:** Complete - Shipped 2026-03-18
 - [x] **Phase 13: 配置基础** - 3/3 plans (Complete)
 - [x] **Phase 14: 后端桥接模块** - 3/3 plans (completed 2026-03-18)
 - [x] **Phase 15: 前端集成** - 3/3 plans (completed 2026-03-18)
-- [ ] **Phase 16: 端到端验证** - 0/? plans
+- [x] **Phase 16: 端到端验证** - 3/3 plans (completed 2026-03-18)
+
+**Key accomplishments:**
+1. 配置基础 - WEBSERP_PATH 环境变量, 启动验证, 文档模板
+2. 后端桥接模块 - ExternalPreconditionBridge, 操作码 API, PreconditionService 集成
+3. 前端集成 - OperationCodeSelector 组件, 模块分组显示, 代码生成
+4. 端到端验证 - E2E 测试, 错误场景测试, 手动测试检查清单
 ## Phase Details
 ### Phase 13: 配置基础
 **Goal**: 配置 WEBSERP_PATH 环境变量，提供 webseleniumerp 配置文档
@@ -144,7 +150,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. 完整流程测试：选择操作码 → 执行前置条件 → 查看结果
   2. 错误处理：外部项目缺失、配置错误、执行失败
-**Plans**: ? plans
+**Plans**: 3 plans
+Plans:
+- [x] 16-01: E2E Precondition Integration Tests
+- [x] 16-02: Error Scenario Tests
+- [x] 16-03: Manual Test Checklist
 ## Progress
 **Execution Order:**
 Phases execute in numeric order: 13 → 14 → 15 → 16
@@ -165,7 +175,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 13. 配置基础 | v0.3 | 3/3 | Complete | 2026-03-17 |
 | 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 15. 前端集成 | v0.3 | Complete    | 2026-03-18 | 2026-03-18 |
-| 16. 端到端验证 | 2/3 | In Progress|  | - |
+| 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-18 - Phase 15 complete*
+*Last updated: 2026-03-18 - v0.3 milestone complete*
