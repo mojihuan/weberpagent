@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: 前置条件集成
 status: planning
-last_updated: "2026-03-18T00:47:57.435Z"
+last_updated: "2026-03-18T01:00:07.039Z"
 progress:
   total_phases: 8
   completed_phases: 3
@@ -24,8 +24,8 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Milestone: v0.3 前置条件集成
-Phase: 14-后端桥接模块
-Plan: 03 (completed)
+Phase: 15-前端集成
+Plan: 01 (completed)
 Status: **EXECUTING**
 
 Progress: [████████░░] 83%
@@ -67,12 +67,12 @@ Progress: [████████░░] 83%
 
 ## Session Continuity
 
-Last session: 2026-03-18T00:47:57.433Z
+Last session: 2026-03-18T01:34:20.000Z
 Current milestone: v0.3 前置条件集成
 
 **Next step:**
-- Phase 14-03 complete - Phase 14 (后端桥接模块) complete
-- Ready to proceed to next phase or milestone completion
+- Phase 15-01 complete - Frontend types and API module ready
+- Continue with Phase 15-02 (operation selection UI)
 
 ## Decisions
 
@@ -100,3 +100,7 @@ Current milestone: v0.3 前置条件集成
 ### Phase 14-03: PreconditionService Bridge Integration
 - PreconditionService needs no modification - already compatible with bridge-generated code pattern
 - Tests use tmp_path fixtures to mock PreFront-like modules for isolation
+
+### Phase 15-01: Frontend Types and API Module
+- TypeScript interfaces match backend Pydantic models exactly
+- API module follows existing tasks.ts pattern with apiClient wrapper
