@@ -1,18 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { X, Check, ChevronLeft, ChevronRight, Search, Play } from 'lucide-react'
-import type { DataMethodConfig, DataMethodsResponse, DataMethodInfo } from '../../types'
+import type { DataMethodConfig, DataMethodsResponse } from '../../types'
 import { externalDataMethodsApi } from '../../api/externalDataMethods'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { JsonTreeViewer } from './JsonTreeViewer'
 
 const STEPS = ['Select Method', 'Configure Parameters', 'Extraction Path', 'Variable Naming'] as const
-
-interface SelectedMethod {
-  className: string
-  method: DataMethodInfo
-  parameters: Record<string, any>
-  extractions: { path: string; variableName: string }[]
-}
 
 interface DataMethodSelectorProps {
   open: boolean
@@ -589,7 +582,11 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
             {currentStep < STEPS.length - 1 && (
               <button
                 onClick={handleNext}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-1"
+                disabled={
+                  (currentStep === 0 && selectedMethodKeys.size === 0) ||
+                  (currentStep === 1 && !hasAllRequiredParams())
+                }
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -598,7 +595,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
             {currentStep === STEPS.length - 1 && (
               <button
                 onClick={handleConfirm}
-                disabled={selectedMethods.length === 0}
+                disabled={selectedMethodKeys.size === 0}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 Confirm
