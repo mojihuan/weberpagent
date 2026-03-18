@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: 前置条件集成
 status: planning
-last_updated: "2026-03-18T01:00:07.039Z"
+last_updated: "2026-03-18T01:40:17.836Z"
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 10
+  total_plans: 15
+  completed_plans: 12
   percent: 83
 ---
 
@@ -67,7 +67,7 @@ Progress: [████████░░] 83%
 
 ## Session Continuity
 
-Last session: 2026-03-18T01:34:20.000Z
+Last session: 2026-03-18T01:40:17.834Z
 Current milestone: v0.3 前置条件集成
 
 **Next step:**
@@ -78,6 +78,8 @@ Current milestone: v0.3 前置条件集成
 
 ### Phase 13-01: WEBSERP_PATH Configuration
 - Env var name follows pydantic-settings convention: `weberp_path` maps to `WEBERP_PATH`
+- [Phase 15-02]: Modal width set to max-w-2xl for grouped operations display
+- [Phase 15-02]: Selection state resets when modal reopens for fresh selection
 
 ### Phase 13-02: WEBSERP_PATH Startup Validation
 - Use ast.parse instead of importlib for syntax validation to avoid executing external code

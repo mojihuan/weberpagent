@@ -35,9 +35,9 @@
 - [x] **BRIDGE-03**: 提供 `/api/external-operations` API 端点
 - [x] **BRIDGE-04**: 实现操作码执行功能，与现有 PreconditionService 集成
 ### 前端集成 (FRONTEND)
-- [ ] **FRONT-01**: 前置条件编辑器中添加操作码选择器组件
-- [ ] **FRONT-02**: 操作码按模块分组显示 (配件、财务、运营、平台等)
-- [ ] **FRONT-03**: 支持多选操作码
+- [x] **FRONT-01**: 前置条件编辑器中添加操作码选择器组件
+- [x] **FRONT-02**: 操作码按模块分组显示 (配件、财务、运营、平台等)
+- [x] **FRONT-03**: 支持多选操作码
 - [ ] **FRONT-04**: 选中操作码后自动生成 Python 代码模板
 ### 验证 (VALIDATE)
 - [ ] **VAL-01**: 完整流程测试： 选择操作码 → 执行前置条件 → 查看结果
@@ -65,9 +65,9 @@
 | BRIDGE-02 | Phase 14 | Complete |
 | BRIDGE-03 | Phase 14 | Complete |
 | BRIDGE-04 | Phase 14 | Complete |
-| FRONT-01 | Phase 15 | Pending |
-| FRONT-02 | Phase 15 | Pending |
-| FRONT-03 | Phase 15 | Pending |
+| FRONT-01 | Phase 15 | Complete |
+| FRONT-02 | Phase 15 | Complete |
+| FRONT-03 | Phase 15 | Complete |
 | FRONT-04 | Phase 15 | Pending |
 | VAL-01 | Phase 16 | Pending |
 | VAL-02 | Phase 16 | Pending |

@@ -92,8 +92,8 @@ Plans:
 **Milestone Goal:** 将 webseleniumerp 项目的 base_prerequisites.py 集成到当前平台
 **Status:** In Progress
 - [x] **Phase 13: 配置基础** - 3/3 plans (Complete)
-- [x] **Phase 14: 后端桥接模块** - 0/3 plans (completed 2026-03-18)
-- [ ] **Phase 15: 前端集成** - 0/? plans
+- [x] **Phase 14: 后端桥接模块** - 3/3 plans (completed 2026-03-18)
+- [ ] **Phase 15: 前端集成** - 0/3 plans
 - [ ] **Phase 16: 端到端验证** - 0/? plans
 ## Phase Details
 ### Phase 13: 配置基础
@@ -120,9 +120,9 @@ Plans:
   4. 实现操作码执行功能，与现有 PreconditionService 集成
 **Plans**: 3 plans
 Plans:
-- [ ] 14-01: Create ExternalPreconditionBridge module with source parsing
-- [ ] 14-02: Create /api/external-operations API endpoint
-- [ ] 14-03: Verify PreconditionService integration with bridge-generated code
+- [x] 14-01: Create ExternalPreconditionBridge module with source parsing
+- [x] 14-02: Create /api/external-operations API endpoint
+- [x] 14-03: Verify PreconditionService integration with bridge-generated code
 ### Phase 15: 前端集成
 **Goal**: 在前置条件编辑器中添加操作码选择器
 **Depends on**: Phase 14 (后端桥接模块)
@@ -132,7 +132,11 @@ Plans:
   2. 操作码按模块分组显示 (配件、财务、运营、平台等)
   3. 支持多选操作码
   4. 选中操作码后自动生成 Python 代码模板
-**Plans**: ? plans
+**Plans**: 3 plans
+Plans:
+- [ ] 15-01: Add external operation types and API module
+- [ ] 15-02: Create OperationCodeSelector modal component
+- [ ] 15-03: Integrate selector into TaskForm with error handling
 ### Phase 16: 端到端验证
 **Goal**: 完整流程测试：选择操作码 → 执行前置条件 → 查看结果
 **Depends on**: Phase 15 (前端集成)
@@ -159,9 +163,9 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 11. Bug 修复 | v0.2.1 | 0/2 | Deferred | - |
 | 12. 文档指南 | v0.2.1 | 0/2 | Deferred | - |
 | 13. 配置基础 | v0.3 | 3/3 | Complete | 2026-03-17 |
-| 14. 后端桥接模块 | 3/3 | Complete   | 2026-03-18 | - |
-| 15. 前端集成 | v0.3 | 0/? | Not started | - |
+| 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
+| 15. 前端集成 | 2/3 | In Progress|  | - |
 | 16. 端到端验证 | v0.3 | 0/? | Not started | - |
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-17 - Phase 14 plans created*
+*Last updated: 2026-03-18 - Phase 15 plans created*
