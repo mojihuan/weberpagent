@@ -1,135 +1,135 @@
-# Manual Test Checklist: Precondition Integration
+# 手动测试检查清单：前置条件集成
 
-This checklist validates the complete precondition integration with a real webseleniumerp project.
+本检查清单用于验证与真实 webseleniumerp 项目的前置条件完整集成。
 
-## Prerequisites
+## 前置条件
 
-- [ ] webseleniumerp project cloned locally
-- [ ] `config/settings.py` created in webseleniumerp (see README.md for template)
-- [ ] Backend server running: `uv run uvicorn backend.api.main:app --reload --port 8080`
-- [ ] Frontend server running: `cd frontend && npm run dev`
+- [ ] 已克隆 webseleniumerp 项目到本地
+- [ ] 已在 webseleniumerp 中创建 `config/settings.py`（参见 README.md 模板）
+- [ ] 后端服务运行中：`uv run uvicorn backend.api.main:app --reload --port 8080`
+- [ ] 前端服务运行中：`cd frontend && npm run dev`
 
-## Environment Setup
+## 环境配置
 
-1. Add to `.env`:
+1. 在 `.env` 中添加：
    ```
    WEBSERP_PATH=/path/to/your/webseleniumerp
    ```
-2. Restart backend server to load new configuration
+2. 重启后端服务以加载新配置
 
 ---
 
-## Test 1: Complete Flow (VAL-01)
+## 测试 1：完整流程（VAL-01）
 
-**Purpose:** Verify complete flow from operation code selection to precondition execution
+**目的：** 验证从操作码选择到前置条件执行的完整流程
 
-### Steps:
+### 测试步骤：
 
-1. [ ] Open frontend at http://localhost:5173
-2. [ ] Navigate to Task creation page
-3. [ ] Click "Select Operation Codes" button above precondition textarea
-4. [ ] Verify: Modal shows operation codes grouped by module
-5. [ ] Select operation codes: FA1, HC1
-6. [ ] Click "Confirm" button
-7. [ ] Verify: Precondition textarea contains generated code with:
+1. [ ] 打开前端页面 http://localhost:5173
+2. [ ] 进入任务创建页面
+3. [ ] 点击前置条件文本框上方的"选择操作码"按钮
+4. [ ] 验证：弹窗显示按模块分组的操作码列表
+5. [ ] 选择操作码：FA1, HC1
+6. [ ] 点击"确认"按钮
+7. [ ] 验证：前置条件文本框包含生成的代码：
    - `sys.path.insert(0, '/path/to/webseleniumerp')`
    - `from common.base_prerequisites import PreFront`
    - `pre_front.operations(['FA1', 'HC1'])`
-8. [ ] Create and run the task
-9. [ ] Verify: Task execution includes precondition step
-10. [ ] Verify: Precondition execution shows success status
+8. [ ] 创建并运行任务
+9. [ ] 验证：任务执行包含前置条件步骤
+10. [ ] 验证：前置条件执行显示成功状态
 
-### Expected Results:
+### 预期结果：
 
-- [ ] Operation codes load successfully from real webseleniumerp
-- [ ] Generated code is valid Python
-- [ ] Precondition executes without errors
-- [ ] Context variable `precondition_result` is set to 'success'
-
----
-
-## Test 2: Error - Path Not Configured (VAL-02)
-
-**Purpose:** Verify error handling when WEBSERP_PATH is not set
-
-### Steps:
-
-1. [ ] Remove or comment out WEBSERP_PATH in `.env`
-2. [ ] Restart backend server
-3. [ ] Try to open operation code selector in frontend
-4. [ ] Verify: Button shows error tooltip or is disabled
-
-### Expected Results:
-
-- [ ] API returns 503 Service Unavailable
-- [ ] Frontend shows appropriate error message
-- [ ] Error message mentions WEBSERP_PATH configuration
+- [ ] 操作码从真实 webseleniumerp 成功加载
+- [ ] 生成的代码是有效的 Python 代码
+- [ ] 前置条件执行无错误
+- [ ] 上下文变量 `precondition_result` 设置为 'success'
 
 ---
 
-## Test 3: Error - Path Doesn't Exist (VAL-02)
+## 测试 2：错误处理 - 路径未配置（VAL-02）
 
-**Purpose:** Verify error handling when WEBSERP_PATH points to invalid location
+**目的：** 验证 WEBSERP_PATH 未设置时的错误处理
 
-### Steps:
+### 测试步骤：
 
-1. [ ] Set WEBSERP_PATH to non-existent path: `WEBSERP_PATH=/nonexistent/path`
-2. [ ] Restart backend server
-3. [ ] Check startup logs for validation error
+1. [ ] 在 `.env` 中删除或注释 WEBSERP_PATH
+2. [ ] 重启后端服务
+3. [ ] 尝试在前端打开操作码选择器
+4. [ ] 验证：按钮显示错误提示或处于禁用状态
 
-### Expected Results:
+### 预期结果：
 
-- [ ] Backend startup shows error message: "WEBSERP_PATH directory not found"
-- [ ] Error includes solution hint
-
----
-
-## Test 4: Error - Missing config/settings.py (VAL-02)
-
-**Purpose:** Verify error handling when webseleniumerp config is missing
-
-### Steps:
-
-1. [ ] Set WEBSERP_PATH correctly
-2. [ ] Rename or delete `webseleniumerp/config/settings.py`
-3. [ ] Restart backend server
-4. [ ] Check startup logs for validation error
-
-### Expected Results:
-
-- [ ] Backend startup shows error message: "config/settings.py not found"
-- [ ] Error includes template for creating the file
+- [ ] API 返回 503 Service Unavailable
+- [ ] 前端显示适当的错误消息
+- [ ] 错误消息提及 WEBSERP_PATH 配置
 
 ---
 
-## Test 5: Error - Execution Exception (VAL-02)
+## 测试 3：错误处理 - 路径不存在（VAL-02）
 
-**Purpose:** Verify error handling when PreFront.operations() throws exception
+**目的：** 验证 WEBSERP_PATH 指向无效位置时的错误处理
 
-### Steps:
+### 测试步骤：
 
-1. [ ] Configure valid WEBSERP_PATH
-2. [ ] Create a precondition with code that raises exception:
+1. [ ] 设置 WEBSERP_PATH 为不存在的路径：`WEBSERP_PATH=/nonexistent/path`
+2. [ ] 重启后端服务
+3. [ ] 检查启动日志中的验证错误
+
+### 预期结果：
+
+- [ ] 后端启动显示错误消息："WEBSERP_PATH 目录不存在"
+- [ ] 错误包含解决方案提示
+
+---
+
+## 测试 4：错误处理 - 缺少 config/settings.py（VAL-02）
+
+**目的：** 验证 webseleniumerp 配置文件缺失时的错误处理
+
+### 测试步骤：
+
+1. [ ] 正确设置 WEBSERP_PATH
+2. [ ] 重命名或删除 `webseleniumerp/config/settings.py`
+3. [ ] 重启后端服务
+4. [ ] 检查启动日志中的验证错误
+
+### 预期结果：
+
+- [ ] 后端启动显示错误消息："config/settings.py 未找到"
+- [ ] 错误包含创建该文件的模板
+
+---
+
+## 测试 5：错误处理 - 执行异常（VAL-02）
+
+**目的：** 验证 PreFront.operations() 抛出异常时的错误处理
+
+### 测试步骤：
+
+1. [ ] 配置有效的 WEBSERP_PATH
+2. [ ] 创建包含会抛出异常代码的前置条件：
    ```python
-   raise ValueError("Test exception")
+   raise ValueError("测试异常")
    ```
-3. [ ] Run the task
-4. [ ] Check execution result
+3. [ ] 运行任务
+4. [ ] 检查执行结果
 
-### Expected Results:
+### 预期结果：
 
-- [ ] Precondition execution shows failure status
-- [ ] Error message contains exception details
-- [ ] Task does not proceed to main steps
+- [ ] 前置条件执行显示失败状态
+- [ ] 错误消息包含异常详情
+- [ ] 任务不会继续执行主步骤
 
 ---
 
-## Sign-off
+## 签署确认
 
-- [ ] All tests completed
-- [ ] All expected results verified
-- [ ] Issues documented: _______________
+- [ ] 所有测试已完成
+- [ ] 所有预期结果已验证
+- [ ] 问题记录：_______________
 
-**Tester:** _______________
-**Date:** _______________
-**Environment:** _______________
+**测试人员：** _______________
+**测试日期：** _______________
+**测试环境：** _______________
