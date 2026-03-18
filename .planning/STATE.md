@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: 前置条件集成
 status: planning
-last_updated: "2026-03-18T01:40:17.836Z"
+last_updated: "2026-03-18T01:44:32Z"
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 15
-  completed_plans: 12
-  percent: 83
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 Milestone: v0.3 前置条件集成
 Phase: 15-前端集成
-Plan: 01 (completed)
+Plan: 03 (completed)
 Status: **EXECUTING**
 
-Progress: [████████░░] 83%
+Progress: [████████░░] 87%
 
 ## Milestone v0.3 Overview
 
@@ -67,12 +67,12 @@ Progress: [████████░░] 83%
 
 ## Session Continuity
 
-Last session: 2026-03-18T01:40:17.834Z
+Last session: 2026-03-18T01:44:32Z
 Current milestone: v0.3 前置条件集成
 
 **Next step:**
-- Phase 15-01 complete - Frontend types and API module ready
-- Continue with Phase 15-02 (operation selection UI)
+- Phase 15-03 complete - OperationCodeSelector integrated into TaskForm
+- Frontend integration for v0.3 complete
 
 ## Decisions
 
@@ -106,3 +106,8 @@ Current milestone: v0.3 前置条件集成
 ### Phase 15-01: Frontend Types and API Module
 - TypeScript interfaces match backend Pydantic models exactly
 - API module follows existing tasks.ts pattern with apiClient wrapper
+
+### Phase 15-03: TaskForm OperationCodeSelector Integration
+- Button placed above each precondition textarea for per-precondition code selection
+- Code appends with newline prefix if textarea is non-empty, inserts directly if empty
+- Global loading/error state shared across all buttons for simplicity

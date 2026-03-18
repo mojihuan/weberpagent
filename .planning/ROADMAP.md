@@ -93,7 +93,7 @@ Plans:
 **Status:** In Progress
 - [x] **Phase 13: 配置基础** - 3/3 plans (Complete)
 - [x] **Phase 14: 后端桥接模块** - 3/3 plans (completed 2026-03-18)
-- [ ] **Phase 15: 前端集成** - 0/3 plans
+- [x] **Phase 15: 前端集成** - 3/3 plans (completed 2026-03-18)
 - [ ] **Phase 16: 端到端验证** - 0/? plans
 ## Phase Details
 ### Phase 13: 配置基础
@@ -134,9 +134,9 @@ Plans:
   4. 选中操作码后自动生成 Python 代码模板
 **Plans**: 3 plans
 Plans:
-- [ ] 15-01: Add external operation types and API module
-- [ ] 15-02: Create OperationCodeSelector modal component
-- [ ] 15-03: Integrate selector into TaskForm with error handling
+- [x] 15-01: Add external operation types and API module
+- [x] 15-02: Create OperationCodeSelector modal component
+- [x] 15-03: Integrate selector into TaskForm with error handling
 ### Phase 16: 端到端验证
 **Goal**: 完整流程测试：选择操作码 → 执行前置条件 → 查看结果
 **Depends on**: Phase 15 (前端集成)
@@ -164,8 +164,8 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 12. 文档指南 | v0.2.1 | 0/2 | Deferred | - |
 | 13. 配置基础 | v0.3 | 3/3 | Complete | 2026-03-17 |
 | 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
-| 15. 前端集成 | 2/3 | In Progress|  | - |
+| 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 0/? | Not started | - |
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-18 - Phase 15 plans created*
+*Last updated: 2026-03-18 - Phase 15 complete*
