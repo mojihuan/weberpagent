@@ -1,8 +1,16 @@
 """Centralized configuration using Pydantic BaseSettings."""
 from functools import lru_cache
+from pathlib import Path
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Load .env file from project root (handles relative path issues)
+_project_root = Path(__file__).parent.parent.parent
+_env_file = _project_root / ".env"
+if _env_file.exists():
+    load_dotenv(_env_file)
 
 
 class Settings(BaseSettings):
@@ -39,7 +47,7 @@ class Settings(BaseSettings):
     # Points to the webseleniumerp project containing base_prerequisites.py
     # Set this to enable importing external precondition operations (FA1, HC1, etc.)
     # Example: /Users/you/projects/webseleniumerp
-    weberp_path: str | None = None
+    weberp_path: str | None = Field(default=None, validation_alias="WEBSERP_PATH")
 
     # Database Configuration
     database_url: str = "sqlite+aiosqlite:///./data/database.db"
