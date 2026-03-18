@@ -204,3 +204,56 @@ export interface GenerateRequest {
 export interface GenerateResponse {
   code: string
 }
+
+// External Data Methods - Data query methods from webseleniumerp
+
+export interface DataMethodParameter {
+  name: string
+  type: string
+  required: boolean
+  default: string | null
+}
+
+export interface DataMethodInfo {
+  name: string
+  description: string
+  parameters: DataMethodParameter[]
+}
+
+export interface DataMethodClass {
+  name: string
+  methods: DataMethodInfo[]
+}
+
+export interface DataMethodsResponse {
+  available: boolean
+  classes: DataMethodClass[]
+  total: number
+  error?: string
+}
+
+export interface ExecuteDataMethodRequest {
+  class_name: string
+  method_name: string
+  params: Record<string, any>
+}
+
+export interface ExecuteDataMethodResponse {
+  success: boolean
+  data?: Array<Record<string, any>>
+  error?: string
+  error_type?: string
+}
+
+// Data extraction configuration for frontend UI
+export interface FieldExtraction {
+  path: string           // e.g., "[0].imei"
+  variableName: string   // e.g., "imei"
+}
+
+export interface DataMethodConfig {
+  className: string
+  methodName: string
+  parameters: Record<string, any>
+  extractions: FieldExtraction[]
+}
