@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: planning
-last_updated: "2026-03-18T13:22:30Z"
-last_activity: 2026-03-18 - Completed 18-01 plan
+last_updated: "2026-03-18T13:33:17Z"
+last_activity: 2026-03-18 - Completed 18-02 plan
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 Milestone: v0.3.1 数据获取方法集成
 Phase: 18 - 前端数据选择器 (In progress)
-Plan: 18-01
-Status: Complete - Types, API client, and component skeleton implemented
-Last activity: 2026-03-18 - Completed 18-01 plan
+Plan: 18-02
+Status: Complete - Step 1 method selection and Step 2 parameter configuration implemented
+Last activity: 2026-03-18 - Completed 18-02 plan
 
 ## Milestone v0.3.1 Overview
 
@@ -45,7 +45,7 @@ Last activity: 2026-03-18 - Completed 18-01 plan
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 17. 后端数据获取桥接 | API 获取 xxx_data() 方法列表和执行结果 | DATA-01, DATA-02, DATA-03 | **3/3 complete** |
-| 18. 前端数据选择器 | DataMethodSelector 组件及参数配置 UI | UI-01, UI-02, UI-03, UI-04 | **1/3 in progress** |
+| 18. 前端数据选择器 | DataMethodSelector 组件及参数配置 UI | UI-01, UI-02, UI-03, UI-04 | **2/4 in progress** |
 | 19. 集成与变量传递 | 代码注入与 Jinja2 变量替换 | INT-01, INT-02, INT-03 | Not started |
 
 ## Previous Milestone (v0.3)
@@ -78,11 +78,11 @@ Last activity: 2026-03-18 - Completed 18-01 plan
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:22:30Z
+Last session: 2026-03-18T13:33:17Z
 Current milestone: v0.3.1 数据获取方法集成 - Phase 18 in progress
 
 **Next step:**
-- Run `/gsd:execute-phase 18-02` to continue Phase 18 (method selection step content)
+- Run `/gsd:execute-phase 18-03` to continue Phase 18 (extraction path step content)
 
 ## Decisions
 
@@ -90,6 +90,12 @@ Current milestone: v0.3.1 数据获取方法集成 - Phase 18 in progress
 - Mirror backend Pydantic models exactly for TypeScript type safety
 - Follow externalOperations.ts pattern for API client consistency
 - Use 4-step wizard pattern with clickable step navigation
+
+### Phase 18-02 Decisions
+- Use Set<string> for selectedMethodKeys (efficient O(1) lookup)
+- Use Map<string, DataMethodConfig> for methodConfigs (key-based access)
+- Follow OperationCodeSelector pattern for filtering and UI consistency
+- Add validation on Next button (selection required for Step 1, required params for Step 2)
 
 ### v0.3.1 Roadmap Decisions
 - Phase numbering continues from 17 (v0.3 ended at Phase 16)

@@ -86,7 +86,7 @@ Plans:
   3. 用户可配置字段提取路径（如 [0].imei）
   4. 用户可设置生成的变量名
   5. 系统自动生成可预览的 Python 代码片段
-**Plans:** 1/4 plans complete
+**Plans:** 2/4 plans executed
 Plans:
 - [x] 18-01-PLAN.md - API client, types, and DataMethodSelector skeleton (UI-01) - completed 2026-03-18
 - [ ] 18-02-PLAN.md - Method selection and parameter configuration steps (UI-01, UI-02)
@@ -123,7 +123,7 @@ Plans:
 | 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
-| 18. 前端数据选择器 | v0.3.1 | 1/4 | In progress | - |
+| 18. 前端数据选择器 | 2/4 | In Progress|  | - |
 | 19. 集成与变量传递 | v0.3.1 | 0/3 | Not started | - |
 ---
 *Roadmap created: 2026-03-14*
