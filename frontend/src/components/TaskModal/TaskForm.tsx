@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Code, AlertCircle } from 'lucide-react'
-import type { Task, CreateTaskDto, OperationsResponse } from '../../types'
+import { Code, AlertCircle, Database } from 'lucide-react'
+import type { Task, CreateTaskDto, OperationsResponse, DataMethodConfig } from '../../types'
 import { OperationCodeSelector } from './OperationCodeSelector'
+import { DataMethodSelector } from './DataMethodSelector'
 import { externalOperationsApi } from '../../api/externalOperations'
+import { externalDataMethodsApi } from '../../api/externalDataMethods'
 
 interface TaskFormProps {
   initialData?: Task
@@ -43,6 +45,13 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
   const [operationsLoading, setOperationsLoading] = useState(false)
   const [operationsAvailable, setOperationsAvailable] = useState(true)
   const [operationsError, setOperationsError] = useState<string | null>(null)
+
+  // Data method selector state
+  const [dataSelectorOpen, setDataSelectorOpen] = useState(false)
+  const [dataSelectorIndex, setDataSelectorIndex] = useState<number | null>(null)
+  const [dataMethodsLoading, setDataMethodsLoading] = useState(false)
+  const [dataMethodsAvailable, setDataMethodsAvailable] = useState(true)
+  const [dataMethodsError, setDataMethodsError] = useState<string | null>(null)
 
   useEffect(() => {
     if (initialData) {
@@ -179,6 +188,61 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     setSelectorIndex(null)
   }
 
+  const handleOpenDataSelector = async (index: number) => {
+    setDataSelectorIndex(index)
+    setDataMethodsLoading(true)
+    setDataMethodsError(null)
+    try {
+      const response = await externalDataMethodsApi.list()
+      setDataMethodsAvailable(response.available)
+      if (!response.available) {
+        setDataMethodsError(response.error || 'External data methods not available')
+      }
+      setDataSelectorOpen(true)
+    } catch {
+      setDataMethodsAvailable(false)
+      setDataMethodsError('External data methods module not available. Please check WEBSERP_PATH configuration.')
+    } finally {
+      setDataMethodsLoading(false)
+    }
+  }
+
+  const handleDataSelectorConfirm = (configs: DataMethodConfig[]) => {
+    if (dataSelectorIndex === null || configs.length === 0) return
+
+    // Generate code from configs
+    const lines: string[] = []
+    configs.forEach(config => {
+      const params = Object.entries(config.parameters)
+        .map(([k, v]) => `${k}=${typeof v === 'string' ? `'${v}'` : v}`)
+        .join(', ')
+      const methodCall = `context.get_data('${config.methodName}', ${params})`
+
+      config.extractions.forEach(ex => {
+        // Convert path like "[0].imei" to Python accessor
+        const pathAccess = ex.path
+          .replace(/\[(\d+)\]/g, '[$1]')
+          .replace(/\.([^.[]+)/g, "['$1']")
+        lines.push(`${ex.variableName} = ${methodCall}${pathAccess}`)
+      })
+    })
+
+    const newCode = lines.join('\n')
+    const currentPrecondition = formData.preconditions[dataSelectorIndex] || ''
+    const updatedPrecondition = currentPrecondition.trim()
+      ? currentPrecondition + '\n' + newCode
+      : newCode
+
+    handlePreconditionChange(dataSelectorIndex, updatedPrecondition)
+    setDataSelectorOpen(false)
+    setDataSelectorIndex(null)
+  }
+
+  const handleDataSelectorCancel = () => {
+    setDataSelectorOpen(false)
+    setDataSelectorIndex(null)
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
@@ -272,7 +336,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         <div className="space-y-2">
           {formData.preconditions.map((precondition, index) => (
             <div key={index} className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => handleOpenSelector(index)}
@@ -295,6 +359,30 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
                   <span className="flex items-center gap-1 text-xs text-gray-400">
                     <AlertCircle className="w-3 h-3" />
                     {operationsError}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleOpenDataSelector(index)}
+                  disabled={dataMethodsLoading || !dataMethodsAvailable}
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border ${
+                    dataMethodsAvailable
+                      ? 'border-green-200 text-green-600 hover:bg-green-50 disabled:opacity-50'
+                      : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                  title={dataMethodsError || ''}
+                >
+                  {dataMethodsLoading ? (
+                    <span className="animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full" />
+                  ) : (
+                    <Database className="w-4 h-4" />
+                  )}
+                  获取数据
+                </button>
+                {!dataMethodsAvailable && dataMethodsError && (
+                  <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <AlertCircle className="w-3 h-3" />
+                    {dataMethodsError}
                   </span>
                 )}
               </div>
@@ -389,6 +477,13 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         open={selectorOpen}
         onConfirm={handleSelectorConfirm}
         onCancel={handleSelectorCancel}
+      />
+
+      {/* Data Method Selector Modal */}
+      <DataMethodSelector
+        open={dataSelectorOpen}
+        onConfirm={handleDataSelectorConfirm}
+        onCancel={handleDataSelectorCancel}
       />
     </form>
   )
