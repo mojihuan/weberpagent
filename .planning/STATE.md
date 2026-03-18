@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: planning
-last_updated: "2026-03-18T12:48:37.770Z"
-last_activity: 2026-03-18 - Completed 17-02 plan
+last_updated: "2026-03-18T13:22:30Z"
+last_activity: 2026-03-18 - Completed 18-01 plan
 progress:
   total_phases: 3
   completed_phases: 1
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Milestone: v0.3.1 数据获取方法集成
-Phase: 17 - 后端数据获取桥接 (In progress)
-Plan: 17-02
-Status: Complete - Data methods list API implemented
-Last activity: 2026-03-18 - Completed 17-02 plan
+Phase: 18 - 前端数据选择器 (In progress)
+Plan: 18-01
+Status: Complete - Types, API client, and component skeleton implemented
+Last activity: 2026-03-18 - Completed 18-01 plan
 
 ## Milestone v0.3.1 Overview
 
@@ -44,8 +44,8 @@ Last activity: 2026-03-18 - Completed 17-02 plan
 
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
-| 17. 后端数据获取桥接 | API 获取 xxx_data() 方法列表和执行结果 | DATA-01, DATA-02, DATA-03 | **2/3 complete** |
-| 18. 前端数据选择器 | DataMethodSelector 组件及参数配置 UI | UI-01, UI-02, UI-03, UI-04 | Not started |
+| 17. 后端数据获取桥接 | API 获取 xxx_data() 方法列表和执行结果 | DATA-01, DATA-02, DATA-03 | **3/3 complete** |
+| 18. 前端数据选择器 | DataMethodSelector 组件及参数配置 UI | UI-01, UI-02, UI-03, UI-04 | **1/3 in progress** |
 | 19. 集成与变量传递 | 代码注入与 Jinja2 变量替换 | INT-01, INT-02, INT-03 | Not started |
 
 ## Previous Milestone (v0.3)
@@ -78,13 +78,18 @@ Last activity: 2026-03-18 - Completed 17-02 plan
 
 ## Session Continuity
 
-Last session: 2026-03-18T09:13:36.224Z
-Current milestone: v0.3.1 数据获取方法集成 - ROADMAP CREATED
+Last session: 2026-03-18T13:22:30Z
+Current milestone: v0.3.1 数据获取方法集成 - Phase 18 in progress
 
 **Next step:**
-- Run `/gsd:execute-phase 17-03` to complete Phase 17 (data method execution API)
+- Run `/gsd:execute-phase 18-02` to continue Phase 18 (method selection step content)
 
 ## Decisions
+
+### Phase 18-01 Decisions
+- Mirror backend Pydantic models exactly for TypeScript type safety
+- Follow externalOperations.ts pattern for API client consistency
+- Use 4-step wizard pattern with clickable step navigation
 
 ### v0.3.1 Roadmap Decisions
 - Phase numbering continues from 17 (v0.3 ended at Phase 16)

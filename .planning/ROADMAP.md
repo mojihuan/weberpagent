@@ -57,7 +57,7 @@
 
 ## v0.3.1 数据获取方法集成 (Phases 17-19)
 - [x] **Phase 17: 后端数据获取桥接** - 扫描 base_params.py 并提供数据获取 API (completed 2026-03-18)
-- [ ] **Phase 18: 前端数据选择器** - DataMethodSelector 组件及参数配置 UI
+- [ ] **Phase 18: 前端数据选择器** - DataMethodSelector 组件及参数配置 UI (1/4 in progress)
 - [ ] **Phase 19: 集成与变量传递** - 前置条件代码生成与 Jinja2 变量替换
 ---
 
@@ -86,7 +86,12 @@ Plans:
   3. 用户可配置字段提取路径（如 [0].imei）
   4. 用户可设置生成的变量名
   5. 系统自动生成可预览的 Python 代码片段
-**Plans:** TBD
+**Plans:** 1/4 plans complete
+Plans:
+- [x] 18-01-PLAN.md - API client, types, and DataMethodSelector skeleton (UI-01) - completed 2026-03-18
+- [ ] 18-02-PLAN.md - Method selection and parameter configuration steps (UI-01, UI-02)
+- [ ] 18-03-PLAN.md - Data preview, field extraction, and variable naming steps (UI-03, UI-04)
+- [ ] 18-04-PLAN.md - TaskForm integration with "获取数据" button (UI-01, UI-02, UI-03, UI-04)
 ### Phase 19: 集成与变量传递
 **Goal:** 用户配置的数据获取代码可注入前置条件块，获取的数据可在测试步骤中通过 {{变量名}} 引用
 **Depends on:** Phase 18 (前端 UI 就绪)
@@ -117,9 +122,9 @@ Plans:
 | 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
-| 17. 后端数据获取桥接 | 2/3 | Complete    | 2026-03-18 | - |
-| 18. 前端数据选择器 | v0.3.1 | 0/4 | Not started | - |
+| 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
+| 18. 前端数据选择器 | v0.3.1 | 1/4 | In progress | - |
 | 19. 集成与变量传递 | v0.3.1 | 0/3 | Not started | - |
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-18 - v0.3.1 roadmap created*
+*Last updated: 2026-03-18 - Phase 18-01 completed*
