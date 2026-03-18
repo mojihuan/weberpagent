@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.3
 milestone_name: 前置条件集成
 status: planning
-last_updated: "2026-03-18T01:44:32Z"
+last_updated: "2026-03-18T01:57:48.652Z"
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # Project State
@@ -24,8 +24,8 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Milestone: v0.3 前置条件集成
-Phase: 15-前端集成
-Plan: 03 (completed)
+Phase: 16-端到端验证
+Plan: 01 (completed)
 Status: **EXECUTING**
 
 Progress: [████████░░] 87%
@@ -67,12 +67,12 @@ Progress: [████████░░] 87%
 
 ## Session Continuity
 
-Last session: 2026-03-18T01:44:32Z
+Last session: 2026-03-18T02:20:58Z
 Current milestone: v0.3 前置条件集成
 
 **Next step:**
-- Phase 15-03 complete - OperationCodeSelector integrated into TaskForm
-- Frontend integration for v0.3 complete
+- Phase 16-01 complete - E2E integration tests for complete precondition flow
+- Ready for Phase 16-02 error scenario tests
 
 ## Decisions
 
@@ -111,3 +111,8 @@ Current milestone: v0.3 前置条件集成
 - Button placed above each precondition textarea for per-precondition code selection
 - Code appends with newline prefix if textarea is non-empty, inserts directly if empty
 - Global loading/error state shared across all buttons for simplicity
+
+### Phase 16-01: E2E Precondition Integration Tests
+- Use mock_webseleniumerp fixture with tmp_path for test isolation
+- Reset bridge cache before and after each test with autouse fixture
+- Tests verify complete flow from bridge config to PreconditionService execution

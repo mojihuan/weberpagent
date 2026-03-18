@@ -38,9 +38,9 @@
 - [x] **FRONT-01**: 前置条件编辑器中添加操作码选择器组件
 - [x] **FRONT-02**: 操作码按模块分组显示 (配件、财务、运营、平台等)
 - [x] **FRONT-03**: 支持多选操作码
-- [ ] **FRONT-04**: 选中操作码后自动生成 Python 代码模板
+- [x] **FRONT-04**: 选中操作码后自动生成 Python 代码模板
 ### 验证 (VALIDATE)
-- [ ] **VAL-01**: 完整流程测试： 选择操作码 → 执行前置条件 → 查看结果
+- [x] **VAL-01**: 完整流程测试： 选择操作码 → 执行前置条件 → 查看结果
 - [ ] **VAL-02**: 错误处理： 外部项目缺失、配置错误、执行失败
 ## v0.4 Requirements (Deferred)
 推迟到后续版本：
@@ -68,8 +68,8 @@
 | FRONT-01 | Phase 15 | Complete |
 | FRONT-02 | Phase 15 | Complete |
 | FRONT-03 | Phase 15 | Complete |
-| FRONT-04 | Phase 15 | Pending |
-| VAL-01 | Phase 16 | Pending |
+| FRONT-04 | Phase 15 | Complete |
+| VAL-01 | Phase 16 | Complete |
 | VAL-02 | Phase 16 | Pending |
 **Coverage:**
 - v0.3 requirements: 13 total

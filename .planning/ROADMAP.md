@@ -164,8 +164,8 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 12. 文档指南 | v0.2.1 | 0/2 | Deferred | - |
 | 13. 配置基础 | v0.3 | 3/3 | Complete | 2026-03-17 |
 | 14. 后端桥接模块 | v0.3 | 3/3 | Complete | 2026-03-18 |
-| 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
-| 16. 端到端验证 | v0.3 | 0/? | Not started | - |
+| 15. 前端集成 | v0.3 | Complete    | 2026-03-18 | 2026-03-18 |
+| 16. 端到端验证 | 1/3 | In Progress|  | - |
 ---
 *Roadmap created: 2026-03-14*
 *Last updated: 2026-03-18 - Phase 15 complete*
