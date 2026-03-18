@@ -12,6 +12,7 @@ from backend.core.external_precondition_bridge import (
     is_available,
     get_unavailable_reason,
     get_data_methods_grouped,
+    execute_data_method,
 )
 
 
@@ -47,6 +48,21 @@ class DataMethodsResponse(BaseModel):
     error: Optional[str] = None
 
 
+class ExecuteRequest(BaseModel):
+    """Request model for executing a data method."""
+    class_name: str
+    method_name: str
+    params: dict = {}
+
+
+class ExecuteResponse(BaseModel):
+    """Response model for method execution."""
+    success: bool
+    data: Optional[list[dict]] = None
+    error: Optional[str] = None
+    error_type: Optional[str] = None
+
+
 @router.get("", response_model=DataMethodsResponse)
 async def list_data_methods():
     """List all available data query methods.
@@ -71,3 +87,29 @@ async def list_data_methods():
         classes=[ClassGroup(**c) for c in classes],
         total=total
     )
+
+
+@router.post("/execute", response_model=ExecuteResponse)
+async def execute_method(request: ExecuteRequest):
+    """Execute a data method and return results.
+
+    Returns 503 if external module is not available.
+    Returns 200 with success=False and error field if execution fails.
+    """
+    if not is_available():
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "message": "External data methods module not available",
+                "reason": get_unavailable_reason(),
+                "fix": "Ensure WEBSERP_PATH is configured in .env and config/settings.py exists in webseleniumerp"
+            }
+        )
+
+    result = await execute_data_method(
+        request.class_name,
+        request.method_name,
+        request.params
+    )
+
+    return ExecuteResponse(**result)
