@@ -79,7 +79,7 @@
 **Milestone Goal:** 验证 v0.3.1 数据获取方法集成的端到端可行性，发现并修复潜在 bug
 
 - [x] **Phase 20: E2E Testing + Manual Verification** - 端到端测试与手动验证 (completed 2026-03-19)
-- [ ] **Phase 21: Unit Test Coverage** - 单元测试覆盖
+- [x] **Phase 21: Unit Test Coverage** - 单元测试覆盖 (completed 2026-03-19)
 - [ ] **Phase 22: Bug Fix Sprint** - Bug 修复冲刺
 
 ---
@@ -115,27 +115,30 @@ Plans:
   2. 数据获取 API 端点有完整单元测试（请求/响应/错误处理）
   3. 变量替换逻辑有完整单元测试（各种替换场景）
   4. 新增代码单元测试覆盖率达到 80%+
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 21-01: ContextWrapper.get_data() 与 execute_data_method_sync 单元测试 (Wave 1)
-- [ ] 21-02: 变量替换边界场景单元测试 (Wave 1)
-- [ ] 21-03: 数据获取 API 端点边界场景单元测试 (Wave 2)
+- [x] 21-01: ContextWrapper.get_data() 与 execute_data_method_sync 单元测试 (Wave 1)
+- [x] 21-02: 变量替换边界场景单元测试 (Wave 1)
+- [x] 21-03: 数据获取 API 端点边界场景单元测试 (Wave 2)
 
 ### Phase 22: Bug Fix Sprint
 **Goal:** 测试阶段发现的所有 bug 已修复并通过回归测试
 **Depends on:** Phase 21
 **Requirements:** BUG-01, BUG-02, BUG-03
 **Success Criteria** (what must be TRUE):
-  1. 所有阻断性 bug（阻塞核心流程）已修复
-  2. 所有功能性 bug（影响用户体验）已修复
+  1. 所有阻断性 bug（阻塞核心流程）已修复 - 16 个失败测试 + 18 个归档文件
+  2. 所有功能性 bug（影响用户体验）已修复 - 9 个 UI/交互 bug
   3. 修复后的代码通过回归测试，无新增失败用例
-**Plans:** TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 22-01: 修复阻断性 bug
-- [ ] 22-02: 修复功能性 bug
-- [ ] 22-03: 回归测试验证
+- [ ] 22-01: 修复失败测试 - 测试隔离与 mock 签名更新 (Wave 1) - BUG-01
+- [ ] 22-02: 归档遗留测试文件 - 移动 18 个导入已删除模块的测试 (Wave 1) - BUG-01
+- [ ] 22-03: 修复 DataMethodSelector UI bug - 分组/计数/类型提示/校验/引号/Escape (Wave 2) - BUG-02
+- [ ] 22-04: 修复代码生成 bug - 添加 import 语句 (Wave 2) - BUG-02
+- [ ] 22-05: 修复报告页 bug - 添加前置条件执行信息 (Wave 3) - BUG-02
+- [ ] 22-06: 回归测试验证 - 全量测试 + 手动验证 (Wave 4, checkpoint) - BUG-03
 
 ---
 
@@ -163,9 +166,9 @@ Plans:
 | 18. 前端数据选择器 | v0.3.1 | 5/5 | Complete | 2026-03-19 |
 | 19. 集成与变量传递 | v0.3.1 | 3/3 | Complete | 2026-03-19 |
 | 20. E2E Testing + Manual Verification | v0.3.2 | 6/6 | Complete | 2026-03-19 |
-| 21. Unit Test Coverage | 2/3 | In Progress|  | - |
-| 22. Bug Fix Sprint | v0.3.2 | 0/3 | Not started | - |
+| 21. Unit Test Coverage | v0.3.2 | 3/3 | Complete | 2026-03-19 |
+| 22. Bug Fix Sprint | v0.3.2 | 0/6 | Planning | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-19 - Phase 21 plans created*
+*Last updated: 2026-03-19 - Phase 22 plans created*
