@@ -378,6 +378,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
                       >
                         {className}.{methodName}
                         <button
+                          type="button"
                           onClick={() => removeMethod(key)}
                           className="hover:text-blue-900"
                         >
@@ -480,6 +481,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
                       {config.methodName}
                     </h4>
                     <button
+                      type="button"
                       onClick={() => previewMethodData(key)}
                       disabled={previewLoading && isCurrentPreview}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
@@ -519,6 +521,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
                           <span className="text-gray-400">-&gt;</span>
                           <code className="text-blue-600">{extraction.variableName}</code>
                           <button
+                            type="button"
                             onClick={() => removeExtraction(key, idx)}
                             className="text-red-400 hover:text-red-600 ml-auto"
                           >
@@ -618,6 +621,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900">Select Data Method</h3>
           <button
+            type="button"
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600"
           >
@@ -633,6 +637,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
 
             return (
               <button
+                type="button"
                 key={step}
                 onClick={() => goToStep(index)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors"
@@ -684,6 +689,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
         <div className="flex justify-between gap-3 px-6 py-4 border-t border-gray-100">
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={handleCancel}
               className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
@@ -693,6 +699,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
           <div className="flex gap-3">
             {currentStep > 0 && (
               <button
+                type="button"
                 onClick={handlePrevious}
                 className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-1"
               >
@@ -702,6 +709,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
             )}
             {currentStep < STEPS.length - 1 && (
               <button
+                type="button"
                 onClick={handleNext}
                 disabled={
                   (currentStep === 0 && selectedMethodKeys.size === 0) ||
@@ -715,6 +723,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
             )}
             {currentStep === STEPS.length - 1 && (
               <button
+                type="button"
                 onClick={handleConfirm}
                 disabled={selectedMethodKeys.size === 0 || !Array.from(methodConfigs.values()).some(c => c.extractions.length > 0)}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
