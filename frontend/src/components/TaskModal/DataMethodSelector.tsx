@@ -211,7 +211,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
       const params = Object.entries(config.parameters)
         .map(([k, v]) => `${k}=${typeof v === 'string' ? `'${v}'` : v}`)
         .join(', ')
-      const methodCall = `context.get_data('${config.methodName}', ${params})`
+      const methodCall = `context.get_data('${config.className}', '${config.methodName}', ${params})`
 
       config.extractions.forEach(ex => {
         const pathAccess = ex.path
