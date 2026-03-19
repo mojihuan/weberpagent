@@ -216,7 +216,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
       const params = Object.entries(config.parameters)
         .map(([k, v]) => `${k}=${typeof v === 'string' ? `'${v}'` : v}`)
         .join(', ')
-      const methodCall = `context.get_data('${config.methodName}', ${params})`
+      const methodCall = `context.get_data('${config.className}', '${config.methodName}', ${params})`
 
       config.extractions.forEach(ex => {
         // Convert path like "[0].imei" to Python accessor
