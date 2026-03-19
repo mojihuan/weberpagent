@@ -128,15 +128,15 @@ Plans:
 **Requirements:** BUG-01, BUG-02, BUG-03
 **Success Criteria** (what must be TRUE):
   1. 所有阻断性 bug（阻塞核心流程）已修复 - 16 个失败测试 + 18 个归档文件
-  2. 所有功能性 bug（影响用户体验）已修复 - 9 个 UI/交互 bug
+  2. 所有功能性 bug（影响用户体验）已修复 - 8 个 UI/交互 bug (bug #10 不存在)
   3. 修复后的代码通过回归测试，无新增失败用例
 **Plans:** 6 plans
 
 Plans:
 - [ ] 22-01: 修复失败测试 - 测试隔离与 mock 签名更新 (Wave 1) - BUG-01
 - [ ] 22-02: 归档遗留测试文件 - 移动 18 个导入已删除模块的测试 (Wave 1) - BUG-01
-- [ ] 22-03: 修复 DataMethodSelector UI bug - 分组/计数/类型提示/校验/引号/Escape (Wave 2) - BUG-02
-- [ ] 22-04: 修复代码生成 bug - 添加 import 语句 (Wave 2) - BUG-02
+- [ ] 22-03: 修复 DataMethodSelector UI bug (Part 1) - 分组与计数显示 (Wave 2) - BUG-02
+- [ ] 22-04: 修复 DataMethodSelector UI bug (Part 2) - 类型提示/校验/引号/Escape (Wave 2) - BUG-02
 - [ ] 22-05: 修复报告页 bug - 添加前置条件执行信息 (Wave 3) - BUG-02
 - [ ] 22-06: 回归测试验证 - 全量测试 + 手动验证 (Wave 4, checkpoint) - BUG-03
 
@@ -171,4 +171,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-19 - Phase 22 plans created*
+*Last updated: 2026-03-19 - Phase 22 plans revised (bug #10 removed, 22-03 split into 22-03/22-04)*
