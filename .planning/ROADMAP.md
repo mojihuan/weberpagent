@@ -86,11 +86,11 @@ Plans:
   3. 用户可配置字段提取路径（如 [0].imei）
   4. 用户可设置生成的变量名
   5. 系统自动生成可预览的 Python 代码片段
-**Plans:** 3/4 plans executed
+**Plans:** 4/5 plans executed
 Plans:
 - [x] 18-01-PLAN.md - API client, types, and DataMethodSelector skeleton (UI-01) - completed 2026-03-18
 - [ ] 18-02-PLAN.md - Method selection and parameter configuration steps (UI-01, UI-02)
-- [ ] 18-03-PLAN.md - Data preview, field extraction, and variable naming steps (UI-03, UI-04)
+- [x] 18-03-PLAN.md - Data preview, field extraction, and variable naming steps (UI-03, UI-04) - completed 2026-03-18
 - [ ] 18-04-PLAN.md - TaskForm integration with "获取数据" button (UI-01, UI-02, UI-03, UI-04)
 ### Phase 19: 集成与变量传递
 **Goal:** 用户配置的数据获取代码可注入前置条件块，获取的数据可在测试步骤中通过 {{变量名}} 引用
@@ -123,7 +123,7 @@ Plans:
 | 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
-| 18. 前端数据选择器 | 3/4 | In Progress|  | - |
+| 18. 前端数据选择器 | 4/5 | In Progress|  | - |
 | 19. 集成与变量传递 | v0.3.1 | 0/3 | Not started | - |
 ---
 *Roadmap created: 2026-03-14*
