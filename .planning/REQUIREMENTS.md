@@ -1,38 +1,42 @@
-# Requirements: aiDriveUITest v0.3.1
+# Requirements: aiDriveUITest v0.3.2
 
-**Defined:** 2026-03-18
-**Core Value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
+**Defined:** 2026-03-19
+**Core Value:** 验证 v0.3.1 数据获取方法集成的端到端可行性，发现并修复潜在 bug
 
-## v1 Requirements (v0.3.1)
+## v1 Requirements (v0.3.2)
 
-数据获取方法集成需求，支持从 webseleniumerp 的 base_params.py 获取查询数据并传递给测试步骤。
+测试与Bug修复需求，确保 v0.3.1 数据获取方法集成功能稳定可用。
 
-### 后端
+### 端到端测试
 
-- [x] **DATA-01**: 扫描 base_params.py 获取所有 `xxx_data()` 方法的签名和参数信息
-- [x] **DATA-02**: 提供数据获取方法列表 API（按模块分组，包含方法描述）
-- [x] **DATA-03**: 执行数据获取方法并返回 JSON 结果
+- [ ] **E2E-01**: 用户可以通过 DataMethodSelector 选择数据获取方法
+- [x] **E2E-02**: 数据获取方法执行后返回预期数据
+- [ ] **E2E-03**: 变量名可在测试步骤中正确引用（`{{变量名}}` 替换）
+- [ ] **E2E-04**: 完整测试用例执行流程（前置条件 → 数据获取 → 变量替换 → AI 执行）
 
-### 前端
+### 单元测试
 
-- [x] **UI-01**: DataMethodSelector 组件（复用 OperationCodeSelector 的模块分组模式）
-- [x] **UI-02**: 参数配置表单（动态生成 i/j/k 等参数输入框）
-- [x] **UI-03**: 字段提取路径配置（支持 `[0].imei` 语法）
-- [x] **UI-04**: 变量命名配置（生成变量赋值代码）
+- [ ] **UNIT-01**: ContextWrapper.get_data() 单元测试覆盖
+- [ ] **UNIT-02**: 数据获取 API 端点单元测试覆盖
+- [ ] **UNIT-03**: 变量替换逻辑单元测试覆盖
 
-### 集成
+### Bug 修复
 
-- [x] **INT-01**: 前置条件代码生成（将数据获取代码注入前置条件块）
-- [x] **INT-02**: context 变量存储（数据获取结果存入执行上下文）
-- [x] **INT-03**: Jinja2 变量替换（测试步骤中使用 `{{imei}}` 引用）
+- [ ] **BUG-01**: 发现的阻断性 bug 全部修复
+- [ ] **BUG-02**: 发现的功能性 bug 全部修复
+- [ ] **BUG-03**: Bug 修复后回归测试通过
+
+### 手动验证
+
+- [ ] **MANUAL-01**: DataMethodSelector UI 功能手动验证
+- [ ] **MANUAL-02**: 真实 ERP 环境下端到端流程验证
+- [ ] **MANUAL-03**: 测试报告正确展示数据获取结果
 
 ## v2 Requirements (Future)
 
 推迟到后续版本的需求。
 
-- **INT-04**: 支持链式数据获取（一个方法的输出作为另一个方法的输入）
-- **UI-05**: 数据预览功能（执行前预览获取的数据）
-- **DATA-04**: 数据缓存机制（避免重复查询）
+(none)
 
 ## Out of Scope
 
@@ -40,50 +44,35 @@
 
 | Feature | Reason |
 |---------|--------|
-| 数据修改方法 | 只支持查询类 xxx_data() 方法，不支持写入操作 |
-| 自定义 Python 代码 | 数据获取通过 UI 配置，不开放自由代码编辑 |
-| 跨任务数据共享 | 数据仅在当前任务执行上下文有效 |
+| 性能优化 | 本次专注功能正确性 |
+| 新功能开发 | 先验证现有功能 |
+| 低优先级 UI 问题 | 不影响核心流程 |
 
 ## Traceability
 
-需求到阶段的映射。
+需求到阶段的映射。在 roadmap 创建时更新。
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 17 | Complete |
-| DATA-02 | Phase 17 | Complete |
-| DATA-03 | Phase 17 | Complete |
-| UI-01 | Phase 18 | Complete |
-| UI-02 | Phase 18 | Complete |
-| UI-03 | Phase 18 | Complete |
-| UI-04 | Phase 18 | Complete |
-| INT-01 | Phase 19 | Complete |
-| INT-02 | Phase 19 | Complete |
-| INT-03 | Phase 19 | Complete |
+| E2E-01 | Phase 20 | Pending |
+| E2E-02 | Phase 20 | Complete |
+| E2E-03 | Phase 20 | Pending |
+| E2E-04 | Phase 20 | Pending |
+| UNIT-01 | Phase 21 | Pending |
+| UNIT-02 | Phase 21 | Pending |
+| UNIT-03 | Phase 21 | Pending |
+| BUG-01 | Phase 22 | Pending |
+| BUG-02 | Phase 22 | Pending |
+| BUG-03 | Phase 22 | Pending |
+| MANUAL-01 | Phase 20 | Pending |
+| MANUAL-02 | Phase 20 | Pending |
+| MANUAL-03 | Phase 20 | Pending |
 
 **Coverage:**
-- v1 requirements: 10 total
-- Mapped to phases: 10
-- Unmapped: 0
-
-## 用例示例
-
-```
-前置条件配置:
-1. 选择数据获取方法: inventory_list_data (库存|库存列表)
-2. 配置参数: i=2, j=13
-3. 配置提取路径: [0].imei
-4. 配置变量名: imei
-
-生成的前置条件代码:
-```python
-imei = context.get_data('inventory_list_data', i=2, j=13)[0]['imei']
-```
-
-测试步骤:
-"输入 {{imei}} 到 IMEI 输入框"
-```
+- v1 requirements: 13 total
+- Mapped to phases: 13
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 - v0.3.1 roadmap created, traceability updated*
+*Requirements defined: 2026-03-19*
+*Last updated: 2026-03-19 after initial definition*

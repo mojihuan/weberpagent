@@ -6,16 +6,20 @@
 - [x] **v0.2 前置条件、接口断言、动态数据** - Phases 5-8 (shipped 2026-03-17)
 - [x] **v0.2.1 测试用例调通** - Phases 9-10 (shipped 2026-03-18, Phases 11-12 deferred)
 - [x] **v0.3 前置条件集成** - Phases 13-16 (shipped 2026-03-18)
-- [ ] **v0.3.1 数据获取方法集成** - Phases 17-19 (in progress)
+- [x] **v0.3.1 数据获取方法集成** - Phases 17-19 (shipped 2026-03-19)
+- [ ] **v0.3.2 测试与Bug修复** - Phases 20-22 (in progress)
+
 ## Phases
+
 <details>
 <summary>v0.1 MVP (Phases 1-4) - SHIPPED 2026-03-14</summary>
 - [x] Phase 1: Foundation Fixes (6/6 plans)
 - [x] Phase 2: Data Layer Enhancement (4/4 plans)
 - [x] Phase 3: Service Layer Restoration (6/6 plans)
-- [x] Phase 4: Frontend + E2E Alignment (6/6 plans)
+- [x] Phase 4: Frontend + E2E Alignment (6/4 plans)
 *Archived: .planning/milestones/v0.1-ROADMAP.md*
 </details>
+
 <details>
 <summary>v0.2 前置条件、接口断言、动态数据 (Phases 5-8) - SHIPPED 2026-03-17</summary>
 - [x] Phase 5: 前置条件系统 (4/4 plans) - completed 2026-03-16
@@ -29,6 +33,7 @@
 4. 前端实时监控完善 - SSE 事件处理器、报告数据完整性修复
 *Archived: .planning/milestones/v0.2-ROADMAP.md*
 </details>
+
 <details>
 <summary>v0.2.1 测试用例调通 (Phases 9-10) - SHIPPED 2026-03-18</summary>
 - [x] Phase 9: 登录用例调通 (2/2 plans) - completed 2026-03-17
@@ -40,6 +45,7 @@
 2. 销售出库用例 - 前置条件配置、动态数据生成、API 断言验证通过
 *Note: Phases 11-12 推迟到后续版本*
 </details>
+
 <details>
 <summary>v0.3 前置条件集成 (Phases 13-16) - SHIPPED 2026-03-18</summary>
 - [x] Phase 13: 配置基础 (3/3 plans) - completed 2026-03-17
@@ -53,62 +59,88 @@
 4. 端到端验证 - E2E 测试, 错误场景测试, 手动测试检查清单
 *Archived: .planning/milestones/v0.3-ROADMAP.md*
 </details>
+
+<details>
+<summary>v0.3.1 数据获取方法集成 (Phases 17-19) - SHIPPED 2026-03-19</summary>
+- [x] Phase 17: 后端数据获取桥接 (3/3 plans) - completed 2026-03-18
+- [x] Phase 18: 前端数据选择器 (5/5 plans) - completed 2026-03-19
+- [x] Phase 19: 集成与变量传递 (3/3 plans) - completed 2026-03-19
+**Key accomplishments:**
+1. 后端数据获取桥接 - 扫描 base_params.py，提供数据获取方法列表和执行 API
+2. 前端数据选择器 - DataMethodSelector 4 步向导组件，支持参数配置和字段提取
+3. 集成与变量传递 - context.get_data() 代码生成，API 断言变量替换
+*Archived: .planning/milestones/v0.3.1-ROADMAP.md*
+</details>
+
 ---
 
-## v0.3.1 数据获取方法集成 (Phases 17-19)
-- [x] **Phase 17: 后端数据获取桥接** - 扫描 base_params.py 并提供数据获取 API (completed 2026-03-18)
-- [x] **Phase 18: 前端数据选择器** - DataMethodSelector 组件及参数配置 UI (completed 2026-03-19)
-- [x] **Phase 19: 集成与变量传递** - 前置条件代码生成与 Jinja2 变量替换 (completed 2026-03-19)
+## v0.3.2 测试与Bug修复 (Phases 20-22)
+
+**Milestone Goal:** 验证 v0.3.1 数据获取方法集成的端到端可行性，发现并修复潜在 bug
+
+- [ ] **Phase 20: E2E Testing + Manual Verification** - 端到端测试与手动验证
+- [ ] **Phase 21: Unit Test Coverage** - 单元测试覆盖
+- [ ] **Phase 22: Bug Fix Sprint** - Bug 修复冲刺
+
 ---
 
 ## Phase Details
-### Phase 17: 后端数据获取桥接
-**Goal:** 用户可以通过 API 获取 webseleniumerp 中所有 xxx_data() 查询方法的列表和执行结果
-**Depends on:** Phase 16 (v0.3 前置条件集成完成)
-**Requirements:** DATA-01, DATA-02, DATA-03
+
+### Phase 20: E2E Testing + Manual Verification
+**Goal:** 验证数据获取方法集成的端到端流程可用
+**Depends on:** Phase 19 (v0.3.1 集成与变量传递完成)
+**Requirements:** E2E-01, E2E-02, E2E-03, E2E-04, MANUAL-01, MANUAL-02, MANUAL-03
 **Success Criteria** (what must be TRUE):
-  1. 用户调用 API 可获取所有 xxx_data() 方法的列表（按模块分组，包含方法描述）
-  2. API 返回每个方法的参数签名信息（参数名、类型）
-  3. 用户调用执行 API 可获取指定方法的 JSON 数据结果
-  4. 当 WEBSERP_PATH 未配置时，API 返回清晰的错误提示
-**Plans:** 3/3 plans complete
+  1. 用户可通过 DataMethodSelector 选择并配置数据获取方法
+  2. 执行数据获取方法后返回预期数据并显示在前端
+  3. 测试步骤中的 `{{变量名}}` 被正确替换为实际值
+  4. 完整测试用例（前置条件 -> 数据获取 -> 变量替换 -> AI 执行）端到端成功
+  5. 真实 ERP 环境下完整流程手动验证通过
+**Plans:** 6 plans in 5 waves
+
 Plans:
-- [x] 17-01-PLAN.md - Extend bridge module for data method discovery (DATA-01)
-- [x] 17-02-PLAN.md - Create data method list API endpoint (DATA-02)
-- [x] 17-03-PLAN.md - Create data method execution API endpoint (DATA-03)
-### Phase 18: 前端数据选择器
-**Goal:** 用户可以在前端选择数据获取方法、配置参数、设置字段提取路径和变量名
-**Depends on:** Phase 17 (后端数据获取 API 就绪)
-**Requirements:** UI-01, UI-02, UI-03, UI-04
+- [x] 20-01: E2E 测试 - DataMethodSelector 选择与配置 (Wave 1) - completed 2026-03-19
+- [x] 20-02: E2E 测试 - 数据获取执行与返回 (Wave 1) - completed 2026-03-19
+- [ ] 20-03: E2E 测试 - 变量替换集成 (Wave 2)
+- [ ] 20-04: E2E 测试 - 完整用例执行流程 (Wave 3)
+- [ ] 20-05: 手动验证 - 创建检查清单 (Wave 4)
+- [ ] 20-06: 手动验证 - 执行与确认 (Wave 5, checkpoint)
+
+### Phase 21: Unit Test Coverage
+**Goal:** 核心数据获取逻辑有充分的单元测试覆盖
+**Depends on:** Phase 20
+**Requirements:** UNIT-01, UNIT-02, UNIT-03
 **Success Criteria** (what must be TRUE):
-  1. 用户可从按模块分组的下拉列表中选择数据获取方法
-  2. 用户可填写方法参数（如 i=2, j=13）
-  3. 用户可配置字段提取路径（如 [0].imei）
-  4. 用户可设置生成的变量名
-  5. 系统自动生成可预览的 Python 代码片段
-**Plans:** 5/5 plans complete
+  1. ContextWrapper.get_data() 方法有完整单元测试（正常/异常路径）
+  2. 数据获取 API 端点有完整单元测试（请求/响应/错误处理）
+  3. 变量替换逻辑有完整单元测试（各种替换场景）
+  4. 新增代码单元测试覆盖率达到 80%+
+**Plans:** TBD
+
 Plans:
-- [x] 18-01-PLAN.md - API client, types, and DataMethodSelector skeleton (UI-01) - completed 2026-03-18
-- [x] 18-02-PLAN.md - Method selection and parameter configuration steps (UI-01, UI-02)
-- [x] 18-03-PLAN.md - Data preview, field extraction, and variable naming steps (UI-03, UI-04) - completed 2026-03-18
-- [x] 18-04-PLAN.md - TaskForm integration with "获取数据" button (UI-01, UI-02, UI-03, UI-04)
-- [x] 18-05-PLAN.md - Variable naming and code preview step (UI-04) - completed 2026-03-19
-### Phase 19: 集成与变量传递
-**Goal:** 用户配置的数据获取代码可注入前置条件块，获取的数据可在测试步骤中通过 {{变量名}} 引用
-**Depends on:** Phase 18 (前端 UI 就绪)
-**Requirements:** INT-01, INT-02, INT-03
+- [ ] 21-01: ContextWrapper.get_data() 单元测试
+- [ ] 21-02: 数据获取 API 端点单元测试
+- [ ] 21-03: 变量替换逻辑单元测试
+
+### Phase 22: Bug Fix Sprint
+**Goal:** 测试阶段发现的所有 bug 已修复并通过回归测试
+**Depends on:** Phase 21
+**Requirements:** BUG-01, BUG-02, BUG-03
 **Success Criteria** (what must be TRUE):
-  1. 用户点击确认后，生成的代码自动插入前置条件文本框
-  2. 执行测试时，数据获取结果存入 context 变量
-  3. 测试步骤中使用 {{变量名}} 可正确替换为实际获取的数据
-  4. 数据获取失败时，测试终止并显示清晰的错误信息
-**Plans:** 3/3 plans complete
+  1. 所有阻断性 bug（阻塞核心流程）已修复
+  2. 所有功能性 bug（影响用户体验）已修复
+  3. 修复后的代码通过回归测试，无新增失败用例
+**Plans:** TBD
+
 Plans:
-- [x] 19-01-PLAN.md - Update frontend code generation to include className (INT-01) - completed 2026-03-19
-- [ ] 19-02-PLAN.md - Implement ContextWrapper with get_data() method (INT-02)
-- [ ] 19-03-PLAN.md - Verify API assertion variable substitution (INT-03)
+- [ ] 22-01: 修复阻断性 bug
+- [ ] 22-02: 修复功能性 bug
+- [ ] 22-03: 回归测试验证
+
 ---
+
 ## Progress
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation Fixes | v0.1 | 6/6 | Complete | 2026-03-14 |
@@ -129,7 +161,11 @@ Plans:
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
 | 18. 前端数据选择器 | v0.3.1 | 5/5 | Complete | 2026-03-19 |
-| 19. 集成与变量传递 | 3/3 | Complete    | 2026-03-19 | 2026-03-19 |
+| 19. 集成与变量传递 | v0.3.1 | 3/3 | Complete | 2026-03-19 |
+| 20. E2E Testing + Manual Verification | v0.3.2 | 2/6 | In Progress | 2026-03-19 |
+| 21. Unit Test Coverage | v0.3.2 | 0/3 | Not started | - |
+| 22. Bug Fix Sprint | v0.3.2 | 0/3 | Not started | - |
+
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-19 - Phase 19 plan 01 complete*
+*Last updated: 2026-03-19 - Phase 20 plan 20-06 added (split from 20-05)*
