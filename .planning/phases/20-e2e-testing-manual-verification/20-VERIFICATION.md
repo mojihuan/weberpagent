@@ -121,14 +121,14 @@ curl http://localhost:5173
 
 - [x] 进入已创建的任务页面
 - [x] 点击“Run”按钮执行任务
-- [ ] 验证执行已开始（状态变为“Running”）
-- [ ] 等待前置条件执行完成
-- [ ] 验证前置条件状态显示成功
-- [ ] 验证数据方法执行成功（日志中无错误）
-- [ ] 验证变量已存储到执行上下文中
-- [ ] 验证 AI 执行使用了替换后的变量值（若描述中包含 `{{imei}}`）
-- [ ] 验证 API 断言使用了替换后的变量值（若有配置）
-- [ ] 验证整个执行流程完成（成功或按测试预期失败）
+- [x] 验证执行已开始（状态变为“Running”）
+- [x] 等待前置条件执行完成
+- [x] 验证前置条件状态显示成功
+- [x] 验证数据方法执行成功（日志中无错误）
+- [x] 验证变量已存储到执行上下文中
+- [x] 验证 AI 执行使用了替换后的变量值（若描述中包含 `{{imei}}`）
+- [x] 验证 API 断言使用了替换后的变量值（若有配置）
+- [x] 验证整个执行流程完成（成功或按测试预期失败）
 
 ### 执行日志验证
 
@@ -325,6 +325,7 @@ curl http://localhost:5173
 | 11 | Low | Escape 键无法关闭模态框 | 按下 Escape 键应该关闭 DataMethodSelector 模态框，但实际无响应 | [ ] Open (延后到下个里程碑) |
 | 12 | **High** | 提取的变量未存入 context | 生成的代码使用 `var = context.get_data(...)` 而非 `context[var] = ...`，导致后续无法使用 | [x] Fixed - 修复 TaskForm.tsx 第 226 行代码生成逻辑 |
 | 13 | **High** | 操作码选择器 Confirm 后关闭整个表单 | 模态框按钮缺少 type="button"，默认为 submit 导致父表单提交 | [x] Fixed - 为所有模态框按钮添加 type="button" |
+| 14 | **Milestone** | 格式化输入框处理策略 | 金额/数字类输入框的键盘输入会失败，需使用 JavaScript 直接赋值 | [x] Documented - 详见优化笔记 |
 
 ---
 
@@ -342,6 +343,35 @@ curl http://localhost:5173
 | 执行报告 | `report-overview.png` | 报告页面总览 |
 | 变量区域 | `report-variables.png` | 变量区域特写 |
 | 断言替换 | `report-assertion.png` | 展示替换后值的 API 断言 |
+
+---
+
+## 里程碑发现
+
+### 格式化输入框处理策略 (Issue #14)
+
+在销售出库测试中发现，**金额/数字类格式化输入框无法通过普通键盘输入正确填写**。
+
+**问题表现**：
+- 输入 `150` 后变成 `0.15000`
+- 重试后变成 `0.15015`、`0.15150015` 等错乱值
+- 日志提示：`Text field clearing failed, typing may append to existing text`
+
+**根因**：
+- 输入框是受控组件，带有金额格式化逻辑
+- 清空操作失败，键盘输入被追加到原值
+- 组件持续按数字格式自动处理
+
+**解决方案**：
+放弃模拟键盘输入，改用 **JavaScript 直接赋值**：
+```javascript
+const field = document.querySelector('td[aria-label*="销售金额"] input');
+field.value = '150';
+field.dispatchEvent(new Event('input', { bubbles: true }));
+field.dispatchEvent(new Event('change', { bubbles: true }));
+```
+
+**详细文档**：[.planning/optimization-notes/formatted-input-handling.md](./.planning/optimization-notes/formatted-input-handling.md)
 
 ---
 
