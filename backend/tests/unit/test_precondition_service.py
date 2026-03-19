@@ -247,6 +247,63 @@ class TestPreconditionServiceSubstitution:
         with pytest.raises((UndefinedError, IndexError)):
             PreconditionService.substitute_variables(text, context)
 
+    # --- Nested path and empty container tests (Task 2) ---
+
+    def test_substitute_variables_nested_path(self, service):
+        """Test deeply nested field paths like {{data.level1.level2}}."""
+        context = {
+            'data': {
+                'level1': {
+                    'level2': 'deep_value',
+                    'sibling': 'other'
+                }
+            }
+        }
+        text = "Value: {{data.level1.level2}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "Value: deep_value"
+
+    def test_substitute_variables_three_level_nesting(self, service):
+        """Test 3-level nested paths."""
+        context = {
+            'response': {
+                'data': {
+                    'order': {
+                        'id': 'ORD-123',
+                        'items': [{'name': 'item1'}]
+                    }
+                }
+            }
+        }
+        text = "Order: {{response.data.order.id}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "Order: ORD-123"
+
+    def test_substitute_variables_empty_list_iteration(self, service):
+        """Test empty list in context."""
+        context = {'items': []}
+        # Accessing empty list directly should work
+        text = "Items: {{items}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "Items: []"
+
+    def test_substitute_variables_none_value(self, service):
+        """Test None value renders as 'None' string."""
+        context = {'value': None}
+        text = "Value: {{value}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "Value: None"
+
+    def test_substitute_variables_missing_nested_key(self, service):
+        """Test missing key in nested path raises UndefinedError."""
+        from jinja2 import UndefinedError
+
+        context = {'data': {'level1': {}}}
+        text = "Value: {{data.level1.missing_key}}"
+
+        with pytest.raises(UndefinedError):
+            PreconditionService.substitute_variables(text, context)
+
 
 class TestPreconditionServiceExternalModule:
     """外部模块加载测试"""
