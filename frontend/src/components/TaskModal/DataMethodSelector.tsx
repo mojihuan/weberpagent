@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { X, Check, ChevronLeft, ChevronRight, Search, Play } from 'lucide-react'
+import { X, Check, ChevronLeft, ChevronRight, Search, Play, ChevronDown } from 'lucide-react'
 import type { DataMethodConfig, DataMethodsResponse } from '../../types'
 import { externalDataMethodsApi } from '../../api/externalDataMethods'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
@@ -33,6 +33,9 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [currentPreviewKey, setCurrentPreviewKey] = useState<string | null>(null)
 
+  // Collapsible panel state for class groups
+  const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set())
+
   // Filter methods based on search query (following OperationCodeSelector pattern)
   const filteredClasses = useMemo(() => {
     if (!searchQuery.trim()) return methods.classes
@@ -47,6 +50,19 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
       }))
       .filter(cls => cls.methods.length > 0)
   }, [methods.classes, searchQuery])
+
+  // Toggle panel expansion
+  const togglePanel = (className: string) => {
+    setExpandedPanels(prev => {
+      const next = new Set(prev)
+      if (next.has(className)) {
+        next.delete(className)
+      } else {
+        next.add(className)
+      }
+      return next
+    })
+  }
 
   // Toggle method selection
   const toggleMethod = (className: string, methodName: string) => {
@@ -253,7 +269,15 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
     setSelectedMethodKeys(new Set())
     setSearchQuery('')
     setMethodConfigs(new Map())
+    setExpandedPanels(new Set())
   }, [open])
+
+  // Expand all panels when methods are loaded
+  useEffect(() => {
+    if (methods.classes.length > 0 && expandedPanels.size === 0) {
+      setExpandedPanels(new Set(methods.classes.map(c => c.name)))
+    }
+  }, [methods.classes, expandedPanels.size])
 
   const handleCancel = () => {
     onCancel()
@@ -333,36 +357,59 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
               </div>
             )}
 
-            {/* Grouped list of methods */}
-            {!loading && !error && filteredClasses.map(cls => (
-              <div key={cls.name} className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">{cls.name}</h4>
-                <div className="space-y-1">
-                  {cls.methods.map(m => {
-                    const methodKey = `${cls.name}:${m.name}`
-                    const isSelected = selectedMethodKeys.has(methodKey)
-                    return (
-                      <label
-                        key={methodKey}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+            {/* Grouped list of methods with collapsible panels */}
+            {!loading && !error && (
+              <div className="mb-4 space-y-2">
+                {filteredClasses.map(cls => {
+                  const isExpanded = expandedPanels.has(cls.name)
+                  return (
+                    <div key={cls.name} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => togglePanel(cls.name)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
                       >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleMethod(cls.name, m.name)}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
-                        />
-                        <span className="font-mono text-sm text-blue-600">{m.name}</span>
-                        <span className="text-sm text-gray-600 flex-1">{m.description}</span>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-                          {m.parameters.length} params
-                        </span>
-                      </label>
-                    )
-                  })}
-                </div>
+                        <span className="font-medium text-gray-700">{cls.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400">
+                            {cls.methods.length} methods
+                          </span>
+                          <ChevronDown
+                            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          />
+                        </div>
+                      </button>
+                      {isExpanded && (
+                        <div className="space-y-1 p-2">
+                          {cls.methods.map(m => {
+                            const methodKey = `${cls.name}:${m.name}`
+                            const isSelected = selectedMethodKeys.has(methodKey)
+                            return (
+                              <label
+                                key={methodKey}
+                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleMethod(cls.name, m.name)}
+                                  className="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                                />
+                                <span className="font-mono text-sm text-blue-600">{m.name}</span>
+                                <span className="text-sm text-gray-600 flex-1">{m.description}</span>
+                                <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+                                  {m.parameters.length} params
+                                </span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-            ))}
+            )}
 
             {/* Selected count display */}
             {selectedMethodKeys.size > 0 && (
