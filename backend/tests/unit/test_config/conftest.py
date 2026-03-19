@@ -12,10 +12,12 @@ def mock_valid_weberp_path(tmp_path: Path) -> Path:
     weberp_dir = tmp_path / "webseleniumerp"
     weberp_dir.mkdir()
 
-    # Create base_prerequisites.py
-    (weberp_dir / "base_prerequisites.py").write_text(
+    # Create common/base_prerequisites.py (correct location)
+    common_dir = weberp_dir / "common"
+    common_dir.mkdir()
+    (common_dir / "base_prerequisites.py").write_text(
         "# Mock base_prerequisites.py\n"
-        "class BasePrerequisites:\n"
+        "class PreFront:\n"
         "    pass\n"
     )
 
@@ -32,7 +34,7 @@ def mock_valid_weberp_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def mock_weberp_missing_base_prereq(tmp_path: Path) -> Path:
-    """Create a mock webseleniumerp directory without base_prerequisites.py."""
+    """Create a mock webseleniumerp directory without common/base_prerequisites.py."""
     weberp_dir = tmp_path / "webseleniumerp"
     weberp_dir.mkdir()
 
@@ -50,9 +52,11 @@ def mock_weberp_missing_config(tmp_path: Path) -> Path:
     weberp_dir = tmp_path / "webseleniumerp"
     weberp_dir.mkdir()
 
-    # Create base_prerequisites.py only
-    (weberp_dir / "base_prerequisites.py").write_text(
-        "class BasePrerequisites:\n    pass\n"
+    # Create common/base_prerequisites.py only (correct location)
+    common_dir = weberp_dir / "common"
+    common_dir.mkdir()
+    (common_dir / "base_prerequisites.py").write_text(
+        "class PreFront:\n    pass\n"
     )
 
     return weberp_dir
@@ -60,12 +64,14 @@ def mock_weberp_missing_config(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def mock_weberp_unimportable(tmp_path: Path) -> Path:
-    """Create a mock webseleniumerp directory with invalid base_prerequisites.py."""
+    """Create a mock webseleniumerp directory with invalid common/base_prerequisites.py."""
     weberp_dir = tmp_path / "webseleniumerp"
     weberp_dir.mkdir()
 
-    # Create syntactically invalid base_prerequisites.py
-    (weberp_dir / "base_prerequisites.py").write_text(
+    # Create syntactically invalid common/base_prerequisites.py (correct location)
+    common_dir = weberp_dir / "common"
+    common_dir.mkdir()
+    (common_dir / "base_prerequisites.py").write_text(
         "this is not valid python syntax !!!\n"
     )
 
