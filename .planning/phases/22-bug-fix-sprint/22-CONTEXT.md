@@ -11,7 +11,7 @@
 **Scope:**
 - 修复 16 个过时测试（测试代码与当前 API 不匹配）
 - 归档 18 个遗留测试文件（导入已删除模块）
-- 修复 Phase 20 延后的 9 个 Low 级别 UI/功能 bug
+- 修复 Phase 20 延后的 8 个 Low 级别 UI/功能 bug
 - 全量回归测试验证
 
 **Out of Scope:**
@@ -47,9 +47,9 @@
    - 问题: 测试假设 WEBSERP_PATH 为 None，但环境已配置
    - 修复: 使用 monkeypatch 或 fixture 清理环境
 
-4. **test_precondition_service.py** (1个失败)
-   - 问题: 复杂前置条件测试与桥接模块集成问题
-   - 修复: 更新测试以匹配当前桥接行为
+4. **test_precondition_service.py** (2个失败)
+   - 问题: test_config 下的测试需要环境隔离
+   - 修复: 使用 monkeypatch 清理环境，添加 test_validators.py 修复
 
 #### 遗留测试文件归档 (18个)
 - **处理方式**: 移动到 `backend/tests/_archived/` 目录
@@ -97,14 +97,14 @@
    - 当前: 所有参数都可以输入任何内容
    - 目标: 数字字段只允许数字输入
 
-#### 代码生成与交互 (3个)
+#### 代码生成与交互 (2个)
 6. **#9**: 默认值带引号导致执行失败
    - 当前: 字符串参数默认值显示为 `'main'`（带引号）
    - 目标: 去除多余引号
 
-7. **#10**: 生成代码缺少 import 语句
-   - 当前: 只有 `context.get_data()` 调用
-   - 目标: 包含必要的 import 语句（如需要）
+7. ~~**#10**: 生成代码缺少 import 语句~~ **NOT A BUG**
+   - 调查结果: `context.get_data()` 是 ContextWrapper 的方法，在前置条件执行环境中已自动可用，无需额外 import
+   - 状态: 无需修复
 
 8. **#11**: Escape 键无法关闭模态框
    - 当前: 按 Escape 无响应
@@ -137,12 +137,10 @@
 ### 测试修复参考
 - `backend/tests/unit/test_external_bridge.py` — 需要修复的 7 个测试
 - `backend/tests/unit/test_browser_cleanup.py` — 需要修复的 2 个测试
-- `backend/tests/unit/test_config/` — 需要修复的配置测试
-- `backend/tests/unit/test_precondition_service.py` — 需要修复的桥接集成测试
+- `backend/tests/unit/test_config/` — 需要修复的配置测试 (test_settings.py, test_validators.py)
 
 ### Bug 修复参考
 - `frontend/src/components/TaskModal/DataMethodSelector.tsx` — DataMethodSelector 组件 (#1, #2, #3, #4, #6, #9, #11)
-- `frontend/src/components/TaskModal/TaskForm.tsx` — 代码生成逻辑 (#10)
 - `frontend/src/pages/ReportPage.tsx` — 报告页面 (#15)
 - `backend/api/routes/runs.py` — 执行结果数据结构
 
