@@ -9,7 +9,7 @@
 
 ### 端到端测试
 
-- [ ] **E2E-01**: 用户可以通过 DataMethodSelector 选择数据获取方法
+- [x] **E2E-01**: 用户可以通过 DataMethodSelector 选择数据获取方法
 - [x] **E2E-02**: 数据获取方法执行后返回预期数据
 - [ ] **E2E-03**: 变量名可在测试步骤中正确引用（`{{变量名}}` 替换）
 - [ ] **E2E-04**: 完整测试用例执行流程（前置条件 → 数据获取 → 变量替换 → AI 执行）
@@ -54,7 +54,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| E2E-01 | Phase 20 | Pending |
+| E2E-01 | Phase 20 | Complete |
 | E2E-02 | Phase 20 | Complete |
 | E2E-03 | Phase 20 | Pending |
 | E2E-04 | Phase 20 | Pending |
