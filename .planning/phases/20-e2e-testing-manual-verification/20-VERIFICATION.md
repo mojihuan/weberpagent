@@ -1,347 +1,353 @@
-# Manual Verification Checklist - Data Method Integration
+# 手动验证清单 - 数据方法集成功能
 
-**Phase:** 20-e2e-testing-manual-verification
-**Created:** 2026-03-19
-**Purpose:** Comprehensive manual verification checklist for data method integration functionality
+**阶段：** 20-e2e-testing-manual-verification
+**创建时间：** 2026-03-19
+**目的：** 对数据方法集成功能进行全面的手动验证检查
 
 ---
 
-## Environment Setup
+## 环境准备
 
-Before starting verification, ensure the following environment variables are configured:
+在开始验证前，请确保已配置以下环境变量：
 
-- [ ] `ERP_BASE_URL` environment variable is set to the real ERP server URL
-- [ ] `ERP_USERNAME` environment variable is set with valid ERP credentials
-- [ ] `ERP_PASSWORD` environment variable is set with valid ERP credentials
-- [ ] `WEBSERP_PATH` environment variable is set (if required by ERP system)
-- [ ] `DASHSCOPE_API_KEY` is configured for AI execution
-- [ ] Backend server is running on port 8080 (`uv run uvicorn backend.api.main:app --reload --port 8080`)
-- [ ] Frontend server is running on port 5173 (`cd frontend && npm run dev`)
-- [ ] Database is accessible and contains test data
+- [x] 已设置 `ERP_BASE_URL` 环境变量，并指向真实 ERP 服务器地址
+- [x] 已设置 `ERP_USERNAME` 环境变量，并填写有效的 ERP 凭证
+- [x] 已设置 `ERP_PASSWORD` 环境变量，并填写有效的 ERP 凭证
+- [x] 已设置 `WEBSERP_PATH` 环境变量（如果 ERP 系统需要）
+- [x] 已配置 `DASHSCOPE_API_KEY`，用于 AI 执行
+- [x] 后端服务已运行在 8080 端口（`uv run uvicorn backend.api.main:app --reload --port 8080`）
+- [x] 前端服务已运行在 5173 端口（`cd frontend && npm run dev`）
+- [x] 数据库可访问，并且包含测试数据
 
-### Quick Environment Check Commands
+### 快速环境检查命令
 
 ```bash
-# Check environment variables
+# 检查环境变量
 echo $ERP_BASE_URL
 echo $ERP_USERNAME
 
-# Check backend is running
+# 检查后端是否运行
 curl http://localhost:8080/health
 
-# Check frontend is running
+# 检查前端是否运行
 curl http://localhost:5173
 ```
 
 ---
 
-## DataMethodSelector UI Verification (MANUAL-01)
+## DataMethodSelector UI 验证（MANUAL-01）
 
-This section verifies the 4-step wizard DataMethodSelector component works correctly.
+本部分用于验证 4 步向导组件 DataMethodSelector 是否工作正常。
 
-### Step 1: Method Selection
+### 第 1 步：方法选择
 
-- [ ] "Get Data" button is visible in the task form (precondition section)
-- [ ] Clicking "Get Data" button opens the modal dialog
-- [ ] Modal title shows "Get Data from ERP"
-- [ ] Method list loads with class groups (e.g., "BaseParams", "OtherParams")
-- [ ] Clicking a class group expands to show methods within that class
-- [ ] Search input filters methods correctly by name
-- [ ] Method checkbox toggles selection state
-- [ ] Multiple methods can be selected
-- [ ] Selected methods appear in the summary area at the bottom
-- [ ] Selected method count is displayed correctly
-- [ ] "Next" button is disabled until at least one method is selected
-- [ ] Clicking "Next" with selected methods proceeds to Step 2
+- [x] 任务表单中可见“Get Data”按钮（前置条件区域）
+- [x] 点击“Get Data”按钮后会打开模态对话框
+- [x] 模态框标题显示为“Get Data from ERP”
+- [ ] 方法列表能够加载类分组（例如 “BaseParams”、“OtherParams”）
+- [ ] 点击某个类分组后，可展开显示该类下的方法
+- [x] 搜索输入框可按名称正确过滤方法
+- [x] 方法复选框可切换选中状态
+- [x] 支持同时选择多个方法
+- [ ] 已选择的方法会显示在底部汇总区域
+- [ ] 已选择的方法数量显示正确
+- [x] 在未选择任何方法前，“Next”按钮应为禁用状态
+- [ ] 选择方法后点击“Next”，可进入第 2 步
 
-### Step 2: Parameter Configuration
+### 第 2 步：参数配置
 
-- [ ] Parameter inputs are displayed for each selected method
-- [ ] Required parameters are marked with red asterisk (*)
-- [ ] Optional parameters are shown without asterisk
-- [ ] Parameter type hints are displayed (e.g., "integer", "string")
-- [ ] Parameter descriptions/tooltips are visible
-- [ ] Input validation works (e.g., number-only fields reject letters)
-- [ ] "Back" button returns to Step 1
-- [ ] "Next" button is disabled until all required parameters are filled
-- [ ] Clicking "Next" with all required params proceeds to Step 3
+- [x] 每个已选方法都会显示对应的参数输入项
+- [x] 必填参数使用红色星号（*）标记
+- [x] 可选参数显示时不带星号
+- [ ] 显示参数类型提示（例如 “integer”、“string”）
+- [ ] 参数描述/提示信息可见
+- [ ] 输入校验有效（例如数字字段不能输入字母）
+- [x] 点击“Back”可返回第 1 步
+- [x] 所有必填参数未填写前，“Next”按钮应为禁用状态
+- [x] 所有必填参数填写完成后点击“Next”，可进入第 3 步
 
-### Step 3: Preview & Extraction
+### 第 3 步：预览与提取
 
-- [ ] "Preview" button is visible and enabled
-- [ ] Clicking "Preview" executes the data method against real ERP
-- [ ] Loading indicator shows during execution
-- [ ] JSON viewer displays returned data in formatted view
-- [ ] JSON viewer supports expand/collapse for nested structures
-- [ ] Clicking a field in the JSON adds an extraction path
-- [ ] Extraction path appears in the extraction list (e.g., `[0].imei`)
-- [ ] Multiple extraction paths can be added
-- [ ] Variable name input is displayed next to each extraction path
-- [ ] Duplicate variable names are highlighted with warning color
-- [ ] "Back" button returns to Step 2
-- [ ] "Next" button proceeds to Step 4
+- [x] “Preview”按钮可见且可用
+- [ ] 点击“Preview”后，会针对真实 ERP 执行该数据方法
+- [ ] 执行过程中显示加载指示器
+- [ ] JSON 查看器以格式化视图显示返回数据
+- [ ] JSON 查看器支持嵌套结构的展开/折叠
+- [ ] 点击 JSON 中某个字段时，会添加一个提取路径
+- [ ] 提取路径显示在提取列表中（例如 `[0].imei`）
+- [ ] 可添加多个提取路径
+- [ ] 每个提取路径旁边显示变量名输入框
+- [ ] 重复的变量名会以警告颜色高亮显示
+- [ ] 点击“Back”可返回第 2 步
+- [ ] 点击“Next”可进入第 4 步
 
-### Step 4: Confirm & Generate
+### 第 4 步：确认与生成
 
-- [ ] Variable name inputs are displayed for each extraction path
-- [ ] Variable names can be edited
-- [ ] Duplicate variable names show validation error
-- [ ] Code preview section shows generated Python code
-- [ ] Generated code includes proper imports
-- [ ] Generated code shows `context.get_data()` call with correct parameters
-- [ ] Generated code shows variable assignments from extraction paths
-- [ ] "Back" button returns to Step 3
-- [ ] "Confirm" button is enabled when all validations pass
-- [ ] Clicking "Confirm" closes the modal
-- [ ] Generated code appears in the precondition textarea
-- [ ] Modal can be closed via X button (cancels operation)
-- [ ] Modal can be closed via Escape key (cancels operation)
-
----
-
-## Real ERP Environment Verification (MANUAL-02)
-
-This section verifies the complete data method execution flow with real ERP credentials.
-
-### Task Creation with Data Method
-
-- [ ] Navigate to task creation page
-- [ ] Create a new task with name "Data Method Test"
-- [ ] Add task description (can include variable placeholders like `{{imei}}`)
-- [ ] Click "Get Data" button in precondition section
-- [ ] Select `BaseParams.inventory_list_data` method
-- [ ] Configure parameters: `i=2`, `j=13`
-- [ ] Preview the data method execution
-- [ ] Add extraction path: `[0].imei` -> `imei`
-- [ ] Confirm and generate code
-- [ ] Verify generated code appears in precondition textarea
-- [ ] Save the task successfully
-
-### Task Execution with Real ERP
-
-- [ ] Navigate to the created task
-- [ ] Click "Run" button to execute the task
-- [ ] Verify execution starts (status changes to "Running")
-- [ ] Wait for precondition execution to complete
-- [ ] Verify precondition status shows success
-- [ ] Verify data method executes successfully (no errors in logs)
-- [ ] Verify variables are stored in execution context
-- [ ] Verify AI execution uses substituted variables (if description contains `{{imei}}`)
-- [ ] Verify API assertions receive substituted variables (if configured)
-- [ ] Verify execution completes (success or failure based on test expectations)
-
-### Execution Logs Verification
-
-- [ ] Open execution logs/trace
-- [ ] Verify `get_data()` call is logged
-- [ ] Verify ERP response data is logged (can be truncated for large responses)
-- [ ] Verify variable extraction is logged (e.g., "Extracted imei = XXXXX")
-- [ ] Verify variable substitution is logged where applicable
+- [ ] 每个提取路径都显示对应的变量名输入框
+- [ ] 变量名可编辑
+- [ ] 重复变量名会显示校验错误
+- [ ] 代码预览区域显示生成的 Python 代码
+- [ ] 生成的代码包含正确的 imports
+- [ ] 生成的代码中包含带正确参数的 `context.get_data()` 调用
+- [ ] 生成的代码中包含根据提取路径生成的变量赋值语句
+- [ ] 点击“Back”可返回第 3 步
+- [ ] 所有校验通过时，“Confirm”按钮应为可用状态
+- [ ] 点击“Confirm”后，模态框关闭
+- [ ] 生成的代码会出现在前置条件文本框中
+- [ ] 可通过右上角 X 按钮关闭模态框（取消操作）
+- [ ] 可通过 Escape 键关闭模态框（取消操作）
 
 ---
 
-## Report Display Verification (MANUAL-03)
+## 真实 ERP 环境验证（MANUAL-02）
 
-This section verifies the report page correctly displays data method execution results.
+本部分用于验证在真实 ERP 凭证下的数据方法完整执行流程。
 
-### Navigation to Report
+### 使用数据方法创建任务
 
-- [ ] Navigate to reports list page
-- [ ] Find the report for the executed test
-- [ ] Click to open the report details
+- [ ] 进入任务创建页面
+- [ ] 新建任务，名称为 “Data Method Test”
+- [ ] 添加任务描述（可包含变量占位符，例如 `{{imei}}`）
+- [ ] 点击前置条件区域中的“Get Data”按钮
+- [ ] 选择 `BaseParams.inventory_list_data` 方法
+- [ ] 配置参数：`i=2`、`j=13`
+- [ ] 预览该数据方法执行结果
+- [ ] 添加提取路径：`[0].imei` -> `imei`
+- [ ] 确认并生成代码
+- [ ] 验证生成的代码出现在前置条件文本框中
+- [ ] 成功保存任务
 
-### Precondition Execution Display
+### 在真实 ERP 中执行任务
 
-- [ ] Precondition execution status is displayed (success/failure)
-- [ ] Precondition execution duration is shown
-- [ ] "View Details" or expand option is available for precondition
+- [ ] 进入已创建的任务页面
+- [ ] 点击“Run”按钮执行任务
+- [ ] 验证执行已开始（状态变为“Running”）
+- [ ] 等待前置条件执行完成
+- [ ] 验证前置条件状态显示成功
+- [ ] 验证数据方法执行成功（日志中无错误）
+- [ ] 验证变量已存储到执行上下文中
+- [ ] 验证 AI 执行使用了替换后的变量值（若描述中包含 `{{imei}}`）
+- [ ] 验证 API 断言使用了替换后的变量值（若有配置）
+- [ ] 验证整个执行流程完成（成功或按测试预期失败）
 
-### Variables Section
+### 执行日志验证
 
-- [ ] Variables section is visible in the report
-- [ ] Variable names are displayed (e.g., `imei`, `product_name`)
-- [ ] Variable values are displayed
-- [ ] Variable values match the actual data returned from ERP
-- [ ] Variable values are NOT showing `{{variable_name}}` placeholder
-- [ ] Multiple variables are listed correctly
-
-### API Assertion Results
-
-- [ ] API assertion results are displayed (if configured)
-- [ ] Assertion status is shown (pass/fail)
-- [ ] API assertion code shows substituted values (NOT `{{var}}`)
-- [ ] Example: If assertion was `response.data.imei == "{{imei}}"`, report shows actual value
-- [ ] Assertion error messages are clear (if failed)
-
-### Step Execution Details
-
-- [ ] Each step execution is displayed
-- [ ] Step status is shown (success/failure)
-- [ ] Step duration is displayed
-- [ ] Step details/errors are visible when expanded
-- [ ] Variable substitution is visible in step descriptions (if applicable)
-
-### Overall Report Quality
-
-- [ ] Report layout is clean and readable
-- [ ] All sections are properly collapsed/expanded
-- [ ] No JavaScript console errors in browser dev tools
-- [ ] Report can be exported/downloaded (if feature exists)
-- [ ] Report can be shared via URL (if feature exists)
+- [ ] 打开执行日志/追踪信息
+- [ ] 验证 `get_data()` 调用已被记录
+- [ ] 验证 ERP 响应数据已被记录（大响应可截断）
+- [ ] 验证变量提取过程已被记录（例如 “Extracted imei = XXXXX”）
+- [ ] 验证变量替换过程在适用场景下已被记录
 
 ---
 
-## Test Scenarios
+## 报告展示验证（MANUAL-03）
 
-### Scenario 1: Single Field Extraction (Inventory IMEI)
+本部分用于验证报告页面是否正确展示数据方法执行结果。
 
-**Purpose:** Verify basic data retrieval and single field extraction
+### 进入报告
 
-**Steps:**
-1. Create task with `BaseParams.inventory_list_data` method
-2. Configure parameters: `i=2`, `j=13`
-3. Add extraction: `[0].imei` -> `imei`
-4. Execute task
+- [ ] 进入报告列表页面
+- [ ] 找到已执行测试对应的报告
+- [ ] 点击打开报告详情
 
-**Verification:**
-- [ ] Task executes without errors
-- [ ] Report shows variable `imei` with actual value
-- [ ] Variable value is a valid IMEI format (e.g., 15 digits)
-- [ ] Variable value matches data from ERP preview
+### 前置条件执行展示
 
-### Scenario 2: Multi-field Extraction
+- [ ] 报告中显示前置条件执行状态（成功/失败）
+- [ ] 显示前置条件执行耗时
+- [ ] 前置条件部分提供“查看详情”或展开选项
 
-**Purpose:** Verify multiple field extraction from single data method call
+### 变量区域
 
-**Steps:**
-1. Create task with `BaseParams.inventory_list_data` method
-2. Configure parameters: `i=2`
-3. Add extractions:
+- [ ] 报告中可见变量区域
+- [ ] 显示变量名（例如 `imei`、`product_name`）
+- [ ] 显示变量值
+- [ ] 变量值与 ERP 实际返回的数据一致
+- [ ] 变量值显示的不是 `{{variable_name}}` 这种占位符
+- [ ] 多个变量能够正确列出
+
+### API 断言结果
+
+- [ ] 如果有配置，报告中显示 API 断言结果
+- [ ] 显示断言状态（通过/失败）
+- [ ] API 断言代码显示的是替换后的实际值，而不是 `{{var}}`
+- [ ] 示例：如果断言为 `response.data.imei == "{{imei}}"`，报告中应显示实际值
+- [ ] 如果断言失败，错误信息清晰明确
+
+### 步骤执行详情
+
+- [ ] 每个步骤的执行信息均有展示
+- [ ] 显示步骤状态（成功/失败）
+- [ ] 显示步骤耗时
+- [ ] 展开后可查看步骤详情/错误信息
+- [ ] 若适用，步骤描述中可见变量替换后的内容
+
+### 报告整体质量
+
+- [ ] 报告布局整洁、易读
+- [ ] 所有区域的折叠/展开功能正常
+- [ ] 浏览器开发者工具中无 JavaScript 控制台报错
+- [ ] 支持导出/下载报告（如果有该功能）
+- [ ] 支持通过 URL 分享报告（如果有该功能）
+
+---
+
+## 测试场景
+
+### 场景 1：单字段提取（库存 IMEI）
+
+**目的：** 验证基础数据获取与单字段提取
+
+**步骤：**
+1. 使用 `BaseParams.inventory_list_data` 方法创建任务
+2. 配置参数：`i=2`、`j=13`
+3. 添加提取：`[0].imei` -> `imei`
+4. 执行任务
+
+**验证：**
+- [ ] 任务执行无错误
+- [ ] 报告中显示变量 `imei` 及其实际值
+- [ ] 变量值符合有效 IMEI 格式（例如 15 位数字）
+- [ ] 变量值与 ERP 预览数据一致
+
+### 场景 2：多字段提取
+
+**目的：** 验证从单次数据方法调用中提取多个字段
+
+**步骤：**
+1. 使用 `BaseParams.inventory_list_data` 方法创建任务
+2. 配置参数：`i=2`
+3. 添加提取：
    - `[0].imei` -> `imei`
    - `[0].product_name` -> `product_name`
-4. Execute task
+4. 执行任务
 
-**Verification:**
-- [ ] Task executes without errors
-- [ ] Report shows both variables: `imei` and `product_name`
-- [ ] Both values match ERP data
-- [ ] Both values are displayed correctly
+**验证：**
+- [ ] 任务执行无错误
+- [ ] 报告中显示两个变量：`imei` 和 `product_name`
+- [ ] 两个值都与 ERP 数据一致
+- [ ] 两个值均正确显示
 
-### Scenario 3: Variable Substitution in Description
+### 场景 3：描述中的变量替换
 
-**Purpose:** Verify `{{variable}}` placeholder substitution in task description
+**目的：** 验证任务描述中的 `{{variable}}` 占位符替换
 
-**Steps:**
-1. Create task with description: "Search for product {{product_name}} with IMEI {{imei}}"
-2. Configure data method with extractions for both variables
-3. Execute task
+**步骤：**
+1. 创建任务，描述为：`Search for product {{product_name}} with IMEI {{imei}}`
+2. 配置数据方法并提取这两个变量
+3. 执行任务
 
-**Verification:**
-- [ ] AI execution prompt contains substituted values
-- [ ] Report shows description with actual values (NOT placeholders)
-- [ ] Example: "Search for product [Actual Product Name] with IMEI [Actual IMEI]"
+**验证：**
+- [ ] AI 执行提示词中包含替换后的实际值
+- [ ] 报告中显示的是已替换的描述内容，而不是占位符
+- [ ] 示例：`Search for product [实际产品名] with IMEI [实际 IMEI]`
 
-### Scenario 4: Variable Substitution in API Assertion
+### 场景 4：API 断言中的变量替换
 
-**Purpose:** Verify `{{variable}}` placeholder substitution in API assertions
+**目的：** 验证 API 断言中的 `{{variable}}` 占位符替换
 
-**Steps:**
-1. Create task with API assertion containing `{{imei}}`
-2. Configure data method to extract `imei`
-3. Execute task
+**步骤：**
+1. 创建任务，并配置包含 `{{imei}}` 的 API 断言
+2. 配置数据方法以提取 `imei`
+3. 执行任务
 
-**Verification:**
-- [ ] Assertion code shows substituted value in report
-- [ ] Assertion passes if logic is correct
-- [ ] Report clearly shows the substituted value used
+**验证：**
+- [ ] 报告中的断言代码显示的是替换后的值
+- [ ] 若断言逻辑正确，则断言通过
+- [ ] 报告中清晰显示实际使用的替换值
 
-### Scenario 5: Error Handling - Invalid Method
+### 场景 5：错误处理 - 无效方法
 
-**Purpose:** Verify graceful error handling for invalid data method
+**目的：** 验证对于无效数据方法的友好错误处理
 
-**Steps:**
-1. Manually edit precondition code to use invalid method name
-2. Execute task
+**步骤：**
+1. 手动编辑前置条件代码，使用无效的方法名
+2. 执行任务
 
-**Verification:**
-- [ ] Task fails gracefully with clear error message
-- [ ] Error message indicates method not found
-- [ ] Report shows failure status
-- [ ] No application crash
+**验证：**
+- [ ] 任务以可控方式失败，并显示清晰错误信息
+- [ ] 错误信息明确指出方法未找到
+- [ ] 报告显示失败状态
+- [ ] 应用不会崩溃
 
-### Scenario 6: Error Handling - Invalid Extraction Path
+### 场景 6：错误处理 - 无效提取路径
 
-**Purpose:** Verify graceful error handling for invalid extraction path
+**目的：** 验证对于无效提取路径的友好错误处理
 
-**Steps:**
-1. Create task with valid data method
-2. Configure extraction path that doesn't exist: `[99].nonexistent_field` -> `var`
-3. Execute task
+**步骤：**
+1. 创建包含有效数据方法的任务
+2. 配置一个不存在的提取路径：`[99].nonexistent_field` -> `var`
+3. 执行任务
 
-**Verification:**
-- [ ] Task fails gracefully with clear error message
-- [ ] Error message indicates extraction path not found
-- [ ] Report shows failure status
-- [ ] No application crash
-
----
-
-## Results
-
-| Check | Status | Notes |
-|-------|--------|-------|
-| Environment Setup | [ ] PASS / [ ] FAIL | |
-| DataMethodSelector Step 1 | [ ] PASS / [ ] FAIL | |
-| DataMethodSelector Step 2 | [ ] PASS / [ ] FAIL | |
-| DataMethodSelector Step 3 | [ ] PASS / [ ] FAIL | |
-| DataMethodSelector Step 4 | [ ] PASS / [ ] FAIL | |
-| Real ERP Execution | [ ] PASS / [ ] FAIL | |
-| Variables in Report | [ ] PASS / [ ] FAIL | |
-| Scenario 1: Single Extraction | [ ] PASS / [ ] FAIL | |
-| Scenario 2: Multi-field | [ ] PASS / [ ] FAIL | |
-| Scenario 3: Description Sub | [ ] PASS / [ ] FAIL | |
-| Scenario 4: Assertion Sub | [ ] PASS / [ ] FAIL | |
-| Scenario 5: Invalid Method | [ ] PASS / [ ] FAIL | |
-| Scenario 6: Invalid Path | [ ] PASS / [ ] FAIL | |
-
-**Overall Result:** [ ] PASS / [ ] FAIL
+**验证：**
+- [ ] 任务以可控方式失败，并显示清晰错误信息
+- [ ] 错误信息明确指出提取路径不存在
+- [ ] 报告显示失败状态
+- [ ] 应用不会崩溃
 
 ---
 
-## Issues Found
+## 结果
 
-| Issue # | Severity | Description | Reproduction Steps | Status |
-|---------|----------|-------------|-------------------|--------|
-| 1 | | | | [ ] Open / [ ] Fixed |
-| 2 | | | | [ ] Open / [ ] Fixed |
-| 3 | | | | [ ] Open / [ ] Fixed |
+| 检查项 | 状态 | 备注 |
+|-------|------|------|
+| 环境准备 | [ ] PASS / [ ] FAIL | |
+| DataMethodSelector 第 1 步 | [ ] PASS / [ ] FAIL | |
+| DataMethodSelector 第 2 步 | [ ] PASS / [ ] FAIL | |
+| DataMethodSelector 第 3 步 | [ ] PASS / [ ] FAIL | |
+| DataMethodSelector 第 4 步 | [ ] PASS / [ ] FAIL | |
+| 真实 ERP 执行 | [ ] PASS / [ ] FAIL | |
+| 报告中的变量展示 | [ ] PASS / [ ] FAIL | |
+| 场景 1：单字段提取 | [ ] PASS / [ ] FAIL | |
+| 场景 2：多字段提取 | [ ] PASS / [ ] FAIL | |
+| 场景 3：描述替换 | [ ] PASS / [ ] FAIL | |
+| 场景 4：断言替换 | [ ] PASS / [ ] FAIL | |
+| 场景 5：无效方法 | [ ] PASS / [ ] FAIL | |
+| 场景 6：无效路径 | [ ] PASS / [ ] FAIL | |
 
----
-
-## Screenshots
-
-Capture screenshots for the following scenarios:
-
-| Screenshot | File Name | Description |
-|------------|-----------|-------------|
-| DataMethodSelector Modal | `dms-modal.png` | Full modal showing 4-step wizard |
-| Method Selection | `dms-step1.png` | Step 1 with methods selected |
-| Parameter Config | `dms-step2.png` | Step 2 with parameters filled |
-| Preview Results | `dms-step3.png` | Step 3 showing JSON preview |
-| Generated Code | `dms-step4.png` | Step 4 showing generated code |
-| Execution Report | `report-overview.png` | Report page overview |
-| Variables Section | `report-variables.png` | Variables section close-up |
-| Assertion Substitution | `report-assertion.png` | API assertion with substituted values |
+**总体结果：** [ ] PASS / [ ] FAIL
 
 ---
 
-## Sign-off
+## 发现的问题
 
-**Tester:** ___________________
-**Date:** ___________________
-**Signature:** ___________________
+| 问题 # | 严重级别 | 问题描述 | 复现步骤 | 状态 |
+|---------|----------|----------|----------|------|
+| 1 | Low | DataMethodSelector 方法列表未按类分组显示 | 点击 Get Data 后，方法列表显示为长滚动列表而非折叠的类分组 | [x] Open (延后到下个里程碑) |
+| 2 | Low | 已选择方法不在底部汇总区域显示 | 选择方法后，底部汇总区域不显示已选方法列表 | [x] Open (延后到下个里程碑) |
+| 3 | Low | 已选择的方法数量显示不正确 | 选择方法后，显示的数量与实际选择不符 | [x] Open (延后到下个里程碑) |
+| 4 | Low | 参数配置步骤不显示参数类型提示 | 参数输入项旁边没有显示类型（如 "integer"、"string"） | [x] Open (延后到下个里程碑) |
+| 5 | Low | 参数描述信息只显示 default 值 | 参数提示只显示 "default: xxx"，没有显示实际的参数用途描述 | [x] Fixed - 已添加从 docstring 解析参数描述 |
+| 6 | Low | 参数输入无类型校验 | 所有参数都可以输入任何内容，数字字段可以输入字母（与 #4 相关） | [x] Open (延后到下个里程碑) |
+| 7 | **High** | Preview 执行数据方法报错 | 原因：用户选择了内部工具方法 `get_handle_response`，该方法需要 Response 对象 | [x] Fixed - 已过滤内部方法 |
+| 8 | **High** | **kwargs 参数无法传递 | 方法的 kwargs 参数（如 i, j）无法通过 UI 配置，导致执行报 params_error | [x] Fixed - 从 docstring 解析 kwargs 参数并显示描述 |
 
 ---
 
-*Document created for Phase 20-e2e-testing-manual-verification*
-*Requirements: MANUAL-01, MANUAL-02, MANUAL-03*
+## 截图
+
+请为以下场景截图：
+
+| 截图项 | 文件名 | 说明 |
+|--------|--------|------|
+| DataMethodSelector 模态框 | `dms-modal.png` | 显示完整 4 步向导的模态框 |
+| 方法选择 | `dms-step1.png` | 第 1 步，展示已选择的方法 |
+| 参数配置 | `dms-step2.png` | 第 2 步，展示已填写参数 |
+| 预览结果 | `dms-step3.png` | 第 3 步，展示 JSON 预览 |
+| 生成代码 | `dms-step4.png` | 第 4 步，展示生成的代码 |
+| 执行报告 | `report-overview.png` | 报告页面总览 |
+| 变量区域 | `report-variables.png` | 变量区域特写 |
+| 断言替换 | `report-assertion.png` | 展示替换后值的 API 断言 |
+
+---
+
+## 签字确认
+
+**测试人员：** ___________________
+**日期：** ___________________
+**签名：** ___________________
+
+---
+
+*本文档用于 Phase 20-e2e-testing-manual-verification*
+*需求对应：MANUAL-01、MANUAL-02、MANUAL-03*
+
