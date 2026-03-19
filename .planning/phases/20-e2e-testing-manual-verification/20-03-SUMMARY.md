@@ -95,3 +95,8 @@ None - no external service configuration required for these tests.
 ---
 *Phase: 20-e2e-testing-manual-verification*
 *Completed: 2026-03-19*
+
+## Self-Check: PASSED
+- E2E test file exists: e2e/tests/variable-substitution.spec.ts (382 lines)
+- Commit bd8e40d verified: feat(20-03): add E2E tests for variable substitution
+- Commit bd8a0f0 verified: docs(20-03): complete variable substitution E2E test plan
