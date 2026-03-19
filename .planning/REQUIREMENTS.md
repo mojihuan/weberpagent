@@ -24,7 +24,7 @@
 
 - [x] **BUG-01**: 发现的阻断性 bug 全部修复
 - [x] **BUG-02**: 发现的功能性 bug 全部修复
-- [ ] **BUG-03**: Bug 修复后回归测试通过
+- [x] **BUG-03**: Bug 修复后回归测试通过
 
 ### 手动验证
 
@@ -63,7 +63,7 @@
 | UNIT-03 | Phase 21 | Complete |
 | BUG-01 | Phase 22 | Complete |
 | BUG-02 | Phase 22 | Complete |
-| BUG-03 | Phase 22 | Pending |
+| BUG-03 | Phase 22 | Complete |
 | MANUAL-01 | Phase 20 | Complete |
 | MANUAL-02 | Phase 20 | Complete |
 | MANUAL-03 | Phase 20 | Complete |
