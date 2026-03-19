@@ -13,7 +13,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.3.1 已交付
+## Current State: v0.4.0 稳定版本
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
@@ -21,12 +21,14 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.2.1 测试用例调通 (2026-03-18)
 - v0.3 前置条件集成 (2026-03-18)
 - v0.3.1 数据获取方法集成 (2026-03-19)
+- v0.4.0 Bug Fix Sprint (2026-03-19) - 稳定版本
 
-**v0.3.1 关键成果:**
-1. 后端数据获取桥接 - 扫描 base_params.py，提供方法列表和执行 API
-2. 前端 DataMethodSelector - 4 步向导：方法选择 → 参数配置 → 数据预览 → 变量命名
-3. ContextWrapper 集成 - 支持同步数据方法调用和变量存储
-4. 变量传递 - 测试步骤中支持 `{{变量名}}` 语法
+**v0.4.0 Bug Fix Sprint 成果:**
+1. 测试隔离修复 - 16 个失败测试通过 monkeypatch 修复
+2. 遗留测试归档 - 18 个导入错误的测试文件移至 _archived/
+3. DataMethodSelector UI 修复 - 折叠面板、类型提示、数值验证、Escape 键
+4. 报告页面前置条件 - 显示执行状态、持续时间、变量和可展开详情
+5. TypeScript 错误修复 - 前端构建通过
 
 ## Next Milestone: TBD
 
@@ -88,8 +90,8 @@ v0.3.1 数据获取方法集成 (2026-03-19):
 | 存储 | SQLite |
 
 **Known Tech Debt:**
+- 5 unit tests with pre-existing isolation issues (test_external_bridge, test_browser_cleanup, test_precondition_service)
 - Nyquist Wave 0 tasks pending (tests defined but not run)
-- Pre-existing TypeScript errors in ApiAssertionResults.tsx, RunList.tsx (not blocking)
 - Phase 11-12 (Bug 修复、文档指南) 推迟到后续版本
 
 ## Constraints
@@ -116,4 +118,4 @@ v0.3.1 数据获取方法集成 (2026-03-19):
 | 代码生成格式: context.get_data('ClassName', 'method', params) | 匹配后端签名，包含类名 | ✓ Good |
 
 ---
-*Last updated: 2026-03-19 after v0.3.1 milestone completion*
+*Last updated: 2026-03-19 after v0.4.0 bug fix sprint completion*
