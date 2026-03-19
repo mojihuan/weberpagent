@@ -28,9 +28,9 @@
 
 ### 手动验证
 
-- [ ] **MANUAL-01**: DataMethodSelector UI 功能手动验证
-- [ ] **MANUAL-02**: 真实 ERP 环境下端到端流程验证
-- [ ] **MANUAL-03**: 测试报告正确展示数据获取结果
+- [x] **MANUAL-01**: DataMethodSelector UI 功能手动验证
+- [x] **MANUAL-02**: 真实 ERP 环境下端到端流程验证
+- [x] **MANUAL-03**: 测试报告正确展示数据获取结果
 
 ## v2 Requirements (Future)
 
@@ -64,9 +64,9 @@
 | BUG-01 | Phase 22 | Pending |
 | BUG-02 | Phase 22 | Pending |
 | BUG-03 | Phase 22 | Pending |
-| MANUAL-01 | Phase 20 | Pending |
-| MANUAL-02 | Phase 20 | Pending |
-| MANUAL-03 | Phase 20 | Pending |
+| MANUAL-01 | Phase 20 | Complete |
+| MANUAL-02 | Phase 20 | Complete |
+| MANUAL-03 | Phase 20 | Complete |
 
 **Coverage:**
 - v1 requirements: 13 total
