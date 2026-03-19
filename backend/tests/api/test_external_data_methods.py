@@ -521,3 +521,76 @@ class TestExecuteDataMethod:
             assert data["success"] is False
             assert "parameter error" in data["error"].lower()
             assert data["error_type"] == "ParameterError"
+
+
+class TestExecuteDataMethodValidation:
+    """Tests for request validation on execute endpoint."""
+
+    def test_missing_class_name_returns_400(self, client):
+        """Test missing class_name returns validation error (400 due to custom exception handler)."""
+        response = client.post(
+            "/api/external-data-methods/execute",
+            json={"method_name": "test", "params": {}}
+        )
+        assert response.status_code == 400
+        data = response.json()
+        assert data["success"] is False
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_missing_method_name_returns_400(self, client):
+        """Test missing method_name returns validation error (400 due to custom exception handler)."""
+        response = client.post(
+            "/api/external-data-methods/execute",
+            json={"class_name": "TestClass", "params": {}}
+        )
+        assert response.status_code == 400
+        data = response.json()
+        assert data["success"] is False
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_empty_params_accepted(self, client):
+        """Test empty params dict is valid."""
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": []}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={"class_name": "TestClass", "method_name": "test", "params": {}}
+            )
+            assert response.status_code == 200
+
+    def test_params_non_dict_returns_400(self, client):
+        """Test params as non-dict returns validation error (400 due to custom exception handler)."""
+        response = client.post(
+            "/api/external-data-methods/execute",
+            json={"class_name": "TestClass", "method_name": "test", "params": "invalid"}
+        )
+        assert response.status_code == 400
+        data = response.json()
+        assert data["success"] is False
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_extra_fields_ignored(self, client):
+        """Test extra fields in request body are handled gracefully."""
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": []}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={
+                    "class_name": "TestClass",
+                    "method_name": "test",
+                    "params": {},
+                    "extra_field": "should_be_ignored"
+                }
+            )
+            # FastAPI by default ignores extra fields
+            assert response.status_code == 200
