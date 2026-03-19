@@ -279,6 +279,22 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
     }
   }, [methods.classes, expandedPanels.size])
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancel()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
   const handleCancel = () => {
     onCancel()
   }
@@ -301,8 +317,17 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
             const method = cls?.methods.find(m => m.name === methodName)
             const params: Record<string, any> = {}
             method?.parameters.forEach(p => {
-              if (p.default !== null) {
-                params[p.name] = p.type === 'int' ? parseInt(p.default) : p.default
+              if (p.default !== null && p.default !== undefined) {
+                let defaultValue = p.default
+                // Remove surrounding quotes from string defaults
+                if (p.type === 'str' || typeof defaultValue === 'string') {
+                  if (typeof defaultValue === 'string') {
+                    defaultValue = defaultValue.replace(/^['"]|['"]$/g, '')
+                  }
+                }
+                params[p.name] = p.type === 'int'
+                  ? parseInt(String(defaultValue))
+                  : defaultValue
               }
             })
             newConfigs.set(key, {
@@ -475,21 +500,36 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
                             <label className="w-32 text-sm text-gray-700 flex-shrink-0">
                               {param.name}
                               {param.required && <span className="text-red-500 ml-1">*</span>}
+                              <span className="text-xs text-gray-400 ml-2">
+                                ({param.type})
+                              </span>
                             </label>
                             <input
-                              type={param.type === 'int' ? 'number' : 'text'}
+                              type={param.type === 'int' || param.type === 'float' ? 'number' : 'text'}
+                              inputMode={param.type === 'int' || param.type === 'float' ? 'numeric' : 'text'}
+                              pattern={param.type === 'int' ? '[0-9]*' : undefined}
+                              min={param.type === 'int' ? '0' : undefined}
+                              step={param.type === 'float' ? 'any' : param.type === 'int' ? '1' : undefined}
                               value={config.parameters[param.name] ?? ''}
-                              onChange={e => updateParameter(
-                                key,
-                                param.name,
-                                param.type === 'int' ? parseInt(e.target.value) || 0 : e.target.value
-                              )}
+                              onChange={e => {
+                                let value: string | number
+                                if (param.type === 'int') {
+                                  const parsed = parseInt(e.target.value)
+                                  value = isNaN(parsed) ? 0 : parsed
+                                } else if (param.type === 'float') {
+                                  const parsed = parseFloat(e.target.value)
+                                  value = isNaN(parsed) ? 0 : parsed
+                                } else {
+                                  value = e.target.value
+                                }
+                                updateParameter(key, param.name, value)
+                              }}
                               placeholder={param.type}
                               className="flex-1 px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {param.default !== null && (
                               <span className="text-xs text-gray-400 flex-shrink-0">
-                                default: {param.default}
+                                default: {param.default?.toString().replace(/^['"]|['"]$/g, '')}
                               </span>
                             )}
                           </div>
