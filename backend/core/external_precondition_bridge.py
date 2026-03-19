@@ -160,6 +160,23 @@ def extract_method_info(cls: type, method_name: str) -> dict | None:
     if method_name.startswith('_'):
         return None
 
+    # Skip internal utility methods from BaseApi that shouldn't be called directly
+    INTERNAL_METHODS = {
+        'get_handle_response', 'request_handle', 'get_page_num',
+        'get_response_data', 'get_token', 'get_cached_tokens',
+        'set_cached_tokens', 'get_page_params', 'process_params',
+        'process_and_check_params', 'check_unsupported_params',
+        'compare_json', 'get_file_and_class_name', 'get_formatted_datetime',
+        'get_current_time', 'get_the_date', 'get_current_timestamp_ms',
+        'save_to_cache', 'load_from_cache', 'save_json_file', 'load_json_file',
+        'generate_hourly_sessions', 'generate_five_minute_sessions',
+        'wait_until_next_five_minute', 'wait_for_five_minutes', 'wait_default',
+        'get_nested_field', '_get_nested_field',
+        'handle_api_error', 'clear_pkl_files'
+    }
+    if method_name in INTERNAL_METHODS:
+        return None
+
     method = getattr(cls, method_name, None)
     if method is None:
         return None
