@@ -24,10 +24,13 @@ from backend.core.external_precondition_bridge import (
 
 @pytest.fixture(autouse=True)
 def reset_bridge_cache():
-    """Reset bridge cache before and after each test."""
+    """Reset bridge cache and settings cache before and after each test."""
+    from backend.config import get_settings
     reset_cache()
+    get_settings.cache_clear()
     yield
     reset_cache()
+    get_settings.cache_clear()
 
 
 class TestExternalPreconditionBridgeBasics:
@@ -38,27 +41,47 @@ class TestExternalPreconditionBridgeBasics:
         import backend.core.external_precondition_bridge as bridge
         assert bridge is not None
 
-    def test_is_available_returns_false_when_not_configured(self):
+    def test_is_available_returns_false_when_not_configured(self, monkeypatch):
         """Test is_available() returns False when PreFront cannot be loaded."""
-        # Without WEBSERP_PATH configured, PreFront should not be loadable
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        # Note: pydantic-settings reads from .env file, so delenv doesn't work
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         result = is_available()
         assert result is False
 
-    def test_get_unavailable_reason_returns_message(self):
+    def test_get_unavailable_reason_returns_message(self, monkeypatch):
         """Test get_unavailable_reason() returns string when unavailable."""
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         reason = get_unavailable_reason()
         assert reason is not None
         assert isinstance(reason, str)
         # Should mention import failure or configuration
         assert "Failed to import" in reason or "not configured" in reason.lower()
 
-    def test_get_operations_grouped_returns_empty_when_unavailable(self):
+    def test_get_operations_grouped_returns_empty_when_unavailable(self, monkeypatch):
         """Test get_operations_grouped() returns empty list when external module not available."""
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         operations = get_operations_grouped()
         assert operations == []
 
-    def test_get_available_operations_returns_empty_when_unavailable(self):
+    def test_get_available_operations_returns_empty_when_unavailable(self, monkeypatch):
         """Test get_available_operations() returns empty dict when unavailable."""
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         operations = get_available_operations()
         assert operations == {}
 
@@ -118,8 +141,13 @@ class TestExternalPreconditionBridgeCache:
         assert external_precondition_bridge._modules_cache is None
         assert external_precondition_bridge._path_configured is False
 
-    def test_operations_cached_after_first_parse(self):
+    def test_operations_cached_after_first_parse(self, monkeypatch):
         """Test that operations are cached after first parse (when available)."""
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         # This test verifies caching behavior
         # Since external module is not available, cache should be set to empty
         result1 = get_operations_grouped()
@@ -132,8 +160,13 @@ class TestExternalPreconditionBridgeCache:
 class TestDataMethodsDiscovery:
     """Tests for data method discovery from base_params.py."""
 
-    def test_load_base_params_class_unavailable(self):
+    def test_load_base_params_class_unavailable(self, monkeypatch):
         """Test load_base_params_class() returns (None, error) when module unavailable."""
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         cls, error = load_base_params_class()
 
         # Without WEBSERP_PATH configured, base_params should not be loadable
@@ -323,8 +356,13 @@ class TestDiscoverClassMethods:
 class TestGetDataMethodsGrouped:
     """Tests for get_data_methods_grouped function."""
 
-    def test_get_data_methods_grouped_returns_empty_when_unavailable(self):
+    def test_get_data_methods_grouped_returns_empty_when_unavailable(self, monkeypatch):
         """Test get_data_methods_grouped() returns empty list when module unavailable."""
+        # Ensure WEBSERP_PATH is not configured by setting to empty string
+        from backend.config import get_settings
+        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
+        get_settings.cache_clear()  # Clear settings cache after env change
+        reset_cache()  # Clear bridge cached state after env change
         result = get_data_methods_grouped()
 
         # Without WEBSERP_PATH configured, should return empty list
