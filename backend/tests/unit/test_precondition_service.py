@@ -669,3 +669,52 @@ class TestContextWrapper:
         assert wrapper._data['data']['nested'] == 'value'
         copy['new_key'] = 'new_value'
         assert 'new_key' not in wrapper._data
+
+
+class TestExecuteDataMethodSync:
+    """Tests for execute_data_method_sync function."""
+
+    def test_no_running_loop_uses_asyncio_run(self):
+        """Test uses asyncio.run() when no event loop is running."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method',
+            return_value={"success": True, "data": [{"id": 1}]}
+        ) as mock_execute:
+            result = execute_data_method_sync("TestClass", "test_method", {"i": 2})
+
+            assert result == {"success": True, "data": [{"id": 1}]}
+            mock_execute.assert_called_once_with("TestClass", "test_method", {"i": 2})
+
+    @pytest.mark.asyncio
+    async def test_with_running_loop_uses_nest_asyncio(self):
+        """Test uses nest_asyncio when event loop is already running."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method',
+            return_value={"success": True, "data": "result"}
+        ) as mock_execute:
+            # We're inside an async test, so there's a running loop
+            result = execute_data_method_sync("TestClass", "test_method", {})
+
+            assert result == {"success": True, "data": "result"}
+            mock_execute.assert_called_once_with("TestClass", "test_method", {})
+
+    def test_result_passthrough(self):
+        """Test result from execute_data_method is passed through unchanged."""
+        expected = {"success": False, "error": "Some error", "error_type": "ExecutionError"}
+        with patch(
+            'backend.core.precondition_service.execute_data_method',
+            return_value=expected
+        ):
+            result = execute_data_method_sync("Class", "method", {"p": 1})
+            assert result is expected
+
+    def test_params_passed_correctly(self):
+        """Test params dict is passed correctly to execute_data_method."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method',
+            return_value={"success": True, "data": None}
+        ) as mock_execute:
+            params = {"i": 2, "j": 13, "name": "test"}
+            execute_data_method_sync("BaseParams", "inventory_data", params)
+
+            mock_execute.assert_called_once_with("BaseParams", "inventory_data", params)
