@@ -594,3 +594,146 @@ class TestExecuteDataMethodValidation:
             )
             # FastAPI by default ignores extra fields
             assert response.status_code == 200
+
+
+class TestExecuteDataMethodEdgeCases:
+    """Tests for edge case responses."""
+
+    @pytest.fixture
+    def client(self):
+        """Create test client."""
+        from fastapi.testclient import TestClient
+        from backend.api.main import app
+        return TestClient(app)
+
+    @pytest.fixture(autouse=True)
+    def reset_cache(self):
+        """Reset bridge cache before and after each test."""
+        from backend.core import external_precondition_bridge
+        external_precondition_bridge.reset_cache()
+        yield
+        external_precondition_bridge.reset_cache()
+
+    def test_large_data_response(self, client):
+        """Test handling of large data responses (100+ items)."""
+        large_data = [{"id": i, "name": f"Item {i}"} for i in range(150)]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": large_data}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={"class_name": "TestClass", "method_name": "large_method", "params": {}}
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["success"] is True
+            assert len(data["data"]) == 150
+
+    def test_response_with_unicode(self, client):
+        """Test handling of unicode characters in response."""
+        unicode_data = [
+            {"name": "Product A", "desc": "Description with Chinese: \u4e2d\u6587\u6d4b\u8bd5"},
+            {"name": "Product B", "desc": "Emoji test: \U0001f600 test"}
+        ]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": unicode_data}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={"class_name": "TestClass", "method_name": "unicode_method", "params": {}}
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["data"][0]["desc"] == "Description with Chinese: \u4e2d\u6587\u6d4b\u8bd5"
+
+    def test_response_with_null_values(self, client):
+        """Test handling of null values in response."""
+        data_with_nulls = [
+            {"id": 1, "name": "Item", "optional": None},
+            {"id": 2, "name": None, "optional": "value"}
+        ]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": data_with_nulls}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={"class_name": "TestClass", "method_name": "null_method", "params": {}}
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["data"][0]["optional"] is None
+            assert data["data"][1]["name"] is None
+
+    def test_response_with_nested_structures(self, client):
+        """Test handling of deeply nested structures within list items."""
+        # ExecuteResponse expects data as list[dict], so nest inside list
+        nested_data = [
+            {
+                "id": 1,
+                "nested": {
+                    "level2": {
+                        "level3": {
+                            "items": [{"sub_id": 1}, {"sub_id": 2}]
+                        }
+                    }
+                }
+            }
+        ]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": nested_data}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={"class_name": "TestClass", "method_name": "nested_method", "params": {}}
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["data"][0]["nested"]["level2"]["level3"]["items"][0]["sub_id"] == 1
+
+    def test_response_with_empty_strings(self, client):
+        """Test handling of empty string values."""
+        data_with_empty = [
+            {"id": 1, "name": "", "desc": "has value"},
+            {"id": 2, "name": "has value", "desc": ""}
+        ]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.execute_data_method',
+            return_value={"success": True, "data": data_with_empty}
+        ):
+            response = client.post(
+                "/api/external-data-methods/execute",
+                json={"class_name": "TestClass", "method_name": "empty_method", "params": {}}
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["data"][0]["name"] == ""
+            assert data["data"][1]["desc"] == ""
