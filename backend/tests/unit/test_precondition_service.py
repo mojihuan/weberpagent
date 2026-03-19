@@ -2,8 +2,15 @@
 
 import pytest
 import asyncio
+from unittest.mock import patch, MagicMock
 
-from backend.core.precondition_service import PreconditionService, PreconditionResult
+from backend.core.precondition_service import (
+    PreconditionService,
+    PreconditionResult,
+    ContextWrapper,
+    DataMethodError,
+    execute_data_method_sync,
+)
 
 
 class TestPreconditionService:
@@ -513,3 +520,102 @@ context['executed_ops'] = pre_front.executed_operations
         assert result.success is True, f"Error: {result.error}"
         assert result.variables.get('precondition_result') == 'success'
         assert result.variables.get('executed_ops') == ['FA1', 'HC1']
+
+
+class TestContextWrapper:
+    """Tests for ContextWrapper class."""
+
+    @pytest.fixture
+    def wrapper(self):
+        return ContextWrapper()
+
+    # --- get_data() tests ---
+
+    def test_get_data_returns_data_on_success(self, wrapper):
+        """Test get_data() returns data when execution succeeds."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": True, "data": [{"id": 1}]}
+        ):
+            result = wrapper.get_data("BaseParams", "inventory_list_data", i=2, j=3)
+            assert result == [{"id": 1}]
+
+    def test_get_data_raises_on_import_error(self, wrapper):
+        """Test get_data() raises DataMethodError on ImportError."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": False, "error": "Module not found", "error_type": "ImportError"}
+        ):
+            with pytest.raises(DataMethodError) as exc_info:
+                wrapper.get_data("BaseParams", "some_method")
+            # error_type not in message, but class.method should be
+            assert "ImportError" not in str(exc_info.value)
+            assert "BaseParams.some_method" in str(exc_info.value)
+            assert "Module not found" in str(exc_info.value)
+
+    def test_get_data_raises_on_not_found_error(self, wrapper):
+        """Test get_data() raises DataMethodError on NotFoundError."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": False, "error": "Method not found", "error_type": "NotFoundError"}
+        ):
+            with pytest.raises(DataMethodError) as exc_info:
+                wrapper.get_data("BaseParams", "unknown_method")
+            assert "BaseParams.unknown_method" in str(exc_info.value)
+            assert "Method not found" in str(exc_info.value)
+
+    def test_get_data_raises_on_timeout_error(self, wrapper):
+        """Test get_data() raises DataMethodError on TimeoutError."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": False, "error": "Execution timeout (30.0s)", "error_type": "TimeoutError"}
+        ):
+            with pytest.raises(DataMethodError) as exc_info:
+                wrapper.get_data("BaseParams", "slow_method")
+            assert "BaseParams.slow_method" in str(exc_info.value)
+            assert "timeout" in str(exc_info.value)
+
+    def test_get_data_raises_on_parameter_error(self, wrapper):
+        """Test get_data() raises DataMethodError on ParameterError."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": False, "error": "Parameter error: 'i' must be integer", "error_type": "ParameterError"}
+        ):
+            with pytest.raises(DataMethodError) as exc_info:
+                wrapper.get_data("BaseParams", "inventory_data", i="invalid")
+            assert "BaseParams.inventory_data" in str(exc_info.value)
+            assert "Parameter error" in str(exc_info.value)
+
+    def test_get_data_raises_on_execution_error(self, wrapper):
+        """Test get_data() raises DataMethodError on ExecutionError."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": False, "error": "Database connection failed", "error_type": "ExecutionError"}
+        ):
+            with pytest.raises(DataMethodError) as exc_info:
+                wrapper.get_data("BaseParams", "failing_method")
+            assert "BaseParams.failing_method" in str(exc_info.value)
+            assert "Database connection failed" in str(exc_info.value)
+
+    def test_get_data_error_message_includes_params(self, wrapper):
+        """Test DataMethodError includes full method signature with params."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": False, "error": "Failed", "error_type": "ExecutionError"}
+        ):
+            with pytest.raises(DataMethodError) as exc_info:
+                wrapper.get_data("BaseParams", "inventory_data", i=2, j=13)
+            # Verify format: "BaseParams.inventory_data(i=2, j=13) failed: Failed"
+            assert "BaseParams.inventory_data" in str(exc_info.value)
+            assert "i=2" in str(exc_info.value)
+            assert "j=13" in str(exc_info.value)
+            assert "failed: Failed" in str(exc_info.value)
+
+    def test_get_data_passes_params_correctly(self, wrapper):
+        """Test get_data() passes **params correctly to execute_data_method_sync."""
+        with patch(
+            'backend.core.precondition_service.execute_data_method_sync',
+            return_value={"success": True, "data": "result"}
+        ) as mock_execute:
+            wrapper.get_data("TestClass", "test_method", i=2, j=3, name="test")
+            mock_execute.assert_called_once_with("TestClass", "test_method", {"i": 2, "j": 3, "name": "test"})
