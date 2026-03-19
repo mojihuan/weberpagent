@@ -115,4 +115,5 @@ async def get_report(
         api_assertion_results=transform_assertion_results(data["api_assertion_results"]),
         pass_rate=data["pass_rate"],
         api_pass_rate=data["api_pass_rate"],
+        precondition_results=data.get("precondition_results"),
     )

@@ -182,6 +182,7 @@ class ReportDetailResponse(ReportResponse):
     api_assertion_results: Optional[List["AssertionResultResponse"]] = None
     pass_rate: Optional[str] = None
     api_pass_rate: Optional[str] = None
+    precondition_results: Optional[List[SSEPreconditionEvent]] = None
 
 
 class ReportListParams(BaseModel):

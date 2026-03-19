@@ -131,6 +131,7 @@ class ReportService:
             "api_assertion_results": api_assertion_results,
             "pass_rate": pass_rate,
             "api_pass_rate": api_pass_rate,
+            "precondition_results": None,  # TODO: Extract from run metadata when storage is implemented
         }
 
     @staticmethod
