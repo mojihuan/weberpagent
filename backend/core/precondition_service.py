@@ -10,6 +10,7 @@ from typing import Any
 
 from jinja2 import Environment, StrictUndefined, UndefinedError
 
+from backend.core.external_precondition_bridge import execute_data_method
 from backend.core.random_generators import (
     random_imei,
     random_numbers,
@@ -20,6 +21,98 @@ from backend.core.random_generators import (
 from backend.core.time_utils import time_now
 
 logger = logging.getLogger(__name__)
+
+
+class DataMethodError(Exception):
+    """Raised when data method execution fails.
+
+    Provides detailed error information including the full method call.
+    """
+    pass
+
+
+def execute_data_method_sync(class_name: str, method_name: str, params: dict) -> dict:
+    """Synchronous wrapper for async execute_data_method.
+
+    Handles event loop detection to work in both sync and async contexts.
+
+    Args:
+        class_name: Name of the class in base_params module
+        method_name: Name of the method to execute
+        params: Dictionary of parameters to pass to the method
+
+    Returns:
+        dict with success, data/error, and error_type fields
+    """
+    import nest_asyncio
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop, create new one
+        return asyncio.run(execute_data_method(class_name, method_name, params))
+
+    # Already in async context - use nest_asyncio for nested execution
+    # This is safe because we're in run_in_executor which runs in a thread pool
+    nest_asyncio.apply()
+    return asyncio.run(execute_data_method(class_name, method_name, params))
+
+
+class ContextWrapper:
+    """Wrapper providing dict-like interface plus get_data() method.
+
+    Used as the 'context' object in precondition execution environment.
+    Supports both variable storage (context['var'] = value) and
+    data method calls (context.get_data('Class', 'method', i=2)).
+    """
+
+    def __init__(self):
+        self._data: dict[str, Any] = {}
+
+    def get_data(self, class_name: str, method_name: str, **params) -> Any:
+        """Execute a data method and return the result.
+
+        Args:
+            class_name: Name of the class in base_params module (e.g., 'BaseParams')
+            method_name: Name of the method to execute (e.g., 'inventory_list_data')
+            **params: Parameters to pass to the method (e.g., i=2, j=13)
+
+        Returns:
+            The data returned by the method
+
+        Raises:
+            DataMethodError: If the method execution fails, with detailed message
+        """
+        result = execute_data_method_sync(class_name, method_name, params)
+
+        if not result['success']:
+            # Format params for error message
+            params_str = ', '.join(f"{k}={v!r}" for k, v in params.items())
+            raise DataMethodError(
+                f"{class_name}.{method_name}({params_str}) failed: {result['error']}"
+            )
+
+        return result['data']
+
+    # Dict-like interface methods
+    def __getitem__(self, key: str) -> Any:
+        return self._data[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._data[key] = value
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._data
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self._data.get(key, default)
+
+    def keys(self):
+        return self._data.keys()
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a plain dict copy for variable substitution."""
+        return dict(self._data)
 
 
 @dataclass
@@ -47,7 +140,7 @@ class PreconditionService:
             external_module_path: 外部 API 模块路径（可选）
         """
         self.external_module_path = external_module_path
-        self.context: dict[str, Any] = {}
+        self.context: ContextWrapper = ContextWrapper()
 
     def _setup_execution_env(self) -> dict:
         """创建执行环境
@@ -127,7 +220,7 @@ class PreconditionService:
                 timeout=timeout
             )
             result.success = True
-            result.variables = dict(self.context)  # 快照当前变量
+            result.variables = self.context.to_dict()  # 快照当前变量
             logger.info(f"前置条件 {index} 执行成功，变量: {list(result.variables.keys())}")
         except asyncio.TimeoutError:
             result.error = f"执行超时（超过 {timeout} 秒）"
@@ -177,7 +270,7 @@ class PreconditionService:
         Returns:
             context 字典的副本
         """
-        return dict(self.context)
+        return self.context.to_dict()
 
     @staticmethod
     def substitute_variables(text: str, context: dict[str, Any]) -> str:
