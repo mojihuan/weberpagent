@@ -304,6 +304,38 @@ class TestPreconditionServiceSubstitution:
         with pytest.raises(UndefinedError):
             PreconditionService.substitute_variables(text, context)
 
+    # --- Special character handling tests (Task 3) ---
+
+    def test_substitute_variables_with_quotes(self, service):
+        """Test variable value containing quotes."""
+        context = {'text': 'He said "Hello"'}
+        result = PreconditionService.substitute_variables("Message: {{text}}", context)
+        assert result == 'Message: He said "Hello"'
+
+    def test_substitute_variables_with_newlines(self, service):
+        """Test variable value containing newlines."""
+        context = {'multiline': 'Line 1\nLine 2\nLine 3'}
+        result = PreconditionService.substitute_variables("Content: {{multiline}}", context)
+        assert result == 'Content: Line 1\nLine 2\nLine 3'
+
+    def test_substitute_variables_with_unicode(self, service):
+        """Test variable value with unicode characters."""
+        context = {'chinese': '中文测试', 'emoji': 'test'}
+        result = PreconditionService.substitute_variables("Text: {{chinese}}", context)
+        assert result == 'Text: 中文测试'
+
+    def test_substitute_variables_with_special_chars(self, service):
+        """Test variable value with special regex characters."""
+        context = {'pattern': '$10.00 (50% off) [special]'}
+        result = PreconditionService.substitute_variables("Price: {{pattern}}", context)
+        assert result == 'Price: $10.00 (50% off) [special]'
+
+    def test_substitute_variables_with_html_content(self, service):
+        """Test variable value with HTML is not escaped."""
+        context = {'html': '<div class="test">content</div>'}
+        result = PreconditionService.substitute_variables("HTML: {{html}}", context)
+        assert result == 'HTML: <div class="test">content</div>'
+
 
 class TestPreconditionServiceExternalModule:
     """外部模块加载测试"""
