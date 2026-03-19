@@ -25,6 +25,7 @@ class ParameterInfo(BaseModel):
     type: str
     required: bool
     default: Optional[str] = None
+    description: Optional[str] = None
 
 
 class MethodInfo(BaseModel):

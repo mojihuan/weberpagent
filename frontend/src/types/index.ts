@@ -212,6 +212,7 @@ export interface DataMethodParameter {
   type: string
   required: boolean
   default: string | null
+  description?: string
 }
 
 export interface DataMethodInfo {

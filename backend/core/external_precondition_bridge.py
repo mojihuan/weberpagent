@@ -146,6 +146,42 @@ def load_base_params_class() -> tuple[type | None, str | None]:
         return None, _base_params_import_error
 
 
+def _parse_docstring_params(docstring: str) -> list[dict]:
+    """Parse parameter definitions from docstring.
+
+    Handles format like:
+        i：库存状态 2库存中 1待入库 3已出库
+        j：物品状态 13待销售 3待分货...
+
+    Returns:
+        List of parameter dicts with name, description
+    """
+    params = []
+    if not docstring:
+        return params
+
+    lines = docstring.strip().split('\n')
+    for line in lines[1:]:  # Skip first line (method description)
+        line = line.strip()
+        if not line:
+            continue
+
+        # Match pattern: "param_name：description" or "param_name: description"
+        match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*[：:]\s*(.+)$', line)
+        if match:
+            param_name = match.group(1)
+            param_desc = match.group(2).strip()
+            params.append({
+                "name": param_name,
+                "type": "int",  # These are typically integers for API parameters
+                "required": False,  # Docstring params are usually optional kwargs
+                "default": None,
+                "description": param_desc
+            })
+
+    return params
+
+
 def extract_method_info(cls: type, method_name: str) -> dict | None:
     """Extract method information including parameters with types.
 
@@ -188,11 +224,23 @@ def extract_method_info(cls: type, method_name: str) -> dict | None:
         logger.warning(f"Cannot get signature for {method_name}: {e}")
         return None
 
+    # Extract description from docstring (first line)
+    docstring = method.__doc__ or ""
+    description = docstring.strip().split('\n')[0] if docstring.strip() else method_name
+
     parameters = []
+    existing_param_names = set()
+
     for param_name, param in sig.parameters.items():
         # Skip 'self' parameter
         if param_name == 'self':
             continue
+
+        # Skip *args and **kwargs (VAR_POSITIONAL and VAR_KEYWORD)
+        if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+            continue
+
+        existing_param_names.add(param_name)
 
         # Determine type
         param_type = type_hints.get(param_name, Any)
@@ -209,9 +257,11 @@ def extract_method_info(cls: type, method_name: str) -> dict | None:
             "default": repr(param.default) if has_default else None
         })
 
-    # Extract description from docstring
-    docstring = method.__doc__ or ""
-    description = docstring.strip().split('\n')[0] if docstring.strip() else method_name
+    # Parse additional kwargs parameters from docstring
+    docstring_params = _parse_docstring_params(docstring)
+    for param in docstring_params:
+        if param["name"] not in existing_param_names:
+            parameters.append(param)
 
     return {
         "name": method_name,

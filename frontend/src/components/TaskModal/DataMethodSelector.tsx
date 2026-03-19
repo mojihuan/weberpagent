@@ -422,26 +422,33 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
                   ) : (
                     <div className="space-y-3">
                       {method.parameters.map(param => (
-                        <div key={param.name} className="flex items-center gap-3">
-                          <label className="w-32 text-sm text-gray-700 flex-shrink-0">
-                            {param.name}
-                            {param.required && <span className="text-red-500 ml-1">*</span>}
-                          </label>
-                          <input
-                            type={param.type === 'int' ? 'number' : 'text'}
-                            value={config.parameters[param.name] ?? ''}
-                            onChange={e => updateParameter(
-                              key,
-                              param.name,
-                              param.type === 'int' ? parseInt(e.target.value) || 0 : e.target.value
+                        <div key={param.name} className="flex flex-col gap-1">
+                          <div className="flex items-center gap-3">
+                            <label className="w-32 text-sm text-gray-700 flex-shrink-0">
+                              {param.name}
+                              {param.required && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            <input
+                              type={param.type === 'int' ? 'number' : 'text'}
+                              value={config.parameters[param.name] ?? ''}
+                              onChange={e => updateParameter(
+                                key,
+                                param.name,
+                                param.type === 'int' ? parseInt(e.target.value) || 0 : e.target.value
+                              )}
+                              placeholder={param.type}
+                              className="flex-1 px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {param.default !== null && (
+                              <span className="text-xs text-gray-400 flex-shrink-0">
+                                default: {param.default}
+                              </span>
                             )}
-                            placeholder={param.type}
-                            className="flex-1 px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          {param.default !== null && (
-                            <span className="text-xs text-gray-400">
-                              default: {param.default}
-                            </span>
+                          </div>
+                          {param.description && (
+                            <p className="text-xs text-gray-500 ml-35 pl-32">
+                              {param.description}
+                            </p>
                           )}
                         </div>
                       ))}
