@@ -130,7 +130,7 @@ Plans:
   1. 所有阻断性 bug（阻塞核心流程）已修复 - 16 个失败测试 + 18 个归档文件
   2. 所有功能性 bug（影响用户体验）已修复 - 8 个 UI/交互 bug (bug #10 不存在)
   3. 修复后的代码通过回归测试，无新增失败用例
-**Plans:** 3/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 - [ ] 22-01: 修复失败测试 - 测试隔离与 mock 签名更新 (Wave 1) - BUG-01
@@ -167,7 +167,7 @@ Plans:
 | 19. 集成与变量传递 | v0.3.1 | 3/3 | Complete | 2026-03-19 |
 | 20. E2E Testing + Manual Verification | v0.3.2 | 6/6 | Complete | 2026-03-19 |
 | 21. Unit Test Coverage | v0.3.2 | 3/3 | Complete | 2026-03-19 |
-| 22. Bug Fix Sprint | 3/6 | In Progress|  | - |
+| 22. Bug Fix Sprint | 5/6 | In Progress|  | - |
 
 ---
 *Roadmap created: 2026-03-14*
