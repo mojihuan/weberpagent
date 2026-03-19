@@ -13,30 +13,24 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.3 已交付
+## Current State: v0.3.1 已交付
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
 - v0.2 前置条件/接口断言/动态数据 (2026-03-17)
 - v0.2.1 测试用例调通 (2026-03-18)
 - v0.3 前置条件集成 (2026-03-18)
+- v0.3.1 数据获取方法集成 (2026-03-19)
 
-**v0.3 关键成果:**
-1. 配置基础 - WEBSERP_PATH 环境变量, 启动验证, 文档模板
-2. 后端桥接模块 - ExternalPreconditionBridge, 操作码 API, PreconditionService 集成
-3. 前端集成 - OperationCodeSelector 组件, 模块分组显示, 代码生成
-4. 端到端验证 - E2E 测试, 错误场景测试, 手动测试检查清单
+**v0.3.1 关键成果:**
+1. 后端数据获取桥接 - 扫描 base_params.py，提供方法列表和执行 API
+2. 前端 DataMethodSelector - 4 步向导：方法选择 → 参数配置 → 数据预览 → 变量命名
+3. ContextWrapper 集成 - 支持同步数据方法调用和变量存储
+4. 变量传递 - 测试步骤中支持 `{{变量名}}` 语法
 
-## Current Milestone: v0.3.1 数据获取方法集成
+## Next Milestone: TBD
 
-**Goal:** 扫描 webseleniumerp 的 base_params.py 中的 xxx_data() 查询方法，支持前端选择和参数配置，获取的数据可作为变量传递给测试步骤
-
-**Target features:**
-- 扫描 base_params.py 获取所有 xxx_data() 查询方法
-- 前端表单列出数据获取方法（按模块分组）
-- 参数配置 UI（支持 i/j/k 等筛选参数）
-- 字段提取路径配置（如 `[0].imei`）
-- 生成变量名并在测试步骤中使用 `{{变量名}}`
+规划下一版本需求...
 
 ## Requirements
 
@@ -58,15 +52,17 @@ v0.1-v0.3 已交付功能：
 - ✓ 销售出库用例调通 (前置条件/动态数据/API断言验证) — v0.2.1
 - ✓ 外部前置条件集成 (WEBSERP_PATH, OperationCodeSelector) — v0.3
 
+v0.3.1 数据获取方法集成 (2026-03-19):
+
+- ✓ 扫描 base_params.py 获取 xxx_data() 查询方法 — DATA-01
+- ✓ 前端表单列出数据获取方法（按模块分组）— UI-01
+- ✓ 参数配置 UI（支持 i/j/k 等筛选参数）— UI-02
+- ✓ 字段提取路径配置（如 `[0].imei`）— UI-03
+- ✓ 生成变量名并在测试步骤中使用 `{{变量名}}` — INT-01/02/03
+
 ### Active
 
-v0.3.1 数据获取方法集成需求：
-
-- [ ] 扫描 base_params.py 获取 xxx_data() 查询方法
-- [ ] 前端表单列出数据获取方法（按模块分组）
-- [ ] 参数配置 UI（支持 i/j/k 等筛选参数）
-- [ ] 字段提取路径配置（如 `[0].imei`）
-- [ ] 生成变量名并在测试步骤中使用 `{{变量名}}`
+待规划下一版本需求...
 
 ### Out of Scope
 
@@ -114,6 +110,10 @@ v0.3.1 数据获取方法集成需求：
 | ApiAssertionService 收集所有结果 (非终止) | 允许部分失败 | ✓ Good |
 | ExternalPreconditionBridge 隔离外部项目导入 | 解耦依赖，支持缓存 | ✓ Good |
 | OperationCodeSelector 模块分组显示 | 按业务模块组织，便于查找 | ✓ Good |
+| DataMethodSelector 4 步向导模式 | 分步引导用户完成数据配置 | ✓ Good |
+| ContextWrapper 提供类字典接口 | 向后兼容，支持 context['var'] 语法 | ✓ Good |
+| context.get_data() 同步调用模式 | 使用 nest_asyncio 处理嵌套事件循环 | ✓ Good |
+| 代码生成格式: context.get_data('ClassName', 'method', params) | 匹配后端签名，包含类名 | ✓ Good |
 
 ---
-*Last updated: 2026-03-18 after v0.3 milestone completion*
+*Last updated: 2026-03-19 after v0.3.1 milestone completion*
