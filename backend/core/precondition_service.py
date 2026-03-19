@@ -1,6 +1,7 @@
 """前置条件执行服务"""
 
 import asyncio
+import copy
 import logging
 import sys
 import time
@@ -111,8 +112,8 @@ class ContextWrapper:
         return self._data.keys()
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a plain dict copy for variable substitution."""
-        return dict(self._data)
+        """Return a deep copy for variable substitution."""
+        return copy.deepcopy(self._data)
 
 
 @dataclass

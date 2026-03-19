@@ -619,3 +619,53 @@ class TestContextWrapper:
         ) as mock_execute:
             wrapper.get_data("TestClass", "test_method", i=2, j=3, name="test")
             mock_execute.assert_called_once_with("TestClass", "test_method", {"i": 2, "j": 3, "name": "test"})
+
+    # --- Dict-like interface tests ---
+
+    def test_getitem_returns_value(self, wrapper):
+        """Test __getitem__ returns value for existing key."""
+        wrapper._data['order_id'] = 'ORD-123'
+        assert wrapper['order_id'] == 'ORD-123'
+
+    def test_getitem_raises_keyerror(self, wrapper):
+        """Test __getitem__ raises KeyError for missing key."""
+        with pytest.raises(KeyError):
+            _ = wrapper['nonexistent']
+
+    def test_setitem_stores_value(self, wrapper):
+        """Test __setitem__ stores value correctly."""
+        wrapper['user_name'] = 'test_user'
+        assert wrapper._data['user_name'] == 'test_user'
+
+    def test_contains_returns_correct_bool(self, wrapper):
+        """Test __contains__ returns True for existing, False for missing."""
+        wrapper['key'] = 'value'
+        assert 'key' in wrapper
+        assert 'missing' not in wrapper
+
+    def test_get_returns_value_or_default(self, wrapper):
+        """Test get() returns value or default."""
+        wrapper['existing'] = 'value'
+        assert wrapper.get('existing') == 'value'
+        assert wrapper.get('missing') is None
+        assert wrapper.get('missing', 'default') == 'default'
+
+    def test_keys_returns_dict_keys_view(self, wrapper):
+        """Test keys() returns dict_keys view."""
+        wrapper['a'] = 1
+        wrapper['b'] = 2
+        keys = wrapper.keys()
+        assert 'a' in keys
+        assert 'b' in keys
+        assert len(keys) == 2
+
+    def test_to_dict_returns_copy(self, wrapper):
+        """Test to_dict() returns a copy, not reference."""
+        wrapper['data'] = {'nested': 'value'}
+        copy = wrapper.to_dict()
+        assert copy == {'data': {'nested': 'value'}}
+        # Modify copy should not affect original
+        copy['data']['nested'] = 'modified'
+        assert wrapper._data['data']['nested'] == 'value'
+        copy['new_key'] = 'new_value'
+        assert 'new_key' not in wrapper._data
