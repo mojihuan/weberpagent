@@ -217,7 +217,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
         const pathAccess = ex.path
           .replace(/\[(\d+)\]/g, '[$1]')
           .replace(/\.([^.[]+)/g, "['$1']")
-        lines.push(`${ex.variableName} = ${methodCall}${pathAccess}`)
+        lines.push(`context['${ex.variableName}'] = ${methodCall}${pathAccess}`)
       })
     })
     return lines.join('\n')
