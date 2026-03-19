@@ -209,6 +209,44 @@ class TestPreconditionServiceSubstitution:
 
         assert substituted == "查询订单 ORD-99999，验证收件人是 测试用户"
 
+    # --- List index access tests (Task 1) ---
+
+    def test_substitute_variables_list_index(self, service):
+        """Test list index access like {{items[0]}}."""
+        context = {'items': ['first', 'second', 'third']}
+        text = "First item: {{items[0]}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "First item: first"
+
+    def test_substitute_variables_list_index_with_attribute(self, service):
+        """Test list index with attribute access like {{items[0].name}}."""
+        context = {
+            'items': [
+                {'name': 'Product A', 'price': 100},
+                {'name': 'Product B', 'price': 200}
+            ]
+        }
+        text = "Product: {{items[0].name}}, Price: {{items[0].price}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "Product: Product A, Price: 100"
+
+    def test_substitute_variables_list_third_element(self, service):
+        """Test {{items[2]}} with list of length 3 returns third element."""
+        context = {'items': ['first', 'second', 'third']}
+        text = "Third item: {{items[2]}}"
+        result = PreconditionService.substitute_variables(text, context)
+        assert result == "Third item: third"
+
+    def test_substitute_variables_list_index_out_of_range(self, service):
+        """Test index out of range raises error."""
+        from jinja2 import UndefinedError
+
+        context = {'items': ['only_one']}
+        text = "Missing: {{items[5]}}"
+
+        with pytest.raises((UndefinedError, IndexError)):
+            PreconditionService.substitute_variables(text, context)
+
 
 class TestPreconditionServiceExternalModule:
     """外部模块加载测试"""
