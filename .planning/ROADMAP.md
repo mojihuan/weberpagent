@@ -96,7 +96,7 @@
   3. 测试步骤中的 `{{变量名}}` 被正确替换为实际值
   4. 完整测试用例（前置条件 -> 数据获取 -> 变量替换 -> AI 执行）端到端成功
   5. 真实 ERP 环境下完整流程手动验证通过
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [x] 20-01: E2E 测试 - DataMethodSelector 选择与配置 (Wave 1) - completed 2026-03-19
@@ -162,7 +162,7 @@ Plans:
 | 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
 | 18. 前端数据选择器 | v0.3.1 | 5/5 | Complete | 2026-03-19 |
 | 19. 集成与变量传递 | v0.3.1 | 3/3 | Complete | 2026-03-19 |
-| 20. E2E Testing + Manual Verification | 3/6 | In Progress|  | 2026-03-19 |
+| 20. E2E Testing + Manual Verification | 4/6 | In Progress|  | 2026-03-19 |
 | 21. Unit Test Coverage | v0.3.2 | 0/3 | Not started | - |
 | 22. Bug Fix Sprint | v0.3.2 | 0/3 | Not started | - |
 
