@@ -22,7 +22,7 @@
 
 ### 集成
 
-- [ ] **INT-01**: 前置条件代码生成（将数据获取代码注入前置条件块）
+- [x] **INT-01**: 前置条件代码生成（将数据获取代码注入前置条件块）
 - [ ] **INT-02**: context 变量存储（数据获取结果存入执行上下文）
 - [ ] **INT-03**: Jinja2 变量替换（测试步骤中使用 `{{imei}}` 引用）
 
@@ -57,7 +57,7 @@
 | UI-02 | Phase 18 | Complete |
 | UI-03 | Phase 18 | Complete |
 | UI-04 | Phase 18 | Complete |
-| INT-01 | Phase 19 | Pending |
+| INT-01 | Phase 19 | Complete |
 | INT-02 | Phase 19 | Pending |
 | INT-03 | Phase 19 | Pending |
 

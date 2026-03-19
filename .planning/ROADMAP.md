@@ -57,7 +57,7 @@
 
 ## v0.3.1 数据获取方法集成 (Phases 17-19)
 - [x] **Phase 17: 后端数据获取桥接** - 扫描 base_params.py 并提供数据获取 API (completed 2026-03-18)
-- [ ] **Phase 18: 前端数据选择器** - DataMethodSelector 组件及参数配置 UI (1/4 in progress)
+- [x] **Phase 18: 前端数据选择器** - DataMethodSelector 组件及参数配置 UI (completed 2026-03-19)
 - [ ] **Phase 19: 集成与变量传递** - 前置条件代码生成与 Jinja2 变量替换
 ---
 
@@ -73,9 +73,9 @@
   4. 当 WEBSERP_PATH 未配置时，API 返回清晰的错误提示
 **Plans:** 3/3 plans complete
 Plans:
-- [ ] 17-01-PLAN.md - Extend bridge module for data method discovery (DATA-01)
-- [ ] 17-02-PLAN.md - Create data method list API endpoint (DATA-02)
-- [ ] 17-03-PLAN.md - Create data method execution API endpoint (DATA-03)
+- [x] 17-01-PLAN.md - Extend bridge module for data method discovery (DATA-01)
+- [x] 17-02-PLAN.md - Create data method list API endpoint (DATA-02)
+- [x] 17-03-PLAN.md - Create data method execution API endpoint (DATA-03)
 ### Phase 18: 前端数据选择器
 **Goal:** 用户可以在前端选择数据获取方法、配置参数、设置字段提取路径和变量名
 **Depends on:** Phase 17 (后端数据获取 API 就绪)
@@ -86,12 +86,13 @@ Plans:
   3. 用户可配置字段提取路径（如 [0].imei）
   4. 用户可设置生成的变量名
   5. 系统自动生成可预览的 Python 代码片段
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [x] 18-01-PLAN.md - API client, types, and DataMethodSelector skeleton (UI-01) - completed 2026-03-18
-- [ ] 18-02-PLAN.md - Method selection and parameter configuration steps (UI-01, UI-02)
+- [x] 18-02-PLAN.md - Method selection and parameter configuration steps (UI-01, UI-02)
 - [x] 18-03-PLAN.md - Data preview, field extraction, and variable naming steps (UI-03, UI-04) - completed 2026-03-18
-- [ ] 18-04-PLAN.md - TaskForm integration with "获取数据" button (UI-01, UI-02, UI-03, UI-04)
+- [x] 18-04-PLAN.md - TaskForm integration with "获取数据" button (UI-01, UI-02, UI-03, UI-04)
+- [x] 18-05-PLAN.md - Variable naming and code preview step (UI-04) - completed 2026-03-19
 ### Phase 19: 集成与变量传递
 **Goal:** 用户配置的数据获取代码可注入前置条件块，获取的数据可在测试步骤中通过 {{变量名}} 引用
 **Depends on:** Phase 18 (前端 UI 就绪)
@@ -101,7 +102,11 @@ Plans:
   2. 执行测试时，数据获取结果存入 context 变量
   3. 测试步骤中使用 {{变量名}} 可正确替换为实际获取的数据
   4. 数据获取失败时，测试终止并显示清晰的错误信息
-**Plans:** TBD
+**Plans:** 1/3 plans complete
+Plans:
+- [x] 19-01-PLAN.md - Update frontend code generation to include className (INT-01) - completed 2026-03-19
+- [ ] 19-02-PLAN.md - Implement ContextWrapper with get_data() method (INT-02)
+- [ ] 19-03-PLAN.md - Verify API assertion variable substitution (INT-03)
 ---
 ## Progress
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -123,8 +128,8 @@ Plans:
 | 15. 前端集成 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 16. 端到端验证 | v0.3 | 3/3 | Complete | 2026-03-18 |
 | 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
-| 18. 前端数据选择器 | 4/5 | In Progress|  | - |
-| 19. 集成与变量传递 | v0.3.1 | 0/3 | Not started | - |
+| 18. 前端数据选择器 | v0.3.1 | 5/5 | Complete | 2026-03-19 |
+| 19. 集成与变量传递 | v0.3.1 | 1/3 | In progress | 2026-03-19 |
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-18 - Phase 18-01 completed*
+*Last updated: 2026-03-19 - Phase 19 plan 01 complete*
