@@ -13,7 +13,7 @@ const statusConfig = {
   stopped: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-50', label: '已停止' },
 }
 
-function formatDuration(startedAt: string | null, finishedAt: string | null): string {
+function formatDuration(startedAt: string | null | undefined, finishedAt: string | null | undefined): string {
   if (!startedAt) return '-'
   const start = new Date(startedAt).getTime()
   const end = finishedAt ? new Date(finishedAt).getTime() : Date.now()
