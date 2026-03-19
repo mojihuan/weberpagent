@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { Layers, CheckCircle, XCircle, Clock } from 'lucide-react'
-import { ReportHeader, SummaryCard, StepItem, AssertionResults, ApiAssertionResults } from '../components/Report'
+import { ReportHeader, SummaryCard, StepItem, AssertionResults, ApiAssertionResults, PreconditionSection } from '../components/Report'
 import { getReport, type ReportDetailResponse } from '../api/reports'
 
 export function ReportDetail() {
@@ -71,6 +71,11 @@ export function ReportDetail() {
           value={formatDuration(data.duration_ms)}
         />
       </div>
+
+      {/* Precondition Execution Results */}
+      {data.precondition_results && data.precondition_results.length > 0 && (
+        <PreconditionSection results={data.precondition_results} />
+      )}
 
       {/* UI 断言结果 */}
       {data.assertion_results && data.assertion_results.length > 0 && (

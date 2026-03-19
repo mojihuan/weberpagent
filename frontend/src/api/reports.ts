@@ -38,6 +38,15 @@ interface AssertionResultApiResponse {
   created_at: string
 }
 
+interface PreconditionResultApiResponse {
+  index: number
+  code: string
+  status: 'success' | 'failed'
+  duration_ms?: number
+  error?: string
+  variables?: Record<string, unknown>
+}
+
 interface ReportDetailApiResponse extends ReportApiResponse {
   steps: StepApiResponse[]
   assertion_results: AssertionResultApiResponse[]
@@ -45,6 +54,7 @@ interface ReportDetailApiResponse extends ReportApiResponse {
   api_assertion_results?: AssertionResultApiResponse[]
   pass_rate?: string
   api_pass_rate?: string
+  precondition_results?: PreconditionResultApiResponse[]
 }
 
 interface ReportsListApiResponse {
@@ -109,6 +119,15 @@ function transformAssertionResult(result: AssertionResultApiResponse): Assertion
   }
 }
 
+export interface PreconditionResult {
+  index: number
+  code: string
+  status: 'success' | 'failed'
+  duration_ms?: number
+  error?: string
+  variables?: Record<string, unknown>
+}
+
 export interface ReportDetailResponse extends Report {
   steps: Step[]
   assertion_results?: AssertionResult[]
@@ -116,6 +135,7 @@ export interface ReportDetailResponse extends Report {
   api_assertion_results?: AssertionResult[]
   pass_rate?: string
   api_pass_rate?: string
+  precondition_results?: PreconditionResult[]
 }
 
 export async function listReports(params?: ReportsListParams): Promise<{ reports: Report[]; total: number; page: number; page_size: number }> {
@@ -147,5 +167,6 @@ export async function getReport(reportId: string): Promise<ReportDetailResponse>
     api_assertion_results: (response.api_assertion_results || []).map(transformAssertionResult),
     pass_rate: response.pass_rate,
     api_pass_rate: response.api_pass_rate,
+    precondition_results: response.precondition_results,
   }
 }
