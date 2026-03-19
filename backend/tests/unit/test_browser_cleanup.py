@@ -33,7 +33,8 @@ class TestAgentServiceCleanup:
                 run_id="test-run-1",
                 on_step=mock_run.call_args[1]['on_step'],
                 max_steps=5,
-                llm_config=None
+                llm_config=None,
+                target_url=None
             )
 
     @pytest.mark.asyncio
@@ -148,9 +149,13 @@ class TestRunAgentBackgroundWiring:
             # Call the background function (matches actual signature)
             await run_agent_background(
                 run_id="test-run",
+                task_id="test-task-id",
                 task_name="Test Task",
                 task_description="Test task description",
-                max_steps=10
+                max_steps=10,
+                preconditions=None,
+                api_assertions=None,
+                target_url=None
             )
 
             # Verify run_with_cleanup was called (not run_with_streaming)
