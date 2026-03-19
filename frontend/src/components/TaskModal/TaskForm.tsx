@@ -223,7 +223,8 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         const pathAccess = ex.path
           .replace(/\[(\d+)\]/g, '[$1]')
           .replace(/\.([^.[]+)/g, "['$1']")
-        lines.push(`${ex.variableName} = ${methodCall}${pathAccess}`)
+        // Store variable in context for later substitution
+        lines.push(`context['${ex.variableName}'] = ${methodCall}${pathAccess}`)
       })
     })
 
