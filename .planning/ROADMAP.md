@@ -115,12 +115,12 @@ Plans:
   2. 数据获取 API 端点有完整单元测试（请求/响应/错误处理）
   3. 变量替换逻辑有完整单元测试（各种替换场景）
   4. 新增代码单元测试覆盖率达到 80%+
-**Plans:** TBD
+**Plans:** 2/3 plans executed
 
 Plans:
-- [ ] 21-01: ContextWrapper.get_data() 单元测试
-- [ ] 21-02: 数据获取 API 端点单元测试
-- [ ] 21-03: 变量替换逻辑单元测试
+- [ ] 21-01: ContextWrapper.get_data() 与 execute_data_method_sync 单元测试 (Wave 1)
+- [ ] 21-02: 变量替换边界场景单元测试 (Wave 1)
+- [ ] 21-03: 数据获取 API 端点边界场景单元测试 (Wave 2)
 
 ### Phase 22: Bug Fix Sprint
 **Goal:** 测试阶段发现的所有 bug 已修复并通过回归测试
@@ -162,10 +162,10 @@ Plans:
 | 17. 后端数据获取桥接 | v0.3.1 | 3/3 | Complete | 2026-03-18 |
 | 18. 前端数据选择器 | v0.3.1 | 5/5 | Complete | 2026-03-19 |
 | 19. 集成与变量传递 | v0.3.1 | 3/3 | Complete | 2026-03-19 |
-| 20. E2E Testing + Manual Verification | 6/6 | Complete   | 2026-03-19 | 2026-03-19 |
-| 21. Unit Test Coverage | v0.3.2 | 0/3 | Not started | - |
+| 20. E2E Testing + Manual Verification | v0.3.2 | 6/6 | Complete | 2026-03-19 |
+| 21. Unit Test Coverage | 2/3 | In Progress|  | - |
 | 22. Bug Fix Sprint | v0.3.2 | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-19 - Phase 20 plan 20-06 added (split from 20-05)*
+*Last updated: 2026-03-19 - Phase 21 plans created*

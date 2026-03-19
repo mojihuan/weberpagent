@@ -18,7 +18,7 @@
 
 - [ ] **UNIT-01**: ContextWrapper.get_data() 单元测试覆盖
 - [ ] **UNIT-02**: 数据获取 API 端点单元测试覆盖
-- [ ] **UNIT-03**: 变量替换逻辑单元测试覆盖
+- [x] **UNIT-03**: 变量替换逻辑单元测试覆盖
 
 ### Bug 修复
 
@@ -60,7 +60,7 @@
 | E2E-04 | Phase 20 | Complete |
 | UNIT-01 | Phase 21 | Pending |
 | UNIT-02 | Phase 21 | Pending |
-| UNIT-03 | Phase 21 | Pending |
+| UNIT-03 | Phase 21 | Complete |
 | BUG-01 | Phase 22 | Pending |
 | BUG-02 | Phase 22 | Pending |
 | BUG-03 | Phase 22 | Pending |
