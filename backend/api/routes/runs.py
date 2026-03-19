@@ -212,7 +212,8 @@ async def run_agent_background(
             # === 接口断言执行（新增） ===
             if api_assertions:
                 api_assertion_service = ApiAssertionService(external_module_path=external_module_path)
-                api_assertion_service.context = context  # 复用前置条件上下文
+                api_assertion_service.context = context  # 复用前置条件上下文用于 {{variable}} 替换
+                logger.info(f"[{run_id}] API 断言将使用上下文变量: {list(context.keys())}")
                 assertion_result_repo = AssertionResultRepository(session)
 
                 for i, code in enumerate(api_assertions):
