@@ -129,19 +129,19 @@ def load_base_params_class() -> tuple[type | None, str | None]:
                 return None, _base_params_import_error
 
     try:
-        from common.base_params import BaseParams
-        _base_params_class = BaseParams
-        logger.info("Successfully loaded BaseParams class")
+        from common.base_params import BaseImport
+        _base_params_class = BaseImport
+        logger.info("Successfully loaded BaseImport class")
         return _base_params_class, None
     except ImportError as e:
         _base_params_import_error = (
-            f"Failed to import BaseParams: {e}. "
+            f"Failed to import BaseImport: {e}. "
             f"Ensure config/settings.py exists in webseleniumerp."
         )
         logger.error(_base_params_import_error)
         return None, _base_params_import_error
     except Exception as e:
-        _base_params_import_error = f"Unexpected error loading BaseParams: {e}"
+        _base_params_import_error = f"Unexpected error loading BaseImport: {e}"
         logger.error(_base_params_import_error, exc_info=True)
         return None, _base_params_import_error
 
