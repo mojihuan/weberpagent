@@ -16,14 +16,14 @@
 
 ### 单元测试
 
-- [ ] **UNIT-01**: ContextWrapper.get_data() 单元测试覆盖
-- [ ] **UNIT-02**: 数据获取 API 端点单元测试覆盖
+- [x] **UNIT-01**: ContextWrapper.get_data() 单元测试覆盖
+- [x] **UNIT-02**: 数据获取 API 端点单元测试覆盖
 - [x] **UNIT-03**: 变量替换逻辑单元测试覆盖
 
 ### Bug 修复
 
-- [ ] **BUG-01**: 发现的阻断性 bug 全部修复
-- [ ] **BUG-02**: 发现的功能性 bug 全部修复
+- [x] **BUG-01**: 发现的阻断性 bug 全部修复
+- [x] **BUG-02**: 发现的功能性 bug 全部修复
 - [ ] **BUG-03**: Bug 修复后回归测试通过
 
 ### 手动验证
@@ -58,11 +58,11 @@
 | E2E-02 | Phase 20 | Complete |
 | E2E-03 | Phase 20 | Complete |
 | E2E-04 | Phase 20 | Complete |
-| UNIT-01 | Phase 21 | Pending |
-| UNIT-02 | Phase 21 | Pending |
+| UNIT-01 | Phase 21 | Complete |
+| UNIT-02 | Phase 21 | Complete |
 | UNIT-03 | Phase 21 | Complete |
-| BUG-01 | Phase 22 | Pending |
-| BUG-02 | Phase 22 | Pending |
+| BUG-01 | Phase 22 | Complete |
+| BUG-02 | Phase 22 | Complete |
 | BUG-03 | Phase 22 | Pending |
 | MANUAL-01 | Phase 20 | Complete |
 | MANUAL-02 | Phase 20 | Complete |
