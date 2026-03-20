@@ -406,7 +406,7 @@ export function AssertionSelector({
                               <label className="block text-xs text-gray-400 mb-0.5">
                                 {param.name}
                                 {param.description && (
-                                  <span className="ml-1" title={param.description}>?</span>
+                                  <span className="ml-1 text-gray-500">({param.description})</span>
                                 )}
                               </label>
                               {param.options.length > 0 ? (
