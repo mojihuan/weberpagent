@@ -27,7 +27,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend.api.routes import tasks, runs, reports, dashboard, external_operations, external_data_methods
+from backend.api.routes import tasks, runs, reports, dashboard, external_operations, external_data_methods, external_assertions
 from backend.config.settings import get_settings
 from backend.config.validators import validate_weberp_path
 from backend.db.database import init_db
@@ -85,6 +85,7 @@ app.include_router(reports.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(external_operations.router, prefix="/api")
 app.include_router(external_data_methods.router, prefix="/api")
+app.include_router(external_assertions.router, prefix="/api")
 
 
 # Global exception handlers for consistent API response format
