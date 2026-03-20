@@ -31,6 +31,10 @@ _assertion_classes_cache: dict[str, type] | None = None
 _assertion_import_error: str | None = None
 _assertion_methods_cache: list[dict] | None = None
 
+# LoginApi state for headers resolution
+_login_api_instance = None
+_login_api_error: str | None = None
+
 
 def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
     """Configure external module path.
@@ -575,6 +579,83 @@ def get_assertion_methods_grouped() -> list[dict]:
         return _assertion_methods_cache
 
 
+def _get_login_api():
+    """Get or create LoginApi instance with caching.
+
+    Returns:
+        LoginApi instance or None if unavailable
+    """
+    global _login_api_instance, _login_api_error
+
+    if _login_api_instance is not None:
+        return _login_api_instance
+
+    if _login_api_error is not None:
+        return None
+
+    # Ensure path is configured
+    if not _path_configured:
+        from backend.config import get_settings
+        settings = get_settings()
+        if settings.weberp_path:
+            configure_external_path(settings.weberp_path)
+
+    try:
+        from api.api_login import LoginApi
+        _login_api_instance = LoginApi()
+        logger.info("Successfully created LoginApi instance for headers resolution")
+        return _login_api_instance
+    except ImportError as e:
+        _login_api_error = f"Failed to import LoginApi: {e}"
+        logger.error(_login_api_error)
+        return None
+    except Exception as e:
+        _login_api_error = f"Failed to create LoginApi: {e}"
+        logger.error(_login_api_error, exc_info=True)
+        return None
+
+
+# Valid header identifiers matching LoginApi.headers keys
+VALID_HEADER_IDENTIFIERS = {'main', 'idle', 'vice', 'special', 'platform', 'super', 'camera'}
+
+
+def resolve_headers(identifier: str = 'main') -> dict:
+    """Resolve header identifier to actual headers dict with auth tokens.
+
+    Args:
+        identifier: Header identifier string ('main', 'idle', 'vice', 'special',
+                   'platform', 'super', 'camera'). Defaults to 'main'.
+
+    Returns:
+        dict: Headers dict with 'Authorization' and 'Content-Type' keys
+
+    Raises:
+        ValueError: If identifier is not a valid header identifier
+        RuntimeError: If LoginApi is not available
+    """
+    # Default to 'main' if None
+    if identifier is None:
+        identifier = 'main'
+
+    # Validate identifier
+    if identifier not in VALID_HEADER_IDENTIFIERS:
+        raise ValueError(
+            f"Unknown header identifier: '{identifier}'. "
+            f"Valid identifiers: {sorted(VALID_HEADER_IDENTIFIERS)}"
+        )
+
+    # Get LoginApi instance
+    login_api = _get_login_api()
+    if login_api is None:
+        raise RuntimeError(
+            "LoginApi not available. Ensure WEBSERP_PATH is configured and "
+            "webseleniumerp project is accessible."
+        )
+
+    # Return resolved headers
+    return login_api.headers.get(identifier, login_api.headers['main'])
+
+
 async def execute_data_method(
     class_name: str,
     method_name: str,
@@ -811,6 +892,7 @@ def reset_cache():
     global _pre_front_class, _import_error, _operations_cache, _modules_cache, _path_configured
     global _base_params_class, _base_params_import_error, _data_methods_cache
     global _assertion_classes_cache, _assertion_import_error, _assertion_methods_cache
+    global _login_api_instance, _login_api_error
     _pre_front_class = None
     _import_error = None
     _operations_cache = None
@@ -822,3 +904,5 @@ def reset_cache():
     _assertion_classes_cache = None
     _assertion_import_error = None
     _assertion_methods_cache = None
+    _login_api_instance = None
+    _login_api_error = None
