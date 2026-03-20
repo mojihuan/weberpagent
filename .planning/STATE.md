@@ -1,44 +1,48 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.1
-milestone_name: milestone
-status: unknown
-stopped_at: Completed 22-05-PLAN.md
-last_updated: "2026-03-19T14:14:52.145Z"
+milestone: v0.4.0
+milestone_name: Backend Assertion Discovery
+status: executing
+stopped_at: Completed 23-01 plan
+last_updated: "2026-03-20T02:59:17Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-19)
+See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 22 — bug-fix-sprint
+**Current focus:** Phase 23 — Backend Assertion Discovery
 
 ## Current Position
 
-Phase: 22 (bug-fix-sprint) — COMPLETE
-Plan: 6 of 6
+Phase: 23 (Backend Assertion Discovery) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0 (v0.3.2 just started)
-- Average duration: N/A
+- Total plans completed: 1 (v0.4.0)
+- Average duration: 3 min
 - Total execution time: 0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 23. Backend Assertion Discovery | 1/3 | 3 min | 3 min |
+| 24. Frontend Assertion UI | 0/3 | - | - |
+| 25. Assertion Execution Engine | 0/3 | - | - |
+| 26. E2E Testing | 0/2 | - | - |
+| 27. Unit Test Coverage | 0/2 | - | - |
 
 **Recent Trend:**
 
@@ -46,14 +50,6 @@ Plan: 6 of 6
 - Trend: N/A
 
 *Updated after each plan completion*
-| Phase 20-e2e-testing-manual-verification P04 | 5min | 1 tasks | 1 files |
-| Phase 20-e2e-testing-manual-verification P05 | 2min | 1 tasks | 1 files |
-| Phase 21-unit-test-coverage P02 | 5min | 4 tasks | 1 files |
-| Phase 21-unit-test-coverage P03 | 18min | 3 tasks | 1 files |
-| Phase 22 P01 | 15min | 4 tasks | 4 files |
-| Phase 22 P03 | 3min | 2 tasks | 1 files |
-| Phase 22 P04 | 2min | 3 tasks | 1 files |
-| Phase 22 P05 | 7min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -62,25 +58,21 @@ Plan: 6 of 6
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Phase 17-19]: DataMethodSelector 4 步向导、ContextWrapper 类字典接口、同步 get_data() 调用模式
-- [Phase 20-e2e-testing-manual-verification]: Manual verification checklist created with comprehensive coverage for DataMethodSelector UI, real ERP execution, and report display
-- [Phase 21-unit-test-coverage]: Used pytest.raises with tuple for list index out of range - accepts both UndefinedError and IndexError
-- [Phase 21]: Used 400 status code for validation errors (custom exception handler) and proper unicode escapes in tests
-- [Phase 22-03]: Used custom collapsible with Tailwind CSS instead of Ant Design Collapse (antd not installed)
-- [Phase 22-04]: Combined 4 related UI bug fixes into single commit; used regex /^['"]|['"]$/g for quote stripping
-- [Phase 22]: Added precondition_results as Optional field returning None until storage is implemented
-- [Phase 22]: Placed PreconditionSection between summary cards and assertion results for logical flow
+- [v0.3.x]: Follow ExternalPreconditionBridge pattern for assertion integration
+- [v0.3.x]: Use ContextWrapper for context storage (assertion results)
+- [Phase 17-19]: DataMethodSelector 4-step wizard, ContextWrapper dict-like interface, sync get_data() pattern
+- [Phase 20-22]: E2E/unit test coverage, UI fixes, report enhancements
 
 ### Pending Todos
 
-None yet for v0.3.2.
+None yet for v0.4.0.
 
 ### Blockers/Concerns
 
-None yet.
+- **Headers resolution**: Must resolve identifier strings ("main", "vice") to actual header tokens before API calls. This is critical for assertion execution (EXEC-03).
 
 ## Session Continuity
 
-Last session: 2026-03-19T13:02:07.010Z
-Stopped at: Completed 22-05-PLAN.md
-Resume file: None
+Last session: 2026-03-20T02:36:02.408Z
+Stopped at: Phase 23 context gathered
+Resume file: .planning/phases/23-backend-assertion-discovery/23-CONTEXT.md
