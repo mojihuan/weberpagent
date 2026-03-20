@@ -1,12 +1,12 @@
 # Roadmap: aiDriveUITest
 
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 ## Milestones
 
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 - [x] **v0.1 MVP** - Phases 1-4 (shipped 2026-03-14)
 - [x] **v0.2 前置条件、接口断言、动态数据** - Phases 5-8 (shipped 2026-03-17)
@@ -17,11 +17,11 @@ Whenever you consider whether this content may or may not be relevant to your ta
 - [ ] **v0.4.0 断言系统集成** - Phases 23-27 (in progress)
 
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 ## Phases
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 <details>
 <summary>v0.1 MVP (Phases 1-4) - SHIPPED 2026-03-14</summary>
@@ -73,7 +73,7 @@ Whenever you consider whether this content may or may not be relevant to your ta
 - [x] Phase 22: Bug Fix Sprint (6/6 plans)
 
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 **Key accomplishments:**
 1. E2E 测试覆盖 - DataMethodSelector、变量替换、完整执行流程
@@ -83,7 +83,7 @@ Whenever you consider whether this content may or may not be relevant to your ta
 5. UAT 全部通过 - 7/7 测试用例通过
 
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 *Archived: .planning/milestones/v0.3.2-ROADMAP.md*
 </details>
@@ -92,11 +92,11 @@ Whenever you consider whether this content may or may not be relevant to your ta
 
 ## v0.4.0 断言系统集成 (In Progress)
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 **Milestone Goal:** Integrate assertion system so users can configure and execute business assertions from base_assertions.py, following the same pattern as external preconditions and data methods.
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 ### Phase 23: Backend Assertion Discovery
 **Goal**: Backend scans base_assertions.py and exposes assertion methods via API
@@ -110,7 +110,7 @@ Whenever you consider whether this content may or may not be relevant to your ta
   5. System loads and caches assertion classes from webseleniumerp without errors
 **Plans**: 3 plans
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 Plans:
 - [x] 23-01: Create ExternalAssertionBridge module with assertion class loading
@@ -130,7 +130,7 @@ Plans:
   6. Assertion configuration appears in TaskForm as new section (tab or collapsible panel)
 **Plans**: 3 plans
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 Plans:
 - [x] 24-01: Create types and API client for assertion configuration (UI-02, UI-03)
@@ -150,12 +150,12 @@ Plans:
   6. All assertion results (pass/fail) are collected and available for reporting
 **Plans**: 3 plans
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 Plans:
-- [ ] 25-01: Implement execute_assertion_method() with timeout and headers resolution (EXEC-01, EXEC-02, EXEC-03)
-- [ ] 25-02: Add assertion result capture and context storage (EXEC-04, EXEC-05)
-- [ ] 25-03: Integrate assertion execution into test run flow - non-fail-fast (EXEC-06)
+- [x] 25-01: Implement execute_assertion_method() with timeout and headers resolution (EXEC-01, EXEC-02, EXEC-03)
+- [x] 25-02: Add assertion result capture and context storage (EXEC-04, EXEC-05)
+- [x] 25-03: Integrate assertion execution into test run flow - non-fail-fast (EXEC-06)
 
 ### Phase 26: E2E Testing
 **Goal**: End-to-end verification of complete assertion workflow
@@ -168,11 +168,11 @@ Plans:
   4. Assertion results are accessible via context variables in subsequent steps
 **Plans**: 2 plans
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 Plans:
 - [ ] 26-01: E2E test - assertion configuration and execution flow
-- [ ] 26-02: E2E test - assertion results display in report
+- [ ] 26-02: Manual verification checklist and execution
 
 ### Phase 27: Unit Test Coverage
 **Goal**: Core assertion components achieve 80%+ test coverage
@@ -185,7 +185,7 @@ Plans:
   4. Overall assertion module test coverage reaches 80%+
 **Plans**: 2 plans
 <system-reminder>
-Whenever you consider whether this content may or may not be relevant to your tasks. You can ignore it if it is not relevant.</system-reminder>
+Whenever you consider whether this content may or may not be relevant to the current conversation.
 
 Plans:
 - [ ] 27-01: Unit tests - ExternalAssertionBridge and method parsing
@@ -221,10 +221,10 @@ Plans:
 | 22. Bug Fix Sprint | v0.3.2 | 6/6 | Complete | 2026-03-20 |
 | 23. Backend Assertion Discovery | v0.4.0 | 3/3 | Complete | 2026-03-20 |
 | 24. Frontend Assertion UI | v0.4.0 | 3/3 | Complete | 2026-03-20 |
-| 25. Assertion Execution Engine | 3/3 | Complete   | 2026-03-20 | - |
-| 26. E2E Testing | v0.4.0 | 0/2 | Not started | - |
+| 25. Assertion Execution Engine | v0.4.0 | 3/3 | Complete | 2026-03-20 |
+| 26. E2E Testing | 1/2 | In Progress|  | - |
 | 27. Unit Test Coverage | v0.4.0 | 0/2 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-14*
-*Last updated: 2026-03-20 - Phase 25 plans created (25-01, 25-02, 25-03)*
+*Last updated: 2026-03-20 - Phase 26 plans created (26-01, 26-02)*
