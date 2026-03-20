@@ -107,3 +107,15 @@ None - no external service configuration required. Tests will skip automatically
 ---
 *Phase: 26-e2e-testing*
 *Completed: 2026-03-20*
+
+## Self-Check: PASSED
+
+- [x] Test file exists: e2e/tests/assertion-flow.spec.ts
+- [x] Commit exists: b4d2fe7
+- [x] File contains test.describe('Assertion Flow Tests')
+- [x] File contains 5 test cases
+- [x] Each test has test.setTimeout(180000) or higher
+- [x] Each test checks for ERP_BASE_URL env var
+- [x] Report verification uses bg-green-50/border-green-200 for pass status
+- [x] Report verification uses bg-red-50/border-red-200 for fail status
+- [x] File has 478 lines (minimum 100 required)
