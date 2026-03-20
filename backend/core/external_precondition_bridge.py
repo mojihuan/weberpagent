@@ -26,6 +26,10 @@ _base_params_class = None
 _base_params_import_error = None
 _data_methods_cache: list[dict] | None = None
 
+# Assertion classes discovery state
+_assertion_classes_cache: dict[str, type] | None = None
+_assertion_import_error: str | None = None
+
 
 def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
     """Configure external module path.
@@ -144,6 +148,52 @@ def load_base_params_class() -> tuple[type | None, str | None]:
         _base_params_import_error = f"Unexpected error loading BaseImport: {e}"
         logger.error(_base_params_import_error, exc_info=True)
         return None, _base_params_import_error
+
+
+def load_base_assertions_class() -> tuple[dict[str, type] | None, str | None]:
+    """Load assertion classes lazily from common.base_assertions.
+
+    Returns:
+        (dict mapping class names to classes, error_or_none)
+    """
+    global _assertion_classes_cache, _assertion_import_error
+
+    if _assertion_classes_cache is not None:
+        return _assertion_classes_cache, None
+
+    if _assertion_import_error is not None:
+        return None, _assertion_import_error
+
+    # Configure path from settings if not already done
+    if not _path_configured:
+        from backend.config import get_settings
+        settings = get_settings()
+        if settings.weberp_path:
+            success, msg = configure_external_path(settings.weberp_path)
+            if not success:
+                _assertion_import_error = msg
+                return None, _assertion_import_error
+
+    try:
+        from common.base_assertions import PcAssert, MgAssert, McAssert
+        _assertion_classes_cache = {
+            'PcAssert': PcAssert,
+            'MgAssert': MgAssert,
+            'McAssert': McAssert
+        }
+        logger.info("Successfully loaded assertion classes (PcAssert, MgAssert, McAssert)")
+        return _assertion_classes_cache, None
+    except ImportError as e:
+        _assertion_import_error = (
+            f"Failed to import assertion classes: {e}. "
+            f"Ensure config/settings.py exists in webseleniumerp."
+        )
+        logger.error(_assertion_import_error)
+        return None, _assertion_import_error
+    except Exception as e:
+        _assertion_import_error = f"Unexpected error loading assertion classes: {e}"
+        logger.error(_assertion_import_error, exc_info=True)
+        return None, _assertion_import_error
 
 
 def _parse_docstring_params(docstring: str) -> list[dict]:
@@ -566,6 +616,7 @@ def reset_cache():
     """Reset all cached data (for testing)."""
     global _pre_front_class, _import_error, _operations_cache, _modules_cache, _path_configured
     global _base_params_class, _base_params_import_error, _data_methods_cache
+    global _assertion_classes_cache, _assertion_import_error
     _pre_front_class = None
     _import_error = None
     _operations_cache = None
@@ -574,3 +625,5 @@ def reset_cache():
     _base_params_class = None
     _base_params_import_error = None
     _data_methods_cache = None
+    _assertion_classes_cache = None
+    _assertion_import_error = None
