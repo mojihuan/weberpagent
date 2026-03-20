@@ -7,6 +7,7 @@ export interface Task {
   max_steps: number
   preconditions?: string[]
   api_assertions?: string[]
+  assertions?: AssertionConfig[]
   status: 'draft' | 'ready'
   created_at: string
   updated_at: string
@@ -20,6 +21,7 @@ export interface CreateTaskDto {
   max_steps: number
   preconditions?: string[]
   api_assertions?: string[]
+  assertions?: AssertionConfig[]
 }
 
 // UpdateTaskDto 更新任务请求
@@ -31,6 +33,7 @@ export interface UpdateTaskDto {
   status?: 'draft' | 'ready'
   preconditions?: string[]
   api_assertions?: string[]
+  assertions?: AssertionConfig[]
 }
 
 // RunStatus 执行状态
@@ -257,4 +260,47 @@ export interface DataMethodConfig {
   methodName: string
   parameters: Record<string, any>
   extractions: FieldExtraction[]
+}
+
+// External Assertions - Business assertions from webseleniumerp base_assertions.py
+
+export interface AssertionParameterOption {
+  value: number
+  label: string
+}
+
+export interface AssertionParameterInfo {
+  name: string
+  description: string
+  options: AssertionParameterOption[]
+}
+
+export interface AssertionMethodInfo {
+  name: string
+  description: string
+  data_options: string[]
+  parameters: AssertionParameterInfo[]
+}
+
+export interface AssertionClassGroup {
+  name: string
+  methods: AssertionMethodInfo[]
+}
+
+export interface AssertionMethodsResponse {
+  available: boolean
+  headers_options: string[]
+  classes: AssertionClassGroup[]
+  total: number
+  error?: string
+}
+
+// AssertionConfig - structured configuration for business assertions
+// Per CONTEXT.md decision: stored as structured JSON, NOT Python code
+export interface AssertionConfig {
+  className: string      // e.g., "PcAssert"
+  methodName: string     // e.g., "attachment_inventory_list_assert"
+  headers: string        // e.g., "main" - identifier resolved at execution time
+  data: string           // e.g., "main" - from method's data_options
+  params: Record<string, number | string>  // i, j, k etc. filter parameters
 }
