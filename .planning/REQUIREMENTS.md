@@ -29,7 +29,7 @@
 - [x] **EXEC-03**: 断言执行时解析 headers 标识符为实际 token
 - [x] **EXEC-04**: 捕获 AssertionError 异常并提取字段级别的验证结果
 - [x] **EXEC-05**: 断言执行结果存入 context 供后续步骤引用
-- [ ] **EXEC-06**: 断言失败不终止测试（非 fail-fast），收集所有断言结果
+- [x] **EXEC-06**: 断言失败不终止测试（非 fail-fast），收集所有断言结果
 
 ## v2 Requirements (Future)
 
@@ -69,7 +69,7 @@
 | EXEC-03 | Phase 25 | Complete |
 | EXEC-04 | Phase 25 | Complete |
 | EXEC-05 | Phase 25 | Complete |
-| EXEC-06 | Phase 25 | Pending |
+| EXEC-06 | Phase 25 | Complete |
 
 **Note:** Phases 26-27 (E2E Testing, Unit Test Coverage) are testing phases with no direct requirement mappings. They verify the implementation of Phases 23-25.
 
