@@ -809,6 +809,102 @@ async def execute_assertion_method(
     return result
 
 
+async def execute_all_assertions(
+    assertions: list[dict],
+    context: 'ContextWrapper',
+    timeout_per_assertion: float = 30.0
+) -> dict:
+    """Execute multiple assertions in sequence and store results in context.
+
+    This function implements non-fail-fast behavior: all assertions execute
+    regardless of individual failures, and results are collected for reporting.
+
+    Args:
+        assertions: List of assertion configs, each with:
+                   - class_name: str (e.g., 'PcAssert')
+                   - method_name: str (e.g., 'attachment_inventory_list_assert')
+                   - headers: str (e.g., 'main')
+                   - data: str (e.g., 'main')
+                   - params: dict (i, j, k, etc.)
+        context: ContextWrapper instance for storing results
+        timeout_per_assertion: Timeout for each assertion in seconds
+
+    Returns:
+        dict with:
+            - total: int - Total assertions executed
+            - passed: int - Assertions that passed
+            - failed: int - Assertions that failed (AssertionError)
+            - errors: int - Assertions with execution errors
+            - results: list - Individual assertion results
+    """
+    # Reset context assertion tracking for clean state
+    context.reset_assertion_tracking()
+
+    results = []
+
+    for index, assertion_config in enumerate(assertions):
+        class_name = assertion_config.get('class_name')
+        method_name = assertion_config.get('method_name')
+        headers = assertion_config.get('headers', 'main')
+        data = assertion_config.get('data', 'main')
+        params = assertion_config.get('params', {})
+
+        logger.info(
+            f"Executing assertion {index + 1}/{len(assertions)}: "
+            f"{class_name}.{method_name}"
+        )
+
+        try:
+            result = await execute_assertion_method(
+                class_name=class_name,
+                method_name=method_name,
+                headers=headers,
+                data=data,
+                params=params,
+                timeout=timeout_per_assertion
+            )
+        except Exception as e:
+            # Catch any unexpected errors to ensure non-fail-fast
+            logger.error(f"Unexpected error in assertion {index}: {e}", exc_info=True)
+            result = {
+                'success': False,
+                'passed': False,
+                'error': str(e),
+                'error_type': 'UnexpectedError',
+                'duration': 0.0,
+                'field_results': [],
+                'method': method_name,
+                'class_name': class_name
+            }
+
+        # Enrich result with metadata
+        result['method'] = method_name
+        result['class_name'] = class_name
+
+        # Store in context
+        context.store_assertion_result(index, result)
+        results.append(result)
+
+        # Log result
+        if result.get('passed'):
+            logger.info(f"Assertion {index} passed")
+        elif result.get('error_type'):
+            logger.warning(f"Assertion {index} error: {result.get('error_type')}")
+        else:
+            logger.warning(f"Assertion {index} failed: {result.get('error')}")
+
+    # Get final summary from context
+    summary = context.get_assertion_results_summary()
+    summary['results'] = results
+
+    logger.info(
+        f"Assertion execution complete: {summary['passed']}/{summary['total']} passed, "
+        f"{summary['failed']} failed, {summary['errors']} errors"
+    )
+
+    return summary
+
+
 async def execute_data_method(
     class_name: str,
     method_name: str,
