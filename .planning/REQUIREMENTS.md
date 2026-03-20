@@ -27,8 +27,8 @@
 - [x] **EXEC-01**: 创建 ExternalAssertionBridge 模块，加载并缓存断言类实例
 - [x] **EXEC-02**: 提供 `execute_assertion_method()` 函数，支持 30 秒超时保护
 - [x] **EXEC-03**: 断言执行时解析 headers 标识符为实际 token
-- [ ] **EXEC-04**: 捕获 AssertionError 异常并提取字段级别的验证结果
-- [ ] **EXEC-05**: 断言执行结果存入 context 供后续步骤引用
+- [x] **EXEC-04**: 捕获 AssertionError 异常并提取字段级别的验证结果
+- [x] **EXEC-05**: 断言执行结果存入 context 供后续步骤引用
 - [ ] **EXEC-06**: 断言失败不终止测试（非 fail-fast），收集所有断言结果
 
 ## v2 Requirements (Future)
@@ -67,8 +67,8 @@
 | EXEC-01 | Phase 25 | Complete |
 | EXEC-02 | Phase 25 | Complete |
 | EXEC-03 | Phase 25 | Complete |
-| EXEC-04 | Phase 25 | Pending |
-| EXEC-05 | Phase 25 | Pending |
+| EXEC-04 | Phase 25 | Complete |
+| EXEC-05 | Phase 25 | Complete |
 | EXEC-06 | Phase 25 | Pending |
 
 **Note:** Phases 26-27 (E2E Testing, Unit Test Coverage) are testing phases with no direct requirement mappings. They verify the implementation of Phases 23-25.
