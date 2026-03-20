@@ -27,6 +27,12 @@ class ParameterOption(BaseModel):
     label: str
 
 
+class DataOption(BaseModel):
+    """Option for data selection."""
+    value: str
+    label: str
+
+
 class ParameterInfo(BaseModel):
     """Parameter with options."""
     name: str
@@ -38,7 +44,7 @@ class AssertionMethodInfo(BaseModel):
     """Single assertion method info."""
     name: str
     description: str
-    data_options: list[str]
+    data_options: list[DataOption]
     parameters: list[ParameterInfo]
 
 

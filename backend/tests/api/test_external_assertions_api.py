@@ -53,7 +53,11 @@ class TestListAssertionMethods:
                     {
                         "name": "attachment_inventory_list_assert",
                         "description": "Get inventory list assertion",
-                        "data_options": ["main", "a", "b"],
+                        "data_options": [
+                            {"value": "main", "label": "主数据"},
+                            {"value": "a", "label": "配件数据"},
+                            {"value": "b", "label": "分店数据"}
+                        ],
                         "parameters": [
                             {"name": "i", "description": "Status", "options": [{"value": 1, "label": "Pending"}]}
                         ]
@@ -89,7 +93,7 @@ class TestListAssertionMethods:
                     {
                         "name": "test_assert",
                         "description": "Test assertion",
-                        "data_options": ["main"],
+                        "data_options": [{"value": "main", "label": "主数据"}],
                         "parameters": []
                     }
                 ]
@@ -118,16 +122,16 @@ class TestListAssertionMethods:
             {
                 "name": "PcAssert",
                 "methods": [
-                    {"name": "m1", "description": "M1", "data_options": ["main"], "parameters": []},
-                    {"name": "m2", "description": "M2", "data_options": ["main"], "parameters": []},
+                    {"name": "m1", "description": "M1", "data_options": [{"value": "main", "label": "主数据"}], "parameters": []},
+                    {"name": "m2", "description": "M2", "data_options": [{"value": "main", "label": "主数据"}], "parameters": []},
                 ]
             },
             {
                 "name": "MgAssert",
                 "methods": [
-                    {"name": "m3", "description": "M3", "data_options": ["main"], "parameters": []},
-                    {"name": "m4", "description": "M4", "data_options": ["main"], "parameters": []},
-                    {"name": "m5", "description": "M5", "data_options": ["main"], "parameters": []},
+                    {"name": "m3", "description": "M3", "data_options": [{"value": "main", "label": "主数据"}], "parameters": []},
+                    {"name": "m4", "description": "M4", "data_options": [{"value": "main", "label": "主数据"}], "parameters": []},
+                    {"name": "m5", "description": "M5", "data_options": [{"value": "main", "label": "主数据"}], "parameters": []},
                 ]
             }
         ]
@@ -164,7 +168,7 @@ class TestAssertionMethodDataOptions:
     """Tests for data_options field in assertion methods."""
 
     def test_data_options_field_present(self, client):
-        """Test that each method includes data_options field."""
+        """Test that each method includes data_options field with value/label pairs."""
         mock_methods = [
             {
                 "name": "PcAssert",
@@ -172,7 +176,12 @@ class TestAssertionMethodDataOptions:
                     {
                         "name": "test_assert",
                         "description": "Test",
-                        "data_options": ["main", "a", "b", "c"],
+                        "data_options": [
+                            {"value": "main", "label": "主数据"},
+                            {"value": "a", "label": "配件数据"},
+                            {"value": "b", "label": "分店数据"},
+                            {"value": "c", "label": "仓库数据"}
+                        ],
                         "parameters": []
                     }
                 ]
@@ -192,7 +201,9 @@ class TestAssertionMethodDataOptions:
             data = response.json()
             method = data["classes"][0]["methods"][0]
             assert "data_options" in method
-            assert method["data_options"] == ["main", "a", "b", "c"]
+            # Check that data_options is list of {value, label} objects
+            assert len(method["data_options"]) == 4
+            assert method["data_options"][0] == {"value": "main", "label": "主数据"}
 
     def test_parameters_include_options(self, client):
         """Test that parameters include options field with value/label pairs."""
@@ -203,7 +214,7 @@ class TestAssertionMethodDataOptions:
                     {
                         "name": "test_assert",
                         "description": "Test",
-                        "data_options": ["main"],
+                        "data_options": [{"value": "main", "label": "主数据"}],
                         "parameters": [
                             {
                                 "name": "i",
