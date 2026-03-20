@@ -20,7 +20,7 @@
 - [x] **UI-03**: 提供 data 参数下拉选择（从方法发现中提取选项）
 - [x] **UI-04**: 为 i/j/k 参数创建独立输入区域（API 过滤参数，与验证字段分开）
 - [x] **UI-05**: 支持搜索/过滤断言方法
-- [ ] **UI-06**: 在 TaskForm 中集成断言配置（作为新 Tab 或折叠面板）
+- [x] **UI-06**: 在 TaskForm 中集成断言配置（作为新 Tab 或折叠面板）
 
 ### 断言执行 (EXEC)
 
@@ -63,7 +63,7 @@
 | UI-03 | Phase 24 | Complete |
 | UI-04 | Phase 24 | Complete |
 | UI-05 | Phase 24 | Complete |
-| UI-06 | Phase 24 | Pending |
+| UI-06 | Phase 24 | Complete |
 | EXEC-01 | Phase 25 | Pending |
 | EXEC-02 | Phase 25 | Pending |
 | EXEC-03 | Phase 25 | Pending |
