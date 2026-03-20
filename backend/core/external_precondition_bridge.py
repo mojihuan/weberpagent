@@ -232,6 +232,34 @@ def _parse_docstring_params(docstring: str) -> list[dict]:
     return params
 
 
+def _parse_data_options_from_source(method) -> list[str]:
+    """Extract data options from method source code.
+
+    Parses the methods = {...} dictionary to extract available keys.
+
+    Args:
+        method: The method to parse
+
+    Returns:
+        List of available data options (e.g., ['main', 'a', 'b'])
+    """
+    try:
+        source = inspect.getsource(method)
+    except (OSError, TypeError):
+        return ['main']  # Default fallback
+
+    # Find methods = {...} pattern
+    match = re.search(r"methods\s*=\s*\{([^}]+)\}", source, re.DOTALL)
+    if not match:
+        return ['main']
+
+    methods_dict_str = match.group(1)
+
+    # Extract quoted keys from the dictionary
+    keys = re.findall(r"['\"](\w+)['\"]\s*:", methods_dict_str)
+    return keys if keys else ['main']
+
+
 def extract_method_info(cls: type, method_name: str) -> dict | None:
     """Extract method information including parameters with types.
 

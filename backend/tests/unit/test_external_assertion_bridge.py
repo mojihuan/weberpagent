@@ -92,3 +92,57 @@ class TestAssertionClassesDiscovery:
         # Verify assertion state is reset
         assert external_precondition_bridge._assertion_classes_cache is None
         assert external_precondition_bridge._assertion_import_error is None
+
+
+class TestParseDataOptions:
+    """Tests for _parse_data_options_from_source() function."""
+
+    def test_returns_main_when_no_methods_dict(self):
+        """Test _parse_data_options_from_source() returns ['main'] when no methods dict found."""
+        from backend.core.external_precondition_bridge import _parse_data_options_from_source
+
+        # Create a mock method with no methods dict
+        def method_without_methods_dict():
+            """A method without methods dictionary."""
+            pass
+
+        result = _parse_data_options_from_source(method_without_methods_dict)
+        assert result == ['main']
+
+    def test_returns_options_from_methods_dict(self):
+        """Test _parse_data_options_from_source() returns ['main', 'a', 'b'] when methods = {'main': ..., 'a': ..., 'b': ...}."""
+        from backend.core.external_precondition_bridge import _parse_data_options_from_source
+
+        # Create a method with methods dictionary
+        def method_with_methods_dict():
+            """A method with methods dictionary."""
+            methods = {
+                'main': 'api.main_method',
+                'a': 'api.method_a',
+                'b': 'api.method_b',
+            }
+            return methods
+
+        result = _parse_data_options_from_source(method_with_methods_dict)
+        # Should contain the keys from methods dict
+        assert 'main' in result
+        assert 'a' in result
+        assert 'b' in result
+
+    def test_returns_main_when_inspect_fails(self, monkeypatch):
+        """Test _parse_data_options_from_source() returns ['main'] when inspect.getsource fails."""
+        from backend.core.external_precondition_bridge import _parse_data_options_from_source
+        import inspect
+
+        # Mock inspect.getsource to raise OSError
+        def mock_getsource(*args, **kwargs):
+            raise OSError("Cannot get source")
+
+        monkeypatch.setattr(inspect, 'getsource', mock_getsource)
+
+        def some_method():
+            """Some method."""
+            pass
+
+        result = _parse_data_options_from_source(some_method)
+        assert result == ['main']
