@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.4.0
-milestone_name: Backend Assertion Discovery
-status: phase-complete
-stopped_at: Completed 23-03 plan (Phase 23 complete)
-last_updated: "2026-03-20T05:28:00Z"
+milestone: v0.1
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 24-01-PLAN.md
+last_updated: "2026-03-20T06:46:53.116Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 23 — Backend Assertion Discovery
+**Current focus:** Phase 24 — frontend-assertion-ui
 
 ## Current Position
 
-Phase: 23 (Backend Assertion Discovery) — COMPLETE
-Plan: 3 of 3 (all plans complete)
+Phase: 24 (frontend-assertion-ui) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -50,6 +50,8 @@ Plan: 3 of 3 (all plans complete)
 - Trend: N/A
 
 *Updated after each plan completion*
+| Phase 23 P03 | 6 | 2 tasks | 3 files |
+| Phase 24 P01 | 150 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -66,6 +68,9 @@ Recent decisions affecting current work:
 - [v0.3.x]: Use ContextWrapper for context storage (assertion results)
 - [Phase 17-19]: DataMethodSelector 4-step wizard, ContextWrapper dict-like interface, sync get_data() pattern
 - [Phase 20-22]: E2E/unit test coverage, UI fixes, report enhancements
+- [Phase 23]: External assertion module provides discovery functions for QA users to select and configure assertions.
+- [Phase 24-01]: AssertionConfig stores structured JSON with className, methodName, headers, data, params
+- [Phase 24-01]: headers field stores identifier string resolved to actual tokens at execution time
 
 ### Pending Todos
 
@@ -77,6 +82,6 @@ None yet for v0.4.0.
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:28:00Z
-Stopped at: Completed 23-03 plan (Phase 23 complete)
-Resume file: .planning/phases/23-backend-assertion-discovery/23-03-SUMMARY.md
+Last session: 2026-03-20T06:46:53.114Z
+Stopped at: Completed 24-01-PLAN.md
+Resume file: None

@@ -16,8 +16,8 @@
 ### 断言配置 UI (UI)
 
 - [ ] **UI-01**: 创建 AssertionSelector 组件，展示按类分组的断言方法列表
-- [ ] **UI-02**: 提供 headers 参数下拉选择（main/idle/vice/special/platform/super/camera）
-- [ ] **UI-03**: 提供 data 参数下拉选择（从方法发现中提取选项）
+- [x] **UI-02**: 提供 headers 参数下拉选择（main/idle/vice/special/platform/super/camera）
+- [x] **UI-03**: 提供 data 参数下拉选择（从方法发现中提取选项）
 - [ ] **UI-04**: 为 i/j/k 参数创建独立输入区域（API 过滤参数，与验证字段分开）
 - [ ] **UI-05**: 支持搜索/过滤断言方法
 - [ ] **UI-06**: 在 TaskForm 中集成断言配置（作为新 Tab 或折叠面板）
@@ -59,8 +59,8 @@
 | DISC-04 | Phase 23 | Complete |
 | DISC-05 | Phase 23 | Pending |
 | UI-01 | Phase 24 | Pending |
-| UI-02 | Phase 24 | Pending |
-| UI-03 | Phase 24 | Pending |
+| UI-02 | Phase 24 | Complete |
+| UI-03 | Phase 24 | Complete |
 | UI-04 | Phase 24 | Pending |
 | UI-05 | Phase 24 | Pending |
 | UI-06 | Phase 24 | Pending |
