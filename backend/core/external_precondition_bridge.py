@@ -656,6 +656,159 @@ def resolve_headers(identifier: str = 'main') -> dict:
     return login_api.headers.get(identifier, login_api.headers['main'])
 
 
+def _parse_assertion_error(error_message: str) -> list[dict]:
+    """Parse AssertionError message to extract field-level results.
+
+    Args:
+        error_message: The AssertionError message string
+    Returns:
+        List of field result dicts with field, expected, actual, passed
+    """
+    import re
+
+    field_results = []
+    # Pattern for: 字段 'fieldName' 预期值: 'expected', 实际值: 'actual'
+    # or: 字段 'fieldName' 预期包含: 'expected', 实际值: 'actual'
+    # More robust pattern that handles various quote styles and spacing
+    pattern = r"字段\s+['\"]([^'\"]+)['\"]\s+(预期值|预期包含):\s*['\"]([^'\"]*)['\"]\s*,\s*实际值:\s*['\"]([^'\"]*)['\"]"
+
+    for match in re.finditer(pattern, error_message):
+        field_name = match.group(1)
+        comparison_type = match.group(2)  # '预期值' or '预期包含'
+        expected = match.group(3)
+        actual = match.group(4)
+        field_results.append({
+            'field': field_name,
+            'expected': expected,
+            'actual': actual,
+            'passed': False,  # If in error message, it failed
+            'comparison_type': 'equals' if comparison_type == '预期值' else 'contains'
+        })
+    # If no fields parsed, create a single entry with the full message
+    if not field_results:
+        field_results.append({
+            'field': 'unknown',
+            'expected': '',
+            'actual': '',
+            'passed': False,
+            'description': error_message
+        })
+    return field_results
+
+
+async def execute_assertion_method(
+    class_name: str,
+    method_name: str,
+    headers: str | None = 'main',
+    data: str = 'main',
+    params: dict | None = None,
+    timeout: float = 30.0
+) -> dict:
+    """Execute an assertion method with timeout protection.
+    Args:
+        class_name: Name of the assertion class ('PcAssert', 'MgAssert', 'McAssert')
+        method_name: Name of the assertion method (e.g., 'attachment_inventory_list_assert')
+        headers: Header identifier string ('main', 'idle', 'vice', etc.)
+        data: Data method selector ('main', 'a', 'b', etc.)
+        params: Dictionary of parameters including:
+                - i, j, k: API filter parameters
+                - Other kwargs: Field validation parameters
+        timeout: Maximum execution time in seconds (default: 30.0)
+    Returns:
+        dict with:
+            - success: bool - True if assertion passed (no AssertionError)
+            - passed: bool - True if validation succeeded
+            - field_results: list - Field-level validation results
+            - error: str | None - Error message if execution failed
+            - error_type: str | None - Error type (TimeoutError, ImportError, etc.)
+            - duration: float - Execution time in seconds
+    """
+    import time
+    start_time = time.time()
+    if params is None:
+        params = {}
+    result = {
+        'success': False,
+        'passed': False,
+        'field_results': [],
+        'error': None,
+        'error_type': None,
+        'duration': 0.0
+    }
+    # Load assertion classes
+    classes_dict, error = load_base_assertions_class()
+    if error:
+        result['error'] = error
+        result['error_type'] = 'ImportError'
+        result['duration'] = time.time() - start_time
+        return result
+    # Get the target class
+    if class_name not in classes_dict:
+        result['error'] = f"Assertion class '{class_name}' not found. Available: {list(classes_dict.keys())}"
+        result['error_type'] = 'NotFoundError'
+        result['duration'] = time.time() - start_time
+        return result
+    try:
+        # Resolve headers identifier to actual headers dict
+        resolved_headers = resolve_headers(headers)
+    except (ValueError, RuntimeError) as e:
+        result['error'] = str(e)
+        result['error_type'] = 'HeaderResolutionError'
+        result['duration'] = time.time() - start_time
+        return result
+    # Create assertion instance and get method
+    try:
+        assertion_class = classes_dict[class_name]
+        assertion_instance = assertion_class()
+        method = getattr(assertion_instance, method_name, None)
+        if method is None:
+            result['error'] = f"Method '{method_name}' not found in class '{class_name}'"
+            result['error_type'] = 'NotFoundError'
+            result['duration'] = time.time() - start_time
+            return result
+    except Exception as e:
+        result['error'] = f"Failed to instantiate or access method: {e}"
+        result['error_type'] = 'InstantiationError'
+        result['duration'] = time.time() - start_time
+        return result
+    # Execute with timeout
+    try:
+        loop = asyncio.get_event_loop()
+        # Build kwargs for assertion method
+        call_kwargs = {
+            'headers': resolved_headers,
+            'data': data,
+            **params
+        }
+        # Execute in thread pool with timeout
+        await asyncio.wait_for(
+            loop.run_in_executor(None, lambda: method(**call_kwargs)),
+            timeout=timeout
+        )
+        # If we get here, assertion passed
+        result['success'] = True
+        result['passed'] = True
+        result['field_results'] = []
+    except asyncio.TimeoutError:
+        result['error'] = f"Assertion execution timeout ({timeout}s)"
+        result['error_type'] = 'TimeoutError'
+    except AssertionError as e:
+        # Assertion failed - parse field results from error message
+        result['success'] = True  # Execution succeeded, assertion failed
+        result['passed'] = False
+        result['field_results'] = _parse_assertion_error(str(e))
+        result['error'] = str(e)
+    except TypeError as e:
+        result['error'] = f"Parameter error: {e}"
+        result['error_type'] = 'ParameterError'
+    except Exception as e:
+        logger.error(f"Failed to execute assertion method: {e}", exc_info=True)
+        result['error'] = str(e)
+        result['error_type'] = 'ExecutionError'
+    result['duration'] = time.time() - start_time
+    return result
+
+
 async def execute_data_method(
     class_name: str,
     method_name: str,
