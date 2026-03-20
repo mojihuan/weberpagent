@@ -69,6 +69,13 @@ class ContextWrapper:
 
     def __init__(self):
         self._data: dict[str, Any] = {}
+        self._assertion_count = 0  # Track number of assertions stored
+        self._assertion_summary = {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "errors": 0
+        }
 
     def get_data(self, class_name: str, method_name: str, **params) -> Any:
         """Execute a data method and return the result.
@@ -114,6 +121,58 @@ class ContextWrapper:
     def to_dict(self) -> dict[str, Any]:
         """Return a deep copy for variable substitution."""
         return copy.deepcopy(self._data)
+
+    def store_assertion_result(self, index: int, result: dict) -> None:
+        """Store an assertion result in context.
+
+        Args:
+            index: Assertion index (0-based)
+            result: Assertion result dict from execute_assertion_method()
+                   Contains: success, passed, method, class_name,
+                            field_results, duration, error, error_type
+        """
+        # Store with index-based key
+        key = f"assertion_result_{index}"
+        self._data[key] = result
+
+        # Update summary
+        self._assertion_summary["total"] += 1
+        if result.get("passed"):
+            self._assertion_summary["passed"] += 1
+        elif result.get("error_type"):
+            self._assertion_summary["errors"] += 1
+        else:
+            self._assertion_summary["failed"] += 1
+
+        # Also store summary for easy access
+        self._data["assertion_results"] = self._assertion_summary.copy()
+
+    def get_assertion_results_summary(self) -> dict:
+        """Get summary of all assertion results.
+
+        Returns:
+            dict with total, passed, failed, errors counts
+        """
+        return self._assertion_summary.copy()
+
+    def reset_assertion_tracking(self) -> None:
+        """Reset assertion tracking state.
+
+        Called at the start of assertion execution to ensure clean state.
+        """
+        self._assertion_count = 0
+        self._assertion_summary = {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "errors": 0
+        }
+        # Remove any existing assertion results from _data
+        keys_to_remove = [k for k in self._data if k.startswith("assertion_result_")]
+        for key in keys_to_remove:
+            del self._data[key]
+        if "assertion_results" in self._data:
+            del self._data["assertion_results"]
 
 
 @dataclass
