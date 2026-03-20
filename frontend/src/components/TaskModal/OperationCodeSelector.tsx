@@ -45,6 +45,22 @@ export function OperationCodeSelector({ open, onConfirm, onCancel }: OperationCo
     setSearchQuery('')
   }, [open])
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCancel()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onCancel])
+
   // Filter modules based on search query
   const filteredModules = useMemo(() => {
     if (!searchQuery.trim()) return modules

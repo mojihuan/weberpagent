@@ -35,6 +35,7 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
 
   // Collapsible panel state for class groups
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set())
+  const [initialExpandDone, setInitialExpandDone] = useState(false)
 
   // Filter methods based on search query (following OperationCodeSelector pattern)
   const filteredClasses = useMemo(() => {
@@ -270,14 +271,16 @@ export function DataMethodSelector({ open, onConfirm, onCancel }: DataMethodSele
     setSearchQuery('')
     setMethodConfigs(new Map())
     setExpandedPanels(new Set())
+    setInitialExpandDone(false)
   }, [open])
 
-  // Expand all panels when methods are loaded
+  // Expand all panels when methods are first loaded (only once)
   useEffect(() => {
-    if (methods.classes.length > 0 && expandedPanels.size === 0) {
+    if (methods.classes.length > 0 && !initialExpandDone) {
       setExpandedPanels(new Set(methods.classes.map(c => c.name)))
+      setInitialExpandDone(true)
     }
-  }, [methods.classes, expandedPanels.size])
+  }, [methods.classes.length, initialExpandDone])
 
   // Handle Escape key to close modal
   useEffect(() => {
