@@ -30,6 +30,8 @@ class Task(Base):
     preconditions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # 接口断言（JSON 字符串数组）
     api_assertions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # 外部断言配置（JSON 字符串数组）Phase 25
+    external_assertions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # 关系
     runs: Mapped[List["Run"]] = relationship("Run", back_populates="task")
@@ -48,6 +50,8 @@ class Run(Base):
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    # 外部断言执行结果（JSON 字符串）Phase 25
+    external_assertion_results: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")

@@ -83,6 +83,8 @@ class RunResponse(BaseModel):
     # 额外字段（列表页需要）
     task_name: Optional[str] = None
     steps_count: int = 0
+    # 外部断言执行摘要（Phase 25）
+    external_assertion_summary: Optional[dict[str, Any]] = None
 
     class Config:
         from_attributes = True

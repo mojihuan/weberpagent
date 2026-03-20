@@ -30,6 +30,7 @@ from backend.core.report_service import ReportService
 from backend.core.assertion_service import AssertionService
 from backend.core.precondition_service import PreconditionService
 from backend.core.api_assertion_service import ApiAssertionService
+from backend.core.external_precondition_bridge import execute_all_assertions
 from backend.db.repository import AssertionResultRepository
 
 logger = logging.getLogger(__name__)
@@ -60,6 +61,7 @@ async def run_agent_background(
     max_steps: int,
     preconditions: list[str] | None = None,
     api_assertions: list[str] | None = None,
+    external_assertions: list[dict] | None = None,
     target_url: str | None = None,
 ):
     """后台执行 agent 任务"""
@@ -282,6 +284,63 @@ async def run_agent_background(
                     logger.info(f"[{run_id}] 接口断言存在失败，状态设为 failed")
             # === 接口断言执行结束 ===
 
+            # ========== Execute External Assertions (Phase 25) ==========
+            if external_assertions:
+                from backend.core.precondition_service import ContextWrapper
+
+                # Create context wrapper if not already created
+                if not isinstance(context, ContextWrapper):
+                    context_wrapper = ContextWrapper()
+                    context_wrapper._data = context.copy() if context else {}
+                else:
+                    context_wrapper = context
+
+                logger.info(f"[{run_id}] Starting external assertion execution ({len(external_assertions)} assertions)")
+
+                try:
+                    external_assertion_summary = await execute_all_assertions(
+                        assertions=external_assertions,
+                        context=context_wrapper,
+                        timeout_per_assertion=30.0
+                    )
+
+                    logger.info(
+                        f"[{run_id}] External assertions complete: "
+                        f"{external_assertion_summary['passed']}/{external_assertion_summary['total']} passed, "
+                        f"{external_assertion_summary['failed']} failed, {external_assertion_summary['errors']} errors"
+                    )
+
+                    # Send SSE event with assertion summary
+                    assertion_event = {
+                        "type": "external_assertions_complete",
+                        "total": external_assertion_summary['total'],
+                        "passed": external_assertion_summary['passed'],
+                        "failed": external_assertion_summary['failed'],
+                        "errors": external_assertion_summary['errors'],
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    await event_manager.publish(
+                        run_id,
+                        f"event: external_assertions\ndata: {json.dumps(assertion_event)}\n\n"
+                    )
+
+                    # Store summary in context for potential later use
+                    context['external_assertion_summary'] = external_assertion_summary
+
+                    # Update final status if any external assertions failed
+                    if external_assertion_summary['failed'] > 0 or external_assertion_summary['errors'] > 0:
+                        final_status = "failed"
+                        logger.info(f"[{run_id}] External assertions have failures/errors, status set to failed")
+
+                except Exception as e:
+                    logger.error(f"[{run_id}] External assertion execution failed: {e}", exc_info=True)
+                    # Non-fail-fast: continue even on error
+                    await event_manager.publish(
+                        run_id,
+                        f"event: external_assertions\ndata: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+                    )
+            # === External Assertions End ===
+
             # 更新状态
             await run_repo.update_status(run_id, final_status)
             event_manager.set_status(run_id, final_status)
@@ -378,6 +437,15 @@ async def create_run(
         except json.JSONDecodeError:
             logger.warning(f"Task {task_id} api_assertions JSON 解析失败")
 
+    # 解析 external_assertions (Phase 25)
+    external_assertions = None
+    if hasattr(task, 'external_assertions') and task.external_assertions:
+        try:
+            external_assertions = json.loads(task.external_assertions)
+            logger.info(f"Task {task_id} loaded {len(external_assertions)} external assertions")
+        except json.JSONDecodeError:
+            logger.warning(f"Task {task_id} external_assertions JSON 解析失败")
+
     # 启动后台执行
     background_tasks.add_task(
         run_agent_background,
@@ -388,6 +456,7 @@ async def create_run(
         task.max_steps,
         preconditions,
         api_assertions,  # 新增参数
+        external_assertions,  # Phase 25: external assertions
         task.target_url,  # 目标 URL
     )
 
