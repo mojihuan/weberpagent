@@ -1,78 +1,83 @@
-# Requirements: aiDriveUITest v0.3.2
+# Requirements: aiDriveUITest v0.4.0
 
-**Defined:** 2026-03-19
-**Core Value:** 验证 v0.3.1 数据获取方法集成的端到端可行性，发现并修复潜在 bug
+**Defined:** 2026-03-20
+**Core Value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
 
-## v1 Requirements (v0.3.2)
+## v1 Requirements (v0.4.0 断言系统集成)
 
-测试与Bug修复需求，确保 v0.3.1 数据获取方法集成功能稳定可用。
+### 断言发现 (DISC)
 
-### 端到端测试
+- [ ] **DISC-01**: 系统扫描 base_assertions.py 获取 PcAssert/MgAssert/McAssert 类中的断言方法
+- [x] **DISC-02**: 断言方法按类名分组显示（PcAssert ~80 方法, MgAssert 1 方法, McAssert 2 方法）
+- [x] **DISC-03**: 提取每个方法的 `data` 参数选项（main/a/b/c 等）作为下拉菜单
+- [x] **DISC-04**: 解析方法 docstring 获取 `i/j/k` 参数描述和可选值
+- [ ] **DISC-05**: 提供 API 端点 `GET /external-assertions/methods` 返回可用断言方法列表
 
-- [x] **E2E-01**: 用户可以通过 DataMethodSelector 选择数据获取方法
-- [x] **E2E-02**: 数据获取方法执行后返回预期数据
-- [x] **E2E-03**: 变量名可在测试步骤中正确引用（`{{变量名}}` 替换）
-- [x] **E2E-04**: 完整测试用例执行流程（前置条件 → 数据获取 → 变量替换 → AI 执行）
+### 断言配置 UI (UI)
 
-### 单元测试
+- [ ] **UI-01**: 创建 AssertionSelector 组件，展示按类分组的断言方法列表
+- [ ] **UI-02**: 提供 headers 参数下拉选择（main/idle/vice/special/platform/super/camera）
+- [ ] **UI-03**: 提供 data 参数下拉选择（从方法发现中提取选项）
+- [ ] **UI-04**: 为 i/j/k 参数创建独立输入区域（API 过滤参数，与验证字段分开）
+- [ ] **UI-05**: 支持搜索/过滤断言方法
+- [ ] **UI-06**: 在 TaskForm 中集成断言配置（作为新 Tab 或折叠面板）
 
-- [x] **UNIT-01**: ContextWrapper.get_data() 单元测试覆盖
-- [x] **UNIT-02**: 数据获取 API 端点单元测试覆盖
-- [x] **UNIT-03**: 变量替换逻辑单元测试覆盖
+### 断言执行 (EXEC)
 
-### Bug 修复
-
-- [x] **BUG-01**: 发现的阻断性 bug 全部修复
-- [x] **BUG-02**: 发现的功能性 bug 全部修复
-- [x] **BUG-03**: Bug 修复后回归测试通过
-
-### 手动验证
-
-- [x] **MANUAL-01**: DataMethodSelector UI 功能手动验证
-- [x] **MANUAL-02**: 真实 ERP 环境下端到端流程验证
-- [x] **MANUAL-03**: 测试报告正确展示数据获取结果
+- [ ] **EXEC-01**: 创建 ExternalAssertionBridge 模块，加载并缓存断言类实例
+- [ ] **EXEC-02**: 提供 `execute_assertion_method()` 函数，支持 30 秒超时保护
+- [ ] **EXEC-03**: 断言执行时解析 headers 标识符为实际 token
+- [ ] **EXEC-04**: 捕获 AssertionError 异常并提取字段级别的验证结果
+- [ ] **EXEC-05**: 断言执行结果存入 context 供后续步骤引用
+- [ ] **EXEC-06**: 断言失败不终止测试（非 fail-fast），收集所有断言结果
 
 ## v2 Requirements (Future)
 
-推迟到后续版本的需求。
+### 报告展示 (RPT)
 
-(none)
+- **RPT-01**: 在测试报告中展示断言执行结果
+- **RPT-02**: 区分执行失败（API 错误）vs 断言失败（验证不通过）
+- **RPT-03**: 展示字段级别的断言详情（期望值 vs 实际值）
+- **RPT-04**: 断言结果与测试步骤关联展示
 
 ## Out of Scope
 
-明确排除的功能和原因。
-
 | Feature | Reason |
 |---------|--------|
-| 性能优化 | 本次专注功能正确性 |
-| 新功能开发 | 先验证现有功能 |
-| 低优先级 UI 问题 | 不影响核心流程 |
+| 报告展示 | 推迟到 v0.5，先确保核心执行流程 |
+| 断言结果持久化到数据库 | v0.4 使用 context 临时存储 |
+| 并行断言执行 | v1 先实现串行执行 |
+| 断言方法在线预览 | 复杂度高，推迟到后续版本 |
 
 ## Traceability
 
-需求到阶段的映射。在 roadmap 创建时更新。
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| E2E-01 | Phase 20 | Complete |
-| E2E-02 | Phase 20 | Complete |
-| E2E-03 | Phase 20 | Complete |
-| E2E-04 | Phase 20 | Complete |
-| UNIT-01 | Phase 21 | Complete |
-| UNIT-02 | Phase 21 | Complete |
-| UNIT-03 | Phase 21 | Complete |
-| BUG-01 | Phase 22 | Complete |
-| BUG-02 | Phase 22 | Complete |
-| BUG-03 | Phase 22 | Complete |
-| MANUAL-01 | Phase 20 | Complete |
-| MANUAL-02 | Phase 20 | Complete |
-| MANUAL-03 | Phase 20 | Complete |
+| DISC-01 | Phase 23 | Pending |
+| DISC-02 | Phase 23 | Complete |
+| DISC-03 | Phase 23 | Complete |
+| DISC-04 | Phase 23 | Complete |
+| DISC-05 | Phase 23 | Pending |
+| UI-01 | Phase 24 | Pending |
+| UI-02 | Phase 24 | Pending |
+| UI-03 | Phase 24 | Pending |
+| UI-04 | Phase 24 | Pending |
+| UI-05 | Phase 24 | Pending |
+| UI-06 | Phase 24 | Pending |
+| EXEC-01 | Phase 25 | Pending |
+| EXEC-02 | Phase 25 | Pending |
+| EXEC-03 | Phase 25 | Pending |
+| EXEC-04 | Phase 25 | Pending |
+| EXEC-05 | Phase 25 | Pending |
+| EXEC-06 | Phase 25 | Pending |
+
+**Note:** Phases 26-27 (E2E Testing, Unit Test Coverage) are testing phases with no direct requirement mappings. They verify the implementation of Phases 23-25.
 
 **Coverage:**
-- v1 requirements: 13 total
-- Mapped to phases: 13
+- v1 requirements: 17 total (5 DISC + 6 UI + 6 EXEC)
+- Mapped to phases: 17
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Requirements defined: 2026-03-20*
+*Last updated: 2026-03-20 - Coverage count corrected, testing phases noted*
