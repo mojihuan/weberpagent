@@ -10,14 +10,14 @@
 
 在开始验证前，请确保已配置以下环境变量：
 
-- [ ] 已设置 `ERP_BASE_URL` 环境变量，并指向真实 ERP 服务器地址
-- [ ] 已设置 `ERP_USERNAME` 环境变量，并填写有效的 ERP 凭证
-- [ ] 已设置 `ERP_PASSWORD` 环境变量，并填写有效的 ERP 凭证
-- [ ] 已设置 `WEBSERP_PATH` 环境变量（如果 ERP 系统需要）
-- [ ] 已配置 `DASHSCOPE_API_KEY`，用于 AI 执行
-- [ ] 后端服务已运行在 8080 端口（`uv run uvicorn backend.api.main:app --reload --port 8080`）
-- [ ] 前端服务已运行在 5173 端口（`cd frontend && npm run dev`）
-- [ ] 数据库可访问，并且包含测试数据
+- [x] 已设置 `ERP_BASE_URL` 环境变量，并指向真实 ERP 服务器地址
+- [x] 已设置 `ERP_USERNAME` 环境变量，并填写有效的 ERP 凭证
+- [x] 已设置 `ERP_PASSWORD` 环境变量，并填写有效的 ERP 凭证
+- [x] 已设置 `WEBSERP_PATH` 环境变量（如果 ERP 系统需要）
+- [x] 已配置 `DASHSCOPE_API_KEY`，用于 AI 执行
+- [x] 后端服务已运行在 8080 端口（`uv run uvicorn backend.api.main:app --reload --port 8080`）
+- [x] 前端服务已运行在 5173 端口（`cd frontend && npm run dev`）
+- [x] 数据库可访问，并且包含测试数据
 
 ### 快速环境检查命令
 
@@ -41,63 +41,63 @@ curl http://localhost:5173
 
 ### Tab 切换验证
 
-- [ ] 任务表单中可见 "API Assertions" 和 "Business Assertions" 两个 Tab
-- [ ] 点击 Tab 可以正确切换
-- [ ] "API Assertions" Tab 显示代码编辑器
-- [ ] "Business Assertions" Tab 显示 "Add Assertion" 按钮
+- [x] 任务表单中可见 "API Assertions" 和 "Business Assertions" 两个 Tab
+- [x] 点击 Tab 可以正确切换
+- [x] "API Assertions" Tab 显示代码编辑器
+- [x] "Business Assertions" Tab 显示 "Add Assertion" 按钮
 
 ### 模态框基础交互
 
-- [ ] 点击 "Add Assertion" 按钮后打开 AssertionSelector 模态框
-- [ ] 模态框标题显示为 "Select Assertion Methods"
-- [ ] 模态框有搜索输入框
-- [ ] 模态框底部有 "Cancel" 和 "Confirm" 按钮
-- [ ] 点击右上角 X 按钮可关闭模态框
-- [ ] 按 ESC 键可关闭模态框
-- [ ] 点击背景遮罩可关闭模态框
+- [x] 点击 "Add Assertion" 按钮后打开 AssertionSelector 模态框
+- [x] 模态框标题显示为 "Select Assertion Methods"
+- [x] 模态框有搜索输入框
+- [x] 模态框底部有 "Cancel" 和 "Confirm" 按钮
+- [x] 点击右上角 X 按钮可关闭模态框
+- [x] 按 ESC 键可关闭模态框
+- [x] 点击背景遮罩可关闭模态框
 
 ### 断言类分组展开/折叠
 
-- [ ] 断言方法按类分组显示（PcAssert、MgAssert、McAssert 等）
-- [ ] 每个分组显示类名和方法数量
-- [ ] 点击分组可展开显示方法列表
-- [ ] 再次点击分组可折叠方法列表
-- [ ] 展开时 ChevronDown 图标旋转 180 度
-- [ ] 默认展开第一个类分组
+- [x] 断言方法按类分组显示（PcAssert、MgAssert、McAssert 等）
+- [x] 每个分组显示类名和方法数量
+- [x] 点击分组可展开显示方法列表
+- [x] 再次点击分组可折叠方法列表
+- [x] 展开时 ChevronDown 图标旋转 180 度
+- [x] 默认展开第一个类分组
 
 ### 搜索功能
 
-- [ ] 搜索框可按方法名过滤
-- [ ] 搜索框可按描述内容过滤
-- [ ] 清空搜索后恢复完整列表
-- [ ] 无匹配结果时显示 "No matching assertion methods found"
+- [x] 搜索框可按方法名过滤
+- [x] 搜索框可按描述内容过滤
+- [x] 清空搜索后恢复完整列表
+- [x] 无匹配结果时显示 "No matching assertion methods found"
 
 ### 方法选择
 
-- [ ] 方法名以蓝色等宽字体显示
-- [ ] 方法描述以灰色普通字体显示
-- [ ] 复选框可切换方法选中状态
-- [ ] 可同时选择多个方法
-- [ ] 选中后方法名显示在底部 "Selected" 区域
-- [ ] 底部显示已选方法数量
-- [ ] 未选择方法时 "Confirm" 按钮禁用
-- [ ] 选择方法后 "Confirm" 按钮变为可用
+- [x] 方法名以蓝色等宽字体显示
+- [x] 方法描述以灰色普通字体显示
+- [x] 复选框可切换方法选中状态
+- [x] 可同时选择多个方法
+- [x] 选中后方法名显示在底部 "Selected" 区域
+- [x] 底部显示已选方法数量
+- [x] 未选择方法时 "Confirm" 按钮禁用
+- [x] 选择方法后 "Confirm" 按钮变为可用
 
 ### 参数配置 - Headers 下拉
 
-- [ ] Headers 下拉显示选项（main、idle、vice、special、platform、super、camera）
-- [ ] 默认选择第一个选项（main）
-- [ ] 可切换选择其他 Headers 选项
+- [x] Headers 下拉显示选项（main、idle、vice、special、platform、super、camera）
+- [x] 默认选择第一个选项（main）
+- [x] 可切换选择其他 Headers 选项
 
 ### 参数配置 - Data 下拉
 
-- [ ] Data 下拉显示方法支持的 data_options
-- [ ] 默认选择第一个选项
-- [ ] 可切换选择其他 Data 选项
+- [x] Data 下拉显示方法支持的 data_options
+- [x] 默认选择第一个选项
+- [x] 可切换选择其他 Data 选项
 
 ### 参数配置 - 过滤参数（i/j/k）
 
-- [ ] 如果方法有 i/j/k 参数，显示 "Filter Parameters" 区域
+- [x] 如果方法有 i/j/k 参数，显示 "Filter Parameters" 区域
 - [ ] 参数标签显示参数名
 - [ ] 如果参数有选项，显示为下拉框
 - [ ] 如果参数无选项，显示为数字输入框
