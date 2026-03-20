@@ -16,6 +16,7 @@ class TaskBase(BaseModel):
     max_steps: int = Field(default=10, ge=1, le=100)
     preconditions: Optional[List[str]] = Field(default=None, description="前置条件代码列表")
     api_assertions: Optional[List[str]] = Field(default=None, description="接口断言代码列表")
+    assertions: Optional[List[dict[str, Any]]] = Field(default=None, description="业务断言配置列表")
 
 
 class TaskCreate(TaskBase):
@@ -32,6 +33,7 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = Field(None, pattern="^(draft|ready)$")
     preconditions: Optional[List[str]] = Field(None, description="前置条件代码列表")
     api_assertions: Optional[List[str]] = Field(None, description="接口断言代码列表")
+    assertions: Optional[List[dict[str, Any]]] = Field(None, description="业务断言配置列表")
 
 
 class TaskResponse(TaskBase):
@@ -42,8 +44,9 @@ class TaskResponse(TaskBase):
     updated_at: datetime
     preconditions: Optional[List[str]] = None
     api_assertions: Optional[List[str]] = None
+    assertions: Optional[List[dict[str, Any]]] = None
 
-    @field_validator('preconditions', 'api_assertions', mode='before')
+    @field_validator('preconditions', 'api_assertions', 'assertions', mode='before')
     @classmethod
     def deserialize_json_list(cls, v):
         """Deserialize JSON string to list if needed."""
