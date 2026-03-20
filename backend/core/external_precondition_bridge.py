@@ -29,6 +29,7 @@ _data_methods_cache: list[dict] | None = None
 # Assertion classes discovery state
 _assertion_classes_cache: dict[str, type] | None = None
 _assertion_import_error: str | None = None
+_assertion_methods_cache: list[dict] | None = None
 
 
 def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
@@ -288,6 +289,99 @@ def _parse_param_options(description: str) -> list[dict]:
     return options
 
 
+# Internal methods from BaseModuleAssert/BaseAssert that should not be exposed
+INTERNAL_ASSERTION_METHODS = {
+    '_get_cached_api', '_call_module_api',
+    'assert_time', 'assert_contains', 'assert_equal',
+    '_get_field_value', '_assert_api_response'
+}
+
+
+def _parse_docstring_params_with_options(docstring: str) -> list[dict]:
+    """Parse parameter definitions with options from docstring.
+
+    Handles format like:
+        i: 订单状态 1待发货 2待取件
+        j: 物品状态 13待销售 3待分货
+
+    Returns:
+        List of parameter dicts with name, description, and options
+    """
+    params = []
+    if not docstring:
+        return params
+
+    lines = docstring.strip().split('\n')
+    for line in lines[1:]:  # Skip first line (method description)
+        line = line.strip()
+        if not line:
+            continue
+
+        # Match pattern: "param_name: description" or "param_name： description"
+        match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*[：:]\s*(.+)$', line)
+        if match:
+            param_name = match.group(1)
+            param_desc = match.group(2).strip()
+
+            # Parse options from description
+            options = _parse_param_options(param_desc)
+
+            # If options found, extract just the description part
+            if options:
+                # Remove option patterns from description
+                clean_desc = re.sub(r'\d+[^\d]+', '', param_desc).strip()
+            else:
+                clean_desc = param_desc
+
+            params.append({
+                "name": param_name,
+                "description": clean_desc,
+                "options": options
+            })
+
+    return params
+
+
+def extract_assertion_method_info(cls: type, method_name: str) -> dict | None:
+    """Extract assertion method information including data options and parameters.
+
+    Args:
+        cls: The class containing the method
+        method_name: Name of the method to extract info from
+
+    Returns:
+        dict with name, description, data_options, and parameters, or None for filtered methods
+    """
+    # Skip private methods
+    if method_name.startswith('_'):
+        return None
+
+    # Skip internal utility methods from BaseModuleAssert/BaseAssert
+    if method_name in INTERNAL_ASSERTION_METHODS:
+        return None
+
+    method = getattr(cls, method_name, None)
+    if method is None:
+        return None
+
+    # Extract description from docstring (first line)
+    docstring = method.__doc__ or ""
+    description = docstring.strip().split('\n')[0] if docstring.strip() else method_name
+
+    # Extract data options from source code
+    data_options = _parse_data_options_from_source(method)
+
+    # Parse parameters from docstring (i/j/k with options)
+    parameters = _parse_docstring_params_with_options(docstring)
+
+    return {
+        "name": method_name,
+        "description": description,
+        "data_options": data_options,
+        "parameters": parameters
+    }
+
+
 def extract_method_info(cls: type, method_name: str) -> dict | None:
     """Extract method information including parameters with types.
 
@@ -435,6 +529,50 @@ def get_data_methods_grouped() -> list[dict]:
         logger.error(f"Failed to scan base_params module: {e}", exc_info=True)
         _data_methods_cache = []
         return _data_methods_cache
+
+
+def get_assertion_methods_grouped() -> list[dict]:
+    """Get assertion methods grouped by class name.
+
+    Returns:
+        List of class groups with their methods
+    """
+    global _assertion_methods_cache
+
+    if _assertion_methods_cache is not None:
+        return _assertion_methods_cache
+
+    # Load assertion classes
+    classes_dict, error = load_base_assertions_class()
+    if error:
+        _assertion_methods_cache = []
+        return _assertion_methods_cache
+
+    try:
+        classes = []
+        for name in ['PcAssert', 'MgAssert', 'McAssert']:
+            if name in classes_dict:
+                cls = classes_dict[name]
+                # Discover methods for this class
+                methods = []
+                for method_name in dir(cls):
+                    if not method_name.startswith('_'):
+                        method_info = extract_assertion_method_info(cls, method_name)
+                        if method_info is not None:
+                            methods.append(method_info)
+
+                if methods:  # Only include classes with public methods
+                    classes.append({
+                        "name": name,
+                        "methods": methods
+                    })
+
+        _assertion_methods_cache = classes
+        return _assertion_methods_cache
+    except Exception as e:
+        logger.error(f"Failed to scan base_assertions module: {e}", exc_info=True)
+        _assertion_methods_cache = []
+        return _assertion_methods_cache
 
 
 async def execute_data_method(
@@ -672,7 +810,7 @@ def reset_cache():
     """Reset all cached data (for testing)."""
     global _pre_front_class, _import_error, _operations_cache, _modules_cache, _path_configured
     global _base_params_class, _base_params_import_error, _data_methods_cache
-    global _assertion_classes_cache, _assertion_import_error
+    global _assertion_classes_cache, _assertion_import_error, _assertion_methods_cache
     _pre_front_class = None
     _import_error = None
     _operations_cache = None
@@ -683,3 +821,4 @@ def reset_cache():
     _data_methods_cache = None
     _assertion_classes_cache = None
     _assertion_import_error = None
+    _assertion_methods_cache = None

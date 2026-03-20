@@ -191,3 +191,119 @@ class TestParseParamOptions:
         # Should still extract options
         assert len(result) == 2
         assert {"value": 1, "label": "待发货"} in result
+
+
+class TestExtractAssertionMethodInfo:
+    """Tests for extract_assertion_method_info() function."""
+
+    def test_returns_none_for_private_methods(self):
+        """Test extract_assertion_method_info() returns None for private methods."""
+        from backend.core.external_precondition_bridge import extract_assertion_method_info
+
+        class MockClass:
+            def _private_method(self):
+                """A private method."""
+                pass
+
+        result = extract_assertion_method_info(MockClass, '_private_method')
+        assert result is None
+
+    def test_returns_none_for_internal_methods(self):
+        """Test extract_assertion_method_info() returns None for internal methods like assert_time."""
+        from backend.core.external_precondition_bridge import extract_assertion_method_info
+
+        class MockClass:
+            def assert_time(self):
+                """Internal time assertion."""
+                pass
+
+            def assert_contains(self):
+                """Internal contains assertion."""
+                pass
+
+        result1 = extract_assertion_method_info(MockClass, 'assert_time')
+        result2 = extract_assertion_method_info(MockClass, 'assert_contains')
+        assert result1 is None
+        assert result2 is None
+
+    def test_returns_dict_with_all_fields(self):
+        """Test extract_assertion_method_info() returns dict with name, description, data_options, parameters."""
+        from backend.core.external_precondition_bridge import extract_assertion_method_info
+
+        class MockClass:
+            def test_method(self):
+                """Test method description.
+                i: 订单状态 1待发货 2待取件
+                """
+                methods = {
+                    'main': 'api.main',
+                    'a': 'api.alt',
+                }
+                return methods
+
+        result = extract_assertion_method_info(MockClass, 'test_method')
+
+        assert result is not None
+        assert result['name'] == 'test_method'
+        assert 'Test method description' in result['description']
+        assert 'main' in result['data_options']
+        assert 'a' in result['data_options']
+        # Check parameters with options
+        assert len(result['parameters']) >= 1
+        param_i = next((p for p in result['parameters'] if p['name'] == 'i'), None)
+        assert param_i is not None
+        assert len(param_i['options']) == 2
+
+
+class TestGetAssertionMethodsGrouped:
+    """Tests for get_assertion_methods_grouped() function."""
+
+    def test_returns_empty_list_when_module_unavailable(self, monkeypatch):
+        """Test get_assertion_methods_grouped() returns [] when load_base_assertions_class returns error."""
+        from backend.core import external_precondition_bridge
+        from backend.core.external_precondition_bridge import (
+            get_assertion_methods_grouped,
+            reset_cache,
+        )
+
+        # Reset and set the import error to simulate unavailable module
+        reset_cache()
+        external_precondition_bridge._assertion_import_error = "Simulated import error"
+
+        result = get_assertion_methods_grouped()
+        assert result == []
+
+        # Clean up
+        reset_cache()
+
+    def test_returns_classes_with_methods_grouped(self, monkeypatch):
+        """Test get_assertion_methods_grouped() returns classes with methods grouped by class name."""
+        from backend.core.external_precondition_bridge import (
+            get_assertion_methods_grouped,
+            reset_cache,
+        )
+        from backend.config import get_settings
+
+        # Check if module is available
+        settings = get_settings()
+        if not settings.weberp_path:
+            pytest.skip("WEBSERP_PATH not configured - skipping availability test")
+
+        reset_cache()
+        result = get_assertion_methods_grouped()
+
+        # Should return a list
+        assert isinstance(result, list)
+
+        # Each item should have name and methods
+        for class_group in result:
+            assert 'name' in class_group
+            assert 'methods' in class_group
+            assert isinstance(class_group['methods'], list)
+
+            # Each method should have required fields
+            for method in class_group['methods']:
+                assert 'name' in method
+                assert 'description' in method
+                assert 'data_options' in method
+                assert 'parameters' in method
