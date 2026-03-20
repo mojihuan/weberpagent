@@ -93,6 +93,13 @@ None - no external service configuration required.
 - Next plan (24-03) will integrate selector into task creation/editing form
 - Backend API already provides all needed data via /external-assertions/methods
 
+## Self-Check: PASSED
+
+- [x] AssertionSelector.tsx exists
+- [x] Commit eb48a59 exists
+- [x] SUMMARY.md created
+- [x] TypeScript compiles without errors
+
 ---
 *Phase: 24-frontend-assertion-ui*
 *Completed: 2026-03-20*
