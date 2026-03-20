@@ -87,8 +87,8 @@ export function AssertionSelector({
           nextConfigs.set(key, {
             className,
             methodName,
-            headers: methods.headers_options[0] || 'main',
-            data: method?.data_options[0] || 'main',
+            headers: methods.headers_options[0]?.value || 'main',
+            data: method?.data_options[0]?.value || 'main',
             params: {}
           })
           return nextConfigs
@@ -376,7 +376,9 @@ export function AssertionSelector({
                           className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           {methods.headers_options.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
+                            <option key={opt.value} value={opt.value}>
+                              {opt.value !== opt.label ? `${opt.value} (${opt.label})` : opt.value}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -390,7 +392,9 @@ export function AssertionSelector({
                           className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           {method.data_options.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
+                            <option key={opt.value} value={opt.value}>
+                              {opt.value !== opt.label ? `${opt.value} (${opt.label})` : opt.value}
+                            </option>
                           ))}
                         </select>
                       </div>

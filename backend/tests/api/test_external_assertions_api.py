@@ -113,8 +113,9 @@ class TestListAssertionMethods:
             data = response.json()
             assert "headers_options" in data
             assert len(data["headers_options"]) == 7
-            expected_headers = ["main", "idle", "vice", "special", "platform", "super", "camera"]
-            assert data["headers_options"] == expected_headers
+            # headers_options now returns list of {value, label} objects
+            assert data["headers_options"][0] == {"value": "main", "label": "主请求头"}
+            assert data["headers_options"][1] == {"value": "idle", "label": "空闲请求头"}
 
     def test_list_assertion_methods_returns_total_count(self, client):
         """Test that total count is sum of all methods across all classes."""

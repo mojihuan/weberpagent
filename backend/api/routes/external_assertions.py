@@ -20,6 +20,17 @@ router = APIRouter(prefix="/external-assertions", tags=["external-assertions"])
 # Fixed headers identifiers (mapped to actual tokens at execution time)
 HEADERS_OPTIONS = ["main", "idle", "vice", "special", "platform", "super", "camera"]
 
+# Labels for headers options
+HEADERS_LABELS = {
+    "main": "主请求头",
+    "idle": "空闲请求头",
+    "vice": "副请求头",
+    "special": "特殊请求头",
+    "platform": "平台请求头",
+    "super": "超级请求头",
+    "camera": "摄像头请求头",
+}
+
 
 class ParameterOption(BaseModel):
     """Option value for a parameter."""
@@ -29,6 +40,12 @@ class ParameterOption(BaseModel):
 
 class DataOption(BaseModel):
     """Option for data selection."""
+    value: str
+    label: str
+
+
+class HeadersOption(BaseModel):
+    """Option for headers selection."""
     value: str
     label: str
 
@@ -57,7 +74,7 @@ class AssertionClassGroup(BaseModel):
 class AssertionMethodsResponse(BaseModel):
     """Response model for listing assertion methods."""
     available: bool
-    headers_options: list[str] = []
+    headers_options: list[HeadersOption] = []
     classes: list[AssertionClassGroup] = []
     total: int = 0
 
@@ -81,9 +98,15 @@ async def list_assertion_methods():
     classes = get_assertion_methods_grouped()
     total = sum(len(c["methods"]) for c in classes)
 
+    # Build headers options with labels
+    headers_with_labels = [
+        HeadersOption(value=h, label=HEADERS_LABELS.get(h, h))
+        for h in HEADERS_OPTIONS
+    ]
+
     return AssertionMethodsResponse(
         available=True,
-        headers_options=HEADERS_OPTIONS,
+        headers_options=headers_with_labels,
         classes=[AssertionClassGroup(**c) for c in classes],
         total=total
     )

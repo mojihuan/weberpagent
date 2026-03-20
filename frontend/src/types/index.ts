@@ -275,10 +275,20 @@ export interface AssertionParameterInfo {
   options: AssertionParameterOption[]
 }
 
+export interface DataOption {
+  value: string
+  label: string
+}
+
+export interface HeadersOption {
+  value: string
+  label: string
+}
+
 export interface AssertionMethodInfo {
   name: string
   description: string
-  data_options: string[]
+  data_options: DataOption[]
   parameters: AssertionParameterInfo[]
 }
 
@@ -289,7 +299,7 @@ export interface AssertionClassGroup {
 
 export interface AssertionMethodsResponse {
   available: boolean
-  headers_options: string[]
+  headers_options: HeadersOption[]
   classes: AssertionClassGroup[]
   total: number
   error?: string
