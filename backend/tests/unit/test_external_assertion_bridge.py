@@ -146,3 +146,48 @@ class TestParseDataOptions:
 
         result = _parse_data_options_from_source(some_method)
         assert result == ['main']
+
+
+class TestParseParamOptions:
+    """Tests for _parse_param_options() function."""
+
+    def test_returns_empty_list_for_description_without_options(self):
+        """Test _parse_param_options() returns [] for description without options."""
+        from backend.core.external_precondition_bridge import _parse_param_options
+
+        result = _parse_param_options("Just a description without options")
+        assert result == []
+
+    def test_parses_options_from_description(self):
+        """Test _parse_param_options() parses '订单状态 1待发货 2待取件' into options list."""
+        from backend.core.external_precondition_bridge import _parse_param_options
+
+        description = "订单状态 1待发货 2待取件"
+        result = _parse_param_options(description)
+
+        assert len(result) == 2
+        assert {"value": 1, "label": "待发货"} in result
+        assert {"value": 2, "label": "待取件"} in result
+
+    def test_handles_multi_digit_values(self):
+        """Test _parse_param_options() handles multi-digit values like '13待销售'."""
+        from backend.core.external_precondition_bridge import _parse_param_options
+
+        description = "物品状态 13待销售 3待分货"
+        result = _parse_param_options(description)
+
+        assert len(result) == 2
+        assert {"value": 13, "label": "待销售"} in result
+        assert {"value": 3, "label": "待分货"} in result
+
+    def test_handles_chinese_and_english_colons(self):
+        """Test _parse_param_options() handles Chinese and English colons in input."""
+        from backend.core.external_precondition_bridge import _parse_param_options
+
+        # The function should work with descriptions that have colons
+        description = "i：订单状态 1待发货 2待取件"
+        result = _parse_param_options(description)
+
+        # Should still extract options
+        assert len(result) == 2
+        assert {"value": 1, "label": "待发货"} in result

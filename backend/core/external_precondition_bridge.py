@@ -260,6 +260,34 @@ def _parse_data_options_from_source(method) -> list[str]:
     return keys if keys else ['main']
 
 
+def _parse_param_options(description: str) -> list[dict]:
+    """Parse option values from parameter description.
+
+    Parses formats like:
+        i: 订单状态 1待发货 2待取件
+        j: 物品状态 13待销售 3待分货
+
+    Args:
+        description: Parameter description string
+
+    Returns:
+        List of option dicts: [{"value": int, "label": str}, ...]
+    """
+    options = []
+
+    # Pattern: digit followed by non-digit text
+    # Matches: "1待发货" -> (1, "待发货")
+    pattern = r'(\d+)([^\d]+)'
+
+    for match in re.finditer(pattern, description):
+        value = int(match.group(1))
+        label = match.group(2).strip()
+        if label:
+            options.append({"value": value, "label": label})
+
+    return options
+
+
 def extract_method_info(cls: type, method_name: str) -> dict | None:
     """Extract method information including parameters with types.
 
