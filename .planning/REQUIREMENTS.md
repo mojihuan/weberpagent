@@ -24,9 +24,9 @@
 
 ### 断言执行 (EXEC)
 
-- [ ] **EXEC-01**: 创建 ExternalAssertionBridge 模块，加载并缓存断言类实例
-- [ ] **EXEC-02**: 提供 `execute_assertion_method()` 函数，支持 30 秒超时保护
-- [ ] **EXEC-03**: 断言执行时解析 headers 标识符为实际 token
+- [x] **EXEC-01**: 创建 ExternalAssertionBridge 模块，加载并缓存断言类实例
+- [x] **EXEC-02**: 提供 `execute_assertion_method()` 函数，支持 30 秒超时保护
+- [x] **EXEC-03**: 断言执行时解析 headers 标识符为实际 token
 - [ ] **EXEC-04**: 捕获 AssertionError 异常并提取字段级别的验证结果
 - [ ] **EXEC-05**: 断言执行结果存入 context 供后续步骤引用
 - [ ] **EXEC-06**: 断言失败不终止测试（非 fail-fast），收集所有断言结果
@@ -64,9 +64,9 @@
 | UI-04 | Phase 24 | Complete |
 | UI-05 | Phase 24 | Complete |
 | UI-06 | Phase 24 | Complete |
-| EXEC-01 | Phase 25 | Pending |
-| EXEC-02 | Phase 25 | Pending |
-| EXEC-03 | Phase 25 | Pending |
+| EXEC-01 | Phase 25 | Complete |
+| EXEC-02 | Phase 25 | Complete |
+| EXEC-03 | Phase 25 | Complete |
 | EXEC-04 | Phase 25 | Pending |
 | EXEC-05 | Phase 25 | Pending |
 | EXEC-06 | Phase 25 | Pending |
