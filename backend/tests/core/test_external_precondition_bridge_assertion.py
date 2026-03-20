@@ -9,7 +9,9 @@ from backend.core.external_precondition_bridge import (
     VALID_HEADER_IDENTIFIERS,
     execute_assertion_method,
     _parse_assertion_error,
+    execute_all_assertions,
 )
+from backend.core.precondition_service import ContextWrapper
 
 
 class TestResolveHeaders:
@@ -206,3 +208,183 @@ class TestParseAssertionError:
         assert len(results) == 1
         assert results[0]['field'] == 'unknown'
         assert results[0]['description'] == message
+
+
+class TestExecuteAllAssertions:
+    """Tests for execute_all_assertions() function."""
+
+    @pytest.mark.asyncio
+    async def test_executes_multiple_assertions_in_sequence(self):
+        """execute_all_assertions executes multiple assertions in sequence."""
+        context = ContextWrapper()
+        assertions = [
+            {
+                'class_name': 'PcAssert',
+                'method_name': 'assert_1',
+                'headers': 'main',
+                'data': 'main',
+                'params': {}
+            },
+            {
+                'class_name': 'PcAssert',
+                'method_name': 'assert_2',
+                'headers': 'main',
+                'data': 'main',
+                'params': {}
+            }
+        ]
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.return_value = {
+                'success': True,
+                'passed': True,
+                'field_results': [],
+                'duration': 0.1,
+                'error': None,
+                'error_type': None
+            }
+
+            result = await execute_all_assertions(assertions, context)
+
+            assert mock_exec.call_count == 2
+            assert result['total'] == 2
+
+    @pytest.mark.asyncio
+    async def test_stores_results_in_context_via_store_assertion_result(self):
+        """execute_all_assertions stores results in context via store_assertion_result."""
+        context = ContextWrapper()
+        assertions = [
+            {'class_name': 'PcAssert', 'method_name': 'test', 'headers': 'main', 'data': 'main', 'params': {}}
+        ]
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.return_value = {
+                'success': True,
+                'passed': True,
+                'field_results': [],
+                'duration': 0.1
+            }
+
+            await execute_all_assertions(assertions, context)
+
+            assert 'assertion_result_0' in context._data
+            assert context['assertion_result_0']['passed'] is True
+
+    @pytest.mark.asyncio
+    async def test_continues_even_if_one_assertion_fails(self):
+        """execute_all_assertions continues even if one assertion fails (non-fail-fast)."""
+        context = ContextWrapper()
+        assertions = [
+            {'class_name': 'PcAssert', 'method_name': 'pass', 'headers': 'main', 'data': 'main', 'params': {}},
+            {'class_name': 'PcAssert', 'method_name': 'fail', 'headers': 'main', 'data': 'main', 'params': {}},
+            {'class_name': 'PcAssert', 'method_name': 'pass2', 'headers': 'main', 'data': 'main', 'params': {}}
+        ]
+
+        call_count = 0
+
+        async def side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 2:
+                return {
+                    'success': True,
+                    'passed': False,
+                    'field_results': [{'field': 'x', 'expected': 'a', 'actual': 'b'}],
+                    'duration': 0.1,
+                    'error': 'Assertion failed'
+                }
+            return {
+                'success': True,
+                'passed': True,
+                'field_results': [],
+                'duration': 0.1
+            }
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.side_effect = side_effect
+
+            result = await execute_all_assertions(assertions, context)
+
+            # All 3 should have been executed
+            assert mock_exec.call_count == 3
+            assert result['total'] == 3
+            assert result['passed'] == 2
+            assert result['failed'] == 1
+
+    @pytest.mark.asyncio
+    async def test_returns_summary_with_total_passed_failed_errors(self):
+        """execute_all_assertions returns summary with total/passed/failed/errors."""
+        context = ContextWrapper()
+        assertions = [
+            {'class_name': 'PcAssert', 'method_name': 'pass', 'headers': 'main', 'data': 'main', 'params': {}},
+            {'class_name': 'PcAssert', 'method_name': 'fail', 'headers': 'main', 'data': 'main', 'params': {}},
+            {'class_name': 'PcAssert', 'method_name': 'error', 'headers': 'main', 'data': 'main', 'params': {}}
+        ]
+
+        call_count = 0
+
+        async def side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return {'success': True, 'passed': True, 'field_results': [], 'duration': 0.1}
+            elif call_count == 2:
+                return {'success': True, 'passed': False, 'field_results': [], 'duration': 0.1}
+            else:
+                return {'success': False, 'passed': False, 'error_type': 'TimeoutError', 'field_results': [], 'duration': 30.0}
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.side_effect = side_effect
+
+            result = await execute_all_assertions(assertions, context)
+
+            assert 'total' in result
+            assert 'passed' in result
+            assert 'failed' in result
+            assert 'errors' in result
+            assert result['total'] == 3
+            assert result['passed'] == 1
+            assert result['failed'] == 1
+            assert result['errors'] == 1
+
+    @pytest.mark.asyncio
+    async def test_handles_empty_assertion_list_gracefully(self):
+        """execute_all_assertions handles empty assertion list gracefully."""
+        context = ContextWrapper()
+        assertions = []
+
+        result = await execute_all_assertions(assertions, context)
+
+        assert result['total'] == 0
+        assert result['passed'] == 0
+        assert result['failed'] == 0
+        assert result['errors'] == 0
+        assert result['results'] == []
+
+    @pytest.mark.asyncio
+    async def test_catches_unexpected_errors_and_continues(self):
+        """execute_all_assertions catches unexpected errors and continues."""
+        context = ContextWrapper()
+        assertions = [
+            {'class_name': 'PcAssert', 'method_name': 'crash', 'headers': 'main', 'data': 'main', 'params': {}},
+            {'class_name': 'PcAssert', 'method_name': 'pass', 'headers': 'main', 'data': 'main', 'params': {}}
+        ]
+
+        call_count = 0
+
+        async def side_effect(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("Unexpected crash!")
+            return {'success': True, 'passed': True, 'field_results': [], 'duration': 0.1}
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.side_effect = side_effect
+
+            result = await execute_all_assertions(assertions, context)
+
+            # Both assertions should have been attempted
+            assert mock_exec.call_count == 2
+            assert result['errors'] == 1  # First one had unexpected error
+            assert result['passed'] == 1  # Second one passed
