@@ -31,6 +31,8 @@ from backend.api.routes import tasks, runs, reports, dashboard, external_operati
 from backend.config.settings import get_settings
 from backend.config.validators import validate_weberp_path
 from backend.db.database import init_db
+# Import models to register them with Base before init_db()
+from backend.db import models  # noqa: F401
 
 
 @asynccontextmanager
