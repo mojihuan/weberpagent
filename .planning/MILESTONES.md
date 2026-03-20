@@ -1,5 +1,24 @@
 # Milestones
 
+## v0.3.2 测试与Bug修复 (Shipped: 2026-03-20)
+
+**Phases completed:** 3 phases (Phase 20-22), 15 plans, 13 requirements
+
+**Key accomplishments:**
+
+1. E2E 测试覆盖 - DataMethodSelector、变量替换、完整执行流程
+2. 单元测试覆盖 - ContextWrapper.get_data()、变量替换、API 端点
+3. 测试修复 - 16 个失败测试修复，18 个遗留测试归档
+4. UI 修复 - DataMethodSelector 折叠分组、类型提示、ESC 键
+5. 报告增强 - 前置条件执行信息展示（状态、耗时、变量、代码视图）
+6. UAT 全部通过 - 7/7 测试用例通过
+
+**Tech Debt:**
+- 5 pre-existing unit test isolation issues (documented in 22-06-SUMMARY.md)
+- E2E tests deferred pending running servers
+
+---
+
 ## v0.3.1 数据获取方法集成 (Shipped: 2026-03-19)
 
 **Phases completed:** 3 phases, 11 plans, 2 tasks
