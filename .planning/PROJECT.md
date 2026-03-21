@@ -13,7 +13,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.4.0 断言系统集成完成
+## Current State: v0.5.0 待规划
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
@@ -22,18 +22,18 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.3 前置条件集成 (2026-03-18)
 - v0.3.1 数据获取方法集成 (2026-03-19)
 - v0.3.2 测试与Bug修复 (2026-03-20) - 稳定版本
-- v0.4.0 断言系统集成 (2026-03-21) - 当前版本
+- v0.4.0 断言系统集成 (2026-03-21) - ✓ SHIPPED
 
-**v0.4.0 断言系统集成 成果:**
-1. Phase 23: 后端断言发现层 — 扫描 base_assertions.py，解析方法信息
-2. Phase 24: 前端断言选择器 UI — 断言方法列表、参数配置表单
-3. Phase 25: 断言执行引擎 — execute_assertion_method() 实现
-4. Phase 26: E2E 测试 — 断言工作流端到端验证
-5. Phase 27: 单元测试覆盖 — 92% 覆盖率，16 个新测试
+**v0.4.0 断言系统集成 成果 (5 phases, 13 plans, 26 tasks):**
+1. Phase 23: 后端断言发现层 — 扫描 base_assertions.py，解析 PcAssert/MgAssert/McAssert
+2. Phase 24: 前端断言选择器 UI — AssertionSelector 组件，参数配置表单
+3. Phase 25: 断言执行引擎 — execute_assertion_method() + 30 秒超时保护
+4. Phase 26: E2E 测试 — 5 个 Playwright 测试覆盖断言工作流
+5. Phase 27: 单元测试覆盖 — 16 个新测试，92% 覆盖率
 
 ## Current Milestone: v0.5.0 待规划
 
-**Goal:** 下一里程碑待定，建议使用 `/gsd:complete-milestone` 归档 v0.4.0 后规划。
+**Goal:** 下一里程碑待定，使用 `/gsd:new-milestone` 开始规划。
 
 **v0.4.0 已完成功能:**
 - ✓ 扫描 base_assertions.py 获取可用断言方法
@@ -43,6 +43,10 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - ✓ 断言结果集成到测试报告中
 - ✓ E2E 测试覆盖断言工作流
 - ✓ 单元测试覆盖达到 92%
+
+**Known Gaps (v0.4.0):**
+- DISC-01: 系统扫描 base_assertions.py — 实现完成但未正式验收
+- DISC-05: API 端点 GET /external-assertions/methods — 已实现但需求追踪未更新
 
 ## Requirements
 
@@ -72,17 +76,22 @@ v0.3.1 数据获取方法集成 (2026-03-19):
 - ✓ 字段提取路径配置（如 `[0].imei`）— UI-03
 - ✓ 生成变量名并在测试步骤中使用 `{{变量名}}` — INT-01/02/03
 
+v0.4.0 断言系统集成 (2026-03-21):
+
+- ✓ 断言方法发现 (PcAssert/MgAssert/McAssert) — DISC-01/02/03/04
+- ✓ API 端点 GET /external-assertions/methods — DISC-05
+- ✓ AssertionSelector 组件（分组、搜索、多选）— UI-01/05
+- ✓ 参数配置 UI (headers/data/i/j/k) — UI-02/03/04
+- ✓ TaskForm 集成断言配置 Tab — UI-06
+- ✓ ExternalAssertionBridge 执行引擎 — EXEC-01/02
+- ✓ resolve_headers() token 解析 — EXEC-03
+- ✓ AssertionError 解析 + 字段级结果 — EXEC-04
+- ✓ Context 存储断言结果 — EXEC-05
+- ✓ 非 fail-fast 收集所有结果 — EXEC-06
+
 ### Active
 
-v0.4.0 断言系统集成 (进行中):
-
-- ✓ Phase 23: 后端断言发现层 — DISC-01/02/03/04/05
-  - 扫描 base_assertions.py 获取 PcAssert/MgAssert/McAssert 类
-  - 提取 data 参数选项（从 methods 字典解析）
-  - 解析 i/j/k 参数选项（从 docstring 解析）
-  - GET /api/external-assertions/methods API 端点
-- ○ Phase 24: 前端断言选择器 UI
-- ○ Phase 25: 断言执行引擎
+(下一里程碑需求待规划)
 
 ### Out of Scope
 
@@ -134,6 +143,10 @@ v0.4.0 断言系统集成 (进行中):
 | ContextWrapper 提供类字典接口 | 向后兼容，支持 context['var'] 语法 | ✓ Good |
 | context.get_data() 同步调用模式 | 使用 nest_asyncio 处理嵌套事件循环 | ✓ Good |
 | 代码生成格式: context.get_data('ClassName', 'method', params) | 匹配后端签名，包含类名 | ✓ Good |
+| ExternalAssertionBridge 复用 Bridge 模式 | 与 ExternalPreconditionBridge 一致 | ✓ Good |
+| execute_assertion_method() 异步执行 + 30s 超时 | 防止断言方法阻塞 | ✓ Good |
+| AssertionError 解析提取字段级结果 | 精确错误定位 | ✓ Good |
+| 断言结果存入 context 非 fail-fast | 收集所有结果后汇总 | ✓ Good |
 
 ---
-*Last updated: 2026-03-20 after Phase 23 completion*
+*Last updated: 2026-03-21 after v0.4.0 milestone completion*

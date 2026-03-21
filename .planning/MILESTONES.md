@@ -1,5 +1,26 @@
 # Milestones
 
+## v0.4.0 断言系统集成 (Shipped: 2026-03-21)
+
+**Phases completed:** 5 phases, 13 plans, 26 tasks
+
+**Key accomplishments:**
+
+- Added load_base_assertions_class() function to ExternalPreconditionBridge following the exact pattern established for data method loading, enabling discovery and loading of PcAssert/MgAssert/McAssert classes from webseleniumerp.
+- Implemented assertion method discovery with data options and parameter options parsing for PcAssert/MgAssert/McAssert classes
+- GET /api/external-assertions/methods endpoint exposing assertion methods with headers_options, data_options, and parameter options for frontend configuration
+- Frontend types and API client for business assertions with backend schema support
+- AssertionSelector modal component with grouped method browsing, search filtering, multi-select tags, and parameter configuration (headers, data, i/j/k)
+- Tab switching UI in TaskForm integrating AssertionSelector for business assertions with separate API code assertions tab
+- resolve_headers() and execute_assertion_method() functions with 30-second timeout protection and LoginApi header resolution
+- Context storage infrastructure for assertion results with index-based naming and summary aggregation
+- External assertion execution integrated into run_test flow with SSE events and context storage
+- E2E test suite for assertion workflow with 5 tests covering configuration, execution, and report verification using Playwright
+- Added 9 unit tests covering resolve_headers() header resolution and _parse_assertion_error() message parsing with full mocking isolation.
+- TestExecuteAssertionMethod class with 7 async tests covering success, AssertionError, timeout, and all 4 error types (class/method not found, headers resolution error, import error)
+
+---
+
 ## v0.3.2 测试与Bug修复 (Shipped: 2026-03-20)
 
 **Phases completed:** 3 phases (Phase 20-22), 15 plans, 13 requirements
@@ -14,6 +35,7 @@
 6. UAT 全部通过 - 7/7 测试用例通过
 
 **Tech Debt:**
+
 - 5 pre-existing unit test isolation issues (documented in 22-06-SUMMARY.md)
 - E2E tests deferred pending running servers
 

@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.1
-milestone_name: milestone
+milestone: v0.4.0
+milestone_name: 断言系统集成
 status: unknown
 stopped_at: Completed 27-02-PLAN.md
-last_updated: "2026-03-21T02:17:34.838Z"
+last_updated: "2026-03-21T13:19:20.238Z"
 progress:
   total_phases: 5
   completed_phases: 5
