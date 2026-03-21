@@ -13,7 +13,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.4.0 稳定版本
+## Current State: v0.4.0 断言系统集成完成
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
@@ -21,18 +21,28 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.2.1 测试用例调通 (2026-03-18)
 - v0.3 前置条件集成 (2026-03-18)
 - v0.3.1 数据获取方法集成 (2026-03-19)
-- v0.4.0 Bug Fix Sprint (2026-03-19) - 稳定版本
+- v0.3.2 测试与Bug修复 (2026-03-20) - 稳定版本
+- v0.4.0 断言系统集成 (2026-03-21) - 当前版本
 
-**v0.4.0 Bug Fix Sprint 成果:**
-1. 测试隔离修复 - 16 个失败测试通过 monkeypatch 修复
-2. 遗留测试归档 - 18 个导入错误的测试文件移至 _archived/
-3. DataMethodSelector UI 修复 - 折叠面板、类型提示、数值验证、Escape 键
-4. 报告页面前置条件 - 显示执行状态、持续时间、变量和可展开详情
-5. TypeScript 错误修复 - 前端构建通过
+**v0.4.0 断言系统集成 成果:**
+1. Phase 23: 后端断言发现层 — 扫描 base_assertions.py，解析方法信息
+2. Phase 24: 前端断言选择器 UI — 断言方法列表、参数配置表单
+3. Phase 25: 断言执行引擎 — execute_assertion_method() 实现
+4. Phase 26: E2E 测试 — 断言工作流端到端验证
+5. Phase 27: 单元测试覆盖 — 92% 覆盖率，16 个新测试
 
-## Next Milestone: TBD
+## Current Milestone: v0.5.0 待规划
 
-规划下一版本需求...
+**Goal:** 下一里程碑待定，建议使用 `/gsd:complete-milestone` 归档 v0.4.0 后规划。
+
+**v0.4.0 已完成功能:**
+- ✓ 扫描 base_assertions.py 获取可用断言方法
+- ✓ 前端 UI 展示断言方法列表（按模块分组）
+- ✓ 断言参数配置（headers、data、i/j/k 等）
+- ✓ 执行断言并展示结果
+- ✓ 断言结果集成到测试报告中
+- ✓ E2E 测试覆盖断言工作流
+- ✓ 单元测试覆盖达到 92%
 
 ## Requirements
 
@@ -64,7 +74,15 @@ v0.3.1 数据获取方法集成 (2026-03-19):
 
 ### Active
 
-待规划下一版本需求...
+v0.4.0 断言系统集成 (进行中):
+
+- ✓ Phase 23: 后端断言发现层 — DISC-01/02/03/04/05
+  - 扫描 base_assertions.py 获取 PcAssert/MgAssert/McAssert 类
+  - 提取 data 参数选项（从 methods 字典解析）
+  - 解析 i/j/k 参数选项（从 docstring 解析）
+  - GET /api/external-assertions/methods API 端点
+- ○ Phase 24: 前端断言选择器 UI
+- ○ Phase 25: 断言执行引擎
 
 ### Out of Scope
 
@@ -118,4 +136,4 @@ v0.3.1 数据获取方法集成 (2026-03-19):
 | 代码生成格式: context.get_data('ClassName', 'method', params) | 匹配后端签名，包含类名 | ✓ Good |
 
 ---
-*Last updated: 2026-03-19 after v0.4.0 bug fix sprint completion*
+*Last updated: 2026-03-20 after Phase 23 completion*
