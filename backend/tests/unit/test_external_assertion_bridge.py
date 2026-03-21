@@ -433,6 +433,64 @@ class TestExecuteAssertionMethod:
         assert 'timeout' in result['error'].lower()
         assert result['success'] is False
 
+    @pytest.mark.asyncio
+    async def test_execute_class_not_found(self):
+        """Test execute_assertion_method() returns NotFoundError when class_name not in classes_dict."""
+        mock_classes = {'PcAssert': MagicMock()}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method('InvalidClass', 'test_method', 'main', 'main', {})
+
+        assert result['error_type'] == 'NotFoundError'
+        assert 'not found' in result['error'].lower() or 'InvalidClass' in result['error']
+        assert result['success'] is False
+
+    @pytest.mark.asyncio
+    async def test_execute_method_not_found(self):
+        """Test execute_assertion_method() returns NotFoundError when method not found in class."""
+        # Mock class instance without the target method
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        # getattr returns None for nonexistent method
+        mock_instance.nonexistent_method = None
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method('PcAssert', 'nonexistent_method', 'main', 'main', {})
+
+        assert result['error_type'] == 'NotFoundError'
+        assert 'not found' in result['error'].lower()
+        assert result['success'] is False
+
+    @pytest.mark.asyncio
+    async def test_execute_headers_resolution_error(self):
+        """Test execute_assertion_method() returns HeaderResolutionError when resolve_headers raises ValueError."""
+        mock_classes = {'PcAssert': MagicMock()}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', side_effect=ValueError("Unknown header identifier")):
+                result = await execute_assertion_method('PcAssert', 'test_method', 'invalid_header', 'main', {})
+
+        assert result['error_type'] == 'HeaderResolutionError'
+        assert 'Unknown header identifier' in result['error']
+        assert result['success'] is False
+
+    @pytest.mark.asyncio
+    async def test_execute_import_error(self):
+        """Test execute_assertion_method() returns ImportError when load_base_assertions_class returns error."""
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(None, "Failed to import assertion classes")):
+            result = await execute_assertion_method('PcAssert', 'test_method', 'main', 'main', {})
+
+        assert result['error_type'] == 'ImportError'
+        assert result['error'] == "Failed to import assertion classes"
+        assert result['success'] is False
+
 
 class TestParseAssertionError:
     """Tests for _parse_assertion_error() function."""
