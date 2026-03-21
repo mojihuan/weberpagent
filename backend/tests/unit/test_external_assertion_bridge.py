@@ -1,5 +1,6 @@
 """Unit tests for ExternalAssertionBridge - assertion class discovery."""
 
+import asyncio
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -8,6 +9,7 @@ from backend.core.external_precondition_bridge import (
     load_base_assertions_class,
     resolve_headers,
     _parse_assertion_error,
+    execute_assertion_method,
 )
 from backend.core import external_precondition_bridge
 
@@ -359,6 +361,77 @@ class TestResolveHeaders:
 
         error_message = str(exc_info.value)
         assert "LoginApi not available" in error_message
+
+
+class TestExecuteAssertionMethod:
+    """Tests for execute_assertion_method() async function."""
+
+    @pytest.mark.asyncio
+    async def test_execute_success(self):
+        """Test execute_assertion_method() returns success when assertion passes."""
+        # Mock assertion class with a method that returns None (success)
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_instance.test_method = MagicMock(return_value=None)
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method('PcAssert', 'test_method', 'main', 'main', {})
+
+        assert result['success'] is True
+        assert result['passed'] is True
+        assert result['field_results'] == []
+        assert result['error'] is None
+        assert result['error_type'] is None
+        assert result['duration'] >= 0
+
+    @pytest.mark.asyncio
+    async def test_execute_assertion_error(self):
+        """Test execute_assertion_method() returns passed=False when AssertionError is raised."""
+        # Mock assertion class with a method that raises AssertionError
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_instance.test_method = MagicMock(
+            side_effect=AssertionError("字段 'name' 预期值: 'expected', 实际值: 'actual'")
+        )
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method('PcAssert', 'test_method', 'main', 'main', {})
+
+        assert result['success'] is True  # Execution succeeded
+        assert result['passed'] is False  # Assertion failed
+        assert len(result['field_results']) == 1
+        assert result['field_results'][0]['field'] == 'name'
+        assert '预期值' in result['error'] or 'expected' in result['error'].lower()
+
+    @pytest.mark.asyncio
+    async def test_execute_timeout(self):
+        """Test execute_assertion_method() returns TimeoutError when asyncio.TimeoutError is raised."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_instance.test_method = MagicMock(return_value=None)
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                with patch('asyncio.wait_for', side_effect=asyncio.TimeoutError()):
+                    result = await execute_assertion_method('PcAssert', 'test_method', 'main', 'main', {})
+
+        assert result['error_type'] == 'TimeoutError'
+        assert 'timeout' in result['error'].lower()
+        assert result['success'] is False
 
 
 class TestParseAssertionError:
