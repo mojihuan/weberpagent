@@ -1,0 +1,267 @@
+# Roadmap: aiDriveUITest v0.4.1
+
+**Milestone:** 断言系统调通
+**Goal:** 修正断言系统的参数结构，支持三层参数配置
+**Phases:** 4 | **Requirements:** 12
+
+---
+
+## Phase Overview
+
+| # | Phase | Goal | Requirements | Success Criteria |
+|---|-------|------|--------------|------------------|
+| 28 | 后端字段发现 | AST 解析 base_assertions_field.py 提供字段列表 API | FLD-01, FLD-02, FLD-03 | 3 |
+| 29 | 前端字段配置 UI | AssertionSelector 支持三层参数配置 | UI-01, UI-02, UI-03, UI-04 | 4 |
+| 30 | 断言执行适配层 | 适配层模式处理三层参数和结构化结果 | EXEC-01, EXEC-02, EXEC-03 | 3 |
+| 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
+
+---
+
+## API Contract (关键设计决策)
+
+### Request Body (前端 → 后端)
+
+```json
+{
+  "class_name": "PcAssert",
+  "method_name": "attachment_inventory_list_assert",
+  "data": "main",
+  "api_params": {
+    "i": 1,
+    "j": null,
+    "headers": "main"
+  },
+  "field_params": {
+    "statusStr": "已完成",
+    "createTime": "now"
+  }
+}
+```
+
+### Response (后端 → 前端)
+
+```json
+{
+  "success": true,
+  "passed": false,
+  "duration": 1.23,
+  "fields": [
+    {"name": "statusStr", "expected": "已完成", "actual": "进行中", "passed": false},
+    {"name": "createTime", "expected": "now", "actual": "2026-03-21 10:30:00", "passed": true}
+  ],
+  "error": null
+}
+```
+
+---
+
+## Phase 28: 后端字段发现
+
+**Goal:** AST 解析 base_assertions_field.py，提供可用断言字段列表 API
+
+**Requirements:**
+- FLD-01: 使用 AST 解析 param 字典，提取所有字段
+- FLD-02: API 端点 GET /api/external-assertions/fields 返回字段列表
+- FLD-03: 字段列表包含 name, path, is_time_field, group
+
+**Technical Approach:**
+
+1. **AST 解析** (避免运行时依赖 BaseApi)
+   ```python
+   import ast
+
+   def parse_assertions_field_py(file_path: str) -> list[dict]:
+       with open(file_path) as f:
+           tree = ast.parse(f.read())
+
+       # Find param = {...} assignment in assertive_field method
+       # Extract all keys and their tuple values
+   ```
+
+2. **字段分组策略** (从命名模式推断)
+   - `sale*` → 销售相关
+   - `purchase*` → 采购相关
+   - `*Time` / `*time` → 时间字段
+   - `accessoryOrderInfo.*` → 配件订单嵌套
+   - 其他 → 通用字段
+
+3. **description 生成** (从字段名自动生成)
+   ```python
+   def generate_description(field_name: str) -> str:
+       # createTime → "创建时间"
+       # statusStr → "状态"
+       # salesOrder → "销售订单"
+   ```
+
+**Success Criteria:**
+1. GET /api/external-assertions/fields 返回 JSON 字段列表
+2. 字段列表包含 name, path, is_time_field, group, description
+3. 字段数量 ~300，与 base_assertions_field.py 一致
+4. 分组合理，前端可按分组展示
+5. 单元测试：验证 AST 解析器正确提取所有字段
+
+**Key Files:**
+- `backend/core/assertions_field_parser.py` - 新增 AST 解析器
+- `backend/api/routes/external_assertions.py` - 新增字段列表端点
+- `backend/tests/test_assertions_field_parser.py` - 单元测试
+
+---
+
+## Phase 29: 前端字段配置 UI
+
+**Goal:** AssertionSelector 支持三层参数配置（data、api_params、field_params）
+
+**Requirements:**
+- UI-01: 断言配置弹窗分为三个区域：data 选择、api_params、field_params
+- UI-02: field_params 支持按分组浏览、搜索字段（300+ 字段）
+- UI-03: 时间字段值输入有 "now" 快捷按钮
+- UI-04: 支持添加/删除多个字段配置
+
+**UI Layout:**
+
+```
+┌─────────────────────────────────────────────┐
+│ 断言配置                                      │
+├─────────────────────────────────────────────┤
+│ 1. 查询方法 (data)                           │
+│    [main ▼] 主数据                           │
+├─────────────────────────────────────────────┤
+│ 2. API 筛选参数 (api_params)                 │
+│    i: [▼ 选择]                               │
+│    j: [▼ 选择]                               │
+│    headers: [main ▼]                         │
+├─────────────────────────────────────────────┤
+│ 3. 断言字段 (field_params)                   │
+│    [+ 添加字段]                               │
+│    ┌─────────────────────────────────────┐  │
+│    │ 🔍 搜索字段...          [按分组 ▼]   │  │
+│    ├─────────────────────────────────────┤  │
+│    │ 销售相关 (15)                        │  │
+│    │   ☑ salesOrder  [SA____]            │  │
+│    │   ☑ saleTime     [now ▼]            │  │
+│    │ 时间字段 (20)                        │  │
+│    │   ☑ createTime   [now ▼]            │  │
+│    └─────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘
+```
+
+**"now" 语义:**
+- 用户点击 "now" 按钮 → 输入框填入字符串 "now"
+- 后端收到 "now" → 调用 get_formatted_datetime() 生成当前时间
+- 断言时用 datetime.now() ± 1分钟范围校验
+
+**Success Criteria:**
+1. 三个配置区域清晰分离
+2. 字段列表按分组展示，支持搜索
+3. 时间字段有 "now" 快捷按钮
+4. 可添加/删除多个字段
+5. 组件级测试：搜索、筛选、添加/删除
+
+**Key Files:**
+- `frontend/src/components/AssertionSelector.tsx` - 重构为三区域布局
+- `frontend/src/components/FieldParamsEditor.tsx` - 新增字段配置组件
+- `frontend/src/types/assertion.ts` - 更新类型定义
+
+---
+
+## Phase 30: 断言执行适配层
+
+**Goal:** 适配层模式处理三层参数传递，返回结构化结果
+
+**Requirements:**
+- EXEC-01: execute_assertion_method() 接收三层参数结构
+- EXEC-02: 适配层将 field_params 中的 "now" 转换为实际时间
+- EXEC-03: 捕获 AssertionError，解析为结构化字段结果
+
+**Technical Approach:**
+
+1. **不修改 base_assert.py**，在适配层处理：
+
+   ```python
+   async def execute_assertion_adapted(
+       class_name: str,
+       method_name: str,
+       data: str = 'main',
+       api_params: dict = None,
+       field_params: dict = None
+   ) -> dict:
+       # 1. 合并参数
+       kwargs = {**(api_params or {}), **(field_params or {})}
+
+       # 2. 预处理 "now" 为时间字符串
+       for key, value in kwargs.items():
+           if value == 'now' and is_time_field(key):
+               kwargs[key] = get_formatted_datetime()
+
+       # 3. 调用断言方法
+       try:
+           assertion_method(data=data, **kwargs)
+           return {"success": True, "passed": True, "fields": []}
+       except AssertionError as e:
+           # 4. 解析错误消息为结构化结果
+           return parse_assertion_error_to_fields(str(e))
+   ```
+
+2. **AssertionError 解析** (已有 _parse_assertion_error，增强字段提取)
+
+**Success Criteria:**
+1. 三层参数正确传递给断言方法
+2. "now" 正确转换为时间字符串
+3. 断言失败返回结构化字段结果
+4. 单元测试：mock 数据测试参数传递和结果序列化
+
+**Key Files:**
+- `backend/core/external_precondition_bridge.py` - 重构 execute_assertion_method
+- `backend/tests/test_assertion_execution.py` - 单元测试
+
+---
+
+## Phase 31: E2E 测试
+
+**Goal:** Mock ERP 端到端验证完整断言流程
+
+**Requirements:**
+- E2E-01: 完整断言流程测试（配置 → 执行 → 结果展示）
+- E2E-02: 测试断言成功和断言失败两种场景
+
+**Mock Strategy:**
+- Mock ERP API 响应（不依赖真实 ERP）
+- Mock LoginApi.headers 返回测试 token
+
+**Success Criteria:**
+1. E2E 测试不依赖真实 ERP 系统
+2. 测试覆盖：选择断言 → 配置三层参数 → 执行 → 查看结果
+3. 测试断言成功场景（所有字段通过）
+4. 测试断言失败场景（部分字段失败，展示预期/实际值）
+5. 所有 E2E 测试通过
+
+**Key Files:**
+- `e2e/assertion-flow.spec.ts` - E2E 测试
+- `e2e/mocks/erp-api.ts` - Mock ERP 响应
+
+---
+
+## Dependencies
+
+```mermaid
+graph LR
+    P28[Phase 28: 后端字段发现] --> P29[Phase 29: 前端字段配置 UI]
+    P29 --> P30[Phase 30: 断言执行适配层]
+    P30 --> P31[Phase 31: E2E 测试]
+```
+
+---
+
+## Test Strategy
+
+| Phase | Unit Tests | Integration Tests | E2E Tests |
+|-------|------------|-------------------|-----------|
+| 28 | AST 解析器 | API 端点 | - |
+| 29 | 组件渲染 | - | - |
+| 30 | 参数传递、结果序列化 | 完整执行流程 | - |
+| 31 | - | - | Mock ERP |
+
+---
+
+*Roadmap created: 2026-03-21*
+*Last updated: 2026-03-21 after review feedback*

@@ -13,7 +13,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.5.0 待规划
+## Current State: v0.4.1 断言系统调通
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
@@ -31,9 +31,18 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 4. Phase 26: E2E 测试 — 5 个 Playwright 测试覆盖断言工作流
 5. Phase 27: 单元测试覆盖 — 16 个新测试，92% 覆盖率
 
-## Current Milestone: v0.5.0 待规划
+## Current Milestone: v0.4.1 断言系统调通
 
-**Goal:** 下一里程碑待定，使用 `/gsd:new-milestone` 开始规划。
+**Goal:** 修正断言系统的参数结构，使其符合正确的三层设计，支持完整的断言字段配置。
+
+**Target features:**
+- 后端支持获取 base_assertions_field.py 中的可用字段列表（约 300 个字段）
+- 前端 UI 支持三层参数配置：data（查询方法）、特殊参数（a~z, headers）、字段名参数
+- 端到端验证断言执行流程正确
+
+**v0.4.0 已知问题:**
+- 断言参数只支持 data/headers/i/j/k，缺少字段名参数配置
+- 前端 UI 无法配置 `saleTime='now'`, `salesOrder='SA'` 等验证参数
 
 **v0.4.0 已完成功能:**
 - ✓ 扫描 base_assertions.py 获取可用断言方法
