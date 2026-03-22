@@ -313,4 +313,26 @@ export interface AssertionConfig {
   headers: string        // e.g., "main" - identifier resolved at execution time
   data: string           // e.g., "main" - from method's data_options
   params: Record<string, number | string>  // i, j, k etc. filter parameters
+  field_params?: Record<string, string>    // field validation parameters e.g., { saleTime: 'now', salesOrder: 'SA' }
+}
+
+// Assertion field types for field_params configuration
+
+export interface AssertionFieldInfo {
+  name: string
+  path: string
+  is_time_field: boolean
+  description: string
+}
+
+export interface AssertionFieldGroup {
+  name: string
+  fields: AssertionFieldInfo[]
+}
+
+export interface AssertionFieldsResponse {
+  available: boolean
+  error?: string
+  groups: AssertionFieldGroup[]
+  total: number
 }
