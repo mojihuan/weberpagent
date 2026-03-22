@@ -13,6 +13,7 @@ from backend.core.external_precondition_bridge import (
     get_unavailable_reason,
     get_assertion_methods_grouped,
     get_assertion_fields_grouped,
+    execute_assertion_method,
 )
 
 
@@ -100,6 +101,38 @@ class AssertionFieldsResponse(BaseModel):
     error: str | None = None
     groups: list[FieldGroup] = []
     total: int = 0
+
+
+class FieldResult(BaseModel):
+    """Single field assertion result."""
+    name: str
+    expected: str
+    actual: str
+    passed: bool
+    comparison_type: str | None = None
+    description: str | None = None
+
+
+class AssertionExecuteRequest(BaseModel):
+    """Request model for executing an assertion method."""
+    class_name: str
+    method_name: str
+    data: str = 'main'
+    api_params: dict = {}
+    field_params: dict = {}
+    # Backward compatibility
+    headers: str | None = 'main'
+    params: dict = {}
+
+
+class AssertionExecuteResponse(BaseModel):
+    """Response model for assertion execution."""
+    success: bool
+    passed: bool
+    duration: float
+    fields: list[FieldResult] = []
+    error: str | None = None
+    error_type: str | None = None
 
 
 @router.get("/methods", response_model=AssertionMethodsResponse)
