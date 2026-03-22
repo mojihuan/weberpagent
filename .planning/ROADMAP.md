@@ -2,7 +2,7 @@
 
 **Milestone:** 断言系统调通
 **Goal:** 修正断言系统的参数结构，支持三层参数配置
-**Phases:** 4 | **Requirements:** 12
+**Phases:** 5 | **Requirements:** 12
 
 ---
 
@@ -13,7 +13,8 @@
 | 28 | 后端字段发现 | Complete | FLD-01, FLD-02, FLD-03 | 2026-03-22 |
 | 29 | 前端字段配置 UI | Complete | UI-01, UI-02, UI-03, UI-04 | 2026-03-22 |
 | 30 | 断言执行适配层 | Complete | EXEC-01, EXEC-02, EXEC-03 | 2026-03-22 |
-| 31 | E2E 测试 | 1/1 | Complete   | 2026-03-22 |
+| 31 | E2E 测试 | Complete | E2E-01, E2E-02 | 2026-03-22 |
+| 32 | 三层参数传递修复 | Pending | EXEC-01, UI-04 | - |
 
 ---
 
@@ -314,6 +315,63 @@ Plans:
 
 ---
 
+## Phase 32: 三层参数传递修复
+
+**Goal:** 修复 execute_all_assertions 函数，正确传递三层参数 (params, api_params, field_params)
+
+**Gap Closure:**
+- EXEC-01: execute_assertion_method() accepts three-layer params, but execute_all_assertions() does not pass them
+- UI-04: UI correctly configures field_params, but execution layer ignores them
+- Integration: Phase 29 (field_params) → Phase 30 (execute_all_assertions)
+- Flow: Three-layer params execution
+
+**Requirements:**
+- EXEC-01: execute_all_assertions() 提取并传递 api_params 和 field_params
+- UI-04: field_params 配置正确传递到执行层
+
+**Plans:** 0/0 plans created
+
+**Technical Approach:**
+
+1. **修复 execute_all_assertions()** (lines 1006-1026):
+   ```python
+   # Current (INCOMPLETE)
+   params = assertion_config.get('params', {})
+
+   # Fixed
+   api_params = assertion_config.get('api_params', {})
+   field_params = assertion_config.get('field_params', {})
+   params = assertion_config.get('params', {})
+
+   result = await execute_assertion_method(
+       class_name=class_name,
+       method_name=method_name,
+       headers=headers,
+       data=data,
+       api_params=api_params,
+       field_params=field_params,
+       params=params,
+       timeout=timeout_per_assertion
+   )
+   ```
+
+2. **更新单元测试**:
+   - 添加 execute_all_assertions 三层参数测试
+   - 验证向后兼容性 (params 作为 field_params fallback)
+
+**Success Criteria:**
+1. execute_all_assertions 正确提取 api_params 和 field_params
+2. 三层参数正确传递到 execute_assertion_method
+3. 单元测试覆盖新功能
+4. E2E 测试通过（使用三层参数配置）
+5. 向后兼容性保持
+
+**Key Files:**
+- `backend/core/external_precondition_bridge.py` - 修复 execute_all_assertions 函数
+- `backend/tests/unit/test_external_precondition_bridge.py` - 添加/更新测试
+
+---
+
 ## Dependencies
 
 ```mermaid
@@ -337,4 +395,4 @@ graph LR
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-22 - Phase 31 plans created*
+*Last updated: 2026-03-22 - Phase 32 added (gap closure)*

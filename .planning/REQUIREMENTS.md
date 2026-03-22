@@ -93,8 +93,8 @@
 | UI-01 | Phase 29 | Complete |
 | UI-02 | Phase 29 | Complete |
 | UI-03 | Phase 29 | Complete |
-| UI-04 | Phase 29 | Complete |
-| EXEC-01 | Phase 30 | Complete |
+| UI-04 | Phase 32 | Pending |
+| EXEC-01 | Phase 32 | Pending |
 | EXEC-02 | Phase 30 | Complete |
 | EXEC-03 | Phase 30 | Complete |
 | E2E-01 | Phase 31 | Complete |
@@ -103,6 +103,8 @@
 **Coverage:**
 - v0.4.1 requirements: 12 total
 - Mapped to phases: 12
+- Complete: 9/12 (75%)
+- Pending: 3 (FLD-01, UI-04, EXEC-01)
 - Unmapped: 0 ✓
 
 ---
