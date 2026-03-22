@@ -191,3 +191,38 @@ async def list_assertion_fields():
         groups=[FieldGroup(**g) for g in result['groups']],
         total=result['total']
     )
+
+
+@router.post("/execute", response_model=AssertionExecuteResponse)
+async def execute_assertion(request: AssertionExecuteRequest):
+    """Execute an assertion method with three-layer parameters.
+
+    Supports both new three-layer structure (data, api_params, field_params)
+    and legacy structure (headers, params) for backward compatibility.
+
+    Returns 503 if external module is not available.
+    Returns 200 with success=False and error field if execution fails.
+    """
+    if not is_available():
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "message": "External assertion module not available",
+                "reason": get_unavailable_reason(),
+                "fix": "Ensure WEBSERP_PATH is configured in .env"
+            }
+        )
+
+    # Call execute_assertion_method with three-layer params
+    # Backward compatibility: params acts as field_params fallback
+    result = await execute_assertion_method(
+        class_name=request.class_name,
+        method_name=request.method_name,
+        headers=request.headers,
+        data=request.data,
+        api_params=request.api_params,
+        field_params=request.field_params or request.params,
+        timeout=30.0
+    )
+
+    return AssertionExecuteResponse(**result)
