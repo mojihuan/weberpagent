@@ -1008,6 +1008,8 @@ async def execute_all_assertions(
         method_name = assertion_config.get('method_name')
         headers = assertion_config.get('headers', 'main')
         data = assertion_config.get('data', 'main')
+        api_params = assertion_config.get('api_params', {})
+        field_params = assertion_config.get('field_params', {})
         params = assertion_config.get('params', {})
 
         logger.info(
@@ -1021,6 +1023,8 @@ async def execute_all_assertions(
                 method_name=method_name,
                 headers=headers,
                 data=data,
+                api_params=api_params,
+                field_params=field_params,
                 params=params,
                 timeout=timeout_per_assertion
             )

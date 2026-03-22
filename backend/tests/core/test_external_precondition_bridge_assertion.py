@@ -399,3 +399,94 @@ class TestExecuteAllAssertions:
             assert mock_exec.call_count == 2
             assert result['errors'] == 1  # First one had unexpected error
             assert result['passed'] == 1  # Second one passed
+
+
+class TestExecuteAllAssertionsThreeLayerParams:
+    """Tests for three-layer parameter passing in execute_all_assertions."""
+
+    @pytest.mark.asyncio
+    async def test_passes_api_params_to_execute_assertion_method(self):
+        """execute_all_assertions passes api_params to execute_assertion_method."""
+        context = ContextWrapper()
+        assertions = [{
+            'class_name': 'PcAssert',
+            'method_name': 'test',
+            'headers': 'main',
+            'data': 'main',
+            'api_params': {'i': 1, 'j': 2},
+        }]
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.return_value = {'success': True, 'passed': True, 'fields': [], 'duration': 0.1}
+            await execute_all_assertions(assertions, context)
+
+            # Verify api_params was passed
+            call_kwargs = mock_exec.call_args[1]
+            assert call_kwargs['api_params'] == {'i': 1, 'j': 2}
+
+    @pytest.mark.asyncio
+    async def test_passes_field_params_to_execute_assertion_method(self):
+        """execute_all_assertions passes field_params to execute_assertion_method."""
+        context = ContextWrapper()
+        assertions = [{
+            'class_name': 'PcAssert',
+            'method_name': 'test',
+            'headers': 'main',
+            'data': 'main',
+            'field_params': {'saleTime': 'now', 'salesOrder': 'SA'},
+        }]
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.return_value = {'success': True, 'passed': True, 'fields': [], 'duration': 0.1}
+            await execute_all_assertions(assertions, context)
+
+            # Verify field_params was passed
+            call_kwargs = mock_exec.call_args[1]
+            assert call_kwargs['field_params'] == {'saleTime': 'now', 'salesOrder': 'SA'}
+
+    @pytest.mark.asyncio
+    async def test_passes_all_three_layers_simultaneously(self):
+        """execute_all_assertions passes api_params, field_params, and params together."""
+        context = ContextWrapper()
+        assertions = [{
+            'class_name': 'PcAssert',
+            'method_name': 'test',
+            'headers': 'main',
+            'data': 'main',
+            'api_params': {'i': 1, 'j': 2},
+            'field_params': {'saleTime': 'now', 'salesOrder': 'SA'},
+            'params': {'extra': 'value'},
+        }]
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.return_value = {'success': True, 'passed': True, 'fields': [], 'duration': 0.1}
+            await execute_all_assertions(assertions, context)
+
+            # Verify all three layers were passed correctly
+            call_kwargs = mock_exec.call_args[1]
+            assert call_kwargs['api_params'] == {'i': 1, 'j': 2}
+            assert call_kwargs['field_params'] == {'saleTime': 'now', 'salesOrder': 'SA'}
+            assert call_kwargs['params'] == {'extra': 'value'}
+
+    @pytest.mark.asyncio
+    async def test_backward_compat_with_only_params(self):
+        """execute_all_assertions works with old configs using only params."""
+        context = ContextWrapper()
+        assertions = [{
+            'class_name': 'PcAssert',
+            'method_name': 'test',
+            'headers': 'main',
+            'data': 'main',
+            'params': {'i': 1, 'j': 2},
+        }]
+
+        with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
+            mock_exec.return_value = {'success': True, 'passed': True, 'fields': [], 'duration': 0.1}
+            await execute_all_assertions(assertions, context)
+
+            # Verify params is still passed for backward compatibility
+            call_kwargs = mock_exec.call_args[1]
+            assert call_kwargs['params'] == {'i': 1, 'j': 2}
+            # api_params and field_params should default to empty dicts
+            assert call_kwargs['api_params'] == {}
+            assert call_kwargs['field_params'] == {}
