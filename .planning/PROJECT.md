@@ -13,7 +13,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.4.1 断言系统调通
+## Current State: v0.4.1 断言系统调通 ✓ COMPLETE
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
@@ -23,39 +23,29 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.3.1 数据获取方法集成 (2026-03-19)
 - v0.3.2 测试与Bug修复 (2026-03-20) - 稳定版本
 - v0.4.0 断言系统集成 (2026-03-21) - ✓ SHIPPED
+- v0.4.1 断言系统调通 (2026-03-22) - ✓ SHIPPED
 
-**v0.4.0 断言系统集成 成果 (5 phases, 13 plans, 26 tasks):**
-1. Phase 23: 后端断言发现层 — 扫描 base_assertions.py，解析 PcAssert/MgAssert/McAssert
-2. Phase 24: 前端断言选择器 UI — AssertionSelector 组件，参数配置表单
-3. Phase 25: 断言执行引擎 — execute_assertion_method() + 30 秒超时保护
-4. Phase 26: E2E 测试 — 5 个 Playwright 测试覆盖断言工作流
-5. Phase 27: 单元测试覆盖 — 16 个新测试，92% 覆盖率
+**v0.4.1 断言系统调通 成果:**
+- Phase 28: 后端字段发现 — 扫描 base_assertions_field.py，获取约 300 个可用字段
+- Phase 29: 前端字段配置 UI — 字段选择器，支持三层参数配置
+- Phase 30: 断言执行适配器 — execute_assertion_method() 接受三层参数
+- Phase 31: E2E 测试 — 3 个 Playwright 测试验证端到端流程
+- Phase 32: 三层参数缺口关闭 — execute_all_assertions() 正确传递三层参数
 
-## Current Milestone: v0.4.1 断言系统调通
+**三层参数架构现已完整:**
+- api_params: API 查询参数 (i, j, k 等)
+- field_params: 断言字段值 (saleTime, salesOrder 等)
+- params: 向后兼容参数
 
-**Goal:** 修正断言系统的参数结构，使其符合正确的三层设计，支持完整的断言字段配置。
+## Previous Milestone: v0.4.1 断言系统调通 ✓ COMPLETE
 
-**Target features:**
-- 后端支持获取 base_assertions_field.py 中的可用字段列表（约 300 个字段）
-- 前端 UI 支持三层参数配置：data（查询方法）、特殊参数（a~z, headers）、字段名参数
-- 端到端验证断言执行流程正确
+**Goal:** 修正断言系统的参数结构，使其符合正确的三层设计，支持完整的断言字段配置。 — **ACHIEVED**
 
-**v0.4.0 已知问题:**
-- 断言参数只支持 data/headers/i/j/k，缺少字段名参数配置
-- 前端 UI 无法配置 `saleTime='now'`, `salesOrder='SA'` 等验证参数
-
-**v0.4.0 已完成功能:**
-- ✓ 扫描 base_assertions.py 获取可用断言方法
-- ✓ 前端 UI 展示断言方法列表（按模块分组）
-- ✓ 断言参数配置（headers、data、i/j/k 等）
-- ✓ 执行断言并展示结果
-- ✓ 断言结果集成到测试报告中
-- ✓ E2E 测试覆盖断言工作流
-- ✓ 单元测试覆盖达到 92%
-
-**Known Gaps (v0.4.0):**
-- DISC-01: 系统扫描 base_assertions.py — 实现完成但未正式验收
-- DISC-05: API 端点 GET /external-assertions/methods — 已实现但需求追踪未更新
+**v0.4.1 已完成功能:**
+- ✓ 后端扫描 base_assertions_field.py 获取可用字段列表
+- ✓ 前端 UI 支持三层参数配置 (api_params, field_params, params)
+- ✓ 端到端验证断言执行流程正确
+- ✓ execute_all_assertions() 正确传递三层参数到 execute_assertion_method()
 
 ## Requirements
 
@@ -158,4 +148,4 @@ v0.4.0 断言系统集成 (2026-03-21):
 | 断言结果存入 context 非 fail-fast | 收集所有结果后汇总 | ✓ Good |
 
 ---
-*Last updated: 2026-03-21 after v0.4.0 milestone completion*
+*Last updated: 2026-03-22 after v0.4.1 milestone completion*
