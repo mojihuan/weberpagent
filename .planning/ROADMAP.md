@@ -11,7 +11,7 @@
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 28 | 后端字段发现 | Complete | FLD-01, FLD-02, FLD-03 | 2026-03-22 |
-| 29 | 前端字段配置 UI | 2/3 | In Progress|  |
+| 29 | 前端字段配置 UI | 3/3 | Complete   | 2026-03-22 |
 | 30 | 断言执行适配层 | 适配层模式处理三层参数和结构化结果 | EXEC-01, EXEC-02, EXEC-03 | 3 |
 | 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
 
@@ -125,7 +125,7 @@
 - UI-03: 时间字段值输入有 "now" 快捷按钮
 - UI-04: 支持添加/删除多个字段配置
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 | Plan | Objective | Wave | Requirements |
 |------|-----------|------|--------------|
@@ -136,7 +136,7 @@
 Plans:
 - [x] 29-01-PLAN.md — Extend types and add listFields() API
 - [x] 29-02-PLAN.md — Create FieldParamsEditor with grouping, search, "now" button
-- [ ] 29-03-PLAN.md — Integrate FieldParamsEditor into AssertionSelector
+- [x] 29-03-PLAN.md — Integrate FieldParamsEditor into AssertionSelector
 
 **UI Layout:**
 
