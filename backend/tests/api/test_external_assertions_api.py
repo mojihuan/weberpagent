@@ -256,12 +256,16 @@ class TestListAssertionFields:
 
     def test_list_assertion_fields_returns_503_when_unavailable(self, client):
         """Test GET /api/external-assertions/fields returns 503 when external module unavailable."""
+        mock_unavailable = {
+            'available': False,
+            'error': 'WEBSERP_PATH not configured',
+            'groups': [],
+            'total': 0
+        }
+
         with patch(
-            'backend.api.routes.external_assertions.is_available',
-            return_value=False
-        ), patch(
-            'backend.api.routes.external_assertions.get_unavailable_reason',
-            return_value='WEBSERP_PATH not configured'
+            'backend.api.routes.external_assertions.get_assertion_fields_grouped',
+            return_value=mock_unavailable
         ):
             response = client.get("/api/external-assertions/fields")
 
@@ -413,12 +417,16 @@ class TestListAssertionFields:
 
     def test_fields_endpoint_registered_in_app(self, client):
         """Test that /api/external-assertions/fields is accessible (not 404)."""
+        mock_unavailable = {
+            'available': False,
+            'error': 'WEBSERP_PATH not configured',
+            'groups': [],
+            'total': 0
+        }
+
         with patch(
-            'backend.api.routes.external_assertions.is_available',
-            return_value=False
-        ), patch(
-            'backend.api.routes.external_assertions.get_unavailable_reason',
-            return_value='WEBSERP_PATH not configured'
+            'backend.api.routes.external_assertions.get_assertion_fields_grouped',
+            return_value=mock_unavailable
         ):
             response = client.get("/api/external-assertions/fields")
             # Should get 503, not 404 (proves route is registered)
