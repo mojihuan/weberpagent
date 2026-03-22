@@ -10,8 +10,8 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 28 | 后端字段发现 | 2/2 | Complete   | 2026-03-22 |
-| 29 | 前端字段配置 UI | AssertionSelector 支持三层参数配置 | UI-01, UI-02, UI-03, UI-04 | 4 |
+| 28 | 后端字段发现 | Complete | FLD-01, FLD-02, FLD-03 | 2026-03-22 |
+| 29 | 前端字段配置 UI | 1/3 | In Progress|  |
 | 30 | 断言执行适配层 | 适配层模式处理三层参数和结构化结果 | EXEC-01, EXEC-02, EXEC-03 | 3 |
 | 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
 
@@ -125,6 +125,19 @@
 - UI-03: 时间字段值输入有 "now" 快捷按钮
 - UI-04: 支持添加/删除多个字段配置
 
+**Plans:** 1/3 plans executed
+
+| Plan | Objective | Wave | Requirements |
+|------|-----------|------|--------------|
+| 29-01 | Type Extensions + API Client | 1 | UI-01, UI-02 |
+| 29-02 | FieldParamsEditor Component | 2 | UI-02, UI-03, UI-04 |
+| 29-03 | AssertionSelector Integration | 3 | UI-01, UI-04 |
+
+Plans:
+- [x] 29-01-PLAN.md — Extend types and add listFields() API
+- [ ] 29-02-PLAN.md — Create FieldParamsEditor with grouping, search, "now" button
+- [ ] 29-03-PLAN.md — Integrate FieldParamsEditor into AssertionSelector
+
 **UI Layout:**
 
 ```
@@ -166,9 +179,10 @@
 5. 组件级测试：搜索、筛选、添加/删除
 
 **Key Files:**
-- `frontend/src/components/AssertionSelector.tsx` - 重构为三区域布局
-- `frontend/src/components/FieldParamsEditor.tsx` - 新增字段配置组件
-- `frontend/src/types/assertion.ts` - 更新类型定义
+- `frontend/src/components/TaskModal/AssertionSelector.tsx` - 重构为三区域布局
+- `frontend/src/components/TaskModal/FieldParamsEditor.tsx` - 新增字段配置组件
+- `frontend/src/types/index.ts` - 更新类型定义
+- `frontend/src/api/externalAssertions.ts` - 添加 listFields() API
 
 ---
 
@@ -272,4 +286,4 @@ graph LR
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-21 - Phase 28 plans created*
+*Last updated: 2026-03-22 - Phase 29 plans created*
