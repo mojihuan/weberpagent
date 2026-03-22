@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.4.1
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 30-02-PLAN.md
-last_updated: "2026-03-22T04:37:14.476Z"
+stopped_at: Completed 30-03-PLAN.md
+last_updated: "2026-03-22T04:42:17.057Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 30 (assertion-execution-adapter) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: 2 of 3
 | Phase 29-frontend-field-config-ui P02 | 2min | 2 tasks | 1 files |
 | Phase 29 P03 | 2 | 2 tasks | 1 files |
 | Phase 30 P02 | 1 | 2 tasks | 1 files |
+| Phase 30 P03 | 5 | 4 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,7 @@ Recent decisions affecting current work:
 - [Phase 29]: field_params is optional for backward compatibility with existing assertions
 - [Phase 29]: field_params state managed via Map<string, Map<string, {name, value}>> synced to Record in AssertionConfig
 - [Phase 30]: field_params or params fallback for backward compatibility (D-06)
+- [Phase 30]: Updated TestParseAssertionError to use 'name' field ( per ROADmap API contract D-04)
 
 ### Pending Todos
 
@@ -78,6 +80,6 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-03-22T04:37:14.474Z
-Stopped at: Completed 30-02-PLAN.md
+Last session: 2026-03-22T04:42:17.055Z
+Stopped at: Completed 30-03-PLAN.md
 Resume file: None

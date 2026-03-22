@@ -12,7 +12,7 @@
 |---|-------|------|--------------|------------------|
 | 28 | 后端字段发现 | Complete | FLD-01, FLD-02, FLD-03 | 2026-03-22 |
 | 29 | 前端字段配置 UI | 3/3 | Complete    | 2026-03-22 |
-| 30 | 断言执行适配层 | 2/3 | In Progress|  |
+| 30 | 断言执行适配层 | 3/3 | Complete   | 2026-03-22 |
 | 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
 
 ---
@@ -195,7 +195,7 @@ Plans:
 - EXEC-02: 适配层将 field_params 中的 "now" 转换为实际时间
 - EXEC-03: 捕获 AssertionError，解析为结构化字段结果
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 | Plan | Objective | Wave | Requirements |
 |------|-----------|------|--------------|
@@ -206,7 +206,7 @@ Plans:
 Plans:
 - [x] 30-01-PLAN.md — Implement adapter layer in external_precondition_bridge.py
 - [x] 30-02-PLAN.md — Add POST /execute API endpoint
-- [ ] 30-03-PLAN.md — Add/update unit tests for three-layer params, "now" conversion, backward compatibility
+- [x] 30-03-PLAN.md — Add/update unit tests for three-layer params, "now" conversion, backward compatibility
 
 **Technical Approach:**
 
