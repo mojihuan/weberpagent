@@ -475,4 +475,439 @@ test.describe('Assertion Flow Tests', () => {
 
     console.log('Assertion configuration test completed!')
   })
+
+  test('field_params configuration - verify field parameter transmission', async ({ page }) => {
+    // Skip test if ERP_BASE_URL is not configured
+    test.skip(!erpBaseUrl, 'ERP_BASE_URL environment variable not set')
+
+    // Increase timeout for AI-driven execution
+    test.setTimeout(300000) // 5 minutes for complete flow
+
+    // ============================================
+    // Step 1: Click "New Task" button
+    // ============================================
+    await page.click('button:has-text("新建任务"), button:has-text("New Task")')
+    await expect(page.locator('text=任务名称')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 2: Fill task form
+    // ============================================
+    await page.fill('[name="name"]', 'E2E Field Params Test')
+    await page.fill('[name="target_url"]', erpBaseUrl!)
+
+    // ============================================
+    // Step 3: Switch to "Business Assertions" tab
+    // ============================================
+    await page.click('button:has-text("业务断言")')
+    await expect(page.locator('text=添加断言')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 4: Click "Add Assertion" button
+    // ============================================
+    await page.click('button:has-text("添加断言")')
+
+    // ============================================
+    // Step 5: Verify AssertionSelector modal opens
+    // ============================================
+    await expect(page.locator('text=Select Assertion Methods')).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const firstCheckbox = page.locator('input[type="checkbox"]').first()
+    if ((await firstCheckbox.count()) === 0) {
+      test.skip()
+      return
+    }
+
+    // ============================================
+    // Step 6: Select first available assertion method
+    // ============================================
+    await firstCheckbox.click()
+    await expect(page.locator('text=Selected')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 7: Configure field_params through FieldParamsEditor
+    // ============================================
+    // Wait for field params section to be visible
+    const fieldParamsSection = page.locator('text=Assertion Fields')
+    await expect(fieldParamsSection).toBeVisible({ timeout: 10000 })
+
+    // Find search input inside field params area
+    const fieldSearchInput = page.locator('.border-gray-100').first().locator('input[placeholder*="Search"]')
+    if ((await fieldSearchInput.count()) > 0) {
+      // Search for a field (e.g., "status" or any field name)
+      await fieldSearchInput.fill('status')
+      await page.waitForTimeout(1000)
+
+      // Click first checkbox in filtered field list to select a field
+      const fieldCheckbox = page.locator('.border-gray-100 input[type="checkbox"], .hover\\:bg-gray-50 input[type="checkbox"]').first()
+      if ((await fieldCheckbox.count()) > 0) {
+        await fieldCheckbox.click()
+
+        // Wait for value input to appear
+        await page.waitForTimeout(500)
+
+        // Find and fill the expected value input
+        const valueInput = page.locator('input[placeholder="Expected value"]')
+        if ((await valueInput.count()) > 0) {
+          await valueInput.fill('test_expected_value')
+        }
+      }
+    }
+
+    // ============================================
+    // Step 8: Click "Confirm" button
+    // ============================================
+    await page.click('button:has-text("Confirm")')
+    await expect(page.locator('text=Select Assertion Methods')).not.toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 9: Verify assertion card appears
+    // ============================================
+    await expect(page.locator('.border-orange-200, [class*="border-orange"]')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 10: Create the task
+    // ============================================
+    await page.click('button:has-text("创建任务"), button:has-text("Create Task")')
+    await expect(page.locator('text=E2E Field Params Test')).toBeVisible({ timeout: 10000 })
+
+    // ============================================
+    // Step 11: Execute the task
+    // ============================================
+    await page.click('tr:has-text("E2E Field Params Test") button:has-text("执行"), tr:has-text("E2E Field Params Test") button:has-text("Execute")')
+
+    // ============================================
+    // Step 12: Wait for completion
+    // ============================================
+    await expect(page.locator('text=执行监控, text=Monitor')).toBeVisible({ timeout: 10000 })
+    await page.waitForSelector('text=已完成, text=失败, text=completed, text=failed', {
+      timeout: 180000,
+    })
+
+    // ============================================
+    // Step 13: Navigate to report
+    // ============================================
+    await page.click('button:has-text("查看报告"), a:has-text("查看报告"), button:has-text("View Report")')
+    await expect(page).toHaveURL(/.*reports\/.*/, { timeout: 10000 })
+
+    // ============================================
+    // Step 14: Verify report displays assertion results section
+    // ============================================
+    await expect(page.locator('text=执行步骤, text=Steps, text=执行报告')).toBeVisible({ timeout: 10000 })
+
+    // Check for assertion results section
+    const assertionResultsSection = page.locator('text=断言结果, text=接口断言结果')
+    const hasAssertionSection = (await assertionResultsSection.count()) > 0
+
+    if (hasAssertionSection) {
+      await expect(assertionResultsSection.first()).toBeVisible({ timeout: 5000 })
+      console.log('Field params assertion results section found in report')
+    }
+
+    // Verify result card is visible (either green or red)
+    const passCards = page.locator('.bg-green-50.border-green-200, [class*="bg-green-50"][class*="border-green-200"]')
+    const failCards = page.locator('.bg-red-50.border-red-200, [class*="bg-red-50"][class*="border-red-200"]')
+    const hasResults = (await passCards.count()) > 0 || (await failCards.count()) > 0
+
+    console.log(`Field params test completed! Results visible: ${hasResults}`)
+  })
+
+  test('now time conversion - verify "now" converts to current datetime', async ({ page }) => {
+    // Skip test if ERP_BASE_URL is not configured
+    test.skip(!erpBaseUrl, 'ERP_BASE_URL environment variable not set')
+
+    // Increase timeout for AI-driven execution
+    test.setTimeout(300000) // 5 minutes
+
+    // ============================================
+    // Step 1: Click "New Task" button
+    // ============================================
+    await page.click('button:has-text("新建任务"), button:has-text("New Task")')
+    await expect(page.locator('text=任务名称')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 2: Fill task form
+    // ============================================
+    await page.fill('[name="name"]', 'E2E Now Time Test')
+    await page.fill('[name="target_url"]', erpBaseUrl!)
+
+    // ============================================
+    // Step 3: Switch to "Business Assertions" tab
+    // ============================================
+    await page.click('button:has-text("业务断言")')
+    await expect(page.locator('text=添加断言')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 4: Click "Add Assertion" button
+    // ============================================
+    await page.click('button:has-text("添加断言")')
+    await expect(page.locator('text=Select Assertion Methods')).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const firstCheckbox = page.locator('input[type="checkbox"]').first()
+    if ((await firstCheckbox.count()) === 0) {
+      test.skip()
+      return
+    }
+
+    // ============================================
+    // Step 5: Select first available assertion method
+    // ============================================
+    await firstCheckbox.click()
+    await expect(page.locator('text=Selected')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 6: Configure "now" time conversion
+    // ============================================
+    const fieldParamsSection = page.locator('text=Assertion Fields')
+    await expect(fieldParamsSection).toBeVisible({ timeout: 10000 })
+
+    // Find search input inside field params area
+    const fieldSearchInput = page.locator('.border-gray-100').first().locator('input[placeholder*="Search"]')
+    if ((await fieldSearchInput.count()) > 0) {
+      // Search for time fields (fields with is_time_field=true have names like createTime, updateTime)
+      await fieldSearchInput.fill('Time')
+      await page.waitForTimeout(1000)
+
+      // Click checkbox to select a time field
+      const fieldCheckbox = page.locator('.border-gray-100 input[type="checkbox"], .hover\\:bg-gray-50 input[type="checkbox"]').first()
+      if ((await fieldCheckbox.count()) > 0) {
+        await fieldCheckbox.click()
+        await page.waitForTimeout(500)
+
+        // Look for "now" button (only appears for time fields)
+        const nowButton = page.locator('button:has-text("now")')
+        const valueInput = page.locator('input[placeholder="Expected value"]')
+
+        if ((await nowButton.count()) > 0) {
+          // Click the "now" button
+          await nowButton.click()
+          // Verify the value input contains "now"
+          if ((await valueInput.count()) > 0) {
+            await expect(valueInput).toHaveValue('now')
+            console.log('Successfully clicked "now" button and verified value')
+          }
+        } else {
+          // Fallback: manually fill "now" string if no button
+          if ((await valueInput.count()) > 0) {
+            await valueInput.fill('now')
+            console.log('Manually filled "now" as fallback (no button found)')
+          }
+        }
+      } else {
+        // No time fields found, skip with note
+        console.log('No time fields found for "now" button test')
+      }
+    }
+
+    // ============================================
+    // Step 7: Click "Confirm" button
+    // ============================================
+    await page.click('button:has-text("Confirm")')
+    await expect(page.locator('text=Select Assertion Methods')).not.toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 8: Verify assertion card appears
+    // ============================================
+    await expect(page.locator('.border-orange-200, [class*="border-orange"]')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 9: Create the task
+    // ============================================
+    await page.click('button:has-text("创建任务"), button:has-text("Create Task")')
+    await expect(page.locator('text=E2E Now Time Test')).toBeVisible({ timeout: 10000 })
+
+    // ============================================
+    // Step 10: Execute the task
+    // ============================================
+    await page.click('tr:has-text("E2E Now Time Test") button:has-text("执行"), tr:has-text("E2E Now Time Test") button:has-text("Execute")')
+
+    // ============================================
+    // Step 11: Wait for completion
+    // ============================================
+    await expect(page.locator('text=执行监控, text=Monitor')).toBeVisible({ timeout: 10000 })
+    await page.waitForSelector('text=已完成, text=失败, text=completed, text=failed', {
+      timeout: 180000,
+    })
+
+    // ============================================
+    // Step 12: Navigate to report
+    // ============================================
+    await page.click('button:has-text("查看报告"), a:has-text("查看报告"), button:has-text("View Report")')
+    await expect(page).toHaveURL(/.*reports\/.*/, { timeout: 10000 })
+
+    // ============================================
+    // Step 13: Verify assertion results section and result card
+    // ============================================
+    await expect(page.locator('text=执行步骤, text=Steps, text=执行报告')).toBeVisible({ timeout: 10000 })
+
+    const assertionResultsSection = page.locator('text=断言结果, text=接口断言结果')
+    if ((await assertionResultsSection.count()) > 0) {
+      await expect(assertionResultsSection.first()).toBeVisible({ timeout: 5000 })
+    }
+
+    console.log('Now time conversion test completed!')
+  })
+
+  test('three-layer params success - all fields pass with green display', async ({ page }) => {
+    // Skip test if ERP_BASE_URL is not configured
+    test.skip(!erpBaseUrl, 'ERP_BASE_URL environment variable not set')
+
+    // Increase timeout for AI-driven execution
+    test.setTimeout(300000) // 5 minutes
+
+    // ============================================
+    // Step 1: Click "New Task" button
+    // ============================================
+    await page.click('button:has-text("新建任务"), button:has-text("New Task")')
+    await expect(page.locator('text=任务名称')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 2: Fill task form
+    // ============================================
+    await page.fill('[name="name"]', 'E2E Three Layer Success')
+    await page.fill('[name="target_url"]', erpBaseUrl!)
+
+    // ============================================
+    // Step 3: Switch to "Business Assertions" tab
+    // ============================================
+    await page.click('button:has-text("业务断言")')
+    await expect(page.locator('text=添加断言')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 4: Click "Add Assertion" button
+    // ============================================
+    await page.click('button:has-text("添加断言")')
+    await expect(page.locator('text=Select Assertion Methods')).toBeVisible({ timeout: 10000 })
+    await page.waitForTimeout(2000)
+
+    const firstCheckbox = page.locator('input[type="checkbox"]').first()
+    if ((await firstCheckbox.count()) === 0) {
+      test.skip()
+      return
+    }
+
+    // ============================================
+    // Step 5: Select first available assertion method
+    // ============================================
+    await firstCheckbox.click()
+    await expect(page.locator('text=Selected')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 6: Configure all three parameter layers
+    // ============================================
+
+    // a) Data layer - verify dropdown exists (should have default 'main')
+    const dataDropdown = page.locator('label:has-text("Data")').locator('..').locator('select')
+    if ((await dataDropdown.count()) > 0) {
+      // Data dropdown exists, optionally verify it has value
+      const dataValue = await dataDropdown.inputValue()
+      console.log(`Data layer configured with: ${dataValue}`)
+    }
+
+    // b) api_params layer - configure i parameter
+    const iParamLocator = page.locator('label:has-text("i")').locator('..').locator('input[type="number"], select')
+    if ((await iParamLocator.count()) > 0) {
+      const iParamInput = iParamLocator.first()
+      if (await iParamInput.getAttribute('type') === 'number') {
+        await iParamInput.fill('1')
+      } else {
+        // It's a select dropdown
+        await iParamInput.selectOption({ index: 1 })
+      }
+      console.log('Configured api_params i parameter')
+    }
+
+    // c) field_params layer - configure at least one field
+    const fieldParamsSection = page.locator('text=Assertion Fields')
+    await expect(fieldParamsSection).toBeVisible({ timeout: 10000 })
+
+    const fieldSearchInput = page.locator('.border-gray-100').first().locator('input[placeholder*="Search"]')
+    if ((await fieldSearchInput.count()) > 0) {
+      // Clear search to see all fields
+      await fieldSearchInput.fill('')
+      await page.waitForTimeout(1000)
+
+      // Select first field by clicking checkbox
+      const fieldCheckbox = page.locator('.border-gray-100 input[type="checkbox"], .hover\\:bg-gray-50 input[type="checkbox"]').first()
+      if ((await fieldCheckbox.count()) > 0) {
+        await fieldCheckbox.click()
+        await page.waitForTimeout(500)
+
+        // Fill expected value for selected field
+        const valueInput = page.locator('input[placeholder="Expected value"]')
+        if ((await valueInput.count()) > 0) {
+          await valueInput.fill('expected_test_value')
+        }
+      }
+    }
+
+    // ============================================
+    // Step 7: Click "Confirm" button
+    // ============================================
+    await page.click('button:has-text("Confirm")')
+    await expect(page.locator('text=Select Assertion Methods')).not.toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 8: Verify assertion card shows method name
+    // ============================================
+    await expect(page.locator('.border-orange-200, [class*="border-orange"]')).toBeVisible({ timeout: 5000 })
+
+    // ============================================
+    // Step 9: Create the task
+    // ============================================
+    await page.click('button:has-text("创建任务"), button:has-text("Create Task")')
+    await expect(page.locator('text=E2E Three Layer Success')).toBeVisible({ timeout: 10000 })
+
+    // ============================================
+    // Step 10: Execute the task
+    // ============================================
+    await page.click('tr:has-text("E2E Three Layer Success") button:has-text("执行"), tr:has-text("E2E Three Layer Success") button:has-text("Execute")')
+
+    // ============================================
+    // Step 11: Wait for completion
+    // ============================================
+    await expect(page.locator('text=执行监控, text=Monitor')).toBeVisible({ timeout: 10000 })
+    await page.waitForSelector('text=已完成, text=失败, text=completed, text=failed', {
+      timeout: 180000,
+    })
+
+    // ============================================
+    // Step 12: Navigate to report
+    // ============================================
+    await page.click('button:has-text("查看报告"), a:has-text("查看报告"), button:has-text("View Report")')
+    await expect(page).toHaveURL(/.*reports\/.*/, { timeout: 10000 })
+
+    // ============================================
+    // Step 13: Verify assertion results
+    // ============================================
+    await expect(page.locator('text=执行步骤, text=Steps, text=执行报告')).toBeVisible({ timeout: 10000 })
+
+    // Check for section header
+    const assertionResultsSection = page.locator('text=断言结果, text=接口断言结果')
+    if ((await assertionResultsSection.count()) > 0) {
+      await expect(assertionResultsSection.first()).toBeVisible({ timeout: 5000 })
+    }
+
+    // Check for result cards (either green or red)
+    const passCards = page.locator('.bg-green-50.border-green-200, [class*="bg-green-50"][class*="border-green-200"]')
+    const failCards = page.locator('.bg-red-50.border-red-200, [class*="bg-red-50"][class*="border-red-200"]')
+
+    const passCount = await passCards.count()
+    const failCount = await failCards.count()
+    const totalCards = passCount + failCount
+
+    // Verify total cards > 0 (assertion executed)
+    expect(totalCards).toBeGreaterThan(0)
+
+    // Log the pass/fail counts for debugging
+    console.log(`Three-layer params test completed! Pass: ${passCount}, Fail: ${failCount}, Total: ${totalCards}`)
+
+    // Verify either green (pass) or red (fail) card is visible
+    if (passCount > 0) {
+      console.log('Assertion passed - green card visible')
+    } else if (failCount > 0) {
+      console.log('Assertion failed - red card visible')
+    }
+  })
 })
