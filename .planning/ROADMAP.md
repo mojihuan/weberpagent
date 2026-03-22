@@ -14,7 +14,7 @@
 | 29 | 前端字段配置 UI | Complete | UI-01, UI-02, UI-03, UI-04 | 2026-03-22 |
 | 30 | 断言执行适配层 | Complete | EXEC-01, EXEC-02, EXEC-03 | 2026-03-22 |
 | 31 | E2E 测试 | Complete | E2E-01, E2E-02 | 2026-03-22 |
-| 32 | 三层参数传递修复 | Pending | EXEC-01, UI-04 | - |
+| 32 | 三层参数传递修复 | 1/1 | Complete   | 2026-03-22 |
 
 ---
 
@@ -329,7 +329,7 @@ Plans:
 - EXEC-01: execute_all_assertions() 提取并传递 api_params 和 field_params
 - UI-04: field_params 配置正确传递到执行层
 
-**Plans:** 0/0 plans created
+**Plans:** 1/1 plans complete
 
 **Technical Approach:**
 

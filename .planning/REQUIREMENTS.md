@@ -93,8 +93,8 @@
 | UI-01 | Phase 29 | Complete |
 | UI-02 | Phase 29 | Complete |
 | UI-03 | Phase 29 | Complete |
-| UI-04 | Phase 32 | Pending |
-| EXEC-01 | Phase 32 | Pending |
+| UI-04 | Phase 32 | Complete |
+| EXEC-01 | Phase 32 | Complete |
 | EXEC-02 | Phase 30 | Complete |
 | EXEC-03 | Phase 30 | Complete |
 | E2E-01 | Phase 31 | Complete |
