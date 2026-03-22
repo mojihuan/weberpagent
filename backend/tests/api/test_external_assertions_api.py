@@ -249,3 +249,178 @@ class TestAssertionMethodDataOptions:
             assert len(params[0]["options"]) == 2
             assert params[0]["options"][0] == {"value": 1, "label": "Pending"}
             assert params[0]["options"][1] == {"value": 2, "label": "Completed"}
+
+
+class TestListAssertionFields:
+    """Tests for GET /api/external-assertions/fields endpoint."""
+
+    def test_list_assertion_fields_returns_503_when_unavailable(self, client):
+        """Test GET /api/external-assertions/fields returns 503 when external module unavailable."""
+        with patch(
+            'backend.api.routes.external_assertions.is_available',
+            return_value=False
+        ), patch(
+            'backend.api.routes.external_assertions.get_unavailable_reason',
+            return_value='WEBSERP_PATH not configured'
+        ):
+            response = client.get("/api/external-assertions/fields")
+
+            assert response.status_code == 503
+            data = response.json()
+            assert "error" in data
+
+    def test_list_assertion_fields_returns_200_with_fields_when_available(self, client):
+        """Test GET /api/external-assertions/fields returns correct response structure when available."""
+        mock_fields = {
+            'available': True,
+            'groups': [
+                {
+                    'name': '销售相关',
+                    'fields': [
+                        {'name': 'salesOrder', 'path': 'salesOrder', 'is_time_field': False, 'description': '销售订单'},
+                        {'name': 'saleTime', 'path': 'saleTime', 'is_time_field': True, 'description': '销售时间'}
+                    ]
+                },
+                {
+                    'name': '时间字段',
+                    'fields': [
+                        {'name': 'createTime', 'path': 'createTime', 'is_time_field': True, 'description': '创建时间'}
+                    ]
+                }
+            ],
+            'total': 3
+        }
+
+        with patch(
+            'backend.api.routes.external_assertions.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_assertions.get_assertion_fields_grouped',
+            return_value=mock_fields
+        ):
+            response = client.get("/api/external-assertions/fields")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["available"] is True
+            assert data["total"] == 3
+            assert len(data["groups"]) == 2
+
+    def test_list_assertion_fields_includes_groups(self, client):
+        """Test that response includes groups array with field items."""
+        mock_fields = {
+            'available': True,
+            'groups': [
+                {
+                    'name': '通用字段',
+                    'fields': [
+                        {'name': 'statusStr', 'path': 'statusStr', 'is_time_field': False, 'description': '状态字符串'}
+                    ]
+                }
+            ],
+            'total': 1
+        }
+
+        with patch(
+            'backend.api.routes.external_assertions.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_assertions.get_assertion_fields_grouped',
+            return_value=mock_fields
+        ):
+            response = client.get("/api/external-assertions/fields")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "groups" in data
+            assert len(data["groups"]) == 1
+            assert data["groups"][0]["name"] == "通用字段"
+            assert len(data["groups"][0]["fields"]) == 1
+
+    def test_list_assertion_fields_field_structure(self, client):
+        """Test that each field has name, path, is_time_field, description."""
+        mock_fields = {
+            'available': True,
+            'groups': [
+                {
+                    'name': '测试组',
+                    'fields': [
+                        {
+                            'name': 'createTime',
+                            'path': 'createTime',
+                            'is_time_field': True,
+                            'description': '创建时间'
+                        }
+                    ]
+                }
+            ],
+            'total': 1
+        }
+
+        with patch(
+            'backend.api.routes.external_assertions.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_assertions.get_assertion_fields_grouped',
+            return_value=mock_fields
+        ):
+            response = client.get("/api/external-assertions/fields")
+
+            assert response.status_code == 200
+            data = response.json()
+            field = data["groups"][0]["fields"][0]
+            assert "name" in field
+            assert "path" in field
+            assert "is_time_field" in field
+            assert "description" in field
+            assert field["name"] == "createTime"
+            assert field["is_time_field"] is True
+
+    def test_list_assertion_fields_total_count(self, client):
+        """Test that total is sum of all fields across all groups."""
+        mock_fields = {
+            'available': True,
+            'groups': [
+                {
+                    'name': '组1',
+                    'fields': [
+                        {'name': 'f1', 'path': 'f1', 'is_time_field': False, 'description': 'F1'},
+                        {'name': 'f2', 'path': 'f2', 'is_time_field': False, 'description': 'F2'}
+                    ]
+                },
+                {
+                    'name': '组2',
+                    'fields': [
+                        {'name': 'f3', 'path': 'f3', 'is_time_field': True, 'description': 'F3'}
+                    ]
+                }
+            ],
+            'total': 3
+        }
+
+        with patch(
+            'backend.api.routes.external_assertions.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_assertions.get_assertion_fields_grouped',
+            return_value=mock_fields
+        ):
+            response = client.get("/api/external-assertions/fields")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["total"] == 3
+
+    def test_fields_endpoint_registered_in_app(self, client):
+        """Test that /api/external-assertions/fields is accessible (not 404)."""
+        with patch(
+            'backend.api.routes.external_assertions.is_available',
+            return_value=False
+        ), patch(
+            'backend.api.routes.external_assertions.get_unavailable_reason',
+            return_value='WEBSERP_PATH not configured'
+        ):
+            response = client.get("/api/external-assertions/fields")
+            # Should get 503, not 404 (proves route is registered)
+            assert response.status_code == 503
+            assert response.status_code != 404
