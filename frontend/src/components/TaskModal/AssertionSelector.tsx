@@ -3,6 +3,7 @@ import { X, Search, ChevronDown } from 'lucide-react'
 import type { AssertionConfig, AssertionMethodsResponse, AssertionMethodInfo } from '../../types'
 import { externalAssertionsApi } from '../../api/externalAssertions'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
+import { FieldParamsEditor } from './FieldParamsEditor'
 
 interface AssertionSelectorProps {
   open: boolean
@@ -29,6 +30,8 @@ export function AssertionSelector({
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
   const [expandedPanels, setExpandedPanels] = useState<Set<string>>(new Set())
   const [configs, setConfigs] = useState<Map<string, AssertionConfig>>(new Map())
+  // Field params state: key -> Map<fieldName, {name, value}>
+  const [fieldParamsMap, setFieldParamsMap] = useState<Map<string, Map<string, { name: string; value: string }>>>(new Map())
 
   // Filter methods based on search query
   const filteredClasses = useMemo(() => {
@@ -78,6 +81,12 @@ export function AssertionSelector({
           nextConfigs.delete(key)
           return nextConfigs
         })
+        // Remove field params
+        setFieldParamsMap(prev => {
+          const nextFieldParams = new Map(prev)
+          nextFieldParams.delete(key)
+          return nextFieldParams
+        })
       } else {
         next.add(key)
         // Initialize config with defaults
@@ -89,9 +98,16 @@ export function AssertionSelector({
             methodName,
             headers: methods.headers_options[0]?.value || 'main',
             data: method?.data_options[0]?.value || 'main',
-            params: {}
+            params: {},
+            field_params: {}
           })
           return nextConfigs
+        })
+        // Initialize field params map for this method
+        setFieldParamsMap(prev => {
+          const next = new Map(prev)
+          next.set(key, new Map())
+          return next
         })
       }
       return next
@@ -106,6 +122,12 @@ export function AssertionSelector({
       return next
     })
     setConfigs(prev => {
+      const next = new Map(prev)
+      next.delete(key)
+      return next
+    })
+    // Also remove field params
+    setFieldParamsMap(prev => {
       const next = new Map(prev)
       next.delete(key)
       return next
@@ -135,6 +157,32 @@ export function AssertionSelector({
           params: { ...existing.params, [paramName]: value }
         })
       }
+      return next
+    })
+  }
+
+  // Update field params for a method
+  const updateFieldParams = (key: string, updater: (prev: Map<string, { name: string; value: string }>) => Map<string, { name: string; value: string }>) => {
+    setFieldParamsMap(prev => {
+      const next = new Map(prev)
+      const currentFieldParams = next.get(key) || new Map()
+      const updatedFieldParams = updater(currentFieldParams)
+      next.set(key, updatedFieldParams)
+
+      // Also update the config's field_params Record
+      setConfigs(prevConfigs => {
+        const nextConfigs = new Map(prevConfigs)
+        const config = nextConfigs.get(key)
+        if (config) {
+          const fieldParamsRecord: Record<string, string> = {}
+          updatedFieldParams.forEach((value, fieldName) => {
+            fieldParamsRecord[fieldName] = value.value
+          })
+          nextConfigs.set(key, { ...config, field_params: fieldParamsRecord })
+        }
+        return nextConfigs
+      })
+
       return next
     })
   }
@@ -187,10 +235,26 @@ export function AssertionSelector({
       })
       setSelectedKeys(newSelectedKeys)
       setConfigs(newConfigs)
+      // Also restore field_params map
+      const newFieldParamsMap = new Map<string, Map<string, { name: string; value: string }>>()
+      initialConfigs.forEach(config => {
+        const key = `${config.className}:${config.methodName}`
+        if (config.field_params) {
+          const fieldMap = new Map<string, { name: string; value: string }>()
+          Object.entries(config.field_params).forEach(([fieldName, value]) => {
+            fieldMap.set(fieldName, { name: fieldName, value })
+          })
+          newFieldParamsMap.set(key, fieldMap)
+        } else {
+          newFieldParamsMap.set(key, new Map())
+        }
+      })
+      setFieldParamsMap(newFieldParamsMap)
     } else {
       // Reset state when modal opens
       setSelectedKeys(new Set())
       setConfigs(new Map())
+      setFieldParamsMap(new Map())
     }
     setSearchQuery('')
   }, [open, initialConfigs])
