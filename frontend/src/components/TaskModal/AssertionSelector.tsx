@@ -504,6 +504,17 @@ export function AssertionSelector({
                         </div>
                       </div>
                     )}
+
+                    {/* Field params configuration */}
+                    <div className="mt-3">
+                      <div className="text-xs text-gray-500 mb-2">Assertion Fields (field_params)</div>
+                      <div className="border border-gray-100 rounded-lg p-2 bg-gray-50/50">
+                        <FieldParamsEditor
+                          selectedFields={fieldParamsMap.get(key) || new Map()}
+                          onChange={(updater) => updateFieldParams(key, updater)}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )
               })}
