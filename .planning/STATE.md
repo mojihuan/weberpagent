@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.4.1
-milestone_name: 断言系统调通
-status: planning
-stopped_at: Defining requirements
-last_updated: "2026-03-21T14:00:00.000Z"
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 28-02-PLAN.md
+last_updated: "2026-03-22T02:42:05.658Z"
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,14 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** v0.4.1 断言系统调通
+**Current focus:** Phase 28 — backend-field-discovery
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-21 — Milestone v0.4.1 started
+Phase: 28 (backend-field-discovery) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -45,6 +43,7 @@ Last activity: 2026-03-21 — Milestone v0.4.1 started
 | 25. Assertion Execution Engine | 3/3 | 22 min | 7.3 min |
 | 26. E2E Testing | 2/2 | - | - |
 | 27. Unit Test Coverage | 2/2 | - | - |
+| Phase 28 P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -60,6 +59,7 @@ Recent decisions affecting current work:
 - [v0.4.0 Phase 25]: Header identifiers resolve to before field content at execution time
 - [v0.4.0 Phase 25]: External assertions execute after agent completes (non-fail-fast)
 - [v0.4.0 Phase 25]: SSE events notify frontend of assertion progress
+- [Phase 28]: Fields endpoint uses get_assertion_fields_grouped() directly, not is_available()
 
 ### Pending Todos
 
@@ -71,6 +71,6 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-03-21T14:00:00.000Z
-Stopped at: Defining requirements
+Last session: 2026-03-22T02:42:05.657Z
+Stopped at: Completed 28-02-PLAN.md
 Resume file: None

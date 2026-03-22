@@ -10,8 +10,8 @@
 ### Assertion Fields Discovery (字段发现) - Phase 28
 
 - [ ] **FLD-01**: 使用 AST 解析 base_assertions_field.py 中的 param 字典，提取所有字段
-- [ ] **FLD-02**: API 端点 GET /api/external-assertions/fields 返回字段列表
-- [ ] **FLD-03**: 字段列表包含 name, path, is_time_field, group, description（从字段名自动生成）
+- [x] **FLD-02**: API 端点 GET /api/external-assertions/fields 返回字段列表
+- [x] **FLD-03**: 字段列表包含 name, path, is_time_field, group, description（从字段名自动生成）
 
 ### Frontend Fields Configuration (前端字段配置) - Phase 29
 
@@ -88,8 +88,8 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FLD-01 | Phase 28 | Pending |
-| FLD-02 | Phase 28 | Pending |
-| FLD-03 | Phase 28 | Pending |
+| FLD-02 | Phase 28 | Complete |
+| FLD-03 | Phase 28 | Complete |
 | UI-01 | Phase 29 | Pending |
 | UI-02 | Phase 29 | Pending |
 | UI-03 | Phase 29 | Pending |

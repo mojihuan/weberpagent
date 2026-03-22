@@ -10,7 +10,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 28 | 后端字段发现 | AST 解析 base_assertions_field.py 提供字段列表 API | FLD-01, FLD-02, FLD-03 | 3 |
+| 28 | 后端字段发现 | 2/2 | Complete   | 2026-03-22 |
 | 29 | 前端字段配置 UI | AssertionSelector 支持三层参数配置 | UI-01, UI-02, UI-03, UI-04 | 4 |
 | 30 | 断言执行适配层 | 适配层模式处理三层参数和结构化结果 | EXEC-01, EXEC-02, EXEC-03 | 3 |
 | 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
@@ -19,7 +19,7 @@
 
 ## API Contract (关键设计决策)
 
-### Request Body (前端 → 后端)
+### Request Body (前端 -> 后端)
 
 ```json
 {
@@ -38,7 +38,7 @@
 }
 ```
 
-### Response (后端 → 前端)
+### Response (后端 -> 前端)
 
 ```json
 {
@@ -64,6 +64,13 @@
 - FLD-02: API 端点 GET /api/external-assertions/fields 返回字段列表
 - FLD-03: 字段列表包含 name, path, is_time_field, group
 
+**Plans:** 2/2 plans complete
+
+| Plan | Objective | Wave | Requirements |
+|------|-----------|------|--------------|
+| 28-01 | AST Parser + Field Discovery | 1 | FLD-01 |
+| 28-02 | API Endpoint + Tests | 2 | FLD-02, FLD-03 |
+
 **Technical Approach:**
 
 1. **AST 解析** (避免运行时依赖 BaseApi)
@@ -79,18 +86,18 @@
    ```
 
 2. **字段分组策略** (从命名模式推断)
-   - `sale*` → 销售相关
-   - `purchase*` → 采购相关
-   - `*Time` / `*time` → 时间字段
-   - `accessoryOrderInfo.*` → 配件订单嵌套
-   - 其他 → 通用字段
+   - `sale*` -> 销售相关
+   - `purchase*` -> 采购相关
+   - `*Time` / `*time` -> 时间字段
+   - `accessoryOrderInfo.*` -> 配件订单嵌套
+   - 其他 -> 通用字段
 
 3. **description 生成** (从字段名自动生成)
    ```python
    def generate_description(field_name: str) -> str:
-       # createTime → "创建时间"
-       # statusStr → "状态"
-       # salesOrder → "销售订单"
+       # createTime -> "创建时间"
+       # statusStr -> "状态"
+       # salesOrder -> "销售订单"
    ```
 
 **Success Criteria:**
@@ -101,9 +108,10 @@
 5. 单元测试：验证 AST 解析器正确提取所有字段
 
 **Key Files:**
-- `backend/core/assertions_field_parser.py` - 新增 AST 解析器
+- `backend/core/external_precondition_bridge.py` - 扩展字段解析函数
 - `backend/api/routes/external_assertions.py` - 新增字段列表端点
-- `backend/tests/test_assertions_field_parser.py` - 单元测试
+- `backend/tests/unit/test_assertions_field_parser.py` - 单元测试
+- `backend/tests/api/test_external_assertions_api.py` - 集成测试 (扩展)
 
 ---
 
@@ -120,35 +128,35 @@
 **UI Layout:**
 
 ```
-┌─────────────────────────────────────────────┐
-│ 断言配置                                      │
-├─────────────────────────────────────────────┤
-│ 1. 查询方法 (data)                           │
-│    [main ▼] 主数据                           │
-├─────────────────────────────────────────────┤
-│ 2. API 筛选参数 (api_params)                 │
-│    i: [▼ 选择]                               │
-│    j: [▼ 选择]                               │
-│    headers: [main ▼]                         │
-├─────────────────────────────────────────────┤
-│ 3. 断言字段 (field_params)                   │
-│    [+ 添加字段]                               │
-│    ┌─────────────────────────────────────┐  │
-│    │ 🔍 搜索字段...          [按分组 ▼]   │  │
-│    ├─────────────────────────────────────┤  │
-│    │ 销售相关 (15)                        │  │
-│    │   ☑ salesOrder  [SA____]            │  │
-│    │   ☑ saleTime     [now ▼]            │  │
-│    │ 时间字段 (20)                        │  │
-│    │   ☑ createTime   [now ▼]            │  │
-│    └─────────────────────────────────────┘  │
-└─────────────────────────────────────────────┘
++---------------------------------------------+
+| 断言配置                                      |
++---------------------------------------------+
+| 1. 查询方法 (data)                           |
+|    [main v] 主数据                           |
++---------------------------------------------+
+| 2. API 筛选参数 (api_params)                 |
+|    i: [v 选择]                               |
+|    j: [v 选择]                               |
+|    headers: [main v]                         |
++---------------------------------------------+
+| 3. 断言字段 (field_params)                   |
+|    [+ 添加字段]                               |
+|    +-------------------------------------+  |
+|    | [搜索字段...]          [按分组 v]   |  |
+|    +-------------------------------------+  |
+|    | 销售相关 (15)                        |  |
+|    |   [x] salesOrder  [SA____]           |  |
+|    |   [x] saleTime     [now v]           |  |
+|    | 时间字段 (20)                        |  |
+|    |   [x] createTime   [now v]           |  |
+|    +-------------------------------------+  |
++---------------------------------------------+
 ```
 
 **"now" 语义:**
-- 用户点击 "now" 按钮 → 输入框填入字符串 "now"
-- 后端收到 "now" → 调用 get_formatted_datetime() 生成当前时间
-- 断言时用 datetime.now() ± 1分钟范围校验
+- 用户点击 "now" 按钮 -> 输入框填入字符串 "now"
+- 后端收到 "now" -> 调用 get_formatted_datetime() 生成当前时间
+- 断言时用 datetime.now() +/- 1分钟范围校验
 
 **Success Criteria:**
 1. 三个配置区域清晰分离
@@ -221,7 +229,7 @@
 **Goal:** Mock ERP 端到端验证完整断言流程
 
 **Requirements:**
-- E2E-01: 完整断言流程测试（配置 → 执行 → 结果展示）
+- E2E-01: 完整断言流程测试（配置 -> 执行 -> 结果展示）
 - E2E-02: 测试断言成功和断言失败两种场景
 
 **Mock Strategy:**
@@ -230,7 +238,7 @@
 
 **Success Criteria:**
 1. E2E 测试不依赖真实 ERP 系统
-2. 测试覆盖：选择断言 → 配置三层参数 → 执行 → 查看结果
+2. 测试覆盖：选择断言 -> 配置三层参数 -> 执行 -> 查看结果
 3. 测试断言成功场景（所有字段通过）
 4. 测试断言失败场景（部分字段失败，展示预期/实际值）
 5. 所有 E2E 测试通过
@@ -264,4 +272,4 @@ graph LR
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-21 after review feedback*
+*Last updated: 2026-03-21 - Phase 28 plans created*
