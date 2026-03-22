@@ -849,36 +849,48 @@ async def execute_assertion_method(
     method_name: str,
     headers: str | None = 'main',
     data: str = 'main',
+    api_params: dict | None = None,
+    field_params: dict | None = None,
     params: dict | None = None,
     timeout: float = 30.0
 ) -> dict:
     """Execute an assertion method with timeout protection.
+
+    Supports three-layer parameter structure:
+    - data: Data method selector ('main', 'a', 'b', etc.)
+    - api_params: API filter parameters (i, j, k, etc.)
+    - field_params: Field validation parameters (statusStr, createTime, etc.)
+
     Args:
         class_name: Name of the assertion class ('PcAssert', 'MgAssert', 'McAssert')
         method_name: Name of the assertion method (e.g., 'attachment_inventory_list_assert')
         headers: Header identifier string ('main', 'idle', 'vice', etc.)
         data: Data method selector ('main', 'a', 'b', etc.)
-        params: Dictionary of parameters including:
-                - i, j, k: API filter parameters
-                - Other kwargs: Field validation parameters
+        api_params: API filter parameters (i, j, k, etc.)
+        field_params: Field validation parameters
+        params: Legacy parameter - acts as field_params fallback for backward compatibility
         timeout: Maximum execution time in seconds (default: 30.0)
+
     Returns:
         dict with:
             - success: bool - True if assertion passed (no AssertionError)
             - passed: bool - True if validation succeeded
-            - field_results: list - Field-level validation results
+            - fields: list - Field-level validation results (renamed from field_results)
             - error: str | None - Error message if execution failed
             - error_type: str | None - Error type (TimeoutError, ImportError, etc.)
             - duration: float - Execution time in seconds
     """
     import time
     start_time = time.time()
-    if params is None:
-        params = {}
+
+    # Backward compatibility: params acts as field_params fallback (D-06)
+    if params and not field_params:
+        field_params = params
+
     result = {
         'success': False,
         'passed': False,
-        'field_results': [],
+        'fields': [],
         'error': None,
         'error_type': None,
         'duration': 0.0
@@ -922,12 +934,13 @@ async def execute_assertion_method(
     # Execute with timeout
     try:
         loop = asyncio.get_event_loop()
-        # Build kwargs for assertion method
-        call_kwargs = {
-            'headers': resolved_headers,
-            'data': data,
-            **params
-        }
+        # Merge api_params and field_params (D-01)
+        merged_kwargs = {**(api_params or {}), **(field_params or {})}
+        # Convert "now" values to datetime strings (D-02, D-03)
+        call_kwargs = _convert_now_values(merged_kwargs)
+        # Add headers and data
+        call_kwargs['headers'] = resolved_headers
+        call_kwargs['data'] = data
         # Execute in thread pool with timeout
         await asyncio.wait_for(
             loop.run_in_executor(None, lambda: method(**call_kwargs)),
@@ -936,7 +949,7 @@ async def execute_assertion_method(
         # If we get here, assertion passed
         result['success'] = True
         result['passed'] = True
-        result['field_results'] = []
+        result['fields'] = []
     except asyncio.TimeoutError:
         result['error'] = f"Assertion execution timeout ({timeout}s)"
         result['error_type'] = 'TimeoutError'
@@ -944,7 +957,7 @@ async def execute_assertion_method(
         # Assertion failed - parse field results from error message
         result['success'] = True  # Execution succeeded, assertion failed
         result['passed'] = False
-        result['field_results'] = _parse_assertion_error(str(e))
+        result['fields'] = _parse_assertion_error(str(e))
         result['error'] = str(e)
     except TypeError as e:
         result['error'] = f"Parameter error: {e}"

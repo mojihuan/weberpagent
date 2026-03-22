@@ -634,3 +634,186 @@ class TestConvertNowValues:
         result = _convert_now_values(kwargs)
 
         assert result == kwargs
+
+
+class TestThreeLayerParams:
+    """Tests for execute_assertion_method with three-layer parameters."""
+
+    @pytest.mark.asyncio
+    async def test_accepts_api_params_and_field_params(self):
+        """execute_assertion_method accepts api_params and field_params parameters."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_method = MagicMock(return_value=None)
+        mock_instance.test_method = mock_method
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method(
+                    'PcAssert', 'test_method',
+                    headers='main', data='main',
+                    api_params={'i': 1, 'j': 2},
+                    field_params={'statusStr': '已完成'}
+                )
+
+        assert result['success'] is True
+        assert result['passed'] is True
+
+    @pytest.mark.asyncio
+    async def test_merges_api_params_and_field_params(self):
+        """execute_assertion_method merges api_params and field_params into kwargs."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_method = MagicMock(return_value=None)
+        mock_instance.test_method = mock_method
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                await execute_assertion_method(
+                    'PcAssert', 'test_method',
+                    headers='main', data='main',
+                    api_params={'i': 1, 'j': 2},
+                    field_params={'statusStr': '已完成'}
+                )
+
+        # Check that method was called with merged params
+        call_kwargs = mock_method.call_args[1]
+        assert call_kwargs['i'] == 1
+        assert call_kwargs['j'] == 2
+        assert call_kwargs['statusStr'] == '已完成'
+        assert call_kwargs['headers'] == mock_headers
+        assert call_kwargs['data'] == 'main'
+
+    @pytest.mark.asyncio
+    async def test_converts_now_in_field_params(self):
+        """execute_assertion_method converts 'now' values in field_params."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_method = MagicMock(return_value=None)
+        mock_instance.test_method = mock_method
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                await execute_assertion_method(
+                    'PcAssert', 'test_method',
+                    headers='main', data='main',
+                    field_params={'createTime': 'now'}
+                )
+
+        # Check that 'now' was converted to datetime string
+        call_kwargs = mock_method.call_args[1]
+        assert call_kwargs['createTime'] != 'now'
+        assert len(call_kwargs['createTime']) == 19  # YYYY-MM-DD HH:MM:SS
+
+
+class TestBackwardCompatibility:
+    """Tests for backward compatibility with old params parameter."""
+
+    @pytest.mark.asyncio
+    async def test_params_acts_as_field_params_fallback(self):
+        """execute_assertion_method treats params as field_params fallback."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_method = MagicMock(return_value=None)
+        mock_instance.test_method = mock_method
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                # Call with old-style params
+                result = await execute_assertion_method(
+                    'PcAssert', 'test_method',
+                    headers='main', data='main',
+                    params={'statusStr': '已完成'}
+                )
+
+        assert result['success'] is True
+        # Check that params was used as field_params
+        call_kwargs = mock_method.call_args[1]
+        assert call_kwargs['statusStr'] == '已完成'
+
+    @pytest.mark.asyncio
+    async def test_field_params_overrides_params(self):
+        """execute_assertion_method prefers field_params over params."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_method = MagicMock(return_value=None)
+        mock_instance.test_method = mock_method
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                # Call with both params and field_params
+                await execute_assertion_method(
+                    'PcAssert', 'test_method',
+                    headers='main', data='main',
+                    params={'statusStr': 'old_value'},
+                    field_params={'statusStr': 'new_value'}
+                )
+
+        # Check that field_params was used (not params)
+        call_kwargs = mock_method.call_args[1]
+        assert call_kwargs['statusStr'] == 'new_value'
+
+
+class TestFieldsResponseFormat:
+    """Tests for response using 'fields' instead of 'field_results'."""
+
+    @pytest.mark.asyncio
+    async def test_success_response_uses_fields_key(self):
+        """execute_assertion_method returns 'fields' instead of 'field_results' on success."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_method = MagicMock(return_value=None)
+        mock_instance.test_method = mock_method
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method('PcAssert', 'test_method', 'main', 'main', {})
+
+        assert 'fields' in result
+        assert result['fields'] == []
+
+    @pytest.mark.asyncio
+    async def test_assertion_error_response_uses_fields_key(self):
+        """execute_assertion_method returns 'fields' with parsed results on AssertionError."""
+        mock_assertion_class = MagicMock()
+        mock_instance = MagicMock()
+        mock_instance.test_method = MagicMock(
+            side_effect=AssertionError("字段 'statusStr' 预期值: '已完成', 实际值: '进行中'")
+        )
+        mock_assertion_class.return_value = mock_instance
+
+        mock_classes = {'PcAssert': mock_assertion_class}
+        mock_headers = {'Authorization': 'Bearer token'}
+
+        with patch.object(external_precondition_bridge, 'load_base_assertions_class', return_value=(mock_classes, None)):
+            with patch.object(external_precondition_bridge, 'resolve_headers', return_value=mock_headers):
+                result = await execute_assertion_method('PcAssert', 'test_method', 'main', 'main', {})
+
+        assert 'fields' in result
+        assert len(result['fields']) == 1
+        # Should use 'name' key instead of 'field'
+        assert result['fields'][0]['name'] == 'statusStr'
