@@ -10,6 +10,7 @@ import logging
 import inspect
 import re
 import asyncio
+from datetime import datetime
 from pathlib import Path
 from typing import Any, get_type_hints
 
@@ -1381,6 +1382,24 @@ def _is_time_field(field_name: str, default_node) -> bool:
 
     # Fallback: Suffix matching
     return field_name.endswith(('Time', 'time', 'Date', 'date'))
+
+
+def _convert_now_values(kwargs: dict) -> dict:
+    """Convert 'now' values to formatted datetime strings for time fields.
+
+    Args:
+        kwargs: Parameter dictionary to process
+
+    Returns:
+        New dict with 'now' values converted to datetime strings (YYYY-MM-DD HH:mm:ss)
+    """
+    result = {}
+    for key, value in kwargs.items():
+        if value == 'now' and _is_time_field(key, default_node=None):
+            result[key] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            result[key] = value
+    return result
 
 
 def parse_assertions_field_py(file_path: str) -> list[dict]:

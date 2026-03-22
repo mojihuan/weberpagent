@@ -556,3 +556,81 @@ class TestParseAssertionError:
         else:
             # If Chinese colon in the comparison_type position doesn't match, fallback is expected
             assert result[0]['field'] == 'unknown'
+
+
+class TestConvertNowValues:
+    """Tests for _convert_now_values() function."""
+
+    def test_converts_now_to_datetime_string_for_time_field(self):
+        """_convert_now_values converts 'now' to datetime string for time fields."""
+        from backend.core.external_precondition_bridge import _convert_now_values
+        from datetime import datetime
+
+        kwargs = {'createTime': 'now', 'statusStr': '已完成'}
+        result = _convert_now_values(kwargs)
+
+        # createTime should be converted to datetime string
+        assert result['createTime'] != 'now'
+        assert len(result['createTime']) == 19  # YYYY-MM-DD HH:MM:SS format
+        # Verify format matches expected pattern
+        datetime.strptime(result['createTime'], '%Y-%m-%d %H:%M:%S')
+        # statusStr should remain unchanged
+        assert result['statusStr'] == '已完成'
+
+    def test_does_not_convert_non_time_fields(self):
+        """_convert_now_values does not convert 'now' for non-time fields."""
+        from backend.core.external_precondition_bridge import _convert_now_values
+
+        kwargs = {'statusStr': 'now', 'orderType': 'now'}
+        result = _convert_now_values(kwargs)
+
+        # These are not time fields, so 'now' should remain unchanged
+        assert result['statusStr'] == 'now'
+        assert result['orderType'] == 'now'
+
+    def test_converts_all_time_fields_ending_with_time_or_date(self):
+        """_convert_now_values converts fields ending with Time/time/Date/date."""
+        from backend.core.external_precondition_bridge import _convert_now_values
+        from datetime import datetime
+
+        kwargs = {
+            'createTime': 'now',
+            'updateTime': 'now',
+            'orderDate': 'now',
+            'saleTime': 'now',
+        }
+        result = _convert_now_values(kwargs)
+
+        # All should be converted
+        for key in kwargs:
+            assert result[key] != 'now', f"{key} should be converted"
+            datetime.strptime(result[key], '%Y-%m-%d %H:%M:%S')
+
+    def test_does_not_mutate_input_dict(self):
+        """_convert_now_values returns new dict without mutating input."""
+        from backend.core.external_precondition_bridge import _convert_now_values
+
+        original = {'createTime': 'now', 'status': 'active'}
+        original_id = id(original)
+        result = _convert_now_values(original)
+
+        # Input dict should be unchanged
+        assert original == {'createTime': 'now', 'status': 'active'}
+        # Result should be a new dict
+        assert id(result) != original_id
+
+    def test_handles_empty_dict(self):
+        """_convert_now_values handles empty dict."""
+        from backend.core.external_precondition_bridge import _convert_now_values
+
+        result = _convert_now_values({})
+        assert result == {}
+
+    def test_handles_dict_without_now_values(self):
+        """_convert_now_values handles dict without 'now' values."""
+        from backend.core.external_precondition_bridge import _convert_now_values
+
+        kwargs = {'statusStr': '已完成', 'orderType': 'SA', 'i': 1}
+        result = _convert_now_values(kwargs)
+
+        assert result == kwargs
