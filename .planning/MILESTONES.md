@@ -1,5 +1,22 @@
 # Milestones
 
+## v0.4.1 断言系统调通 (Shipped: 2026-03-22)
+
+**Phases completed:** 6 phases, 10 plans, 22 tasks
+
+**Key accomplishments:**
+
+- AST-based parser extracts assertion fields from base_assertions_field.py with grouping and Chinese descriptions
+- 1. [Rule 1 - Bug] Test mock target mismatch
+- File:
+- Created FieldParamsEditor component with collapsible groups, search filtering, and "now" button for time fields, following the AssertionSelector pattern for consistent UX.
+- Three-layer assertion parameter configuration with FieldParamsEditor integration for field_params support
+- POST /api/external-assertions/execute endpoint with three-layer parameters (data, api_params, field_params) and backward compatibility
+- Unit tests verifying three-layer parameters, "now" conversion, backward compatibility, and 'name' field in assertion error responses.
+- Fixed execute_all_assertions() to extract and pass api_params, field_params, and params to execute_assertion_method(), closing the gap between UI field configuration (Phase 29) and assertion execution adapter (Phase 30).
+
+---
+
 ## v0.4.0 断言系统集成 (Shipped: 2026-03-21)
 
 **Phases completed:** 5 phases, 13 plans, 26 tasks
