@@ -125,7 +125,7 @@ class TestExecuteAssertionMethod:
 
                     assert result['success'] is True  # Execution succeeded
                     assert result['passed'] is False  # Assertion failed
-                    assert len(result['field_results']) > 0
+                    assert len(result['fields']) > 0  # Uses 'fields' per ROADMAP API Contract
 
     @pytest.mark.asyncio
     async def test_returns_timeout_error_when_exceeds_timeout(self):
@@ -186,7 +186,7 @@ class TestParseAssertionError:
         results = _parse_assertion_error(message)
 
         assert len(results) == 1
-        assert results[0]['field'] == 'status'
+        assert results[0]['name'] == 'status'  # Uses 'name' per ROADMAP API Contract
         assert results[0]['expected'] == '已发货'
         assert results[0]['actual'] == '待发货'
         assert results[0]['passed'] is False
@@ -197,7 +197,7 @@ class TestParseAssertionError:
         results = _parse_assertion_error(message)
 
         assert len(results) == 1
-        assert results[0]['field'] == 'name'
+        assert results[0]['name'] == 'name'  # Uses 'name' per ROADMAP API Contract
         assert results[0]['comparison_type'] == 'contains'
 
     def test_returns_fallback_for_unparseable_message(self):
@@ -206,8 +206,19 @@ class TestParseAssertionError:
         results = _parse_assertion_error(message)
 
         assert len(results) == 1
-        assert results[0]['field'] == 'unknown'
+        assert results[0]['name'] == 'unknown'  # Uses 'name' per ROADMAP API Contract
         assert results[0]['description'] == message
+
+    def test_returns_name_not_field(self):
+        """_parse_assertion_error returns 'name' key (not 'field') per ROADMAP API Contract."""
+        message = "字段 'statusStr' 预期值: '已完成', 实际值: '进行中'"
+        results = _parse_assertion_error(message)
+
+        assert len(results) == 1
+        assert 'name' in results[0]
+        assert results[0]['name'] == 'statusStr'
+        # 'field' key should NOT exist (deprecated in favor of 'name')
+        assert 'field' not in results[0]
 
 
 class TestExecuteAllAssertions:
@@ -238,7 +249,7 @@ class TestExecuteAllAssertions:
             mock_exec.return_value = {
                 'success': True,
                 'passed': True,
-                'field_results': [],
+                'fields': [],
                 'duration': 0.1,
                 'error': None,
                 'error_type': None
@@ -261,7 +272,7 @@ class TestExecuteAllAssertions:
             mock_exec.return_value = {
                 'success': True,
                 'passed': True,
-                'field_results': [],
+                'fields': [],
                 'duration': 0.1
             }
 
@@ -289,14 +300,14 @@ class TestExecuteAllAssertions:
                 return {
                     'success': True,
                     'passed': False,
-                    'field_results': [{'field': 'x', 'expected': 'a', 'actual': 'b'}],
+                    'fields': [{'name': 'x', 'expected': 'a', 'actual': 'b'}],
                     'duration': 0.1,
                     'error': 'Assertion failed'
                 }
             return {
                 'success': True,
                 'passed': True,
-                'field_results': [],
+                'fields': [],
                 'duration': 0.1
             }
 
@@ -327,11 +338,11 @@ class TestExecuteAllAssertions:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                return {'success': True, 'passed': True, 'field_results': [], 'duration': 0.1}
+                return {'success': True, 'passed': True, 'fields': [], 'duration': 0.1}
             elif call_count == 2:
-                return {'success': True, 'passed': False, 'field_results': [], 'duration': 0.1}
+                return {'success': True, 'passed': False, 'fields': [], 'duration': 0.1}
             else:
-                return {'success': False, 'passed': False, 'error_type': 'TimeoutError', 'field_results': [], 'duration': 30.0}
+                return {'success': False, 'passed': False, 'error_type': 'TimeoutError', 'fields': [], 'duration': 30.0}
 
         with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
             mock_exec.side_effect = side_effect
@@ -377,7 +388,7 @@ class TestExecuteAllAssertions:
             call_count += 1
             if call_count == 1:
                 raise RuntimeError("Unexpected crash!")
-            return {'success': True, 'passed': True, 'field_results': [], 'duration': 0.1}
+            return {'success': True, 'passed': True, 'fields': [], 'duration': 0.1}
 
         with patch('backend.core.external_precondition_bridge.execute_assertion_method') as mock_exec:
             mock_exec.side_effect = side_effect
