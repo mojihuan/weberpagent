@@ -12,6 +12,7 @@ from backend.core.external_precondition_bridge import (
     is_available,
     get_unavailable_reason,
     get_assertion_methods_grouped,
+    get_assertion_fields_grouped,
 )
 
 
@@ -79,6 +80,28 @@ class AssertionMethodsResponse(BaseModel):
     total: int = 0
 
 
+class FieldInfo(BaseModel):
+    """Single field info."""
+    name: str
+    path: str
+    is_time_field: bool
+    description: str
+
+
+class FieldGroup(BaseModel):
+    """Group of fields under a category."""
+    name: str
+    fields: list[FieldInfo]
+
+
+class AssertionFieldsResponse(BaseModel):
+    """Response model for listing assertion fields."""
+    available: bool
+    error: str | None = None
+    groups: list[FieldGroup] = []
+    total: int = 0
+
+
 @router.get("/methods", response_model=AssertionMethodsResponse)
 async def list_assertion_methods():
     """List all available assertion methods.
@@ -109,4 +132,29 @@ async def list_assertion_methods():
         headers_options=headers_with_labels,
         classes=[AssertionClassGroup(**c) for c in classes],
         total=total
+    )
+
+
+@router.get("/fields", response_model=AssertionFieldsResponse)
+async def list_assertion_fields():
+    """List all available assertion fields.
+
+    Returns 503 if external module is not available.
+    """
+    result = get_assertion_fields_grouped()
+
+    if not result['available']:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "message": "External assertion fields not available",
+                "reason": result.get('error', 'Unknown error'),
+                "fix": "Ensure WEBSERP_PATH is configured in .env"
+            }
+        )
+
+    return AssertionFieldsResponse(
+        available=True,
+        groups=[FieldGroup(**g) for g in result['groups']],
+        total=result['total']
     )
