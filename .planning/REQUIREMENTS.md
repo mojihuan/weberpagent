@@ -17,8 +17,8 @@
 
 - [x] **UI-01**: 断言配置弹窗分为三个区域：data 选择、api_params、field_params
 - [x] **UI-02**: field_params 支持按分组浏览、搜索字段（300+ 字段按命名模式分组）
-- [ ] **UI-03**: 时间字段值输入有 "now" 快捷按钮（传字符串 "now"，后端处理）
-- [ ] **UI-04**: 支持添加/删除多个字段配置
+- [x] **UI-03**: 时间字段值输入有 "now" 快捷按钮（传字符串 "now"，后端处理）
+- [x] **UI-04**: 支持添加/删除多个字段配置
 
 ### Assertion Execution (断言执行) - Phase 30
 
@@ -92,8 +92,8 @@
 | FLD-03 | Phase 28 | Complete |
 | UI-01 | Phase 29 | Complete |
 | UI-02 | Phase 29 | Complete |
-| UI-03 | Phase 29 | Pending |
-| UI-04 | Phase 29 | Pending |
+| UI-03 | Phase 29 | Complete |
+| UI-04 | Phase 29 | Complete |
 | EXEC-01 | Phase 30 | Pending |
 | EXEC-02 | Phase 30 | Pending |
 | EXEC-03 | Phase 30 | Pending |
