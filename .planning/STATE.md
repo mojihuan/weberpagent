@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.4.1
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-03-22T03:40:17.984Z"
+stopped_at: Completed 30-02-PLAN.md
+last_updated: "2026-03-22T04:37:14.476Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 29 — frontend-field-config-ui
+**Current focus:** Phase 30 — assertion-execution-adapter
 
 ## Current Position
 
-Phase: 29 (frontend-field-config-ui) — EXECUTING
-Plan: 3 of 3
+Phase: 30 (assertion-execution-adapter) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: 3 of 3
 | Phase 29 P01 | 2 | 2 tasks | 2 files |
 | Phase 29-frontend-field-config-ui P02 | 2min | 2 tasks | 1 files |
 | Phase 29 P03 | 2 | 2 tasks | 1 files |
+| Phase 30 P02 | 1 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,7 @@ Recent decisions affecting current work:
 - [Phase 28]: Fields endpoint uses get_assertion_fields_grouped() directly, not is_available()
 - [Phase 29]: field_params is optional for backward compatibility with existing assertions
 - [Phase 29]: field_params state managed via Map<string, Map<string, {name, value}>> synced to Record in AssertionConfig
+- [Phase 30]: field_params or params fallback for backward compatibility (D-06)
 
 ### Pending Todos
 
@@ -76,6 +78,6 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-03-22T03:40:17.983Z
-Stopped at: Completed 29-03-PLAN.md
+Last session: 2026-03-22T04:37:14.474Z
+Stopped at: Completed 30-02-PLAN.md
 Resume file: None

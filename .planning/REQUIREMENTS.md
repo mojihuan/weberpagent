@@ -22,9 +22,9 @@
 
 ### Assertion Execution (断言执行) - Phase 30
 
-- [ ] **EXEC-01**: execute_assertion_method() 接收三层参数结构 (data, api_params, field_params)
-- [ ] **EXEC-02**: 适配层将 field_params 中的 "now" 转换为实际时间字符串
-- [ ] **EXEC-03**: 捕获 AssertionError，解析为结构化字段结果 (name, expected, actual, passed)
+- [x] **EXEC-01**: execute_assertion_method() 接收三层参数结构 (data, api_params, field_params)
+- [x] **EXEC-02**: 适配层将 field_params 中的 "now" 转换为实际时间字符串
+- [x] **EXEC-03**: 捕获 AssertionError，解析为结构化字段结果 (name, expected, actual, passed)
 
 ### End-to-End Verification (端到端验证) - Phase 31
 
@@ -94,9 +94,9 @@
 | UI-02 | Phase 29 | Complete |
 | UI-03 | Phase 29 | Complete |
 | UI-04 | Phase 29 | Complete |
-| EXEC-01 | Phase 30 | Pending |
-| EXEC-02 | Phase 30 | Pending |
-| EXEC-03 | Phase 30 | Pending |
+| EXEC-01 | Phase 30 | Complete |
+| EXEC-02 | Phase 30 | Complete |
+| EXEC-03 | Phase 30 | Complete |
 | E2E-01 | Phase 31 | Pending |
 | E2E-02 | Phase 31 | Pending |
 

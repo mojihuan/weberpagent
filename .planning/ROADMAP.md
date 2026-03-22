@@ -11,8 +11,8 @@
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 28 | 后端字段发现 | Complete | FLD-01, FLD-02, FLD-03 | 2026-03-22 |
-| 29 | 前端字段配置 UI | 3/3 | Complete   | 2026-03-22 |
-| 30 | 断言执行适配层 | 适配层模式处理三层参数和结构化结果 | EXEC-01, EXEC-02, EXEC-03 | 3 |
+| 29 | 前端字段配置 UI | 3/3 | Complete    | 2026-03-22 |
+| 30 | 断言执行适配层 | 2/3 | In Progress|  |
 | 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
 
 ---
@@ -195,46 +195,81 @@ Plans:
 - EXEC-02: 适配层将 field_params 中的 "now" 转换为实际时间
 - EXEC-03: 捕获 AssertionError，解析为结构化字段结果
 
+**Plans:** 2/3 plans executed
+
+| Plan | Objective | Wave | Requirements |
+|------|-----------|------|--------------|
+| 30-01 | Adapter Layer Implementation | 1 | EXEC-01, EXEC-02, EXEC-03 |
+| 30-02 | API Endpoint | 2 | EXEC-01, EXEC-02, EXEC-03 |
+| 30-03 | Test Coverage | 3 | EXEC-01, EXEC-02, EXEC-03 |
+
+Plans:
+- [x] 30-01-PLAN.md — Implement adapter layer in external_precondition_bridge.py
+- [x] 30-02-PLAN.md — Add POST /execute API endpoint
+- [ ] 30-03-PLAN.md — Add/update unit tests for three-layer params, "now" conversion, backward compatibility
+
 **Technical Approach:**
 
 1. **不修改 base_assert.py**，在适配层处理：
 
    ```python
-   async def execute_assertion_adapted(
+   async def execute_assertion_method(
        class_name: str,
        method_name: str,
+       headers: str | None = 'main',
        data: str = 'main',
-       api_params: dict = None,
-       field_params: dict = None
+       api_params: dict | None = None,      # NEW
+       field_params: dict | None = None,    # NEW
+       params: dict | None = None,          # Keep for backward compat
+       timeout: float = 30.0
    ) -> dict:
-       # 1. 合并参数
+       # Backward compatibility
+       if params and not field_params:
+           field_params = params
+
+       # Merge params
        kwargs = {**(api_params or {}), **(field_params or {})}
 
-       # 2. 预处理 "now" 为时间字符串
-       for key, value in kwargs.items():
-           if value == 'now' and is_time_field(key):
-               kwargs[key] = get_formatted_datetime()
+       # Convert "now" to datetime strings
+       kwargs = _convert_now_values(kwargs)
 
-       # 3. 调用断言方法
+       # Execute with timeout
        try:
            assertion_method(data=data, **kwargs)
            return {"success": True, "passed": True, "fields": []}
        except AssertionError as e:
-           # 4. 解析错误消息为结构化结果
-           return parse_assertion_error_to_fields(str(e))
+           return {"success": True, "passed": False, "fields": _parse_assertion_error(str(e))}
    ```
 
-2. **AssertionError 解析** (已有 _parse_assertion_error，增强字段提取)
+2. **"now" 转换函数**:
+   ```python
+   def _convert_now_values(kwargs: dict) -> dict:
+       result = {}
+       for key, value in kwargs.items():
+           if value == 'now' and _is_time_field(key, None):
+               result[key] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+           else:
+               result[key] = value
+       return result
+   ```
+
+3. **响应结构统一** (D-04):
+   - 修改 `_parse_assertion_error()` 返回 `name` 而非 `field`
+   - 响应使用 `fields` 而非 `field_results`
 
 **Success Criteria:**
-1. 三层参数正确传递给断言方法
-2. "now" 正确转换为时间字符串
-3. 断言失败返回结构化字段结果
-4. 单元测试：mock 数据测试参数传递和结果序列化
+1. Three-layer params correctly passed to assertion method
+2. "now" values correctly converted to datetime strings
+3. AssertionError parsed into structured field results with `name` field
+4. Response uses `fields` key (not `field_results`)
+5. Backward compatibility maintained (params as field_params fallback)
+6. All unit tests pass
 
 **Key Files:**
-- `backend/core/external_precondition_bridge.py` - 重构 execute_assertion_method
-- `backend/tests/test_assertion_execution.py` - 单元测试
+- `backend/core/external_precondition_bridge.py` - Refactor execute_assertion_method, add _convert_now_values
+- `backend/api/routes/external_assertions.py` - Add POST /execute endpoint
+- `backend/tests/unit/test_external_assertion_bridge.py` - New test classes
+- `backend/tests/core/test_external_precondition_bridge_assertion.py` - Updated tests
 
 ---
 
@@ -286,4 +321,4 @@ graph LR
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-22 - Phase 29 plans created*
+*Last updated: 2026-03-22 - Phase 30 plans created*
