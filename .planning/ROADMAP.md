@@ -8,12 +8,12 @@
 
 ## Phase Overview
 
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|-------|------|--------------|------------------|
+| # | Phase | Goal | Requirements | Plans |
+|---|-------|------|--------------|-------|
 | 28 | 后端字段发现 | Complete | FLD-01, FLD-02, FLD-03 | 2026-03-22 |
-| 29 | 前端字段配置 UI | 3/3 | Complete    | 2026-03-22 |
-| 30 | 断言执行适配层 | 3/3 | Complete    | 2026-03-22 |
-| 31 | E2E 测试 | Mock ERP 端到端验证完整断言流程 | E2E-01, E2E-02 | 2 |
+| 29 | 前端字段配置 UI | Complete | UI-01, UI-02, UI-03, UI-04 | 2026-03-22 |
+| 30 | 断言执行适配层 | Complete | EXEC-01, EXEC-02, EXEC-03 | 2026-03-22 |
+| 31 | E2E 测试 | 1/1 | Complete   | 2026-03-22 |
 
 ---
 
@@ -275,26 +275,42 @@ Plans:
 
 ## Phase 31: E2E 测试
 
-**Goal:** Mock ERP 端到端验证完整断言流程
+**Goal:** 真实 ERP 端到端验证完整断言流程
 
 **Requirements:**
 - E2E-01: 完整断言流程测试（配置 -> 执行 -> 结果展示）
 - E2E-02: 测试断言成功和断言失败两种场景
 
-**Mock Strategy:**
-- Mock ERP API 响应（不依赖真实 ERP）
-- Mock LoginApi.headers 返回测试 token
+**Plans:** 1/1 plans complete
+
+| Plan | Objective | Wave | Requirements |
+|------|-----------|------|--------------|
+| 31-01 | Extend E2E Tests for v0.4.1 | 1 | E2E-01, E2E-02 |
+
+Plans:
+- [x] 31-01-PLAN.md — Add 3 new E2E tests (field_params, "now" time, three-layer success)
+
+**Test Strategy:**
+- 使用真实 ERP 环境（需要 ERP_BASE_URL 环境变量）
+- 环境变量缺失时跳过测试（test.skip）
+- 扩展现有 assertion-flow.spec.ts 文件
+
+**Test Cases:**
+1. **field_params configuration** - 验证字段参数配置功能
+2. **now time conversion** - 验证 "now" 时间转换功能
+3. **three-layer params success** - 验证三层参数断言成功场景
 
 **Success Criteria:**
-1. E2E 测试不依赖真实 ERP 系统
+1. E2E 测试使用真实 ERP 环境（与 Phase 26 一致）
 2. 测试覆盖：选择断言 -> 配置三层参数 -> 执行 -> 查看结果
-3. 测试断言成功场景（所有字段通过）
-4. 测试断言失败场景（部分字段失败，展示预期/实际值）
+3. 测试 field_params 配置功能
+4. 测试 "now" 时间转换功能
 5. 所有 E2E 测试通过
 
 **Key Files:**
-- `e2e/assertion-flow.spec.ts` - E2E 测试
-- `e2e/mocks/erp-api.ts` - Mock ERP 响应
+- `e2e/tests/assertion-flow.spec.ts` - E2E 测试（扩展现有文件）
+- `frontend/src/components/TaskModal/FieldParamsEditor.tsx` - 字段参数配置组件
+- `frontend/src/components/Report/ApiAssertionResults.tsx` - 断言结果展示
 
 ---
 
@@ -316,9 +332,9 @@ graph LR
 | 28 | AST 解析器 | API 端点 | - |
 | 29 | 组件渲染 | - | - |
 | 30 | 参数传递、结果序列化 | 完整执行流程 | - |
-| 31 | - | - | Mock ERP |
+| 31 | - | - | Real ERP |
 
 ---
 
 *Roadmap created: 2026-03-21*
-*Last updated: 2026-03-22 - Phase 30 plans created*
+*Last updated: 2026-03-22 - Phase 31 plans created*

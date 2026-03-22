@@ -28,8 +28,8 @@
 
 ### End-to-End Verification (端到端验证) - Phase 31
 
-- [ ] **E2E-01**: 完整断言流程测试（配置 → 执行 → 结果展示），使用 Mock ERP
-- [ ] **E2E-02**: 测试断言成功和断言失败两种场景
+- [x] **E2E-01**: 完整断言流程测试（配置 → 执行 → 结果展示），使用 Mock ERP
+- [x] **E2E-02**: 测试断言成功和断言失败两种场景
 
 ## v0.5.0 Requirements (Deferred)
 
@@ -97,8 +97,8 @@
 | EXEC-01 | Phase 30 | Complete |
 | EXEC-02 | Phase 30 | Complete |
 | EXEC-03 | Phase 30 | Complete |
-| E2E-01 | Phase 31 | Pending |
-| E2E-02 | Phase 31 | Pending |
+| E2E-01 | Phase 31 | Complete |
+| E2E-02 | Phase 31 | Complete |
 
 **Coverage:**
 - v0.4.1 requirements: 12 total
