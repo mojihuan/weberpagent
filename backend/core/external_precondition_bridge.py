@@ -810,7 +810,7 @@ def _parse_assertion_error(error_message: str) -> list[dict]:
     Args:
         error_message: The AssertionError message string
     Returns:
-        List of field result dicts with field, expected, actual, passed
+        List of field result dicts with name, expected, actual, passed
     """
     import re
 
@@ -826,7 +826,7 @@ def _parse_assertion_error(error_message: str) -> list[dict]:
         expected = match.group(3)
         actual = match.group(4)
         field_results.append({
-            'field': field_name,
+            'name': field_name,
             'expected': expected,
             'actual': actual,
             'passed': False,  # If in error message, it failed
@@ -835,7 +835,7 @@ def _parse_assertion_error(error_message: str) -> list[dict]:
     # If no fields parsed, create a single entry with the full message
     if not field_results:
         field_results.append({
-            'field': 'unknown',
+            'name': 'unknown',
             'expected': '',
             'actual': '',
             'passed': False,

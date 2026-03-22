@@ -104,7 +104,7 @@ class TestParseDataOptions:
     """Tests for _parse_data_options_from_source() function."""
 
     def test_returns_main_when_no_methods_dict(self):
-        """Test _parse_data_options_from_source() returns ['main'] when no methods dict found."""
+        """Test _parse_data_options_from_source() returns [{'value': 'main'}] when no methods dict found."""
         from backend.core.external_precondition_bridge import _parse_data_options_from_source
 
         # Create a mock method with no methods dict
@@ -113,10 +113,10 @@ class TestParseDataOptions:
             pass
 
         result = _parse_data_options_from_source(method_without_methods_dict)
-        assert result == ['main']
+        assert result == [{'label': '主数据', 'value': 'main'}]
 
     def test_returns_options_from_methods_dict(self):
-        """Test _parse_data_options_from_source() returns ['main', 'a', 'b'] when methods = {'main': ..., 'a': ..., 'b': ...}."""
+        """Test _parse_data_options_from_source() returns options when methods = {'main': ..., 'a': ..., 'b': ...}."""
         from backend.core.external_precondition_bridge import _parse_data_options_from_source
 
         # Create a method with methods dictionary
@@ -130,13 +130,14 @@ class TestParseDataOptions:
             return methods
 
         result = _parse_data_options_from_source(method_with_methods_dict)
-        # Should contain the keys from methods dict
-        assert 'main' in result
-        assert 'a' in result
-        assert 'b' in result
+        # Should contain the keys from methods dict as value in option objects
+        values = [opt['value'] for opt in result]
+        assert 'main' in values
+        assert 'a' in values
+        assert 'b' in values
 
     def test_returns_main_when_inspect_fails(self, monkeypatch):
-        """Test _parse_data_options_from_source() returns ['main'] when inspect.getsource fails."""
+        """Test _parse_data_options_from_source() returns [{'value': 'main'}] when inspect.getsource fails."""
         from backend.core.external_precondition_bridge import _parse_data_options_from_source
         import inspect
 
@@ -151,7 +152,7 @@ class TestParseDataOptions:
             pass
 
         result = _parse_data_options_from_source(some_method)
-        assert result == ['main']
+        assert result == [{'label': '主数据', 'value': 'main'}]
 
 
 class TestParseParamOptions:
@@ -252,8 +253,10 @@ class TestExtractAssertionMethodInfo:
         assert result is not None
         assert result['name'] == 'test_method'
         assert 'Test method description' in result['description']
-        assert 'main' in result['data_options']
-        assert 'a' in result['data_options']
+        # data_options is now a list of {label, value} objects
+        data_values = [opt['value'] for opt in result['data_options']]
+        assert 'main' in data_values
+        assert 'a' in data_values
         # Check parameters with options
         assert len(result['parameters']) >= 1
         param_i = next((p for p in result['parameters'] if p['name'] == 'i'), None)
@@ -384,7 +387,7 @@ class TestExecuteAssertionMethod:
 
         assert result['success'] is True
         assert result['passed'] is True
-        assert result['field_results'] == []
+        assert result['fields'] == []
         assert result['error'] is None
         assert result['error_type'] is None
         assert result['duration'] >= 0
@@ -409,8 +412,8 @@ class TestExecuteAssertionMethod:
 
         assert result['success'] is True  # Execution succeeded
         assert result['passed'] is False  # Assertion failed
-        assert len(result['field_results']) == 1
-        assert result['field_results'][0]['field'] == 'name'
+        assert len(result['fields']) == 1
+        assert result['fields'][0]['name'] == 'name'
         assert '预期值' in result['error'] or 'expected' in result['error'].lower()
 
     @pytest.mark.asyncio
@@ -501,7 +504,7 @@ class TestParseAssertionError:
         result = _parse_assertion_error(message)
 
         assert len(result) == 1
-        assert result[0]['field'] == 'name'
+        assert result[0]['name'] == 'name'
         assert result[0]['expected'] == 'expected'
         assert result[0]['actual'] == 'actual'
         assert result[0]['passed'] is False
@@ -513,7 +516,7 @@ class TestParseAssertionError:
         result = _parse_assertion_error(message)
 
         assert len(result) == 1
-        assert result[0]['field'] == 'status'
+        assert result[0]['name'] == 'status'
         assert result[0]['expected'] == 'active'
         assert result[0]['actual'] == 'inactive'
         assert result[0]['passed'] is False
@@ -528,8 +531,8 @@ class TestParseAssertionError:
         result = _parse_assertion_error(message)
 
         assert len(result) == 2
-        assert result[0]['field'] == 'name'
-        assert result[1]['field'] == 'status'
+        assert result[0]['name'] == 'name'
+        assert result[1]['name'] == 'status'
 
     def test_parse_unparseable_message(self):
         """Test parsing unparseable message returns unknown field with description."""
@@ -537,7 +540,7 @@ class TestParseAssertionError:
         result = _parse_assertion_error(message)
 
         assert len(result) == 1
-        assert result[0]['field'] == 'unknown'
+        assert result[0]['name'] == 'unknown'
         assert result[0]['passed'] is False
         assert result[0]['description'] == message
 
@@ -550,12 +553,12 @@ class TestParseAssertionError:
         # But the current pattern expects specific format with Chinese colons in some places
         # Let's verify what the actual behavior is
         # If the pattern doesn't match, it should return unknown field
-        if len(result) == 1 and result[0]['field'] == 'name':
+        if len(result) == 1 and result[0]['name'] == 'name':
             assert result[0]['expected'] == 'expected'
             assert result[0]['actual'] == 'actual'
         else:
             # If Chinese colon in the comparison_type position doesn't match, fallback is expected
-            assert result[0]['field'] == 'unknown'
+            assert result[0]['name'] == 'unknown'
 
 
 class TestConvertNowValues:
