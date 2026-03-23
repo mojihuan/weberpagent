@@ -13,7 +13,11 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State: v0.4.1 断言系统调通 ✓ COMPLETE
+## Current Status
+
+**最新版本:** v0.4.2 人工验证断言系统 ✓ SHIPPED (2026-03-23)
+
+断言系统已完成人工验证，`sell_sale_item_list_assert` 能正确执行并返回结果。修复了 5 个 bug，创建了完整的使用指南文档。
 
 **已交付版本:**
 - v0.1 MVP (2026-03-14) - 基础功能
@@ -24,28 +28,12 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.3.2 测试与Bug修复 (2026-03-20) - 稳定版本
 - v0.4.0 断言系统集成 (2026-03-21) - ✓ SHIPPED
 - v0.4.1 断言系统调通 (2026-03-22) - ✓ SHIPPED
-
-**v0.4.1 断言系统调通 成果:**
-- Phase 28: 后端字段发现 — 扫描 base_assertions_field.py，获取约 300 个可用字段
-- Phase 29: 前端字段配置 UI — 字段选择器，支持三层参数配置
-- Phase 30: 断言执行适配器 — execute_assertion_method() 接受三层参数
-- Phase 31: E2E 测试 — 3 个 Playwright 测试验证端到端流程
-- Phase 32: 三层参数缺口关闭 — execute_all_assertions() 正确传递三层参数
+- v0.4.2 人工验证断言系统 (2026-03-23) - ✓ SHIPPED
 
 **三层参数架构现已完整:**
 - api_params: API 查询参数 (i, j, k 等)
 - field_params: 断言字段值 (saleTime, salesOrder 等)
 - params: 向后兼容参数
-
-## Previous Milestone: v0.4.1 断言系统调通 ✓ COMPLETE
-
-**Goal:** 修正断言系统的参数结构，使其符合正确的三层设计，支持完整的断言字段配置。 — **ACHIEVED**
-
-**v0.4.1 已完成功能:**
-- ✓ 后端扫描 base_assertions_field.py 获取可用字段列表
-- ✓ 前端 UI 支持三层参数配置 (api_params, field_params, params)
-- ✓ 端到端验证断言执行流程正确
-- ✓ execute_all_assertions() 正确传递三层参数到 execute_assertion_method()
 
 ## Requirements
 
@@ -88,9 +76,15 @@ v0.4.0 断言系统集成 (2026-03-21):
 - ✓ Context 存储断言结果 — EXEC-05
 - ✓ 非 fail-fast 收集所有结果 — EXEC-06
 
+v0.4.2 人工验证断言系统 (2026-03-23):
+
+- ✓ 断言执行成功 — sell_sale_item_list_assert 正确执行 — ASSERT-01/02/03/04
+- ✓ Bug 修复 — 修复 5 个 bug（字段命名、Headers解析、时间偏移、UI优化）— BUG-01/02
+- ✓ 文档完善 — 创建《断言系统使用指南》(353行) — DOC-01/02
+
 ### Active
 
-(下一里程碑需求待规划)
+(待下一里程碑定义)
 
 ### Out of Scope
 
@@ -101,8 +95,8 @@ v0.4.0 断言系统集成 (2026-03-21):
 ## Context
 
 **技术背景:**
-- 后端 FastAPI + Python (~13,700 LOC)
-- 前端 React + Vite + Tailwind (~4,300 LOC)
+- 后端 FastAPI + Python (~20,840 LOC)
+- 前端 React + Vite + Tailwind (~345 LOC 组件)
 - 数据库使用 SQLite (aiosqlite)
 
 **技术栈:**
@@ -118,7 +112,6 @@ v0.4.0 断言系统集成 (2026-03-21):
 **Known Tech Debt:**
 - 5 unit tests with pre-existing isolation issues (test_external_bridge, test_browser_cleanup, test_precondition_service)
 - Nyquist Wave 0 tasks pending (tests defined but not run)
-- Phase 11-12 (Bug 修复、文档指南) 推迟到后续版本
 
 ## Constraints
 
@@ -148,4 +141,4 @@ v0.4.0 断言系统集成 (2026-03-21):
 | 断言结果存入 context 非 fail-fast | 收集所有结果后汇总 | ✓ Good |
 
 ---
-*Last updated: 2026-03-22 after v0.4.1 milestone completion*
+*Last updated: 2026-03-23 after v0.4.2 milestone completion*
