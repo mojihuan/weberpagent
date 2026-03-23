@@ -908,11 +908,9 @@ async def execute_assertion_method(
         result['error_type'] = 'NotFoundError'
         result['duration'] = time.time() - start_time
         return result
-    try:
-        # Resolve headers identifier to actual headers dict
-        resolved_headers = resolve_headers(headers)
-    except (ValueError, RuntimeError) as e:
-        result['error'] = str(e)
+    # Validate headers identifier (but don't resolve - assertion method handles that)
+    if headers and headers not in VALID_HEADER_IDENTIFIERS:
+        result['error'] = f"Invalid headers identifier '{headers}'. Valid: {VALID_HEADER_IDENTIFIERS}"
         result['error_type'] = 'HeaderResolutionError'
         result['duration'] = time.time() - start_time
         return result
@@ -938,9 +936,12 @@ async def execute_assertion_method(
         merged_kwargs = {**(api_params or {}), **(field_params or {})}
         # Convert "now" values to datetime strings (D-02, D-03)
         call_kwargs = _convert_now_values(merged_kwargs)
-        # Add headers and data
-        call_kwargs['headers'] = resolved_headers
+        # Add headers (as identifier string, not resolved dict) and data
+        # The assertion method's _process_headers will resolve the identifier
+        call_kwargs['headers'] = headers
         call_kwargs['data'] = data
+        # Debug logging
+        logger.info(f"Calling {class_name}.{method_name} with kwargs: {list(call_kwargs.keys())}")
         # Execute in thread pool with timeout
         await asyncio.wait_for(
             loop.run_in_executor(None, lambda: method(**call_kwargs)),
@@ -960,6 +961,7 @@ async def execute_assertion_method(
         result['fields'] = _parse_assertion_error(str(e))
         result['error'] = str(e)
     except TypeError as e:
+        logger.error(f"Parameter error in {class_name}.{method_name}: {e}", exc_info=True)
         result['error'] = f"Parameter error: {e}"
         result['error_type'] = 'ParameterError'
     except Exception as e:
