@@ -1004,8 +1004,9 @@ async def execute_all_assertions(
     results = []
 
     for index, assertion_config in enumerate(assertions):
-        class_name = assertion_config.get('class_name')
-        method_name = assertion_config.get('method_name')
+        # Support both snake_case (backend) and camelCase (frontend) field names
+        class_name = assertion_config.get('class_name') or assertion_config.get('className')
+        method_name = assertion_config.get('method_name') or assertion_config.get('methodName')
         headers = assertion_config.get('headers', 'main')
         data = assertion_config.get('data', 'main')
         api_params = assertion_config.get('api_params', {})
