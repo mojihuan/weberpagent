@@ -1407,16 +1407,40 @@ def _is_time_field(field_name: str, default_node) -> bool:
 def _convert_now_values(kwargs: dict) -> dict:
     """Convert 'now' values to formatted datetime strings for time fields.
 
+    Supported formats:
+    - 'now' → current time
+    - 'now-2m' → 2 minutes ago
+    - 'now+5m' → 5 minutes from now
+    - 'now-1h' → 1 hour ago
+    - 'now+30s' → 30 seconds from now
+
     Args:
         kwargs: Parameter dictionary to process
 
     Returns:
         New dict with 'now' values converted to datetime strings (YYYY-MM-DD HH:mm:ss)
     """
+    import re
     result = {}
     for key, value in kwargs.items():
-        if value == 'now' and _is_time_field(key, default_node=None):
-            result[key] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if _is_time_field(key, default_node=None) and isinstance(value, str) and value.startswith('now'):
+            # Parse 'now' with optional offset: now, now-2m, now+5m, now-1h, now+30s
+            match = re.match(r'^now([+-])(\d+)([smhd])?$', value)
+            if match:
+                # Calculate offset
+                sign = 1 if match.group(1) == '+' else -1
+                amount = int(match.group(2))
+                unit = match.group(3) or 'm'  # default to minutes
+
+                from datetime import timedelta
+                offset = timedelta(
+                    seconds=sign * amount * {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[unit]
+                )
+                result[key] = (datetime.now() + offset).strftime('%Y-%m-%d %H:%M:%S')
+            elif value == 'now':
+                result[key] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                result[key] = value  # Pass through if doesn't match pattern
         else:
             result[key] = value
     return result
