@@ -1,8 +1,21 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Search, ChevronDown } from 'lucide-react'
+import { Search, ChevronDown, Clock } from 'lucide-react'
 import type { AssertionFieldInfo, AssertionFieldGroup } from '../../types'
 import { externalAssertionsApi } from '../../api/externalAssertions'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
+
+// Time offset presets for time fields
+const TIME_PRESETS = [
+  { value: 'now', label: 'now (当前时间)' },
+  { value: 'now-1m', label: 'now-1m (1分钟前)' },
+  { value: 'now-3m', label: 'now-3m (3分钟前)' },
+  { value: 'now-5m', label: 'now-5m (5分钟前)' },
+  { value: 'now-10m', label: 'now-10m (10分钟前)' },
+  { value: 'now+1m', label: 'now+1m (1分钟后)' },
+  { value: 'now+5m', label: 'now+5m (5分钟后)' },
+  { value: 'now-1h', label: 'now-1h (1小时前)' },
+  { value: 'now-1d', label: 'now-1d (1天前)' },
+]
 
 interface FieldParamsEditorProps {
   selectedFields: Map<string, { name: string; value: string }>
@@ -174,22 +187,37 @@ export function FieldParamsEditor({
                             <span className="text-xs text-gray-500 flex-1">{field.description}</span>
                           </label>
                           {isSelected && (
-                            <div className="mt-2 ml-6 flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={selectedField?.value || ''}
-                                onChange={e => updateFieldValue(field.name, e.target.value)}
-                                placeholder="Expected value"
-                                className="flex-1 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
+                            <div className="mt-2 ml-6 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={selectedField?.value || ''}
+                                  onChange={e => updateFieldValue(field.name, e.target.value)}
+                                  placeholder="Expected value"
+                                  className="flex-1 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
                               {field.is_time_field && (
-                                <button
-                                  type="button"
-                                  onClick={() => updateFieldValue(field.name, 'now')}
-                                  className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                                >
-                                  now
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="w-3 h-3 text-gray-400" />
+                                  <select
+                                    value={TIME_PRESETS.some(p => p.value === selectedField?.value) ? selectedField?.value : ''}
+                                    onChange={e => {
+                                      if (e.target.value) {
+                                        updateFieldValue(field.name, e.target.value)
+                                      }
+                                    }}
+                                    className="text-xs px-2 py-1 border border-gray-200 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  >
+                                    <option value="">选择时间预设...</option>
+                                    {TIME_PRESETS.map(preset => (
+                                      <option key={preset.value} value={preset.value}>
+                                        {preset.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span className="text-xs text-gray-400">或输入自定义值</span>
+                                </div>
                               )}
                             </div>
                           )}
