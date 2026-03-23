@@ -49,8 +49,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 36-01-PLAN.md - 将 Git remote 从当前仓库替换为用户自己的仓库
-- [ ] 36-02-PLAN.md - 将 webseleniumerp 复制到项目中作为子目录管理
+- [x] 36-01-PLAN.md - 将 Git remote 从当前仓库替换为用户自己的仓库
+- [x] 36-02-PLAN.md - 将 webseleniumerp 复制到项目中作为子目录管理
 
 #### Phase 37: 云服务器选型
 **Goal**: 选择并购买符合预算要求的云服务器
@@ -60,11 +60,11 @@ Plans:
   1. 用户可查看调研报告，了解阿里云/腾讯云/华为云的性价比对比
   2. 用户已购买云服务器并可通过 SSH 登录
   3. 云服务器系统为 Ubuntu 22.04
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 37-01: 调研云服务器方案
-- [ ] 37-02: 购买并初始化服务器
+- [x] 37-01-PLAN.md - 创建云服务器调研报告 (CLOUD-01)
+- [ ] 37-02-PLAN.md - 引导用户购买并验证 SSH 登录 (CLOUD-02)
 
 #### Phase 38: 部署执行
 **Goal**: 将项目完整部署到云端服务器
@@ -90,10 +90,10 @@ Phases 36, 37 可并行执行 - Phase 38
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 36. Git 仓库迁移 | v0.5.0 | 0/2 | Complete    | 2026-03-23 |
-| 37. 云服务器选型 | v0.5.0 | 0/2 | Not started | - |
+| 36. Git 仓库迁移 | v0.5.0 | 2/2 | Complete    | 2026-03-23 |
+| 37. 云服务器选型 | v0.5.0 | 1/2 | In Progress|  |
 | 38. 部署执行 | v0.5.0 | 0/4 | Not started | - |
 
 ---
 
-*Roadmap updated: 2026-03-23 - Phase 36 plans created*
+*Roadmap updated: 2026-03-23 - Phase 37 plans created*

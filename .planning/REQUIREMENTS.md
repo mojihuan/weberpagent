@@ -16,7 +16,7 @@
 
 ### CLOUD - 云服务器选型
 
-- [ ] **CLOUD-01**: 调研国产云服务器性价比方案 (100元/月以下)
+- [x] **CLOUD-01**: 调研国产云服务器性价比方案 (100元/月以下)
   - 验收标准: 输出调研报告，包含阿里云/腾讯云/华为云对比
 
 - [ ] **CLOUD-02**: 选择并购买云服务器
@@ -55,7 +55,7 @@
 |-------------|-------|--------|
 | GIT-01 | Phase 36 | Pending |
 | GIT-02 | Phase 36 | Pending |
-| CLOUD-01 | Phase 37 | Pending |
+| CLOUD-01 | Phase 37 | Complete |
 | CLOUD-02 | Phase 37 | Pending |
 | DEPLOY-01 | Phase 38 | Pending |
 | DEPLOY-02 | Phase 38 | Pending |
