@@ -1,5 +1,15 @@
 # Milestones
 
+## v0.4.2 人工验证断言系统 (Shipped: 2026-03-23)
+
+**Phases completed:** 2 phases, 2 plans, 0 tasks
+
+**Key accomplishments:**
+
+- Status:
+
+---
+
 ## v0.4.1 断言系统调通 (Shipped: 2026-03-22)
 
 **Phases completed:** 6 phases, 10 plans, 22 tasks

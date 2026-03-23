@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from typing import Optional, List, Any
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # === Task Schemas ===
@@ -36,15 +36,41 @@ class TaskUpdate(BaseModel):
     assertions: Optional[List[dict[str, Any]]] = Field(None, description="业务断言配置列表")
 
 
-class TaskResponse(TaskBase):
-    """任务响应"""
+class TaskResponse(BaseModel):
+    """任务响应 - 不继承 TaskBase 以避免访问 ORM 关系字段"""
     id: str
+    name: str
+    description: str
+    target_url: str = ""
+    max_steps: int = 10
     status: str
     created_at: datetime
     updated_at: datetime
     preconditions: Optional[List[str]] = None
     api_assertions: Optional[List[str]] = None
     assertions: Optional[List[dict[str, Any]]] = None
+
+    @model_validator(mode='before')
+    @classmethod
+    def from_orm_model(cls, data):
+        """从 ORM 模型转换，处理 JSON 字段和避免访问关系字段."""
+        if hasattr(data, 'external_assertions'):
+            # 从 ORM 模型转换
+            result = {
+                'id': data.id,
+                'name': data.name,
+                'description': data.description,
+                'target_url': data.target_url,
+                'max_steps': data.max_steps,
+                'status': data.status,
+                'created_at': data.created_at,
+                'updated_at': data.updated_at,
+                'preconditions': data.preconditions,
+                'api_assertions': data.api_assertions,
+                'assertions': data.external_assertions,  # 从 external_assertions 读取
+            }
+            return result
+        return data
 
     @field_validator('preconditions', 'api_assertions', 'assertions', mode='before')
     @classmethod

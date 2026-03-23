@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: Ready for next milestone
-stopped_at: null
-last_updated: "2026-03-23T07:15:00.000Z"
+milestone: v0.5.0
+milestone_name: 项目云端部署
+status: Executing Phase 36
+stopped_at: v0.5.0 roadmap created, ready to plan Phase 36
+last_updated: "2026-03-23T08:54:18.750Z"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
 ---
 
@@ -19,14 +19,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 36 — git
+
+## Current Position
+
+Phase: 36 (git) — EXECUTING
+Plan: 1 of 2
 
 ## Last Shipped
 
 **v0.4.2 人工验证断言系统** (2026-03-23)
-- Phase 33: 人工验证断言执行 — ✅ Complete
-- Phase 34: Bug 修复 — ⊘ Skipped (fixed in Phase 33)
-- Phase 35: 文档完善 — ✅ Complete
+
+- Phase 33: 人工验证断言执行 - Complete
+- Phase 34: Bug 修复 - Skipped (fixed in Phase 33)
+- Phase 35: 文档完善 - Complete
 
 ## Performance Metrics
 
@@ -42,10 +48,10 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v0.4.2] 时间表达式支持 now/now±Nm/h/s 格式
-- [v0.4.2] 字段命名兼容 camelCase 和 snake_case
-- [v0.4.1] 断言参数采用三层结构：api_params、field_params、params
-- [v0.4.0] External assertions execute after agent completes (non-fail-fast)
+- [v0.5.0] 预算约束: 100元/月以下
+- [v0.5.0] 推荐云服务器: 阿里云轻量 2核4G (约16.6元/月)
+- [v0.5.0] 操作系统: Ubuntu 22.04 (Playwright 兼容性最佳)
+- [v0.5.0] 部署架构: FastAPI + Gunicorn + Nginx + SQLite WAL
 
 ### Pending Todos
 
@@ -57,4 +63,8 @@ None currently.
 
 ## Session Continuity
 
-Ready for `/gsd:new-milestone` to start next milestone cycle.
+Last session: 2026-03-23
+Stopped at: v0.5.0 roadmap created, ready to plan Phase 36
+Resume file: None
+
+Run `/gsd:plan-phase 36` or `/gsd:plan-phase 37` to start planning.
