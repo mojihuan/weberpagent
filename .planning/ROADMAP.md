@@ -90,7 +90,7 @@ Phases 36, 37 可并行执行 - Phase 38
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 36. Git 仓库迁移 | v0.5.0 | 0/2 | Ready to execute | - |
+| 36. Git 仓库迁移 | v0.5.0 | 0/2 | Complete    | 2026-03-23 |
 | 37. 云服务器选型 | v0.5.0 | 0/2 | Not started | - |
 | 38. 部署执行 | v0.5.0 | 0/4 | Not started | - |
 

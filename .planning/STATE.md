@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: 项目云端部署
-status: Executing Phase 36
+status: Ready to plan
 stopped_at: v0.5.0 roadmap created, ready to plan Phase 36
-last_updated: "2026-03-23T08:54:18.750Z"
+last_updated: "2026-03-23T09:17:21.048Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 
 ## Current Position
 
-Phase: 36 (git) — EXECUTING
-Plan: 1 of 2
+Phase: 37
+Plan: Not started
 
 ## Last Shipped
 
