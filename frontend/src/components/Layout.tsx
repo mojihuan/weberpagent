@@ -10,7 +10,7 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="flex h-screen bg-white">
       <Sidebar />
-      <main className="flex-1 p-6 overflow-hidden flex flex-col">
+      <main className="flex-1 p-6 overflow-auto flex flex-col">
         {children || <Outlet />}
       </main>
     </div>
