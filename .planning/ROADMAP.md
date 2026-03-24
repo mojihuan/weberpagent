@@ -55,7 +55,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 39-01: 实现自定义 hook 监控 stagnation 并触发跳过逻辑 (LOOP-01)
+- [x] 39-01: 实现自定义 hook 监控 stagnation 并触发跳过逻辑 (LOOP-01)
 - [ ] 39-02: 增强循环日志输出，包含完整诊断信息 (LOG-01)
 
 ### Phase 40: 表格元素定位增强
@@ -93,7 +93,7 @@ Phase 39 → Phase 40 → Phase 41
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 39. 循环干预优化 | v0.6.0 | 0/2 | Pending | - |
+| 39. 循环干预优化 | v0.6.0 | 1/2 | In Progress|  |
 | 40. 表格元素定位 | v0.6.0 | 0/2 | Pending | - |
 | 41. 配置化与验证 | v0.6.0 | 0/2 | Pending | - |
 

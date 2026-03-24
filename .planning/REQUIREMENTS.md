@@ -30,7 +30,7 @@
 
 ### LOOP - 循环干预优化
 
-- [ ] **LOOP-01**: 更早的循环干预
+- [x] **LOOP-01**: 更早的循环干预
   - 降低 stagnation 阈值，在 5 次连续失败时就尝试跳过困难步骤
   - 实现方式: 自定义 hook 监控 stagnation，触发跳过逻辑
   - 验收标准: stagnation 达到 5 时自动尝试跳过当前步骤
@@ -87,7 +87,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LOOP-01 | Phase 39 | Pending |
+| LOOP-01 | Phase 39 | Complete |
 | LOG-01 | Phase 39 | Pending |
 | LOOP-02 | Phase 40 | Pending |
 | LOOP-04 | Phase 40 | Pending |
