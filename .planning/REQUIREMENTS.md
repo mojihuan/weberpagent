@@ -45,7 +45,7 @@
   - 实现方式: 扩展 AgentSettings 配置项，传递给 browser-use
   - 验收标准: 用户可在 TaskConfig 中配置 max_stagnation 等参数
 
-- [ ] **LOOP-04**: 智能跳过与继续
+- [x] **LOOP-04**: 智能跳过与继续
   - 当检测到无法完成的步骤时，跳过并继续后续步骤
   - 实现方式: 自定义 hook 检测长期停滞，注入 skip 指令
   - 验收标准: 困难步骤被跳过后，后续步骤能继续执行
@@ -90,7 +90,7 @@
 | LOOP-01 | Phase 39 | Complete |
 | LOG-01 | Phase 39 | Complete |
 | LOOP-02 | Phase 40 | Pending |
-| LOOP-04 | Phase 40 | Pending |
+| LOOP-04 | Phase 40 | Complete |
 | LOOP-03 | Phase 41 | Pending |
 | LOG-02 | Phase 41 | Pending |
 
