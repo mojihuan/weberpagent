@@ -230,6 +230,9 @@ class AgentService:
         # 创建本地浏览器会话
         browser_session = create_browser_session()
 
+        # Create loop intervention tracker (per D-01)
+        tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
+
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
             # 提取动作和推理 - 从 agent_output 顶层获取
@@ -247,6 +250,11 @@ class AgentService:
                         # 格式化为可读字符串
                         action = f"{action_name}: {action_params}" if action_params else action_name
 
+                        # Record action for loop detection (D-01)
+                        if not isinstance(action_params, dict):
+                            action_params = {}
+                        tracker.record_action(action_name, action_params)
+
                 # 获取推理信息（evaluation + memory + next_goal）
                 parts = []
                 if hasattr(agent_output, "evaluation_previous_goal") and agent_output.evaluation_previous_goal:
@@ -256,6 +264,21 @@ class AgentService:
                 if hasattr(agent_output, "next_goal") and agent_output.next_goal:
                     parts.append(f"Goal: {agent_output.next_goal}")
                 reasoning = " | ".join(parts) if parts else ""
+
+            # Record page state for stagnation detection (D-01)
+            if browser_state:
+                url = getattr(browser_state, "url", "") or ""
+                dom_content = getattr(browser_state, "dom", "") or ""
+                dom_hash = hashlib.sha256(dom_content.encode('utf-8')).hexdigest()[:12] if dom_content else ""
+                tracker.record_page_state(url, dom_hash)
+
+            # Check for loop intervention (D-01)
+            if tracker.should_intervene():
+                intervention_msg = tracker.get_intervention_message()
+                diagnostic = tracker.get_diagnostic_info()
+                logger.warning(f"[{run_id}] Loop intervention triggered: stagnation={diagnostic['stagnation']}")
+                # Note: Actual intervention message injection is handled by browser-use internally
+                # This phase focuses on detection and logging
 
             # 提取截图
             screenshot_path = None
