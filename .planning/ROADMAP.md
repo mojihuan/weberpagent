@@ -69,7 +69,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 40-01: 创建自定义工具 `scroll_table_and_input` (LOOP-02)
+- [x] 40-01: 创建自定义工具 `scroll_table_and_input` (LOOP-02)
 - [ ] 40-02: 实现智能跳过与继续逻辑 (LOOP-04)
 
 ### Phase 41: 配置化与验证
@@ -94,7 +94,7 @@ Phase 39 → Phase 40 → Phase 41
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 39. 循环干预优化 | v0.6.0 | 2/2 | Complete   | 2026-03-24 |
-| 40. 表格元素定位 | v0.6.0 | 0/2 | Pending | - |
+| 40. 表格元素定位 | v0.6.0 | 1/2 | In Progress|  |
 | 41. 配置化与验证 | v0.6.0 | 0/2 | Pending | - |
 
 ---
