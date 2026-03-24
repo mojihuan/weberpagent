@@ -1,6 +1,7 @@
 """Unit tests for AgentService LLM temperature configuration.
 
 Tests SVC-03: Verify LLM temperature=0 for deterministic test execution.
+Tests LOOP-01: LoopInterventionTracker for early loop intervention.
 """
 import pytest
 from unittest.mock import patch, MagicMock
@@ -55,3 +56,106 @@ class TestLLMTemperature:
         mock_chat_openai.assert_called_once()
         call_kwargs = mock_chat_openai.call_args.kwargs
         assert call_kwargs["temperature"] == 0.0
+
+
+class TestLoopInterventionTracker:
+    """Test LoopInterventionTracker for early loop intervention (LOOP-01)
+
+    Per D-01:
+    - Trigger: stagnation >= 5 (5 consecutive page states without change)
+    - Intervention: Return prompt message suggesting different approaches
+    """
+
+    def test_loop_intervention_trigger(self):
+        """stagnation >= 5 returns should_intervene() == True"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker(stagnation_threshold=5)
+
+        # Record 5 stagnant page states with SAME url and dom_hash
+        for _ in range(5):
+            tracker.record_page_state("http://example.com", "hash123")
+
+        assert tracker.should_intervene() is True
+
+    def test_intervention_message(self):
+        """get_intervention_message() contains expected Chinese text"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker(stagnation_threshold=5)
+
+        # Record 5 stagnant page states
+        for _ in range(5):
+            tracker.record_page_state("http://example.com", "hash123")
+
+        message = tracker.get_intervention_message()
+
+        # Assert message contains stagnation count and suggestion keywords
+        assert "5" in message
+        assert ("滚动页面" in message or "选择器" in message)
+
+    def test_record_action_updates_hashes(self):
+        """record_action() adds to recent_actions"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker()
+
+        tracker.record_action("click", {"index": 1})
+
+        assert len(tracker.recent_actions) == 1
+        assert tracker.recent_actions[0]["action"] == "click"
+
+    def test_record_page_state_increments_stagnation(self):
+        """same fingerprint increments consecutive_stagnant_pages"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker()
+
+        # Call twice with SAME values - stagnation should increment
+        tracker.record_page_state("http://example.com", "hash123")
+        tracker.record_page_state("http://example.com", "hash123")
+
+        assert tracker.consecutive_stagnant_pages == 1
+
+    def test_diagnostic_info_structure(self):
+        """get_diagnostic_info() returns dict with stagnation, recent_actions keys"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker()
+        tracker.record_action("click", {"index": 1})
+        tracker.record_action("input", {"index": 2, "text": "test"})
+
+        info = tracker.get_diagnostic_info()
+
+        # Assert required keys exist
+        assert "stagnation" in info
+        assert "max_repetition_count" in info
+        assert "recent_actions" in info
+        assert "intervention_triggered" in info
+
+    def test_different_page_resets_stagnation(self):
+        """Different page state resets consecutive_stagnant_pages"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker(stagnation_threshold=5)
+
+        # Record 3 stagnant states
+        for _ in range(3):
+            tracker.record_page_state("http://example.com", "hash123")
+        assert tracker.consecutive_stagnant_pages == 2  # 3 same = 2 increments
+
+        # Record different page state
+        tracker.record_page_state("http://example.com", "hash456")
+        assert tracker.consecutive_stagnant_pages == 0  # Reset
+
+    def test_should_not_intervene_below_threshold(self):
+        """should_intervene() returns False when stagnation < threshold"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker(stagnation_threshold=5)
+
+        # Record only 3 stagnant states (below threshold of 5)
+        for _ in range(3):
+            tracker.record_page_state("http://example.com", "hash123")
+
+        assert tracker.should_intervene() is False
