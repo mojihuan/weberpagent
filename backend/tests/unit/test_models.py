@@ -250,7 +250,7 @@ def test_step_loop_intervention_field_exists():
     assert "loop_intervention" in mapper.columns
     # Verify it's a Text column
     col = mapper.columns["loop_intervention"]
-    assert col.type.__class__.__name__ == "TEXT"
+    assert col.type.__class__.__name__ == "Text"
 
 
 def test_step_loop_intervention_nullable():
