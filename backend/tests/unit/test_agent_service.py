@@ -160,3 +160,31 @@ class TestLoopInterventionTracker:
             tracker.record_page_state("http://example.com", "hash123")
 
         assert tracker.should_intervene() is False
+
+    def test_diagnostic_info_includes_stagnation(self):
+        """get_diagnostic_info() returns dict with stagnation value"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker()
+        tracker.record_page_state("http://example.com", "hash123")
+        tracker.record_page_state("http://example.com", "hash123")  # Same = stagnation
+
+        diagnostic = tracker.get_diagnostic_info()
+
+        assert "stagnation" in diagnostic
+        assert diagnostic["stagnation"] == 2
+
+    def test_diagnostic_info_includes_recent_actions(self):
+        """get_diagnostic_info() returns dict with recent_actions list"""
+        from backend.core.agent_service import LoopInterventionTracker
+
+        tracker = LoopInterventionTracker()
+        tracker.record_action("click", {"index": 1})
+        tracker.record_action("input", {"index": 2, "text": "test"})
+
+        diagnostic = tracker.get_diagnostic_info()
+
+        assert "recent_actions" in diagnostic
+        assert isinstance(diagnostic["recent_actions"], list)
+        assert len(diagnostic["recent_actions"]) == 2
+        assert diagnostic["recent_actions"][0]["action"] == "click"
