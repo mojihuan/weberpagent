@@ -232,6 +232,7 @@ class AgentService:
 
         # Create loop intervention tracker (per D-01)
         tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
+        loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
 
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
@@ -272,13 +273,22 @@ class AgentService:
                 dom_hash = hashlib.sha256(dom_content.encode('utf-8')).hexdigest()[:12] if dom_content else ""
                 tracker.record_page_state(url, dom_hash)
 
-            # Check for loop intervention (D-01)
+            # Check for loop intervention (D-01, D-02)
             if tracker.should_intervene():
                 intervention_msg = tracker.get_intervention_message()
                 diagnostic = tracker.get_diagnostic_info()
-                logger.warning(f"[{run_id}] Loop intervention triggered: stagnation={diagnostic['stagnation']}")
-                # Note: Actual intervention message injection is handled by browser-use internally
-                # This phase focuses on detection and logging
+                # Store diagnostic for future Step storage integration (Phase 39, LOG-01)
+                loop_intervention_data["value"] = json.dumps(diagnostic, ensure_ascii=False)
+                # Log full diagnostic info (D-02: 包含 stagnation 值、最近动作、页面变化)
+                logger.warning(
+                    f"[{run_id}] Loop intervention triggered: "
+                    f"stagnation={diagnostic['stagnation']}, "
+                    f"max_repetition={diagnostic['max_repetition_count']}, "
+                    f"recent_actions_count={len(diagnostic['recent_actions'])}"
+                )
+                # Log recent actions for debugging
+                for i, act in enumerate(diagnostic['recent_actions'][-5:]):
+                    logger.info(f"[{run_id}] Recent action {i}: {act['action']} -> {act.get('params', {})}")
 
             # 提取截图
             screenshot_path = None
