@@ -19,22 +19,27 @@
 - [x] **CLOUD-01**: 调研国产云服务器性价比方案 (100元/月以下)
   - 验收标准: 输出调研报告，包含阿里云/腾讯云/华为云对比
 
-- [ ] **CLOUD-02**: 选择并购买云服务器
+- [x] **CLOUD-02**: 选择并购买云服务器
   - 验收标准: 云服务器可 SSH 登录，系统为 Ubuntu 22.04
+  - 完成: 2026-03-24
 
 ### DEPLOY - 部署执行
 
-- [ ] **DEPLOY-01**: 部署后端服务 (FastAPI + Gunicorn + Systemd)
+- [x] **DEPLOY-01**: 部署后端服务 (FastAPI + Gunicorn + Systemd)
   - 验收标准: systemctl status aidriveuitest 显示 active，API 可访问
+  - 完成: 2026-03-24
 
-- [ ] **DEPLOY-02**: 部署前端服务 (React + Nginx 静态文件)
+- [x] **DEPLOY-02**: 部署前端服务 (React + Nginx 静态文件)
   - 验收标准: 访问域名/IP 显示前端页面
+  - 完成: 2026-03-24
 
-- [ ] **DEPLOY-03**: 配置数据库持久化 (SQLite WAL模式 + 备份)
+- [x] **DEPLOY-03**: 配置数据库持久化 (SQLite WAL模式 + 备份)
   - 验收标准: 数据库文件存在，备份脚本配置完成
+  - 完成: 2026-03-24
 
-- [ ] **DEPLOY-04**: 配置 HTTPS 证书 (Let's Encrypt 免费)
-  - 验收标准: https://域名 可正常访问，证书有效
+- [x] **DEPLOY-04**: ~~配置 HTTPS 证书~~ (跳过 - 无域名)
+  - 原因: 当前无域名，使用 HTTP 访问
+  - 未来: 有域名后可用 `certbot --nginx` 配置
 
 ## Future Requirements
 
@@ -53,14 +58,14 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GIT-01 | Phase 36 | Pending |
-| GIT-02 | Phase 36 | Pending |
+| GIT-01 | Phase 36 | Complete |
+| GIT-02 | Phase 36 | Complete |
 | CLOUD-01 | Phase 37 | Complete |
-| CLOUD-02 | Phase 37 | Pending |
-| DEPLOY-01 | Phase 38 | Pending |
-| DEPLOY-02 | Phase 38 | Pending |
-| DEPLOY-03 | Phase 38 | Pending |
-| DEPLOY-04 | Phase 38 | Pending |
+| CLOUD-02 | Phase 37 | Complete |
+| DEPLOY-01 | Phase 38 | Complete |
+| DEPLOY-02 | Phase 38 | Complete |
+| DEPLOY-03 | Phase 38 | Complete |
+| DEPLOY-04 | Phase 38 | Skipped (no domain) |
 
 ---
 *Requirements defined: 2026-03-23*

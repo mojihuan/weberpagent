@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: 项目云端部署
-status: Ready to execute
-stopped_at: Completed 37-01-PLAN.md
-last_updated: "2026-03-23T10:08:15.289Z"
+status: Milestone complete
+stopped_at: Phase 38 complete
+last_updated: "2026-03-24T05:15:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,26 +19,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 37 — 云服务器选型
+**Current focus:** Milestone v0.5.0 complete
 
 ## Current Position
 
-Phase: 37 (云服务器选型) — EXECUTING
-Plan: 2 of 2
+Phase: 38 (部署执行) — COMPLETE
+Milestone: v0.5.0 (项目云端部署) — COMPLETE
 
 ## Last Shipped
 
-**v0.4.2 人工验证断言系统** (2026-03-23)
+**v0.5.0 项目云端部署** (2026-03-24)
 
-- Phase 33: 人工验证断言执行 - Complete
-- Phase 34: Bug 修复 - Skipped (fixed in Phase 33)
-- Phase 35: 文档完善 - Complete
+- Phase 36: Git 仓库迁移 - Complete
+- Phase 37: 云服务器选型 - Complete
+- Phase 38: 部署执行 - Complete (HTTPS skipped - no domain)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 92 (all milestones)
+- Total plans completed: 97 (all milestones)
 - Average duration: ~5 min per plan
 
 ## Accumulated Context
@@ -53,6 +53,8 @@ Recent decisions affecting current work:
 - [v0.5.0] 操作系统: Ubuntu 22.04 (Playwright 兼容性最佳)
 - [v0.5.0] 部署架构: FastAPI + Gunicorn + Nginx + SQLite WAL
 - [Phase 37]: Cloud provider: Alibaba Cloud (best price/performance for new users, ~16.6 CNY/month)
+- [Phase 38]: HTTPS skipped - no domain available
+- [Phase 38]: HTTP access accepted for v0.5.0
 
 ### Pending Todos
 
@@ -64,8 +66,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-03-23T10:08:15.287Z
-Stopped at: Completed 37-01-PLAN.md
-Resume file: None
+Last session: 2026-03-24T05:15:00.000Z
+Stopped at: Phase 38 complete
+Milestone: v0.5.0 complete
 
-Run `/gsd:plan-phase 36` or `/gsd:plan-phase 37` to start planning.
+Run `/gsd:new-milestone` to start a new milestone.

@@ -3,7 +3,7 @@
 ## Milestones
 
 - **v0.4.2 人工验证断言系统** - Phases 33-35 (shipped 2026-03-23)
-- **v0.5.0 项目云端部署** - Phases 36-38 (in progress)
+- **v0.5.0 项目云端部署** - Phases 36-38 (shipped 2026-03-24)
 
 ## Phases
 
@@ -34,7 +34,7 @@ Plans:
 
 </details>
 
-### v0.5.0 项目云端部署 (In Progress)
+### v0.5.0 项目云端部署 (SHIPPED 2026-03-24)
 
 **Milestone Goal:** 将 aiDriveUITest 项目部署到国产云端服务器，并完成 Git 仓库迁移
 
@@ -64,24 +64,21 @@ Plans:
 
 Plans:
 - [x] 37-01-PLAN.md - 创建云服务器调研报告 (CLOUD-01)
-- [ ] 37-02-PLAN.md - 引导用户购买并验证 SSH 登录 (CLOUD-02)
+- [x] 37-02-PLAN.md - 引导用户购买并验证 SSH 登录 (CLOUD-02)
 
 #### Phase 38: 部署执行
 **Goal**: 将项目完整部署到云端服务器
 **Depends on**: Phase 36, Phase 37
 **Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04
 **Success Criteria** (what must be TRUE):
-  1. 用户可通过 HTTPS 访问前端页面
+  1. 用户可通过 HTTP 访问前端页面 (HTTPS 跳过 - 无域名)
   2. API 接口可正常响应（`/api/tasks` 等）
   3. 数据库文件存在且备份脚本配置完成
   4. `systemctl status aidriveuitest` 显示服务 active
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 38-01: 部署后端服务
-- [ ] 38-02: 部署前端服务
-- [ ] 38-03: 配置数据库持久化
-- [ ] 38-04: 配置 HTTPS 证书
+- [x] 38-01: 部署验证与归档
 
 ## Progress
 
@@ -90,9 +87,9 @@ Phases 36, 37 可并行执行 - Phase 38
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 36. Git 仓库迁移 | v0.5.0 | 2/2 | Complete    | 2026-03-23 |
-| 37. 云服务器选型 | v0.5.0 | 1/2 | In Progress|  |
-| 38. 部署执行 | v0.5.0 | 0/4 | Not started | - |
+| 36. Git 仓库迁移 | v0.5.0 | 2/2 | Complete | 2026-03-23 |
+| 37. 云服务器选型 | v0.5.0 | 2/2 | Complete | 2026-03-24 |
+| 38. 部署执行 | v0.5.0 | 1/1 | Complete | 2026-03-24 |
 
 ---
 
