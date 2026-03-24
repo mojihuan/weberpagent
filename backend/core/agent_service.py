@@ -12,6 +12,8 @@ from typing import Any, Callable, Optional, Union
 from browser_use import Agent, BrowserSession, BrowserProfile
 
 from backend.llm.factory import create_llm
+from backend.agent.tools import register_scroll_table_tool
+from backend.agent.tools import register_scroll_table_tool
 
 
 # 服务器环境必需的 Chrome 参数
@@ -230,10 +232,12 @@ class AgentService:
         # 创建本地浏览器会话
         browser_session = create_browser_session()
 
+        # Register custom tools (Phase 40)
+        register_scroll_table_tool()
+
         # Create loop intervention tracker (per D-01)
         tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
         loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
-
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
             # 提取动作和推理 - 从 agent_output 顶层获取
