@@ -1,7 +1,10 @@
 """Agent 服务 - 封装 browser-use Agent"""
 
 import base64
+import hashlib
+import json
 import logging
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Optional, Union
@@ -20,6 +23,95 @@ SERVER_BROWSER_ARGS = [
     '--disable-software-rasterizer',
     '--disable-extensions',
 ]
+
+
+class LoopInterventionTracker:
+    """Tracks action repetition and page stagnation for early intervention.
+
+    Per D-01: Triggers intervention when stagnation >= 5.
+    Maintains independent tracking parallel to browser-use's internal ActionLoopDetector.
+    """
+
+    def __init__(self, window_size: int = 20, stagnation_threshold: int = 5):
+        self.window_size = window_size
+        self.stagnation_threshold = stagnation_threshold
+        self.recent_action_hashes: list[str] = []
+        self.recent_page_fingerprints: list[str] = []
+        self.consecutive_stagnant_pages: int = 0
+        self.max_repetition_count: int = 0
+        self.recent_actions: list[dict] = []
+
+    def _compute_action_hash(self, action_name: str, params: dict) -> str:
+        """Compute hash for action similarity detection."""
+        if action_name in ('click', 'input'):
+            index = params.get('index')
+            if action_name == 'input':
+                text = str(params.get('text', '')).strip().lower()
+                normalized = f'input|{index}|{text}'
+            else:
+                normalized = f'click|{index}'
+        elif action_name == 'navigate':
+            url = str(params.get('url', ''))
+            normalized = f'navigate|{url}'
+        else:
+            filtered = {k: v for k, v in sorted(params.items()) if v is not None}
+            normalized = f'{action_name}|{json.dumps(filtered, sort_keys=True, default=str)}'
+        return hashlib.sha256(normalized.encode('utf-8')).hexdigest()[:12]
+
+    def record_action(self, action_name: str, params: dict) -> None:
+        """Record action and update repetition stats."""
+        h = self._compute_action_hash(action_name, params)
+        self.recent_action_hashes.append(h)
+        self.recent_actions.append({"action": action_name, "params": params})
+        if len(self.recent_action_hashes) > self.window_size:
+            self.recent_action_hashes = self.recent_action_hashes[-self.window_size:]
+            self.recent_actions = self.recent_actions[-self.window_size:]
+        self._update_repetition_stats()
+
+    def _update_repetition_stats(self) -> None:
+        """Update max_repetition_count from recent action hashes."""
+        if not self.recent_action_hashes:
+            self.max_repetition_count = 0
+            return
+        counts = Counter(self.recent_action_hashes)
+        self.max_repetition_count = max(counts.values()) if counts else 0
+
+    def record_page_state(self, url: str, dom_hash: str) -> None:
+        """Record page fingerprint and update stagnation count.
+
+        Semantics: consecutive_stagnant_pages counts how many times we've seen
+        the same page state consecutively. First occurrence = 1, second = 2, etc.
+        """
+        fp = f"{url}:{dom_hash}"
+        if self.recent_page_fingerprints and self.recent_page_fingerprints[-1] == fp:
+            # Same as previous - increment count
+            self.consecutive_stagnant_pages += 1
+        else:
+            # Different from previous (or first ever) - start count at 1
+            self.consecutive_stagnant_pages = 1
+        self.recent_page_fingerprints.append(fp)
+        if len(self.recent_page_fingerprints) > self.window_size:
+            self.recent_page_fingerprints = self.recent_page_fingerprints[-self.window_size:]
+
+    def should_intervene(self) -> bool:
+        """Check if intervention threshold is reached (D-01: stagnation >= 5)."""
+        return self.consecutive_stagnant_pages >= self.stagnation_threshold
+
+    def get_intervention_message(self) -> str:
+        """Generate intervention prompt for the agent (per D-01)."""
+        return (
+            f"检测到连续 {self.consecutive_stagnant_pages} 次相同页面状态。"
+            "请尝试：1) 滚动页面查看更多元素 2) 使用不同的选择器 3) 如果当前步骤非关键，考虑跳过"
+        )
+
+    def get_diagnostic_info(self) -> dict:
+        """Get diagnostic information for logging/storage (per D-02)."""
+        return {
+            "stagnation": self.consecutive_stagnant_pages,
+            "max_repetition_count": self.max_repetition_count,
+            "recent_actions": self.recent_actions[-10:],
+            "intervention_triggered": self.should_intervene(),
+        }
 
 
 def create_browser_session() -> BrowserSession:

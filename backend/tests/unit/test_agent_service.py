@@ -111,11 +111,12 @@ class TestLoopInterventionTracker:
 
         tracker = LoopInterventionTracker()
 
-        # Call twice with SAME values - stagnation should increment
+        # Call twice with SAME values - stagnation should be 2
         tracker.record_page_state("http://example.com", "hash123")
-        tracker.record_page_state("http://example.com", "hash123")
+        assert tracker.consecutive_stagnant_pages == 1  # First occurrence
 
-        assert tracker.consecutive_stagnant_pages == 1
+        tracker.record_page_state("http://example.com", "hash123")
+        assert tracker.consecutive_stagnant_pages == 2  # Second consecutive
 
     def test_diagnostic_info_structure(self):
         """get_diagnostic_info() returns dict with stagnation, recent_actions keys"""
@@ -142,11 +143,11 @@ class TestLoopInterventionTracker:
         # Record 3 stagnant states
         for _ in range(3):
             tracker.record_page_state("http://example.com", "hash123")
-        assert tracker.consecutive_stagnant_pages == 2  # 3 same = 2 increments
+        assert tracker.consecutive_stagnant_pages == 3  # 3 consecutive same states
 
-        # Record different page state
+        # Record different page state - resets to 1 (first occurrence of new state)
         tracker.record_page_state("http://example.com", "hash456")
-        assert tracker.consecutive_stagnant_pages == 0  # Reset
+        assert tracker.consecutive_stagnant_pages == 1  # First occurrence of new state
 
     def test_should_not_intervene_below_threshold(self):
         """should_intervene() returns False when stagnation < threshold"""
