@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Agent 行为优化
 status: Defining requirements
-last_updated: "2026-03-24T08:06:08.414Z"
+last_updated: "2026-03-24T08:13:43.620Z"
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -56,6 +56,7 @@ Recent decisions affecting current work:
 - [v0.5.0] 部署架构: FastAPI + Gunicorn + Nginx + SQLite WAL
 - [v0.6.0] 不修改 browser-use 核心库，通过项目层面优化
 - [Phase 39-loop-intervention-basics]: Stagnation count semantics: consecutive_stagnant_pages = count of consecutive same states (first=1, second=2, etc.)
+- [Phase 39-loop-intervention-basics]: Use Text type (not String) for loop_intervention to accommodate longer JSON
 
 ### Research Findings (v0.6.0)
 
@@ -84,7 +85,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-24T08:06:08.412Z
+Last session: 2026-03-24T08:13:43.618Z
 Milestone: v0.6.0 started
 Status: Defining requirements
 
