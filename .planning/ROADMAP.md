@@ -4,8 +4,102 @@
 
 - **v0.4.2 人工验证断言系统** - Phases 33-35 (shipped 2026-03-23)
 - **v0.5.0 项目云端部署** - Phases 36-38 (shipped 2026-03-24)
+- **v0.6.0 Agent 行为优化** - Phases 39-41 (current)
 
 ## Phases
+
+<details>
+<summary>v0.5.0 项目云端部署 (Phases 36-38) - SHIPPED 2026-03-24</summary>
+
+### Phase 36: Git 仓库迁移
+**Goal**: 项目代码迁移到用户自己的仓库，便于云端部署
+**Plans**: 2 plans
+
+Plans:
+- [x] 36-01-PLAN.md - Git remote 替换
+- [x] 36-02-PLAN.md - webseleniumerp 子目录管理
+
+### Phase 37: 云服务器选型
+**Goal**: 选择并购买符合预算要求的云服务器
+**Plans**: 2 plans
+
+Plans:
+- [x] 37-01-PLAN.md - 云服务器调研报告
+- [x] 37-02-PLAN.md - 购买并验证 SSH 登录
+
+### Phase 38: 部署执行
+**Goal**: 将项目完整部署到云端服务器
+**Plans**: 1 plan
+
+Plans:
+- [x] 38-01: 部署验证与归档
+
+</details>
+
+---
+
+## v0.6.0 Agent 行为优化 (Current)
+
+**Milestone Goal:** 优化 Agent 在复杂场景下的执行效率，减少无效循环，提高任务成功率
+
+**Context:** 从执行日志发现 agent 在步骤 11（输入销售金额）陷入 stagnation=27 的循环，浪费了大量步骤。browser-use 已有循环检测机制但只提醒不干预。
+
+### Phase 39: 循环干预优化 (基础)
+**Goal**: 实现更早的循环干预和增强日志
+**Depends on**: Nothing
+**Requirements**: LOOP-01, LOG-01
+**Success Criteria** (what must be TRUE):
+  1. stagnation 达到 5 时自动尝试跳过当前困难步骤
+  2. 循环检测触发时输出详细诊断信息（stagnation 值、最近动作、页面变化）
+  3. 用户可在报告中看到循环干预记录
+**Plans**: 2 plans
+
+Plans:
+- [ ] 39-01: 实现自定义 hook 监控 stagnation 并触发跳过逻辑 (LOOP-01)
+- [ ] 39-02: 增强循环日志输出，包含完整诊断信息 (LOG-01)
+
+### Phase 40: 表格元素定位增强
+**Goal**: 解决水平滚动表格内输入字段定位问题
+**Depends on**: Phase 39
+**Requirements**: LOOP-02, LOOP-04
+**Success Criteria** (what must be TRUE):
+  1. 销售出库场景中能成功输入销售金额
+  2. 水平滚动表格内的输入字段能被正确定位和操作
+  3. 无法完成的步骤被跳过后，后续步骤能继续执行
+**Plans**: 2 plans
+
+Plans:
+- [ ] 40-01: 创建自定义工具 `scroll_table_and_input` (LOOP-02)
+- [ ] 40-02: 实现智能跳过与继续逻辑 (LOOP-04)
+
+### Phase 41: 配置化与验证
+**Goal**: 允许用户自定义参数，并验证整体优化效果
+**Depends on**: Phase 40
+**Requirements**: LOOP-03, LOG-02
+**Success Criteria** (what must be TRUE):
+  1. 用户可在 TaskConfig 中配置 max_stagnation 等参数
+  2. 报告中包含每步执行统计（时间、动作次数、页面变化）
+  3. 销售出库用例能完整执行成功（包括步骤 11）
+**Plans**: 2 plans
+
+Plans:
+- [ ] 41-01: 扩展 AgentSettings 配置项 (LOOP-03)
+- [ ] 41-02: 添加步骤执行统计和最终验证 (LOG-02)
+
+## Progress
+
+**Execution Order:**
+Phase 39 → Phase 40 → Phase 41
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 39. 循环干预优化 | v0.6.0 | 0/2 | Pending | - |
+| 40. 表格元素定位 | v0.6.0 | 0/2 | Pending | - |
+| 41. 配置化与验证 | v0.6.0 | 0/2 | Pending | - |
+
+---
+
+## Previous Milestones (Archived)
 
 <details>
 <summary>v0.4.2 人工验证断言系统 (Phases 33-35) - SHIPPED 2026-03-23</summary>
@@ -34,63 +128,6 @@ Plans:
 
 </details>
 
-### v0.5.0 项目云端部署 (SHIPPED 2026-03-24)
-
-**Milestone Goal:** 将 aiDriveUITest 项目部署到国产云端服务器，并完成 Git 仓库迁移
-
-#### Phase 36: Git 仓库迁移
-**Goal**: 项目代码迁移到用户自己的 Git 仓库，便于云端部署
-**Depends on**: Nothing
-**Requirements**: GIT-01, GIT-02
-**Success Criteria** (what must be TRUE):
-  1. 用户可在自己的 Git 仓库中看到 weberpagent 项目代码
-  2. 用户可在项目中看到 webseleniumerp 目录并正常引用
-  3. `git remote -v` 显示用户的新仓库地址
-**Plans**: 2 plans
-
-Plans:
-- [x] 36-01-PLAN.md - 将 Git remote 从当前仓库替换为用户自己的仓库
-- [x] 36-02-PLAN.md - 将 webseleniumerp 复制到项目中作为子目录管理
-
-#### Phase 37: 云服务器选型
-**Goal**: 选择并购买符合预算要求的云服务器
-**Depends on**: Nothing (可与 Phase 36 并行)
-**Requirements**: CLOUD-01, CLOUD-02
-**Success Criteria** (what must be TRUE):
-  1. 用户可查看调研报告，了解阿里云/腾讯云/华为云的性价比对比
-  2. 用户已购买云服务器并可通过 SSH 登录
-  3. 云服务器系统为 Ubuntu 22.04
-**Plans**: 2 plans
-
-Plans:
-- [x] 37-01-PLAN.md - 创建云服务器调研报告 (CLOUD-01)
-- [x] 37-02-PLAN.md - 引导用户购买并验证 SSH 登录 (CLOUD-02)
-
-#### Phase 38: 部署执行
-**Goal**: 将项目完整部署到云端服务器
-**Depends on**: Phase 36, Phase 37
-**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04
-**Success Criteria** (what must be TRUE):
-  1. 用户可通过 HTTP 访问前端页面 (HTTPS 跳过 - 无域名)
-  2. API 接口可正常响应（`/api/tasks` 等）
-  3. 数据库文件存在且备份脚本配置完成
-  4. `systemctl status aidriveuitest` 显示服务 active
-**Plans**: 1 plan
-
-Plans:
-- [x] 38-01: 部署验证与归档
-
-## Progress
-
-**Execution Order:**
-Phases 36, 37 可并行执行 - Phase 38
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 36. Git 仓库迁移 | v0.5.0 | 2/2 | Complete | 2026-03-23 |
-| 37. 云服务器选型 | v0.5.0 | 2/2 | Complete | 2026-03-24 |
-| 38. 部署执行 | v0.5.0 | 1/1 | Complete    | 2026-03-24 |
-
 ---
 
-*Roadmap updated: 2026-03-23 - Phase 37 plans created*
+*Roadmap updated: 2026-03-24 - v0.6.0 milestone started*

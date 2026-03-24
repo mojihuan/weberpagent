@@ -1,30 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5.0
-milestone_name: 项目云端部署
-status: Milestone complete
-stopped_at: Phase 38 complete
-last_updated: "2026-03-24T05:17:17.829Z"
+milestone: v0.6.0
+milestone_name: Agent 行为优化
+status: Defining requirements
+stopped_at: Requirements definition
+last_updated: "2026-03-24T09:00:00.000Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-23)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Milestone v0.5.0 complete
+**Current focus:** Milestone v0.6.0 - Agent 行为优化
 
 ## Current Position
 
-Phase: 38
-Milestone: v0.5.0 (项目云端部署) — COMPLETE
+Phase: Not started (defining requirements)
+Milestone: v0.6.0 (Agent 行为优化) — STARTED
+Status: Defining requirements
+Last activity: 2026-03-24 — Milestone v0.6.0 started
 
 ## Last Shipped
 
@@ -34,11 +36,12 @@ Milestone: v0.5.0 (项目云端部署) — COMPLETE
 - Phase 37: 云服务器选型 - Complete
 - Phase 38: 部署执行 - Complete (HTTPS skipped - no domain)
 
+**Server online**: 121.40.191.49
+
 ## Performance Metrics
 
 **Velocity:**
-
-- Total plans completed: 97 (all milestones)
+- Total plans completed: 102 (all milestones)
 - Average duration: ~5 min per plan
 
 ## Accumulated Context
@@ -46,15 +49,29 @@ Milestone: v0.5.0 (项目云端部署) — COMPLETE
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
 Recent decisions affecting current work:
 
 - [v0.5.0] 预算约束: 100元/月以下
 - [v0.5.0] 推荐云服务器: 阿里云轻量 2核4G (约16.6元/月)
 - [v0.5.0] 操作系统: Ubuntu 22.04 (Playwright 兼容性最佳)
 - [v0.5.0] 部署架构: FastAPI + Gunicorn + Nginx + SQLite WAL
-- [Phase 37]: Cloud provider: Alibaba Cloud (best price/performance for new users, ~16.6 CNY/month)
-- [Phase 38]: HTTPS skipped - no domain available
-- [Phase 38]: HTTP access accepted for v0.5.0
+- [v0.6.0] 不修改 browser-use 核心库，通过项目层面优化
+
+### Research Findings (v0.6.0)
+
+**browser-use 内置循环检测机制:**
+- `ActionLoopDetector` 跟踪动作重复和页面停滞
+- 阈值: 5/8/12 次重复触发不同级别的提醒
+- 页面停滞: 5 次连续相同页面触发提醒
+- **问题**: 只提醒不干预，导致 stagnation=27 仍在循环
+
+**可配置参数 (AgentSettings):**
+- `loop_detection_window: int = 20` - 滚动窗口大小
+- `loop_detection_enabled: bool = True` - 是否启用
+- `max_failures: int = 5` - 最大连续失败次数
+- `step_timeout: int = 180` - 每步超时（秒）
+- `planning_replan_on_stall: int = 3` - 停滞后重新规划
 
 ### Pending Todos
 
@@ -62,12 +79,12 @@ None.
 
 ### Blockers/Concerns
 
-None currently.
+- 水平滚动表格输入框定位是技术难点，需要增强元素定位能力
 
 ## Session Continuity
 
-Last session: 2026-03-24T05:15:00.000Z
-Stopped at: Phase 38 complete
-Milestone: v0.5.0 complete
+Last session: 2026-03-24T09:00:00.000Z
+Milestone: v0.6.0 started
+Status: Defining requirements
 
-Run `/gsd:new-milestone` to start a new milestone.
+Run `/gsd:plan-phase [N]` to start execution after requirements are defined.

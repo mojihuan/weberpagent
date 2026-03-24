@@ -13,24 +13,28 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.5.0 项目云端部署
+## Current Milestone: v0.6.0 Agent 行为优化
 
-**Goal:** 将 aiDriveUITest 项目部署到国产云端服务器，并完成 Git 仓库迁移
+**Goal:** 优化 Agent 在复杂场景下的执行效率，减少无效循环，提高任务成功率
 
 **Target features:**
-- Git 仓库迁移 (当前项目 + webseleniumerp 外置项目)
-- 云服务器选型调研 (预算100元/月以下)
-- 云端部署执行 (后端 + 前端 + 数据库)
+- **循环干预优化** - 降低干预阈值，更早检测并处理循环
+- **表格元素定位增强** - 支持水平滚动表格内的输入字段定位
+- **配置化参数** - 允许用户自定义循环检测阈值
+- **智能跳过机制** - 检测到无法完成的步骤时跳过并继续
+
+**Key context:**
+- browser-use 已有内置循环检测（5/8/12 次阈值），但只是提醒不会干预
+- 水平滚动表格是 ERP 系统常见场景，需要专门处理
+- 当前 max_steps=50，循环浪费了大量步骤（如 stagnation=27）
 
 **Key constraints:**
-- 预算: 100元/月以下
-- 需要运行浏览器 (Playwright Chromium)
-- 需要持久化存储 (SQLite)
-- LLM 调用需要稳定网络
+- 不修改 browser-use 核心库，通过项目层面配置和自定义工具实现
+- 保持与现有断言系统、前置条件系统的兼容性
 
 ## Current Status
 
-**最新版本:** v0.4.2 人工验证断言系统 ✓ SHIPPED (2026-03-23)
+**最新版本:** v0.5.0 项目云端部署 ✓ SHIPPED (2026-03-24)
 
 断言系统已完成人工验证，`sell_sale_item_list_assert` 能正确执行并返回结果。修复了 5 个 bug，创建了完整的使用指南文档。
 
@@ -44,6 +48,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.4.0 断言系统集成 (2026-03-21) - ✓ SHIPPED
 - v0.4.1 断言系统调通 (2026-03-22) - ✓ SHIPPED
 - v0.4.2 人工验证断言系统 (2026-03-23) - ✓ SHIPPED
+- v0.5.0 项目云端部署 (2026-03-24) - ✓ SHIPPED
 
 **三层参数架构现已完整:**
 - api_params: API 查询参数 (i, j, k 等)
@@ -99,16 +104,19 @@ v0.4.2 人工验证断言系统 (2026-03-23):
 
 ### Active
 
-**v0.5.0 项目云端部署:**
-- [ ] **GIT-01**: 将 weberpagent 项目 git 源迁移到用户自己的仓库
-- [ ] **GIT-02**: 将 webseleniumerp 外置项目 git 源迁移到用户自己的仓库
-- [ ] **CLOUD-01**: 调研国产云服务器性价比方案 (100元/月以下)
-- [ ] **CLOUD-02**: 选择并购买云服务器
-- [ ] **DEPLOY-01**: 部署后端服务 (FastAPI + uvicorn)
-- [ ] **DEPLOY-02**: 部署前端服务 (React + Nginx)
-- [ ] **DEPLOY-03**: 配置数据库持久化 (SQLite)
-- [ ] **DEPLOY-04**: 配置浏览器环境 (Playwright Chromium)
-- [ ] **DEPLOY-05**: 配置域名和 HTTPS (可选)
+**v0.6.0 Agent 行为优化:**
+- [ ] **LOOP-01**: 更早的循环干预 - 降低 stagnation 阈值，在 5 次时就尝试跳过困难步骤
+- [ ] **LOOP-02**: 增强表格元素定位 - 支持水平滚动表格内的输入字段定位
+- [ ] **LOOP-03**: 配置化循环检测参数 - 允许用户自定义循环检测阈值
+- [ ] **LOOP-04**: 智能跳过与继续 - 当检测到无法完成的步骤时，跳过并继续后续步骤
+
+### Validated (Previous Milestones)
+
+**v0.5.0 项目云端部署 (Shipped: 2026-03-24):**
+- [x] **GIT-01**: Git 仓库迁移完成
+- [x] **CLOUD-01/02**: 阿里云轻量 2核4G (约16.6元/月)
+- [x] **DEPLOY-01-04**: FastAPI + Gunicorn + Nginx + SQLite WAL 部署完成
+- [x] **DEPLOY-05**: HTTPS 跳过（无域名）
 
 ### Out of Scope
 
@@ -183,4 +191,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 - v0.5.0 milestone started*
+*Last updated: 2026-03-24 - v0.6.0 milestone started*
