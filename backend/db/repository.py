@@ -172,6 +172,17 @@ class RunRepository:
         return run
 
     async def add_step(self, run_id: str, step_data: dict) -> Step:
+        """Add a step to a run.
+
+        Args:
+            run_id: The run ID
+            step_data: Dict with step fields. Required: step_index, action, status.
+                      Optional: reasoning, screenshot_path, error, duration_ms,
+                      loop_intervention (JSON string, Phase 39 LOG-01).
+
+        Returns:
+            The created Step instance
+        """
         step = Step(run_id=run_id, **step_data)
         self.session.add(step)
         await self.session.commit()
