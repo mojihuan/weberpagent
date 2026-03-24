@@ -6,9 +6,29 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Optional, Union
 
-from browser_use import Agent
+from browser_use import Agent, BrowserSession, BrowserProfile
 
 from backend.llm.factory import create_llm
+
+
+# 服务器环境必需的 Chrome 参数
+SERVER_BROWSER_ARGS = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--disable-software-rasterizer',
+    '--disable-extensions',
+]
+
+
+def create_browser_session() -> BrowserSession:
+    """创建适用于服务器的 BrowserSession"""
+    browser_profile = BrowserProfile(
+        headless=True,
+        args=SERVER_BROWSER_ARGS,
+    )
+    return BrowserSession(browser_profile=browser_profile)
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +96,13 @@ class AgentService:
         llm = create_llm(llm_config)
         logger.info(f"LLM 创建成功: type={type(llm).__name__}")
 
+        # 创建本地浏览器会话
+        browser_session = create_browser_session()
+
         agent = Agent(
             task=task,
             llm=llm,
+            browser_session=browser_session,
             max_actions_per_step=5,
         )
 
@@ -110,6 +134,9 @@ class AgentService:
         logger.info(f"[{run_id}] 创建 LLM: config={llm_config}")
         llm = create_llm(llm_config)
         logger.info(f"[{run_id}] LLM 创建成功: type={type(llm).__name__}, model={getattr(llm, 'model_name', 'unknown')}")
+
+        # 创建本地浏览器会话
+        browser_session = create_browser_session()
 
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
@@ -165,6 +192,7 @@ class AgentService:
         agent = Agent(
             task=actual_task,
             llm=llm,
+            browser_session=browser_session,
             max_actions_per_step=5,
             register_new_step_callback=step_callback,
         )
