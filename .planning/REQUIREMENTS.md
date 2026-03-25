@@ -35,15 +35,16 @@
   - 实现方式: 自定义 hook 监控 stagnation，触发跳过逻辑
   - 验收标准: stagnation 达到 5 时自动尝试跳过当前步骤
 
-- [ ] **LOOP-02**: 增强表格元素定位
+- [x] **LOOP-02**: 增强表格元素定位
   - 支持水平滚动表格内的输入字段定位
   - 实现方式: 创建自定义工具 `scroll_table_and_input`
   - 验收标准: 销售出库场景中能成功输入销售金额
 
-- [ ] **LOOP-03**: 配置化循环检测参数
-  - 允许用户自定义循环检测阈值
-  - 实现方式: 扩展 AgentSettings 配置项，传递给 browser-use
-  - 验收标准: 用户可在 TaskConfig 中配置 max_stagnation 等参数
+- [x] **LOOP-03**: 配置化循环检测参数 (已满足，无需代码修改)
+  - 决策 (D-01): 保持当前硬编码实现，stagnation_threshold=5 已满足需求
+  - 用户不需要多档预设，当前阈值已足够
+  - 实现方式: N/A - 维持现状
+  - 验收标准: stagnation >= 5 触发干预 (已实现于 Phase 39)
 
 - [x] **LOOP-04**: 智能跳过与继续
   - 当检测到无法完成的步骤时，跳过并继续后续步骤
@@ -57,7 +58,7 @@
   - 包含: 当前 stagnation 值、最近动作、页面变化
   - 验收标准: 日志中包含完整的循环诊断信息
 
-- [ ] **LOG-02**: 步骤执行统计
+- [x] **LOG-02**: 步骤执行统计
   - 记录每步执行时间、动作次数、页面变化
   - 用于后续分析和优化
   - 验收标准: 报告中包含每步详细统计
@@ -89,10 +90,10 @@
 |-------------|-------|--------|
 | LOOP-01 | Phase 39 | Complete |
 | LOG-01 | Phase 39 | Complete |
-| LOOP-02 | Phase 40 | Pending |
+| LOOP-02 | Phase 40 | Complete |
 | LOOP-04 | Phase 40 | Complete |
-| LOOP-03 | Phase 41 | Pending |
-| LOG-02 | Phase 41 | Pending |
+| LOOP-03 | Phase 41 | Complete |
+| LOG-02 | Phase 41 | Complete |
 
 ---
 *Requirements defined: 2026-03-24*
