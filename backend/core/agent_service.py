@@ -502,6 +502,12 @@ class AgentService:
         loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
         step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
         td_post_process_result = None  # TD 后处理结果临时存储 (Phase 42, D-06)
+        # Initialize element_diagnostics (Phase 44, LOG-03, per D-01, D-02)
+        element_diagnostics = {
+            "non_interactive_elements": [],
+            "fallback_triggered": False,
+            "fallback_reason": None
+        }
 
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
@@ -621,8 +627,21 @@ class AgentService:
                                             } if fallback_result.get('success') else None,
                                             'input_value': action_params.get('text')
                                         }
+
                             except Exception as e:
                                 logger.warning(f"[{run_id}] Fallback input detection error: {e}")
+
+                            except Exception as e:
+                                logger.warning(f"[{run_id}] Fallback input detection error: {e}")
+
+                        # Link fallback info to element_diagnostics (Phase 44, per D-03)
+                        if td_post_process_result and td_post_process_result.get('fallback'):
+                            element_diagnostics['fallback_triggered'] = True
+                            element_diagnostics['fallback_reason'] = td_post_process_result['fallback'].get('trigger_reason')
+                            element_diagnostics['fallback_result'] = td_post_process_result['fallback']
+
+                            logger.info(f"[{run_id}] Element diagnostics: {element_diagnostics}")
+
 
                         # 记录动作中的 index 信息（用于调试定位问题）
                         if 'index' in action_params:
