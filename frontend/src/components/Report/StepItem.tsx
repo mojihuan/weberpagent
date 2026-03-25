@@ -65,6 +65,25 @@ export function StepItem({ step, defaultExpanded = false }: StepItemProps) {
             </div>
           )}
 
+          {/* Step Statistics (Phase 41, LOG-02) */}
+          {step.step_stats && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded">
+                Actions: {step.step_stats.action_count}
+              </span>
+              <span className={`inline-flex items-center px-2 py-1 text-xs rounded ${
+                step.step_stats.stagnation >= 5
+                  ? 'bg-orange-50 text-orange-700'
+                  : 'bg-gray-50 text-gray-700'
+              }`}>
+                Stagnation: {step.step_stats.stagnation}
+              </span>
+              <span className="inline-flex items-center px-2 py-1 text-xs bg-gray-50 text-gray-700 rounded">
+                Elements: {step.step_stats.element_count ?? 0}
+              </span>
+            </div>
+          )}
+
           {/* 截图和推理 */}
           <div className="grid grid-cols-2 gap-4">
             {/* 截图预览 */}
