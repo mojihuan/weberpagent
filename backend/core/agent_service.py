@@ -13,7 +13,6 @@ from browser_use import Agent, BrowserSession, BrowserProfile
 
 from backend.llm.factory import create_llm
 from backend.agent.tools import register_scroll_table_tool
-from backend.agent.tools import register_scroll_table_tool
 
 
 # 服务器环境必需的 Chrome 参数
@@ -100,11 +99,53 @@ class LoopInterventionTracker:
         return self.consecutive_stagnant_pages >= self.stagnation_threshold
 
     def get_intervention_message(self) -> str:
-        """Generate intervention prompt for the agent (per D-01)."""
-        return (
-            f"检测到连续 {self.consecutive_stagnant_pages} 次相同页面状态。"
-            "请尝试：1) 滚动页面查看更多元素 2) 使用不同的选择器 3) 如果当前步骤非关键，考虑跳过"
-        )
+        """Generate intervention prompt for the agent (per D-01).
+
+        Provides context-specific suggestions based on recent action patterns.
+        """
+        base_msg = f"⚠️ 循环干预: 连续 {self.consecutive_stagnant_pages} 次相同页面状态。"
+
+        # Analyze recent action patterns for targeted suggestions
+        recent_action_types = [a.get('action', '') for a in self.recent_actions[-5:]]
+        action_counts = {}
+        for action_type in recent_action_types:
+            action_counts[action_type] = action_counts.get(action_type, 0) + 1
+
+        suggestions = []
+
+        # Check for repeated input failures
+        if action_counts.get('input', 0) >= 3:
+            suggestions.extend([
+                "输入操作可能失败: 1) 确认点击的是 INPUT 元素而非 TD 单元格",
+                "2) 使用 scroll_table_and_input_action 工具处理表格输入",
+                "3) 先用 find_elements 查找所有输入框再选择正确的 index"
+            ])
+
+        # Check for repeated click failures
+        elif action_counts.get('click', 0) >= 3:
+            suggestions.extend([
+                "点击可能无效: 1) 尝试双击 (doubleClick: true)",
+                "2) 滚动页面后重试 (scroll -> pages: 0.5)",
+                "3) 使用不同的元素选择器或 index"
+            ])
+
+        # Check for scroll_table_and_input failures
+        elif action_counts.get('scroll_table_and_input_action', 0) >= 2:
+            suggestions.extend([
+                "表格工具失败: 1) 检查列标题是否正确 (使用 find_elements 查看表头)",
+                "2) 尝试更通用的列名 (如 '金额' 而非 '销售金额（元）')",
+                "3) 手动定位: find_elements -> click -> input"
+            ])
+
+        # Default suggestions
+        else:
+            suggestions.extend([
+                "1) 滚动页面查看更多元素 (scroll -> down: true)",
+                "2) 使用 find_elements 查找目标元素",
+                "3) 如果当前步骤非关键，考虑跳过"
+            ])
+
+        return base_msg + "\n建议: " + " | ".join(suggestions)
 
     def get_diagnostic_info(self) -> dict:
         """Get diagnostic information for logging/storage (per D-02)."""
@@ -138,6 +179,64 @@ class AgentService:
         self.output_dir = Path(output_dir)
         self.screenshots_dir = Path(screenshots_dir)
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
+        self._browser_session = None  # 存储浏览器会话引用供 step_callback 访问
+
+    async def _post_process_td_click(self, page) -> dict:
+        """TD 后处理: 检测 td 点击并转移焦点到内部输入框.
+
+        Per D-01, D-02, D-03, D-04: 在 step_callback 中添加 TD 后处理逻辑。
+        - D-01: 实现方式 = 回调后处理
+        - D-02: 触发条件 = 所有 td 点击
+        - D-03: 定位元素范围 = input, textarea, select
+        - D-04: 增强范围 = 仅表格单元格
+
+        Args:
+            page: Playwright page 对象
+
+        Returns:
+            dict: 包含 is_td, input_found, input_tag, input_type, focus_transferred
+        """
+        import asyncio
+
+        try:
+            # 等待浏览器事件传播完成 (避免 Race Condition - Pitfall 3)
+            await asyncio.sleep(0.1)
+
+            result = await page.evaluate('''
+                () => {
+                    // 检查当前活动元素是否在 td 内 (避免 Pitfall 1: Incorrect activeElement)
+                    const activeEl = document.activeElement;
+                    const td = activeEl?.closest('td');
+                    if (!td) {
+                        return { is_td: false };
+                    }
+
+                    // 查找 td 内的 input/textarea/select (排除已获得焦点的)
+                    const input = td.querySelector('input:not(:focus), textarea:not(:focus), select:not(:focus)');
+                    if (input) {
+                        // 使用 focus() 而非 click() 转移焦点 (避免 Pitfall 2: Vue Reactivity)
+                        input.focus();
+                        return {
+                            is_td: true,
+                            input_found: true,
+                            input_tag: input.tagName.toLowerCase(),
+                            input_type: input.type || null,
+                            focus_transferred: true
+                        };
+                    }
+
+                    return { is_td: true, input_found: false };
+                }
+            ''')
+
+            if result.get('input_found'):
+                logger.info(f"TD post-processing: focus transferred to {result.get('input_tag')}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"TD post-processing failed: {e}")
+            return { "is_td": False, "error": str(e) }
 
     async def save_screenshot(
         self, screenshot_data: Union[bytes, str], run_id: str, step_index: int
@@ -232,6 +331,9 @@ class AgentService:
         # 创建本地浏览器会话
         browser_session = create_browser_session()
 
+        # 存储引用供 step_callback 访问 (Phase 42, D-01)
+        self._browser_session = browser_session
+
         # Create custom tools with scroll_table_and_input (Phase 40)
         tools = register_scroll_table_tool()
 
@@ -239,12 +341,64 @@ class AgentService:
         tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
         loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
         step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
+        td_post_process_result = None  # TD 后处理结果临时存储 (Phase 42, D-06)
+
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
-            # 提取动作和推理 - 从 agent_output 顶层获取
-            action = ""
-            reasoning = ""
+
+            # ===== 详细日志: browser_state =====
+            if browser_state:
+                url = getattr(browser_state, "url", "") or ""
+                logger.info(f"[{run_id}][BROWSER] URL: {url}")
+
+                # 记录 DOM 状态（使用正确的属性名 dom_state）
+                dom_state = getattr(browser_state, "dom_state", None)
+                if dom_state:
+                    # dom_state 可能是字符串或对象
+                    dom_str = str(dom_state)
+                    logger.info(f"[{run_id}][BROWSER] DOM 状态长度: {len(dom_str)} 字符")
+
+                    # 将 DOM 内容写入文件（便于调试）
+                    dom_file = self.output_dir / f"dom_{run_id}_step{step}.txt"
+                    dom_file.parent.mkdir(parents=True, exist_ok=True)
+                    dom_file.write_text(dom_str, encoding='utf-8')
+                    logger.info(f"[{run_id}][BROWSER] DOM 已保存到: {dom_file}")
+
+                    # 计算 DOM 哈希用于停滞检测
+                    dom_hash = hashlib.sha256(dom_str.encode('utf-8')).hexdigest()[:12]
+                else:
+                    dom_hash = ""
+                    logger.warning(f"[{run_id}][BROWSER] dom_state 为空")
+
+                # 记录元素树信息（如果存在）
+                element_tree = getattr(browser_state, "element_tree", None)
+                if element_tree is not None:
+                    element_count = len(element_tree) if hasattr(element_tree, '__len__') else 0
+                    logger.info(f"[{run_id}][BROWSER] 元素数量: {element_count}")
+
+                    # 记录前 5 个元素的关键信息
+                    for i, elem in enumerate(list(element_tree)[:5]):
+                        if hasattr(elem, '__dict__'):
+                            elem_dict = {k: v for k, v in elem.__dict__.items()
+                                        if k in ('index', 'tag_name', 'role', 'text', 'aria_label')}
+                            logger.info(f"[{run_id}][BROWSER] 元素[{i}]: {elem_dict}")
+                        elif isinstance(elem, dict):
+                            logger.info(f"[{run_id}][BROWSER] 元素[{i}]: {elem}")
+
+                # 记录页面信息
+                page_info = getattr(browser_state, "page_info", None)
+                if page_info:
+                    logger.debug(f"[{run_id}][BROWSER] page_info: {page_info}")
+
+            else:
+                logger.warning(f"[{run_id}][BROWSER] browser_state 为空!")
+                dom_hash = ""
+
+            # ===== 详细日志: agent_output =====
             if agent_output:
+                # 记录完整的 agent_output 结构
+                logger.info(f"[{run_id}][AGENT] agent_output 类型: {type(agent_output).__name__}")
+
                 # 获取动作名称（第一个动作的类型）
                 if hasattr(agent_output, "action") and agent_output.action:
                     first_action = agent_output.action[0]
@@ -256,20 +410,43 @@ class AgentService:
                         # 格式化为可读字符串
                         action = f"{action_name}: {action_params}" if action_params else action_name
 
+                        logger.info(f"[{run_id}][AGENT] 动作: {action_name}, 参数: {action_params}")
+
                         # Record action for loop detection (D-01)
                         if not isinstance(action_params, dict):
                             action_params = {}
                         tracker.record_action(action_name, action_params)
 
+                        # TD 后处理 (Phase 42, Per D-01, D-02, D-06)
+                        nonlocal td_post_process_result
+                        if action_name == 'click' and self._browser_session:
+                            try:
+                                page = await self._browser_session.get_current_page()
+                                if page:
+                                    td_result = await self._post_process_td_click(page)
+                                    td_post_process_result = td_result
+                                    logger.info(f"[{run_id}] TD post-process result: {td_result}")
+                            except Exception as e:
+                                logger.warning(f"[{run_id}] TD post-processing error: {e}")
+
+                        # 记录动作中的 index 信息（用于调试定位问题）
+                        if 'index' in action_params:
+                            logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
+
                 # 获取推理信息（evaluation + memory + next_goal）
                 parts = []
                 if hasattr(agent_output, "evaluation_previous_goal") and agent_output.evaluation_previous_goal:
                     parts.append(f"Eval: {agent_output.evaluation_previous_goal}")
+                    logger.info(f"[{run_id}][AGENT] 评估: {agent_output.evaluation_previous_goal}")
                 if hasattr(agent_output, "memory") and agent_output.memory:
                     parts.append(f"Memory: {agent_output.memory}")
+                    logger.debug(f"[{run_id}][AGENT] 记忆: {agent_output.memory[:100]}...")
                 if hasattr(agent_output, "next_goal") and agent_output.next_goal:
                     parts.append(f"Goal: {agent_output.next_goal}")
+                    logger.info(f"[{run_id}][AGENT] 下一步: {agent_output.next_goal}")
                 reasoning = " | ".join(parts) if parts else ""
+            else:
+                logger.warning(f"[{run_id}][AGENT] agent_output 为空!")
 
             # Record page state for stagnation detection (D-01)
             if browser_state:
@@ -277,6 +454,7 @@ class AgentService:
                 dom_content = getattr(browser_state, "dom", "") or ""
                 dom_hash = hashlib.sha256(dom_content.encode('utf-8')).hexdigest()[:12] if dom_content else ""
                 tracker.record_page_state(url, dom_hash)
+                logger.debug(f"[{run_id}][STAGNATION] 页面指纹: {dom_hash}, 连续停滞: {tracker.consecutive_stagnant_pages}")
 
             # Collect step statistics (Phase 41, LOG-02, per D-02)
             # Get element count (number of interactive elements on page)
@@ -299,6 +477,9 @@ class AgentService:
                 "duration_ms": 0,  # Will be updated if timing wrapper exists
                 "element_count": element_count,
             }
+            # 添加 TD 后处理结果 (Phase 42, D-06)
+            if td_post_process_result:
+                step_stats['td_post_process'] = td_post_process_result
             step_stats_data["value"] = json.dumps(step_stats, ensure_ascii=False)
 
             # Check for loop intervention (D-01, D-02)

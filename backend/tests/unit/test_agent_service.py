@@ -188,3 +188,121 @@ class TestLoopInterventionTracker:
         assert isinstance(diagnostic["recent_actions"], list)
         assert len(diagnostic["recent_actions"]) == 2
         assert diagnostic["recent_actions"][0]["action"] == "click"
+
+
+class TestTDPostProcessing:
+    """TD 后处理功能测试 (DOM-01)
+
+    Per D-01, D-02, D-03, D-04: 测试 td 点击后焦点转移逻辑
+    """
+
+    @pytest.mark.asyncio
+    async def test_not_td_element(self):
+        """测试非 td 元素点击"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={'is_td': False})
+
+        service = AgentService()
+        result = await service._post_process_td_click(mock_page)
+
+        assert result['is_td'] is False
+
+    @pytest.mark.asyncio
+    async def test_td_with_input(self):
+        """测试 td 内有输入框"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'is_td': True,
+            'input_found': True,
+            'input_tag': 'input',
+            'input_type': 'text',
+            'focus_transferred': True
+        })
+
+        service = AgentService()
+        result = await service._post_process_td_click(mock_page)
+
+        assert result['is_td'] is True
+        assert result['input_found'] is True
+        assert result['focus_transferred'] is True
+
+    @pytest.mark.asyncio
+    async def test_td_without_input(self):
+        """测试 td 内无输入框"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'is_td': True,
+            'input_found': False
+        })
+
+        service = AgentService()
+        result = await service._post_process_td_click(mock_page)
+
+        assert result['is_td'] is True
+        assert result['input_found'] is False
+
+    @pytest.mark.asyncio
+    async def test_error_handling(self):
+        """测试异常处理 - 返回 is_td: false 和 error 信息"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(side_effect=Exception("Browser error"))
+
+        service = AgentService()
+        result = await service._post_process_td_click(mock_page)
+
+        assert result['is_td'] is False
+        assert 'error' in result
+
+    @pytest.mark.asyncio
+    async def test_textarea_focus(self):
+        """测试 td 内有 textarea - 正确识别并转移焦点"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'is_td': True,
+            'input_found': True,
+            'input_tag': 'textarea',
+            'input_type': None,
+            'focus_transferred': True
+        })
+
+        service = AgentService()
+        result = await service._post_process_td_click(mock_page)
+
+        assert result['is_td'] is True
+        assert result['input_tag'] == 'textarea'
+
+    @pytest.mark.asyncio
+    async def test_select_focus(self):
+        """测试 td 内有 select - 正确识别并转移焦点"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'is_td': True,
+            'input_found': True,
+            'input_tag': 'select',
+            'input_type': None,
+            'focus_transferred': True
+        })
+
+        service = AgentService()
+        result = await service._post_process_td_click(mock_page)
+
+        assert result['is_td'] is True
+        assert result['input_tag'] == 'select'
