@@ -497,6 +497,41 @@ class AgentService:
                             except Exception as e:
                                 logger.warning(f"[{run_id}] TD post-processing error: {e}")
 
+                        # Fallback input for td elements (Phase 43, Per D-01, D-04)
+                        if action_name == 'input' and self._browser_session:
+                            try:
+                                page = await self._browser_session.get_current_page()
+                                if page:
+                                    # Check if target element is a td
+                                    check_result = await page.evaluate('''
+                                        (index) => {
+                                            const tds = document.querySelectorAll('td');
+                                            const td = tds[index];
+                                            return { is_td: td !== undefined };
+                                        }
+                                    ''', action_params.get('index'))
+
+                                    if check_result.get('is_td'):
+                                        logger.info(f"[{run_id}] Input action targeting td detected, triggering fallback")
+                                        fallback_result = await self._fallback_input(page, action_params)
+                                        logger.info(f"[{run_id}] Fallback input result: {fallback_result}")
+
+                                        # Store fallback result in td_post_process (Per D-05, D-06)
+                                        if td_post_process_result is None:
+                                            td_post_process_result = {}
+                                        td_post_process_result['fallback'] = {
+                                            'trigger_reason': 'input_on_td',
+                                            'action': 'set_value_and_dispatch_events',
+                                            'success': fallback_result.get('success', False),
+                                            'target_element': {
+                                                'tag': fallback_result.get('target_tag'),
+                                                'type': fallback_result.get('target_type')
+                                            } if fallback_result.get('success') else None,
+                                            'input_value': action_params.get('text')
+                                        }
+                            except Exception as e:
+                                logger.warning(f"[{run_id}] Fallback input detection error: {e}")
+
                         # 记录动作中的 index 信息（用于调试定位问题）
                         if 'index' in action_params:
                             logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
