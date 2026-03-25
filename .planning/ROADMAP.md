@@ -36,7 +36,9 @@ Plans:
 2. 当普通点击未能使输入框获得焦点时,自动使用 `page.evaluate()` 设置值
 3. 降级策略的触发和执行被记录在执行日志中
 4. 用户无需手动介入即可完成表格输入操作
-**Plans:** TBD
+**Plans:** 1 plan
+Plans:
+- [x] 43-01: JavaScript fallback for td input (DOM-02, FALLBACK-01)
 ---
 ### Phase 44: 日志与验证
 **Goal:** 开发者能通过日志快速定位元素定位失败原因,整体解决方案得到验证
@@ -56,7 +58,7 @@ Phase 42 -> Phase 43 -> Phase 44
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. DOM 解析器增强 | v0.6.1 | 1/1 | Complete    | 2026-03-25 |
-| 43. 智能定位与降级 | v0.6.1 | 0/0 | Not started | - |
+| 43. 智能定位与降级 | v0.6.1 | 1/1 | Complete    | 2026-03-25 |
 | 44. 日志与验证 | v0.6.1 | 0/0 | Not started | - |
 ---
 ## Previous Milestone: v0.6.0 Agent 行为优化 (Complete)
@@ -105,10 +107,10 @@ Phase 39 -> Phase 40 -> Phase 41
 ## Coverage
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DOM-01 | Phase 42 | Pending |
-| DOM-02 | Phase 43 | Pending |
-| FALLBACK-01 | Phase 43 | Pending |
+| DOM-01 | Phase 42 | Complete |
+| DOM-02 | Phase 43 | Complete |
+| FALLBACK-01 | Phase 43 | Complete |
 | LOG-03 | Phase 44 | Pending |
 **Total v0.6.1:** 4/4 requirements mapped (100%)
 ---
-*Roadmap updated: 2026-03-25 - Phase 42-01 plan created*
+*Roadmap updated: 2026-03-25 - Phase 43-01 complete*
