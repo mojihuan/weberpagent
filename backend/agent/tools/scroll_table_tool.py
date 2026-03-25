@@ -32,13 +32,7 @@ async def scroll_table_and_input(
 ) -> str:
     """Locate cell in horizontally scrolling table and input value.
 
-    Per D-03 smart scroll logic with auto-detection:
-    1. Find table (auto-detect if generic selector provided)
-    2. Match column_header against table headers to find column index
-    3. Match row_identifier against row text to find target row
-    4. Scroll horizontally if needed
-    5. Find input element in target cell
-    6. Input value
+    Uses JavaScript execution via browser-use Page.evaluate() for all DOM operations.
 
     Args:
         table_selector: CSS selector for the table (or generic, will auto-detect)
@@ -58,116 +52,150 @@ async def scroll_table_and_input(
         if not page:
             return "错误: 无法获取当前页面"
 
-        # Step 1: Locate table (with auto-detection)
-        table = None
+        # 使用 page.evaluate 执行 JavaScript 完成所有操作
+        # JavaScript 必须是 (...args) => 格式
+        js_code = """(tableSelector, rowIdentifier, columnHeader, inputValue) => {
+            // Step 1: Find table (auto-detect if generic selector)
+            let table = null;
+            const specificSelectors = ['table', '.ant-table', '.el-table', '[role="grid"]'];
 
-        # Try specific selector first
-        if table_selector not in ["div", "table", ""]:
-            table = await page.query_selector(table_selector)
+            if (tableSelector && !specificSelectors.includes(tableSelector)) {
+                // Try specific selector first
+                table = document.querySelector(tableSelector);
+            }
 
-        # Auto-detect: find table containing the row_identifier
-        if not table:
-            logger.info(f"Auto-detecting table containing '{row_identifier}'...")
-            tables = await page.query_selector_all("table, .ant-table, [role='grid'], .el-table")
+            if (!table) {
+                // Auto-detect: find table containing rowIdentifier text
+                for (const sel of specificSelectors) {
+                    const tables = document.querySelectorAll(sel);
+                    for (const t of tables) {
+                        if (t.textContent.includes(rowIdentifier)) {
+                            table = t;
+                            break;
+                        }
+                    }
+                    if (table) break;
+                }
+            }
 
-            for t in tables:
-                text = await t.text_content()
-                if text and row_identifier in text:
-                    table = t
-                    logger.info(f"Found table containing '{row_identifier}'")
-                    break
+            if (!table) {
+                return { error: '找不到包含目标文本的表格' };
+            }
 
-        # Fallback: find any element with horizontal scroll containing the row
-        if not table:
-            logger.info("Trying scrollable container detection...")
-            scrollable = await page.query_selector_all("[style*='overflow']")
-            for el in scrollable:
-                text = await el.text_content()
-                if text and row_identifier in text:
-                    table = el
-                    logger.info(f"Found scrollable container containing '{row_identifier}'")
-                    break
+            // Step 2: Find column by header text
+            const headers = table.querySelectorAll('th');
+            let targetColIndex = -1;
 
-        if not table:
-            return f"错误: 找不到包含 '{row_identifier}' 的表格。请确保表格可见且包含目标行。"
+            for (let i = 0; i < headers.length; i++) {
+                const headerText = headers[i].textContent.trim();
+                if (headerText.includes(columnHeader)) {
+                    targetColIndex = i;
+                    break;
+                }
+            }
 
-        # Step 2: Find column by header text
-        # Try th first, then look for header row
-        headers = await table.query_selector_all("th")
-        if not headers:
-            # Try finding headers in first row
-            first_row = await table.query_selector("tr")
-            if first_row:
-                headers = await first_row.query_selector_all("td, th")
+            if (targetColIndex === -1) {
+                // Try to find column in table header row (some tables use tr > td for headers)
+                const headerRows = table.querySelectorAll('thead tr, tr:first-child');
+                for (const row of headerRows) {
+                    const cells = row.querySelectorAll('th, td');
+                    for (let i = 0; i < cells.length; i++) {
+                        if (cells[i].textContent.trim().includes(columnHeader)) {
+                            targetColIndex = i;
+                            break;
+                        }
+                    }
+                    if (targetColIndex !== -1) break;
+                }
+            }
 
-        target_col_index = None
-        for i, header in enumerate(headers):
-            header_text = await header.text_content()
-            if header_text and column_header in header_text.strip():
-                target_col_index = i
-                logger.info(f"Found column '{column_header}' at index {i}")
-                break
+            if (targetColIndex === -1) {
+                return { error: `找不到列 '${columnHeader}'` };
+            }
 
-        if target_col_index is None:
-            # List available columns for debugging
-            available = []
-            for h in headers:
-                t = await h.text_content()
-                if t:
-                    available.append(t.strip())
-            return f"错误: 找不到列 '{column_header}'。可用列: {', '.join(available[:10])}"
+            // Step 3: Find row by identifier text
+            const rows = table.querySelectorAll('tbody tr, tr');
+            let targetRow = null;
 
-        # Step 3: Find row by identifier text
-        rows = await table.query_selector_all("tr")
-        if not rows:
-            # For non-table elements, try finding row-like elements
-            rows = await table.query_selector_all("[role='row'], .ant-table-row, tr")
+            for (const row of rows) {
+                if (row.textContent.includes(rowIdentifier)) {
+                    targetRow = row;
+                    break;
+                }
+            }
 
-        target_row = None
-        for row in rows:
-            row_text = await row.text_content()
-            if row_text and row_identifier in row_text:
-                target_row = row
-                logger.info(f"Found row containing '{row_identifier}'")
-                break
+            if (!targetRow) {
+                return { error: `找不到包含 '${rowIdentifier}' 的行` };
+            }
 
-        if target_row is None:
-            return f"错误: 找不到包含 '{row_identifier}' 的行"
+            // Step 4: Get target cell
+            const cells = targetRow.querySelectorAll('td');
+            if (targetColIndex >= cells.length) {
+                return { error: `列索引 ${targetColIndex} 超出范围` };
+            }
 
-        # Step 4 & 5: Get target cell and scroll into view
-        target_cell = await target_row.query_selector(
-            f"td:nth-child({target_col_index + 1}), [role='gridcell']:nth-child({target_col_index + 1})"
-        )
-        if not target_cell:
-            return f"错误: 无法定位到第 {target_col_index + 1} 列的单元格"
+            const targetCell = cells[targetColIndex];
 
-        # Scroll cell into view (per D-03)
-        await target_cell.scroll_into_view_if_needed()
-        await page.wait_for_timeout(200)  # Wait for scroll animation
+            // Step 5: Find scrollable container and scroll
+            let scrollContainer = table;
 
-        # Step 6: Find input element in cell
-        input_element = await target_cell.query_selector("input, textarea, [contenteditable='true']")
-        if not input_element:
-            # Check if cell itself is editable
-            is_editable = await target_cell.get_attribute("contenteditable")
-            if is_editable == "true":
-                input_element = target_cell
-            else:
-                return "错误: 目标单元格中没有找到输入框，请检查该列是否可编辑"
+            // 查找可滚动的容器（可能是表格的父元素）
+            let parent = table.parentElement;
+            while (parent) {
+                const style = window.getComputedStyle(parent);
+                if (style.overflowX === 'auto' || style.overflowX === 'scroll' ||
+                    parent.scrollWidth > parent.clientWidth) {
+                    scrollContainer = parent;
+                    break;
+                }
+                parent = parent.parentElement;
+            }
 
-        # Step 7: Input value
-        await input_element.focus()
-        await input_element.fill("")  # Clear existing value
-        await page.wait_for_timeout(50)
-        await input_element.type(input_value)
-        await page.wait_for_timeout(100)  # Wait for React/Vue to process
+            // Step 6: Scroll target cell into view
+            targetCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
-        logger.info(
-            f"scroll_table_and_input success: column='{column_header}', "
-            f"row='{row_identifier}', value='{input_value}'"
-        )
+            // Step 7: Find input element in cell
+            const inputElement = targetCell.querySelector('input, textarea');
+            if (!inputElement) {
+                return { error: '目标单元格中没有找到输入框' };
+            }
 
-        return f"成功: 在列 '{column_header}' 的行 '{row_identifier}' 中输入了值: {input_value}"
+            // Step 8: Input value
+            inputElement.focus();
+            inputElement.value = '';
+
+            // Simulate typing
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                window.HTMLInputElement.prototype, 'value'
+            ).set;
+            nativeInputValueSetter.call(inputElement, inputValue);
+
+            // Trigger events for React/Vue
+            inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+            inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+
+            return {
+                success: true,
+                message: `成功: 在列 '${columnHeader}' 的行 '${rowIdentifier}' 中输入了值: ${inputValue}`
+            };
+        }"""
+
+        result_str = await page.evaluate(js_code, table_selector, row_identifier, column_header, input_value)
+
+        # 解析结果
+        import json
+        try:
+            result = json.loads(result_str) if result_str else {}
+        except json.JSONDecodeError:
+            return f"错误: JavaScript 执行返回无效结果: {result_str}"
+
+        if result.get('error'):
+            return f"错误: {result['error']}"
+        elif result.get('success'):
+            logger.info(f"scroll_table_and_input success: {result['message']}")
+            return result['message']
+        else:
+            return f"错误: 未知结果: {result_str}"
 
     except Exception as e:
         logger.error(f"scroll_table_and_input failed: {e}", exc_info=True)
@@ -212,7 +240,7 @@ def create_tools_with_scroll_table() -> Tools:
     return tools
 
 
-# Keep old function name for backward compatibility
+# Keep old function name for backward compatibility, but it now returns Tools instance
 def register_scroll_table_tool(registry=None) -> Tools:
     """Register scroll_table_and_input tool with browser-use.
 
