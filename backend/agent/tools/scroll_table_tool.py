@@ -1,7 +1,7 @@
 """scroll_table_and_input tool for horizontally scrolling table cell location and input.
 
 Per D-01: Specialized tool design for ERP table scenarios.
-Per D-06: Uses Tools.action decorator for browser-use integration.
+Per D-06: Uses Tools.action decorator for browser-use 0.2+ API.
 Per D-07: Returns descriptive errors, lets Agent handle failures.
 """
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class ScrollTableInputParams(BaseModel):
-    """Parameters for scroll_table_and_input tool (per D-02)."""
+    """Parameters for scroll_table_and_input tool (kept for backward compatibility)."""
 
     table_selector: str
     row_identifier: str
@@ -24,7 +24,10 @@ class ScrollTableInputParams(BaseModel):
 
 
 async def scroll_table_and_input(
-    params: ScrollTableInputParams,
+    table_selector: str,
+    row_identifier: str,
+    column_header: str,
+    input_value: str,
     browser_session: Optional[BrowserSession] = None,
 ) -> str:
     """Locate cell in horizontally scrolling table and input value.
@@ -39,7 +42,10 @@ async def scroll_table_and_input(
     7. Input value into the input element
 
     Args:
-        params: ScrollTableInputParams with table_selector, row_identifier, column_header, input_value
+        table_selector: CSS selector for the table element
+        row_identifier: Text content to identify the target row
+        column_header: Text content of the column header
+        input_value: Value to input into the cell
         browser_session: Browser session from browser-use (injected)
 
     Returns:
@@ -54,9 +60,9 @@ async def scroll_table_and_input(
             return "错误: 无法获取当前页面"
 
         # Step 1: Locate table
-        table = await page.query_selector(params.table_selector)
+        table = await page.query_selector(table_selector)
         if not table:
-            return f"错误: 找不到表格 '{params.table_selector}'"
+            return f"错误: 找不到表格 '{table_selector}'"
 
         # Step 2: Find column by header text
         headers = await table.query_selector_all("th")
@@ -64,12 +70,12 @@ async def scroll_table_and_input(
 
         for i, header in enumerate(headers):
             header_text = await header.text_content()
-            if header_text and params.column_header in header_text.strip():
+            if header_text and column_header in header_text.strip():
                 target_col_index = i
                 break
 
         if target_col_index is None:
-            return f"错误: 找不到列 '{params.column_header}'"
+            return f"错误: 找不到列 '{column_header}'"
 
         # Step 3: Find row by identifier text
         rows = await table.query_selector_all("tr")
@@ -77,12 +83,12 @@ async def scroll_table_and_input(
 
         for row in rows:
             row_text = await row.text_content()
-            if row_text and params.row_identifier in row_text:
+            if row_text and row_identifier in row_text:
                 target_row = row
                 break
 
         if target_row is None:
-            return f"错误: 找不到包含 '{params.row_identifier}' 的行"
+            return f"错误: 找不到包含 '{row_identifier}' 的行"
 
         # Step 4 & 5: Get target cell and scroll into view
         target_cell = await target_row.query_selector(
@@ -103,14 +109,14 @@ async def scroll_table_and_input(
         # Step 7: Input value
         await input_element.focus()
         await input_element.fill("")  # Clear existing value
-        await input_element.type(params.input_value)
+        await input_element.type(input_value)
 
         logger.info(
-            f"scroll_table_and_input success: column='{params.column_header}', "
-            f"row='{params.row_identifier}', value='{params.input_value}'"
+            f"scroll_table_and_input success: column='{column_header}', "
+            f"row='{row_identifier}', value='{input_value}'"
         )
 
-        return f"成功: 在列 '{params.column_header}' 的行 '{params.row_identifier}' 中输入了值: {params.input_value}"
+        return f"成功: 在列 '{column_header}' 的行 '{row_identifier}' 中输入了值: {input_value}"
 
     except Exception as e:
         logger.error(f"scroll_table_and_input failed: {e}")
@@ -131,22 +137,23 @@ def create_tools_with_scroll_table() -> Tools:
     @tools.action(
         "在水平滚动表格中定位单元格并输入值。当目标列不在可视区域时自动水平滚动。"
         "适用于 ERP 系统中需要操作水平滚动表格内输入字段的场景。"
-        "参数: table_selector(表格选择器), row_identifier(行内文本), column_header(列标题), input_value(输入值)"
+        "参数: table_selector(表格CSS选择器), row_identifier(行内文本用于定位行), "
+        "column_header(列标题文本), input_value(要输入的值)"
     )
-    async def scroll_table_and_input_wrapper(
+    async def scroll_table_and_input_action(
         table_selector: str,
         row_identifier: str,
         column_header: str,
         input_value: str,
-        browser_session: BrowserSession,
+        browser_session: BrowserSession = None,
     ) -> str:
-        params = ScrollTableInputParams(
+        return await scroll_table_and_input(
             table_selector=table_selector,
             row_identifier=row_identifier,
             column_header=column_header,
             input_value=input_value,
+            browser_session=browser_session,
         )
-        return await scroll_table_and_input(params, browser_session)
 
     logger.info("scroll_table_and_input tool registered with browser-use Tools")
     return tools
