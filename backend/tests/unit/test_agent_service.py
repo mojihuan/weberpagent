@@ -306,3 +306,97 @@ class TestTDPostProcessing:
 
         assert result['is_td'] is True
         assert result['input_tag'] == 'select'
+
+
+class TestFallbackInput:
+    """Fallback input 功能测试 (FALLBACK-01)
+
+    Per D-01, D-02, D-03, D-07: 测试 JavaScript 降级输入逻辑
+    """
+
+    @pytest.mark.asyncio
+    async def test_fallback_input_td_with_input(self):
+        """测试 td 内有输入框 - 成功设置值"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'success': True,
+            'target_tag': 'input',
+            'target_type': 'text',
+            'value_set': '100'
+        })
+
+        service = AgentService()
+        result = await service._fallback_input(mock_page, {'index': 5, 'text': '100'})
+
+        assert result['success'] is True
+        assert result['target_tag'] == 'input'
+        assert result['value_set'] == '100'
+
+    @pytest.mark.asyncio
+    async def test_fallback_input_td_not_found(self):
+        """测试 td 索引无效"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'success': False,
+            'error': 'td_not_found',
+            'index': 999
+        })
+
+        service = AgentService()
+        result = await service._fallback_input(mock_page, {'index': 999, 'text': '100'})
+
+        assert result['success'] is False
+        assert result['error'] == 'td_not_found'
+
+    @pytest.mark.asyncio
+    async def test_fallback_input_no_input_in_td(self):
+        """测试 td 内无输入框"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(return_value={
+            'success': False,
+            'error': 'no_input_in_td',
+            'index': 5
+        })
+
+        service = AgentService()
+        result = await service._fallback_input(mock_page, {'index': 5, 'text': '100'})
+
+        assert result['success'] is False
+        assert result['error'] == 'no_input_in_td'
+
+    @pytest.mark.asyncio
+    async def test_fallback_input_missing_index(self):
+        """测试缺少 index 参数"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        mock_page = MagicMock()
+        service = AgentService()
+        result = await service._fallback_input(mock_page, {'text': '100'})
+
+        assert result['success'] is False
+        assert result['error'] == 'missing_index'
+
+    @pytest.mark.asyncio
+    async def test_fallback_input_exception_handling(self):
+        """测试异常处理"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        mock_page = MagicMock()
+        mock_page.evaluate = AsyncMock(side_effect=Exception("Browser error"))
+
+        service = AgentService()
+        result = await service._fallback_input(mock_page, {'index': 5, 'text': '100'})
+
+        assert result['success'] is False
+        assert 'error' in result
