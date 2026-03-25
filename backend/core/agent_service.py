@@ -306,6 +306,98 @@ class AgentService:
             logger.error(f"Fallback input failed: {e}")
             return {'success': False, 'error': str(e)}
 
+    async def _collect_element_diagnostics(
+        self,
+        browser_state,
+        action_name: str,
+        action_params: dict
+    ) -> dict:
+        """Collect diagnostic info for element positioning issues.
+
+        Per D-01: Only triggered when issues detected (is_interactive=False).
+        Per D-02: Stored in step_stats['element_diagnostics'].
+        Per D-03: Includes tag, index, parent_chain (max 5), ignored_ancestors.
+
+        Args:
+            browser_state: Browser state containing element_tree
+            action_name: Name of the action (e.g., 'click', 'input')
+            action_params: Action parameters containing 'index' for target element
+
+        Returns:
+            dict: {
+                "non_interactive_elements": [
+                    {
+                        "tag": str,
+                        "index": int,
+                        "parent_chain": list[str],
+                        "ignored_ancestors": list[str]
+                    }
+                ],
+                "fallback_triggered": bool,
+                "fallback_reason": str or None
+            }
+        """
+        diagnostics = {
+            "non_interactive_elements": [],
+            "fallback_triggered": False,
+            "fallback_reason": None
+        }
+
+        # Return empty diagnostics if browser_state is None (Test 1)
+        if not browser_state:
+            return diagnostics
+
+        # Only collect for click/input actions (Test 2)
+        if action_name not in ('click', 'input'):
+            return diagnostics
+
+        # Get target_index from action_params (Test 3)
+        target_index = action_params.get('index')
+        if target_index is None:
+            return diagnostics
+
+        # Get element_tree from browser_state
+        element_tree = getattr(browser_state, "element_tree", None)
+        if not element_tree:
+            return diagnostics
+
+        # Find target element
+        for elem in element_tree:
+            elem_index = getattr(elem, 'index', None)
+            if elem_index != target_index:
+                continue
+
+            # Check if non-interactive (D-01 trigger)
+            is_interactive = getattr(elem, 'is_interactive', True)
+            if not is_interactive:
+                parent_chain = []
+                ignored_ancestors = []
+                current = elem
+
+                # Build parent chain (max 5 levels per D-03)
+                for _ in range(5):
+                    parent = getattr(current, 'parent', None)
+                    if not parent:
+                        break
+                    tag = getattr(parent, 'tag_name', 'unknown')
+                    parent_chain.append(tag)
+
+                    # Check for ignored_by_paint_order (D-01 trigger)
+                    if getattr(parent, 'ignored_by_paint_order', False):
+                        ignored_ancestors.append(tag)
+
+                    current = parent
+
+                diagnostics["non_interactive_elements"].append({
+                    "tag": getattr(elem, 'tag_name', 'unknown'),
+                    "index": target_index,
+                    "parent_chain": parent_chain,
+                    "ignored_ancestors": ignored_ancestors
+                })
+            break
+
+        return diagnostics
+
     async def save_screenshot(
         self, screenshot_data: Union[bytes, str], run_id: str, step_index: int
     ) -> str:
