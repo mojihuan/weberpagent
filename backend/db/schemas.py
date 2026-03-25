@@ -152,6 +152,7 @@ class SSEStepEvent(BaseModel):
     screenshot_url: Optional[str] = None
     status: str
     duration_ms: Optional[int] = None
+    step_stats: Optional[dict[str, Any]] = None  # Phase 41, LOG-02
 
 
 class SSEFinishedEvent(BaseModel):
