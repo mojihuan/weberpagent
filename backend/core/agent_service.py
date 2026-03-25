@@ -238,6 +238,74 @@ class AgentService:
             logger.error(f"TD post-processing failed: {e}")
             return { "is_td": False, "error": str(e) }
 
+    async def _fallback_input(self, page, action_params: dict) -> dict:
+        """Fallback input: Use JavaScript to set value and dispatch events.
+
+        Per D-02, D-03, D-07: When Agent intends to input text but target element is td,
+        use JavaScript to directly set the value and dispatch events for framework reactivity.
+
+        Args:
+            page: Playwright page object
+            action_params: dict with 'index' (td index) and 'text' (value to input)
+
+        Returns:
+            dict: {
+                success: bool,
+                target_tag: str (on success),
+                target_type: str or None (on success),
+                value_set: str (on success),
+                error: str (on failure)
+            }
+        """
+        import asyncio
+
+        index = action_params.get('index')
+        text = action_params.get('text', '')
+
+        if index is None:
+            return {'success': False, 'error': 'missing_index'}
+
+        try:
+            # Wait for DOM to stabilize (avoid Race Condition - Pitfall 3 from RESEARCH)
+            await asyncio.sleep(0.1)
+
+            result = await page.evaluate('''
+                (params) => {
+                    const { index, text } = params;
+                    const tds = document.querySelectorAll('td');
+                    const td = tds[index];
+
+                    if (!td) {
+                        return { success: false, error: 'td_not_found', index };
+                    }
+
+                    const input = td.querySelector('input, textarea, select');
+                    if (!input) {
+                        return { success: false, error: 'no_input_in_td', index };
+                    }
+
+                    // Set value
+                    input.value = text;
+
+                    // Dispatch events for Vue/React reactivity (Pitfall 6 prevention)
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    return {
+                        success: true,
+                        target_tag: input.tagName.toLowerCase(),
+                        target_type: input.type || null,
+                        value_set: text
+                    };
+                }
+            ''', {'index': index, 'text': text})
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Fallback input failed: {e}")
+            return {'success': False, 'error': str(e)}
+
     async def save_screenshot(
         self, screenshot_data: Union[bytes, str], run_id: str, step_index: int
     ) -> str:
