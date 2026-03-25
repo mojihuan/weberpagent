@@ -108,6 +108,7 @@ class Step(Base):
     error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     loop_intervention: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string for loop diagnostic info (Phase 39, LOG-01)
+    step_stats: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string for step execution stats (Phase 41, LOG-02)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     # 关系
