@@ -400,3 +400,203 @@ class TestFallbackInput:
 
         assert result['success'] is False
         assert 'error' in result
+
+
+class TestElementDiagnostics:
+    """Element diagnostics 功能测试 (LOG-03)
+
+    Per D-01, D-02, D-03: 测试 _collect_element_diagnostics 方法
+    - D-01: 仅在检测到问题时记录日志 (is_interactive=False)
+    - D-02: 返回 dict 结构用于 step_stats['element_diagnostics']
+    - D-03: 包含 tag, index, parent_chain (max 5), ignored_ancestors
+    """
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_dict_when_browser_state_none(self):
+        """Test 1: Returns empty dict when browser_state is None"""
+        from backend.core.agent_service import AgentService
+
+        service = AgentService()
+        result = await service._collect_element_diagnostics(None, 'click', {'index': 0})
+
+        assert result == {
+            "non_interactive_elements": [],
+            "fallback_triggered": False,
+            "fallback_reason": None
+        }
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_dict_for_non_click_input_actions(self):
+        """Test 2: Returns empty dict when action_name is not click or input"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        mock_browser_state = MagicMock()
+        service = AgentService()
+        result = await service._collect_element_diagnostics(mock_browser_state, 'scroll', {'pages': 0.5})
+
+        assert result == {
+            "non_interactive_elements": [],
+            "fallback_triggered": False,
+            "fallback_reason": None
+        }
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_dict_when_target_index_none(self):
+        """Test 3: Returns empty dict when target_index is None"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        mock_browser_state = MagicMock()
+        service = AgentService()
+        result = await service._collect_element_diagnostics(mock_browser_state, 'click', {})
+
+        assert result == {
+            "non_interactive_elements": [],
+            "fallback_triggered": False,
+            "fallback_reason": None
+        }
+
+    @pytest.mark.asyncio
+    async def test_returns_non_interactive_elements_when_is_interactive_false(self):
+        """Test 4: Returns non_interactive_elements entry when element is_interactive=False"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        # Create mock element with is_interactive=False
+        mock_element = MagicMock()
+        mock_element.index = 42
+        mock_element.tag_name = 'input'
+        mock_element.is_interactive = False
+        mock_element.parent = None
+
+        # Create mock browser_state with element_tree
+        mock_browser_state = MagicMock()
+        mock_browser_state.element_tree = [mock_element]
+
+        service = AgentService()
+        result = await service._collect_element_diagnostics(mock_browser_state, 'click', {'index': 42})
+
+        assert len(result["non_interactive_elements"]) == 1
+        assert result["non_interactive_elements"][0]["tag"] == 'input'
+        assert result["non_interactive_elements"][0]["index"] == 42
+
+    @pytest.mark.asyncio
+    async def test_parent_chain_includes_up_to_5_ancestors(self):
+        """Test 5: parent_chain includes up to 5 ancestors"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        # Create parent chain: great_great_grandparent -> great_grandparent -> grandparent -> parent -> element
+        mock_parent5 = MagicMock()
+        mock_parent5.tag_name = 'tbody'
+        mock_parent5.parent = None
+
+        mock_parent4 = MagicMock()
+        mock_parent4.tag_name = 'tr'
+        mock_parent4.parent = mock_parent5
+
+        mock_parent3 = MagicMock()
+        mock_parent3.tag_name = 'div'
+        mock_parent3.tag_name = 'div.el-input-number'
+        mock_parent3.parent = mock_parent4
+
+        mock_parent2 = MagicMock()
+        mock_parent2.tag_name = 'div.cell'
+        mock_parent2.parent = mock_parent3
+
+        mock_parent1 = MagicMock()
+        mock_parent1.tag_name = 'td'
+        mock_parent1.parent = mock_parent2
+
+        mock_element = MagicMock()
+        mock_element.index = 42
+        mock_element.tag_name = 'input'
+        mock_element.is_interactive = False
+        mock_element.parent = mock_parent1
+
+        mock_browser_state = MagicMock()
+        mock_browser_state.element_tree = [mock_element]
+
+        service = AgentService()
+        result = await service._collect_element_diagnostics(mock_browser_state, 'click', {'index': 42})
+
+        # Should have exactly 5 ancestors in parent_chain
+        assert len(result["non_interactive_elements"][0]["parent_chain"]) == 5
+        assert result["non_interactive_elements"][0]["parent_chain"] == [
+            'td', 'div.cell', 'div.el-input-number', 'tr', 'tbody'
+        ]
+
+    @pytest.mark.asyncio
+    async def test_ignored_ancestors_filters_by_ignored_by_paint_order(self):
+        """Test 6: ignored_ancestors includes only ancestors with ignored_by_paint_order=True"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        # Create parent chain where some have ignored_by_paint_order=True
+        mock_parent3 = MagicMock()
+        mock_parent3.tag_name = 'tr'
+        mock_parent3.ignored_by_paint_order = False
+        mock_parent3.parent = None
+
+        mock_parent2 = MagicMock()
+        mock_parent2.tag_name = 'div.el-input-number'
+        mock_parent2.ignored_by_paint_order = True
+        mock_parent2.parent = mock_parent3
+
+        mock_parent1 = MagicMock()
+        mock_parent1.tag_name = 'div.cell'
+        mock_parent1.ignored_by_paint_order = True
+        mock_parent1.parent = mock_parent2
+
+        mock_element = MagicMock()
+        mock_element.index = 42
+        mock_element.tag_name = 'input'
+        mock_element.is_interactive = False
+        mock_element.parent = mock_parent1
+
+        mock_browser_state = MagicMock()
+        mock_browser_state.element_tree = [mock_element]
+
+        service = AgentService()
+        result = await service._collect_element_diagnostics(mock_browser_state, 'click', {'index': 42})
+
+        # Only div.cell and div.el-input-number should be in ignored_ancestors
+        ignored = result["non_interactive_elements"][0]["ignored_ancestors"]
+        assert 'div.cell' in ignored
+        assert 'div.el-input-number' in ignored
+        assert 'tr' not in ignored
+
+    @pytest.mark.asyncio
+    async def test_multiple_non_interactive_elements_recorded(self):
+        """Test 7: Multiple non-interactive elements are all recorded"""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        # Create two non-interactive elements
+        mock_element1 = MagicMock()
+        mock_element1.index = 10
+        mock_element1.tag_name = 'input'
+        mock_element1.is_interactive = False
+        mock_element1.parent = None
+
+        mock_element2 = MagicMock()
+        mock_element2.index = 42
+        mock_element2.tag_name = 'textarea'
+        mock_element2.is_interactive = False
+        mock_element2.parent = None
+
+        mock_browser_state = MagicMock()
+        mock_browser_state.element_tree = [mock_element1, mock_element2]
+
+        service = AgentService()
+        # First call for element at index 10
+        result1 = await service._collect_element_diagnostics(mock_browser_state, 'click', {'index': 10})
+        # Second call for element at index 42
+        result2 = await service._collect_element_diagnostics(mock_browser_state, 'input', {'index': 42})
+
+        assert len(result1["non_interactive_elements"]) == 1
+        assert result1["non_interactive_elements"][0]["index"] == 10
+
+        assert len(result2["non_interactive_elements"]) == 1
+        assert result2["non_interactive_elements"][0]["index"] == 42
