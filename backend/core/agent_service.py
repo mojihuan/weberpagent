@@ -232,8 +232,8 @@ class AgentService:
         # 创建本地浏览器会话
         browser_session = create_browser_session()
 
-        # Register custom tools (Phase 40)
-        register_scroll_table_tool()
+        # Create custom tools with scroll_table_and_input (Phase 40)
+        tools = register_scroll_table_tool()
 
         # Create loop intervention tracker (per D-01)
         tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
@@ -347,6 +347,7 @@ class AgentService:
             task=actual_task,
             llm=llm,
             browser_session=browser_session,
+            tools=tools,
             max_actions_per_step=5,
             register_new_step_callback=step_callback,
         )

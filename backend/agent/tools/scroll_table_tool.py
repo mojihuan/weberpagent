@@ -1,7 +1,7 @@
 """scroll_table_and_input tool for horizontally scrolling table cell location and input.
 
 Per D-01: Specialized tool design for ERP table scenarios.
-Per D-06: Uses @registry.action decorator for browser-use integration.
+Per D-06: Uses Tools.action decorator for browser-use integration.
 Per D-07: Returns descriptive errors, lets Agent handle failures.
 """
 import logging
@@ -9,6 +9,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from browser_use.browser.session import BrowserSession
+from browser_use.tools.service import Tools
 
 logger = logging.getLogger(__name__)
 
@@ -116,29 +117,51 @@ async def scroll_table_and_input(
         return f"错误: 操作失败 - {str(e)}"
 
 
-def register_scroll_table_tool(registry=None) -> None:
-    """Register scroll_table_and_input tool with browser-use registry.
+def create_tools_with_scroll_table() -> Tools:
+    """Create Tools instance with scroll_table_and_input action registered.
 
-    Per D-06: Uses registry.action decorator pattern.
-    Call this before creating Agent instance to make tool available.
+    Per D-06: Uses Tools.action decorator pattern for browser-use 0.2+ API.
+    Call this before creating Agent instance to get tools with custom action.
 
-    Args:
-        registry: Optional browser-use registry. If None, uses default global registry.
+    Returns:
+        Tools instance with scroll_table_and_input action registered.
     """
-    from browser_use.tools.registry import registry as default_registry
+    tools = Tools()
 
-    target_registry = registry or default_registry
-
-    @target_registry.action(
+    @tools.action(
         "在水平滚动表格中定位单元格并输入值。当目标列不在可视区域时自动水平滚动。"
         "适用于 ERP 系统中需要操作水平滚动表格内输入字段的场景。"
-        "参数: table_selector(表格选择器), row_identifier(行内文本), column_header(列标题), input_value(输入值)",
-        param_model=ScrollTableInputParams,
+        "参数: table_selector(表格选择器), row_identifier(行内文本), column_header(列标题), input_value(输入值)"
     )
     async def scroll_table_and_input_wrapper(
-        params: ScrollTableInputParams,
+        table_selector: str,
+        row_identifier: str,
+        column_header: str,
+        input_value: str,
         browser_session: BrowserSession,
     ) -> str:
+        params = ScrollTableInputParams(
+            table_selector=table_selector,
+            row_identifier=row_identifier,
+            column_header=column_header,
+            input_value=input_value,
+        )
         return await scroll_table_and_input(params, browser_session)
 
-    logger.info("scroll_table_and_input tool registered with browser-use registry")
+    logger.info("scroll_table_and_input tool registered with browser-use Tools")
+    return tools
+
+
+# Keep old function name for backward compatibility, but it now returns Tools instance
+def register_scroll_table_tool(registry=None) -> Tools:
+    """Register scroll_table_and_input tool with browser-use.
+
+    Per D-06: Uses Tools.action decorator pattern for browser-use 0.2+ API.
+
+    Args:
+        registry: Ignored (kept for backward compatibility).
+
+    Returns:
+        Tools instance with scroll_table_and_input action registered.
+    """
+    return create_tools_with_scroll_table()
