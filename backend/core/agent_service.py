@@ -238,6 +238,7 @@ class AgentService:
         # Create loop intervention tracker (per D-01)
         tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
         loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
+        step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
             # 提取动作和推理 - 从 agent_output 顶层获取
@@ -277,6 +278,29 @@ class AgentService:
                 dom_hash = hashlib.sha256(dom_content.encode('utf-8')).hexdigest()[:12] if dom_content else ""
                 tracker.record_page_state(url, dom_hash)
 
+            # Collect step statistics (Phase 41, LOG-02, per D-02)
+            # Get element count (number of interactive elements on page)
+            element_count = 0
+            if browser_state:
+                element_tree = getattr(browser_state, "element_tree", None)
+                if element_tree is not None:
+                    # element_tree is a list-like structure
+                    element_count = len(element_tree) if hasattr(element_tree, '__len__') else 0
+
+            # Action count: how many actions agent decided to take this step
+            action_count = 1  # Default to 1 action
+            if agent_output and hasattr(agent_output, "action") and agent_output.action:
+                action_count = len(agent_output.action)
+
+            # Build step_stats dict (per D-02)
+            step_stats = {
+                "action_count": action_count,
+                "stagnation": tracker.consecutive_stagnant_pages,
+                "duration_ms": 0,  # Will be updated if timing wrapper exists
+                "element_count": element_count,
+            }
+            step_stats_data["value"] = json.dumps(step_stats, ensure_ascii=False)
+
             # Check for loop intervention (D-01, D-02)
             if tracker.should_intervene():
                 intervention_msg = tracker.get_intervention_message()
@@ -306,10 +330,11 @@ class AgentService:
 
             # 调用异步回调
             import asyncio
+            step_stats_json = step_stats_data["value"]
             if asyncio.iscoroutinefunction(on_step):
-                await on_step(step, action, reasoning, screenshot_path)
+                await on_step(step, action, reasoning, screenshot_path, step_stats_json)
             else:
-                on_step(step, action, reasoning, screenshot_path)
+                on_step(step, action, reasoning, screenshot_path, step_stats_json)
 
         # 如果有目标 URL，拼接到任务描述前面
         actual_task = task
