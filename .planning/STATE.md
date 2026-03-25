@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.6.0
-milestone_name: milestone
-status: Phase complete — ready for verification
-last_updated: "2026-03-25T01:16:56.845Z"
+milestone: v0.6.1
+milestone_name: 表格输入框定位优化
+status: Ready to plan
+last_updated: "2026-03-25T09:28:40.706Z"
 progress:
-  total_phases: 1
+  total_phases: 3
   completed_phases: 1
   total_plans: 1
   completed_plans: 1
@@ -13,19 +13,18 @@ progress:
 
 # Project State
 
-...
-
-<system-reminder>
-Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse the improve or augment the code. You can still analyze existing code, write reports, and answer questions about the code behavior.
-</system-reminder>
-<string_file_name>. You **Context:** 从执行日志发现 agent 在步骤 11（输入销售金额)陷入 stagnation=27 的循环，浪费了大量步骤。browser-use 已有循环检测机制但只提醒不干预。</...
-
 ## Current Position
 
-Phase: 41 (configuration-and-validation) — EXECUTING
-Plan: 1 of 1
+Phase: 43
+Plan: Not started
 
 ## Last Shipped
+
+**v0.6.0 Agent 行为优化** (2026-03-25)
+
+- Phase 39: 循环干预优化 - Complete
+- Phase 40: 表格元素定位增强 - Complete
+- Phase 41: 配置化参数 + 步骤统计 - Complete
 
 **v0.5.0 项目云端部署** (2026-03-24)
 
@@ -39,10 +38,35 @@ Plan: 1 of 1
 
 **Velocity:**
 
-- Total plans completed: 102 (all milestones)
+- Total plans completed: 105 (all milestones)
 - Average duration: ~5 min per plan
 
 ## Accumulated Context
+
+### Known Issues (v0.6.1 Target)
+
+**表格输入框定位失败问题:**
+
+| 发现 | 详情 |
+|------|------|
+| 问题表现 | Agent 从 Step 15 到 Step 24 反复点击同一索引，无法输入销售金额 |
+| 根本原因 | 输入框被标记为 `is_interactive=False` + `ignored_by_paint_order=True` |
+| 错误行为 | 点击索引指向 td 而非内部 input 元素 |
+| 徒劳步骤 | 10+ 步，stagnation 从 6 增加到 10+ |
+| 临时解决 | 通过 JavaScript `evaluate` 直接设置值 |
+
+**DOM 分析详情:**
+
+```
+销售价输入框属性:
+
+- should_display=True ✓
+- is_interactive=False ✗ (问题所在)
+- ignored_by_paint_order=True ✗
+- is_shadow_host=True
+- 父元素 (td, div.cell, div.el-input-number) 全部 ignored_by_paint_order=True
+
+```
 
 ### Decisions
 
@@ -50,7 +74,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 Recent decisions affecting current work:
 
-...
-
 - [Phase 41]: D-01: LOOP-03 does not need code changes - current stagnation_threshold=5 is sufficient
 - [Phase 41]: D-02: Step statistics content includes action_count, stagnation, duration_ms, element_count
+
+## Session Continuity
+
+**Next action:** Run `/gsd:plan-phase 42` to create the first plan for DOM 解析器增强
