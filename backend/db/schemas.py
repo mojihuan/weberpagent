@@ -129,7 +129,23 @@ class StepResponse(BaseModel):
     status: str
     error: Optional[str] = None
     duration_ms: Optional[int] = None
+    step_stats: Optional[dict[str, Any]] = None  # Phase 41, LOG-02
     created_at: datetime
+
+    @field_validator('step_stats', mode='before')
+    @classmethod
+    def deserialize_step_stats(cls, v):
+        """Deserialize JSON string to dict if needed."""
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return v
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return None
+        return None
 
     class Config:
         from_attributes = True
