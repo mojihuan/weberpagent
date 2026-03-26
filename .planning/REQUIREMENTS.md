@@ -44,7 +44,7 @@
   - 移除 `element_diagnostics` 变量及相关逻辑
   - **Complexity**: Low
 
-- [ ] **CLEANUP-05**: 移除循环干预逻辑
+- [x] **CLEANUP-05**: 移除循环干预逻辑
   - 删除 `LoopInterventionTracker` 类
   - 移除 `tracker` 实例化及 `should_intervene()` 调用
   - 移除 `loop_intervention_data` 变量
@@ -122,7 +122,7 @@
 | CLEANUP-02 | Phase 45 | Complete |
 | CLEANUP-03 | Phase 45 | Complete |
 | CLEANUP-04 | Phase 45 | Complete |
-| CLEANUP-05 | Phase 45 | Pending |
+| CLEANUP-05 | Phase 45 | Complete |
 | SIMPLIFY-01 | Phase 46 | Pending |
 | SIMPLIFY-02 | Phase 46 | Pending |
 | TEST-01 | Phase 46 | Pending |

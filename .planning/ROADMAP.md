@@ -24,13 +24,13 @@
 3. `_fallback_input` 方法已从 agent_service.py 中删除
 4. `_collect_element_diagnostics` 方法已从 agent_service.py 中删除
 5. `LoopInterventionTracker` 类及相关变量已从 agent_service.py 中删除
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [ ] 45-01: Delete tools directory (CLEANUP-01) - Wave 2
 - [x] 45-02: Remove TD post-processing (CLEANUP-02) - Wave 1
 - [x] 45-03: Remove fallback and diagnostics (CLEANUP-03, CLEANUP-04) - Wave 1
-- [ ] 45-04: Remove LoopInterventionTracker (CLEANUP-05) - Wave 1
+- [x] 45-04: Remove LoopInterventionTracker (CLEANUP-05) - Wave 1
 - [ ] 45-05: Remove test classes for deleted methods - Wave 3
 
 ### Phase 46: 代码简化与测试
@@ -61,7 +61,7 @@ Plans:
 Phase 45 -> Phase 46 -> Phase 47
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 45. 代码移除 | v0.6.2 | 2/5 | In Progress|  |
+| 45. 代码移除 | v0.6.2 | 3/5 | In Progress|  |
 | 46. 代码简化与测试 | v0.6.2 | 0/0 | Not started | - |
 | 47. 验证 | v0.6.2 | 0/0 | Not started | - |
 ---
