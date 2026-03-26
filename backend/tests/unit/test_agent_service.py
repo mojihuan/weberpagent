@@ -190,6 +190,145 @@ class TestLoopInterventionTracker:
         assert diagnostic["recent_actions"][0]["action"] == "click"
 
 
+class TestTdPostProcess:
+    """Tests for _post_process_td_click JSON parsing edge cases.
+
+    Per GAP-01: Handle cases where browser-use evaluate_wrapper returns JSON strings
+    instead of dicts. Tests cover empty string, JSON string, None, and dict cases.
+    """
+
+    @pytest.mark.asyncio
+    async def test_returns_dict_directly(self):
+        """When result is already a dict, return directly."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning dict directly
+        mock_page.evaluate = AsyncMock(return_value={
+            "is_td": True,
+            "input_found": True,
+            "input_tag": "input",
+            "input_type": "text"
+        })
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result["is_td"] is True
+        assert result["input_found"] is True
+
+    @pytest.mark.asyncio
+    async def test_parses_json_string(self):
+        """When result is a JSON string, parse and return as dict."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+        import json
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning JSON string
+        mock_page.evaluate = AsyncMock(return_value=json.dumps({
+            "is_td": True,
+            "input_found": True,
+            "input_tag": "input",
+            "input_type": "text"
+        }))
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result["is_td"] is True
+        assert result["input_found"] is True
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_on_empty_string(self):
+        """When result is an empty string, return empty dict."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning empty string
+        mock_page.evaluate = AsyncMock(return_value="")
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_returns_is_td_true(self):
+        """When result is JSON with valid is_td, parse and verify."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+        import json
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning JSON string
+        mock_page.evaluate = AsyncMock(return_value=json.dumps({"is_td": True}))
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result["is_td"] is True
+
+    @pytest.mark.asyncio
+    async def test_returns_input_found_true(self):
+        """When result is JSON with valid input_found, parse and verify structure."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+        import json
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning JSON string
+        mock_page.evaluate = AsyncMock(return_value=json.dumps({
+            "is_td": True,
+            "input_found": True,
+            "input_tag": "input",
+            "input_type": "text",
+            "focus_transferred": True
+        }))
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result["is_td"] is True
+        assert result["input_found"] is True
+        assert result["input_tag"] == "input"
+        assert result["input_type"] == "text"
+        assert result["focus_transferred"] is True
+
+    @pytest.mark.asyncio
+    async def test_handles_invalid_json(self):
+        """When result is invalid JSON string, raise error and return with error."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning invalid JSON
+        mock_page.evaluate = AsyncMock(return_value="not a valid json")
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result["is_td"] is False
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_handles_none_result(self):
+        """When result is None, return empty dict."""
+        from backend.core.agent_service import AgentService
+        from unittest.mock import AsyncMock, MagicMock
+
+        service = AgentService()
+        mock_page = MagicMock()
+        # Simulate browser-use wrapper returning None
+        mock_page.evaluate = AsyncMock(return_value=None)
+
+        result = await service._post_process_td_click(mock_page)
+
+        assert result == {}
+
+
 class TestTDPostProcessing:
     """TD 后处理功能测试 (DOM-01)
 

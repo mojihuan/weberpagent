@@ -229,6 +229,22 @@ class AgentService:
                 }
             ''')
 
+            # Per D-01: Handle cases where browser-use evaluate_wrapper returns JSON strings
+            if result is None:
+                return {}
+
+            if isinstance(result, str):
+                # Empty string
+                if not result.strip():
+                    return {}
+                try:
+                    parsed = json.loads(result)
+                    if not isinstance(parsed, dict):
+                        return {"is_td": False, "error": "Invalid JSON: not a dict"}
+                    result = parsed
+                except json.JSONDecodeError:
+                    return {"is_td": False, "error": f"Invalid JSON: {e}"}
+
             if result.get('input_found'):
                 logger.info(f"TD post-processing: focus transferred to {result.get('input_tag')}")
 
