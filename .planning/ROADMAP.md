@@ -43,7 +43,11 @@ Plans:
 3. test_scroll_table_tool.py 测试文件已删除
 4. test_agent_service.py 中依赖自定义方法的测试已更新或删除
 5. 所有剩余单元测试通过
-**Plans:** TBD
+**Plans:** 1/2 plans executed
+
+Plans:
+- [x] 46-01: Delete obsolete scroll_table test files (TEST-01) - Wave 1
+- [ ] 46-02: Verify step_callback simplification (SIMPLIFY-01, SIMPLIFY-02) - Wave 2
 
 ### Phase 47: 验证
 **Goal:** Agent 能正常启动、执行测试并生成报告，基础功能完全正常
@@ -61,8 +65,8 @@ Plans:
 Phase 45 -> Phase 46 -> Phase 47
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 45. 代码移除 | v0.6.2 | 5/5 | Complete   | 2026-03-26 |
-| 46. 代码简化与测试 | v0.6.2 | 0/0 | Not started | - |
+| 45. 代码移除 | v0.6.2 | 5/5 | Complete    | 2026-03-26 |
+| 46. 代码简化与测试 | v0.6.2 | 1/2 | In Progress|  |
 | 47. 验证 | v0.6.2 | 0/0 | Not started | - |
 ---
 
@@ -118,15 +122,15 @@ Phase 42 -> Phase 43 -> Phase 44
 ## Coverage
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEANUP-01 | Phase 45 | Pending |
-| CLEANUP-02 | Phase 45 | Pending |
-| CLEANUP-03 | Phase 45 | Pending |
-| CLEANUP-04 | Phase 45 | Pending |
-| CLEANUP-05 | Phase 45 | Pending |
+| CLEANUP-01 | Phase 45 | Complete |
+| CLEANUP-02 | Phase 45 | Complete |
+| CLEANUP-03 | Phase 45 | Complete |
+| CLEANUP-04 | Phase 45 | Complete |
+| CLEANUP-05 | Phase 45 | Complete |
 | SIMPLIFY-01 | Phase 46 | Pending |
 | SIMPLIFY-02 | Phase 46 | Pending |
 | TEST-01 | Phase 46 | Pending |
 | VALIDATE-01 | Phase 47 | Pending |
 **Total v0.6.2:** 9/9 requirements mapped (100%)
 ---
-*Roadmap updated: 2026-03-26 - Phase 45 plans created with corrected wave structure*
+*Roadmap updated: 2026-03-26 - Phase 46 plans created*

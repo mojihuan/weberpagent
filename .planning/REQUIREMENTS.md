@@ -23,7 +23,7 @@
 
 ### CLEANUP: 代码移除
 
-- [ ] **CLEANUP-01**: 移除 scroll_table_and_input 工具
+- [x] **CLEANUP-01**: 移除 scroll_table_and_input 工具
   - 删除 `backend/agent/tools/` 目录（scroll_table_tool.py, __init__.py）
   - 移除 `backend/agent/__init__.py` 中的相关导出
   - **Complexity**: Low
@@ -67,7 +67,7 @@
 
 ### TEST: 测试更新
 
-- [ ] **TEST-01**: 更新单元测试
+- [x] **TEST-01**: 更新单元测试
   - 移除 `test_scroll_table_tool.py` 测试文件
   - 更新 `test_agent_service.py` 中依赖自定义方法的测试
   - 确保现有测试通过
@@ -118,14 +118,14 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| CLEANUP-01 | Phase 45 | Pending |
+| CLEANUP-01 | Phase 45 | Complete |
 | CLEANUP-02 | Phase 45 | Complete |
 | CLEANUP-03 | Phase 45 | Complete |
 | CLEANUP-04 | Phase 45 | Complete |
 | CLEANUP-05 | Phase 45 | Complete |
 | SIMPLIFY-01 | Phase 46 | Pending |
 | SIMPLIFY-02 | Phase 46 | Pending |
-| TEST-01 | Phase 46 | Pending |
+| TEST-01 | Phase 46 | Complete |
 | VALIDATE-01 | Phase 47 | Pending |
 
 ---
