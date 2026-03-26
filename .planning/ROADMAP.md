@@ -66,7 +66,7 @@ Phase 45 -> Phase 46 -> Phase 47
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 45. 代码移除 | v0.6.2 | 5/5 | Complete    | 2026-03-26 |
-| 46. 代码简化与测试 | v0.6.2 | 2/2 | Complete   | 2026-03-26 |
+| 46. 代码简化与测试 | v0.6.2 | 2/2 | Complete    | 2026-03-26 |
 | 47. 验证 | v0.6.2 | 0/0 | Not started | - |
 ---
 

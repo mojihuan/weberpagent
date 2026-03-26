@@ -13,24 +13,27 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.6.0 Agent 行为优化
+## Current Milestone: v0.6.2 回归原生 browser-use
 
-**Goal:** 优化 Agent 在复杂场景下的执行效率，减少无效循环，提高任务成功率
+**Goal:** 移除所有自定义的 browser-use 扩展方法，完全依赖 browser-use 原生能力执行测试
 
 **Target features:**
-- **循环干预优化** - 降低干预阈值，更早检测并处理循环
-- **表格元素定位增强** - 支持水平滚动表格内的输入字段定位
-- **配置化参数** - 允许用户自定义循环检测阈值
-- **智能跳过机制** - 检测到无法完成的步骤时跳过并继续
+- **移除 scroll_table_and_input 工具** - 删除自定义表格输入工具
+- **移除 TD 后处理逻辑** - 删除 `_post_process_td_click` 方法
+- **移除 JavaScript fallback** - 删除 `_fallback_input` 方法
+- **移除元素诊断日志** - 删除 `_collect_element_diagnostics` 方法
+- **移除循环干预逻辑** - 删除 `LoopInterventionTracker` 类
+- **保留基础功能** - step_callback 日志、截图保存、报告生成
 
 **Key context:**
-- browser-use 已有内置循环检测（5/8/12 次阈值），但只是提醒不会干预
-- 水平滚动表格是 ERP 系统常见场景，需要专门处理
-- 当前 max_steps=50，循环浪费了大量步骤（如 stagnation=27）
+- v0.6.0-v0.6.1 添加了大量自定义扩展来处理表格输入问题
+- 这些扩展增加了维护成本，可能与 browser-use 更新不兼容
+- 回归原生能力可以简化代码，但可能需要调整测试用例写法
 
 **Key constraints:**
-- 不修改 browser-use 核心库，通过项目层面配置和自定义工具实现
-- 保持与现有断言系统、前置条件系统的兼容性
+- 保持 step_callback 的基础日志功能
+- 保持截图保存功能
+- 保持与现有测试报告系统的兼容性
 
 ## Current Status
 
@@ -104,11 +107,21 @@ v0.4.2 人工验证断言系统 (2026-03-23):
 
 ### Active
 
-**v0.6.0 Agent 行为优化:**
-- [ ] **LOOP-01**: 更早的循环干预 - 降低 stagnation 阈值，在 5 次时就尝试跳过困难步骤
-- [ ] **LOOP-02**: 增强表格元素定位 - 支持水平滚动表格内的输入字段定位
-- [ ] **LOOP-03**: 配置化循环检测参数 - 允许用户自定义循环检测阈值
-- [ ] **LOOP-04**: 智能跳过与继续 - 当检测到无法完成的步骤时，跳过并继续后续步骤
+(None - all requirements for v0.6.2 validated)
+
+### Validated
+
+**Phase 46 代码简化与测试 (2026-03-26):**
+- [x] **TEST-01**: 删除过时 scroll_table 测试文件 - 移除 352 行测试代码
+- [x] **SIMPLIFY-01**: step_callback 已简化 - 只包含基本日志功能
+- [x] **SIMPLIFY-02**: Agent 无自定义工具 - 无 tools= 参数
+
+**Phase 45 代码清理 (2026-03-26):**
+- [x] **CLEANUP-01**: 移除 scroll_table_and_input 工具 - 删除 backend/agent/tools/ 目录
+- [x] **CLEANUP-02**: 移除 TD 后处理逻辑 - 删除 `_post_process_td_click` 方法及相关调用
+- [x] **CLEANUP-03**: 移除 JavaScript fallback - 删除 `_fallback_input` 方法及相关调用
+- [x] **CLEANUP-04**: 移除元素诊断日志 - 删除 `_collect_element_diagnostics` 方法及相关调用
+- [x] **CLEANUP-05**: 移除循环干预逻辑 - 删除 `LoopInterventionTracker` 类及相关调用
 
 ### Validated (Previous Milestones)
 
@@ -191,4 +204,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 - v0.6.0 milestone started*
+*Last updated: 2026-03-26 - Phase 46 complete: removed obsolete test files, verified simplification*
