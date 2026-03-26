@@ -10,7 +10,7 @@
 
 - [x] **Phase 45: 代码移除** - 移除所有自定义 browser-use 扩展方法 (completed 2026-03-26)
 - [x] **Phase 46: 代码简化与测试** - 简化 step_callback 并更新测试 (completed 2026-03-26)
-- [ ] **Phase 47: 验证** - 验证基础功能正常运行
+- [x] **Phase 47: 验证** - 验证基础功能正常运行 (completed 2026-03-26)
 ---
 
 ## Phase Details
@@ -58,7 +58,10 @@ Plans:
 2. step_callback 正常记录执行日志
 3. 截图正常保存到指定目录
 4. 测试报告正常生成
-**Plans:** TBD
+**Plans:** 1/1 plans complete
+
+Plans:
+- [ ] 47-01: E2E verification with 销售出库 test case (VALIDATE-01) - Wave 1
 
 ## Progress
 **Execution Order:**
@@ -67,7 +70,7 @@ Phase 45 -> Phase 46 -> Phase 47
 |-------|-----------|----------------|--------|-----------|
 | 45. 代码移除 | v0.6.2 | 5/5 | Complete    | 2026-03-26 |
 | 46. 代码简化与测试 | v0.6.2 | 2/2 | Complete    | 2026-03-26 |
-| 47. 验证 | v0.6.2 | 0/0 | Not started | - |
+| 47. 验证 | v0.6.2 | 0/1 | Complete    | 2026-03-26 |
 ---
 
 ## Previous Milestone: v0.6.1 表格输入框定位优化 (Complete)
@@ -127,10 +130,10 @@ Phase 42 -> Phase 43 -> Phase 44
 | CLEANUP-03 | Phase 45 | Complete |
 | CLEANUP-04 | Phase 45 | Complete |
 | CLEANUP-05 | Phase 45 | Complete |
-| SIMPLIFY-01 | Phase 46 | Pending |
-| SIMPLIFY-02 | Phase 46 | Pending |
-| TEST-01 | Phase 46 | Pending |
+| SIMPLIFY-01 | Phase 46 | Complete |
+| SIMPLIFY-02 | Phase 46 | Complete |
+| TEST-01 | Phase 46 | Complete |
 | VALIDATE-01 | Phase 47 | Pending |
 **Total v0.6.2:** 9/9 requirements mapped (100%)
 ---
-*Roadmap updated: 2026-03-26 - Phase 46 plans created*
+*Roadmap updated: 2026-03-26 - Phase 47 plan created*

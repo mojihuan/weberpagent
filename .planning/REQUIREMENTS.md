@@ -75,7 +75,7 @@
 
 ### VALIDATE: 验证
 
-- [ ] **VALIDATE-01**: 基础功能验证
+- [x] **VALIDATE-01**: 基础功能验证
   - 确保 Agent 仍能正常启动和执行
   - 确保 step_callback 正常记录日志
   - 确保截图正常保存
@@ -126,7 +126,7 @@
 | SIMPLIFY-01 | Phase 46 | Complete |
 | SIMPLIFY-02 | Phase 46 | Complete |
 | TEST-01 | Phase 46 | Complete |
-| VALIDATE-01 | Phase 47 | Pending |
+| VALIDATE-01 | Phase 47 | Complete |
 
 ---
 
