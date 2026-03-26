@@ -600,3 +600,45 @@ class TestElementDiagnostics:
 
         assert len(result2["non_interactive_elements"]) == 1
         assert result2["non_interactive_elements"][0]["index"] == 42
+
+    @pytest.mark.asyncio
+    async def test_element_diagnostics_integration_with_fallback(self):
+        """Test that element_diagnostics includes fallback info when triggered.
+
+        Per D-04, D-05 from CONTEXT.md:
+        - D-04: Add new test case for table input scenario
+        - D-05: Single scenario - click td -> input value
+
+        Validates integration between element diagnostics collection
+        and the fallback mechanism.
+        """
+        from backend.core.agent_service import AgentService
+        from unittest.mock import MagicMock
+
+        # Mock browser_state with non-interactive element (td targeting input)
+        mock_element = MagicMock()
+        mock_element.index = 5
+        mock_element.tag_name = 'td'
+        mock_element.is_interactive = False
+
+        mock_parent = MagicMock()
+        mock_parent.tag_name = 'tr'
+        mock_parent.ignored_by_paint_order = True
+        mock_parent.parent = None
+
+        mock_element.parent = mock_parent
+
+        mock_browser_state = MagicMock()
+        mock_browser_state.element_tree = [mock_element]
+
+        service = AgentService()
+        result = await service._collect_element_diagnostics(
+            mock_browser_state, 'input', {'index': 5, 'text': '100'}
+        )
+
+        # Verify non_interactive_elements recorded
+        assert len(result['non_interactive_elements']) == 1
+        assert result['non_interactive_elements'][0]['tag'] == 'td'
+        assert result['non_interactive_elements'][0]['index'] == 5
+        assert 'tr' in result['non_interactive_elements'][0]['parent_chain']
+        assert 'tr' in result['non_interactive_elements'][0]['ignored_ancestors']
