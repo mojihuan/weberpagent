@@ -4,7 +4,6 @@ import base64
 import hashlib
 import json
 import logging
-from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Optional, Union
@@ -23,137 +22,6 @@ SERVER_BROWSER_ARGS = [
     '--disable-software-rasterizer',
     '--disable-extensions',
 ]
-
-
-class LoopInterventionTracker:
-    """Tracks action repetition and page stagnation for early intervention.
-
-    Per D-01: Triggers intervention when stagnation >= 5.
-    Maintains independent tracking parallel to browser-use's internal ActionLoopDetector.
-    """
-
-    def __init__(self, window_size: int = 20, stagnation_threshold: int = 5):
-        self.window_size = window_size
-        self.stagnation_threshold = stagnation_threshold
-        self.recent_action_hashes: list[str] = []
-        self.recent_page_fingerprints: list[str] = []
-        self.consecutive_stagnant_pages: int = 0
-        self.max_repetition_count: int = 0
-        self.recent_actions: list[dict] = []
-
-    def _compute_action_hash(self, action_name: str, params: dict) -> str:
-        """Compute hash for action similarity detection."""
-        if action_name in ('click', 'input'):
-            index = params.get('index')
-            if action_name == 'input':
-                text = str(params.get('text', '')).strip().lower()
-                normalized = f'input|{index}|{text}'
-            else:
-                normalized = f'click|{index}'
-        elif action_name == 'navigate':
-            url = str(params.get('url', ''))
-            normalized = f'navigate|{url}'
-        else:
-            filtered = {k: v for k, v in sorted(params.items()) if v is not None}
-            normalized = f'{action_name}|{json.dumps(filtered, sort_keys=True, default=str)}'
-        return hashlib.sha256(normalized.encode('utf-8')).hexdigest()[:12]
-
-    def record_action(self, action_name: str, params: dict) -> None:
-        """Record action and update repetition stats."""
-        h = self._compute_action_hash(action_name, params)
-        self.recent_action_hashes.append(h)
-        self.recent_actions.append({"action": action_name, "params": params})
-        if len(self.recent_action_hashes) > self.window_size:
-            self.recent_action_hashes = self.recent_action_hashes[-self.window_size:]
-            self.recent_actions = self.recent_actions[-self.window_size:]
-        self._update_repetition_stats()
-
-    def _update_repetition_stats(self) -> None:
-        """Update max_repetition_count from recent action hashes."""
-        if not self.recent_action_hashes:
-            self.max_repetition_count = 0
-            return
-        counts = Counter(self.recent_action_hashes)
-        self.max_repetition_count = max(counts.values()) if counts else 0
-
-    def record_page_state(self, url: str, dom_hash: str) -> None:
-        """Record page fingerprint and update stagnation count.
-
-        Semantics: consecutive_stagnant_pages counts how many times we've seen
-        the same page state consecutively. First occurrence = 1, second = 2, etc.
-        """
-        fp = f"{url}:{dom_hash}"
-        if self.recent_page_fingerprints and self.recent_page_fingerprints[-1] == fp:
-            # Same as previous - increment count
-            self.consecutive_stagnant_pages += 1
-        else:
-            # Different from previous (or first ever) - start count at 1
-            self.consecutive_stagnant_pages = 1
-        self.recent_page_fingerprints.append(fp)
-        if len(self.recent_page_fingerprints) > self.window_size:
-            self.recent_page_fingerprints = self.recent_page_fingerprints[-self.window_size:]
-
-    def should_intervene(self) -> bool:
-        """Check if intervention threshold is reached (D-01: stagnation >= 5)."""
-        return self.consecutive_stagnant_pages >= self.stagnation_threshold
-
-    def get_intervention_message(self) -> str:
-        """Generate intervention prompt for the agent (per D-01).
-
-        Provides context-specific suggestions based on recent action patterns.
-        """
-        base_msg = f"⚠️ 循环干预: 连续 {self.consecutive_stagnant_pages} 次相同页面状态。"
-
-        # Analyze recent action patterns for targeted suggestions
-        recent_action_types = [a.get('action', '') for a in self.recent_actions[-5:]]
-        action_counts = {}
-        for action_type in recent_action_types:
-            action_counts[action_type] = action_counts.get(action_type, 0) + 1
-
-        suggestions = []
-
-        # Check for repeated input failures
-        if action_counts.get('input', 0) >= 3:
-            suggestions.extend([
-                "输入操作可能失败: 1) 确认点击的是 INPUT 元素而非 TD 单元格",
-                "2) 使用 scroll_table_and_input_action 工具处理表格输入",
-                "3) 先用 find_elements 查找所有输入框再选择正确的 index"
-            ])
-
-        # Check for repeated click failures
-        elif action_counts.get('click', 0) >= 3:
-            suggestions.extend([
-                "点击可能无效: 1) 尝试双击 (doubleClick: true)",
-                "2) 滚动页面后重试 (scroll -> pages: 0.5)",
-                "3) 使用不同的元素选择器或 index"
-            ])
-
-        # Check for scroll_table_and_input failures
-        elif action_counts.get('scroll_table_and_input_action', 0) >= 2:
-            suggestions.extend([
-                "表格工具失败: 1) 检查列标题是否正确 (使用 find_elements 查看表头)",
-                "2) 尝试更通用的列名 (如 '金额' 而非 '销售金额（元）')",
-                "3) 手动定位: find_elements -> click -> input"
-            ])
-
-        # Default suggestions
-        else:
-            suggestions.extend([
-                "1) 滚动页面查看更多元素 (scroll -> down: true)",
-                "2) 使用 find_elements 查找目标元素",
-                "3) 如果当前步骤非关键，考虑跳过"
-            ])
-
-        return base_msg + "\n建议: " + " | ".join(suggestions)
-
-    def get_diagnostic_info(self) -> dict:
-        """Get diagnostic information for logging/storage (per D-02)."""
-        return {
-            "stagnation": self.consecutive_stagnant_pages,
-            "max_repetition_count": self.max_repetition_count,
-            "recent_actions": self.recent_actions[-10:],
-            "intervention_triggered": self.should_intervene(),
-        }
 
 
 def create_browser_session() -> BrowserSession:
@@ -276,9 +144,6 @@ class AgentService:
         # 存储引用供 step_callback 访问 (Phase 42, D-01)
         self._browser_session = browser_session
 
-        # Create loop intervention tracker (per D-01)
-        tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
-        loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
         step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
 
         async def step_callback(browser_state, agent_output, step: int):
@@ -350,11 +215,6 @@ class AgentService:
 
                         logger.info(f"[{run_id}][AGENT] 动作: {action_name}, 参数: {action_params}")
 
-                        # Record action for loop detection (D-01)
-                        if not isinstance(action_params, dict):
-                            action_params = {}
-                        tracker.record_action(action_name, action_params)
-
                         # 记录动作中的 index 信息（用于调试定位问题）
                         if 'index' in action_params:
                             logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
@@ -374,14 +234,6 @@ class AgentService:
             else:
                 logger.warning(f"[{run_id}][AGENT] agent_output 为空!")
 
-            # Record page state for stagnation detection (D-01)
-            if browser_state:
-                url = getattr(browser_state, "url", "") or ""
-                dom_content = getattr(browser_state, "dom", "") or ""
-                dom_hash = hashlib.sha256(dom_content.encode('utf-8')).hexdigest()[:12] if dom_content else ""
-                tracker.record_page_state(url, dom_hash)
-                logger.debug(f"[{run_id}][STAGNATION] 页面指纹: {dom_hash}, 连续停滞: {tracker.consecutive_stagnant_pages}")
-
             # Collect step statistics (Phase 41, LOG-02, per D-02)
             # Get element count (number of interactive elements on page)
             element_count = 0
@@ -399,28 +251,10 @@ class AgentService:
             # Build step_stats dict (per D-02)
             step_stats = {
                 "action_count": action_count,
-                "stagnation": tracker.consecutive_stagnant_pages,
                 "duration_ms": 0,  # Will be updated if timing wrapper exists
                 "element_count": element_count,
             }
             step_stats_data["value"] = json.dumps(step_stats, ensure_ascii=False)
-
-            # Check for loop intervention (D-01, D-02)
-            if tracker.should_intervene():
-                intervention_msg = tracker.get_intervention_message()
-                diagnostic = tracker.get_diagnostic_info()
-                # Store diagnostic for future Step storage integration (Phase 39, LOG-01)
-                loop_intervention_data["value"] = json.dumps(diagnostic, ensure_ascii=False)
-                # Log full diagnostic info (D-02: 包含 stagnation 值、最近动作、页面变化)
-                logger.warning(
-                    f"[{run_id}] Loop intervention triggered: "
-                    f"stagnation={diagnostic['stagnation']}, "
-                    f"max_repetition={diagnostic['max_repetition_count']}, "
-                    f"recent_actions_count={len(diagnostic['recent_actions'])}"
-                )
-                # Log recent actions for debugging
-                for i, act in enumerate(diagnostic['recent_actions'][-5:]):
-                    logger.info(f"[{run_id}] Recent action {i}: {act['action']} -> {act.get('params', {})}")
 
             # 提取截图
             screenshot_path = None
