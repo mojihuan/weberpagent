@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 45: 代码移除** - 移除所有自定义 browser-use 扩展方法
+- [x] **Phase 45: 代码移除** - 移除所有自定义 browser-use 扩展方法 (completed 2026-03-26)
 - [ ] **Phase 46: 代码简化与测试** - 简化 step_callback 并更新测试
 - [ ] **Phase 47: 验证** - 验证基础功能正常运行
 ---
@@ -24,14 +24,14 @@
 3. `_fallback_input` 方法已从 agent_service.py 中删除
 4. `_collect_element_diagnostics` 方法已从 agent_service.py 中删除
 5. `LoopInterventionTracker` 类及相关变量已从 agent_service.py 中删除
-**Plans:** 3/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 45-01: Delete tools directory (CLEANUP-01) - Wave 2
+- [x] 45-01: Delete tools directory (CLEANUP-01) - Wave 2
 - [x] 45-02: Remove TD post-processing (CLEANUP-02) - Wave 1
 - [x] 45-03: Remove fallback and diagnostics (CLEANUP-03, CLEANUP-04) - Wave 1
 - [x] 45-04: Remove LoopInterventionTracker (CLEANUP-05) - Wave 1
-- [ ] 45-05: Remove test classes for deleted methods - Wave 3
+- [x] 45-05: Remove test classes for deleted methods - Wave 3
 
 ### Phase 46: 代码简化与测试
 **Goal:** step_callback 仅保留基础日志功能，所有相关测试已更新并通过
@@ -61,7 +61,7 @@ Plans:
 Phase 45 -> Phase 46 -> Phase 47
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 45. 代码移除 | v0.6.2 | 3/5 | In Progress|  |
+| 45. 代码移除 | v0.6.2 | 5/5 | Complete   | 2026-03-26 |
 | 46. 代码简化与测试 | v0.6.2 | 0/0 | Not started | - |
 | 47. 验证 | v0.6.2 | 0/0 | Not started | - |
 ---
