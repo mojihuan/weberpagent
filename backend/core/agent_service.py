@@ -12,7 +12,6 @@ from typing import Any, Callable, Optional, Union
 from browser_use import Agent, BrowserSession, BrowserProfile
 
 from backend.llm.factory import create_llm
-from backend.agent.tools import register_scroll_table_tool
 
 
 # 服务器环境必需的 Chrome 参数
@@ -181,79 +180,6 @@ class AgentService:
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
         self._browser_session = None  # 存储浏览器会话引用供 step_callback 访问
 
-    async def _post_process_td_click(self, page) -> dict:
-        """TD 后处理: 检测 td 点击并转移焦点到内部输入框.
-
-        Per D-01, D-02, D-03, D-04: 在 step_callback 中添加 TD 后处理逻辑。
-        - D-01: 实现方式 = 回调后处理
-        - D-02: 触发条件 = 所有 td 点击
-        - D-03: 定位元素范围 = input, textarea, select
-        - D-04: 增强范围 = 仅表格单元格
-
-        Args:
-            page: Playwright page 对象
-
-        Returns:
-            dict: 包含 is_td, input_found, input_tag, input_type, focus_transferred
-        """
-        import asyncio
-
-        try:
-            # 等待浏览器事件传播完成 (避免 Race Condition - Pitfall 3)
-            await asyncio.sleep(0.1)
-
-            result = await page.evaluate('''
-                () => {
-                    // 检查当前活动元素是否在 td 内 (避免 Pitfall 1: Incorrect activeElement)
-                    const activeEl = document.activeElement;
-                    const td = activeEl?.closest('td');
-                    if (!td) {
-                        return { is_td: false };
-                    }
-
-                    // 查找 td 内的 input/textarea/select (排除已获得焦点的)
-                    const input = td.querySelector('input:not(:focus), textarea:not(:focus), select:not(:focus)');
-                    if (input) {
-                        // 使用 focus() 而非 click() 转移焦点 (避免 Pitfall 2: Vue Reactivity)
-                        input.focus();
-                        return {
-                            is_td: true,
-                            input_found: true,
-                            input_tag: input.tagName.toLowerCase(),
-                            input_type: input.type || null,
-                            focus_transferred: true
-                        };
-                    }
-
-                    return { is_td: true, input_found: false };
-                }
-            ''')
-
-            # Per D-01: Handle cases where browser-use evaluate_wrapper returns JSON strings
-            if result is None:
-                return {}
-
-            if isinstance(result, str):
-                # Empty string
-                if not result.strip():
-                    return {}
-                try:
-                    parsed = json.loads(result)
-                    if not isinstance(parsed, dict):
-                        return {"is_td": False, "error": "Invalid JSON: not a dict"}
-                    result = parsed
-                except json.JSONDecodeError:
-                    return {"is_td": False, "error": f"Invalid JSON: {e}"}
-
-            if result.get('input_found'):
-                logger.info(f"TD post-processing: focus transferred to {result.get('input_tag')}")
-
-            return result
-
-        except Exception as e:
-            logger.error(f"TD post-processing failed: {e}")
-            return { "is_td": False, "error": str(e) }
-
     async def _fallback_input(self, page, action_params: dict) -> dict:
         """Fallback input: Use JavaScript to set value and dispatch events.
 
@@ -262,7 +188,7 @@ class AgentService:
 
         Args:
             page: Playwright page object
-            action_params: dict with 'index' (td index) and 'text' (value to input)
+            action_params: dict with 'index' (global DOM index via browser-user-highlighted) and 'text' (value to input)
 
         Returns:
             dict: {
@@ -288,13 +214,20 @@ class AgentService:
             result = await page.evaluate('''
                 (params) => {
                     const { index, text } = params;
-                    const tds = document.querySelectorAll('td');
-                    const td = tds[index];
 
-                    if (!td) {
-                        return { success: false, error: 'td_not_found', index };
+                    // browser-use uses browser-user-highlighted attribute for element indexing
+                    const element = document.querySelector(`[browser-user-highlighted="${index}"]`);
+                    if (!element) {
+                        return { success: false, error: 'element_not_found', index };
                     }
 
+                    // Find the containing td
+                    const td = element.closest('td');
+                    if (!td) {
+                        return { success: false, error: 'element_not_in_td', index };
+                    }
+
+                    // Find the input element inside td
                     const input = td.querySelector('input, textarea, select');
                     if (!input) {
                         return { success: false, error: 'no_input_in_td', index };
@@ -510,14 +443,10 @@ class AgentService:
         # 存储引用供 step_callback 访问 (Phase 42, D-01)
         self._browser_session = browser_session
 
-        # Create custom tools with scroll_table_and_input (Phase 40)
-        tools = register_scroll_table_tool()
-
         # Create loop intervention tracker (per D-01)
         tracker = LoopInterventionTracker(window_size=20, stagnation_threshold=5)
         loop_intervention_data = {"value": None}  # Mutable container for closure (Phase 39, LOG-01)
         step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
-        td_post_process_result = None  # TD 后处理结果临时存储 (Phase 42, D-06)
         # Initialize element_diagnostics (Phase 44, LOG-03, per D-01, D-02)
         element_diagnostics = {
             "non_interactive_elements": [],
@@ -599,66 +528,6 @@ class AgentService:
                             action_params = {}
                         tracker.record_action(action_name, action_params)
 
-                        # TD 后处理 (Phase 42, Per D-01, D-02, D-06)
-                        nonlocal td_post_process_result
-                        if action_name == 'click' and self._browser_session:
-                            try:
-                                page = await self._browser_session.get_current_page()
-                                if page:
-                                    td_result = await self._post_process_td_click(page)
-                                    td_post_process_result = td_result
-                                    logger.info(f"[{run_id}] TD post-process result: {td_result}")
-                            except Exception as e:
-                                logger.warning(f"[{run_id}] TD post-processing error: {e}")
-
-                        # Fallback input for td elements (Phase 43, Per D-01, D-04)
-                        if action_name == 'input' and self._browser_session:
-                            try:
-                                page = await self._browser_session.get_current_page()
-                                if page:
-                                    # Check if target element is a td
-                                    check_result = await page.evaluate('''
-                                        (index) => {
-                                            const tds = document.querySelectorAll('td');
-                                            const td = tds[index];
-                                            return { is_td: td !== undefined };
-                                        }
-                                    ''', action_params.get('index'))
-
-                                    if check_result.get('is_td'):
-                                        logger.info(f"[{run_id}] Input action targeting td detected, triggering fallback")
-                                        fallback_result = await self._fallback_input(page, action_params)
-                                        logger.info(f"[{run_id}] Fallback input result: {fallback_result}")
-
-                                        # Store fallback result in td_post_process (Per D-05, D-06)
-                                        if td_post_process_result is None:
-                                            td_post_process_result = {}
-                                        td_post_process_result['fallback'] = {
-                                            'trigger_reason': 'input_on_td',
-                                            'action': 'set_value_and_dispatch_events',
-                                            'success': fallback_result.get('success', False),
-                                            'target_element': {
-                                                'tag': fallback_result.get('target_tag'),
-                                                'type': fallback_result.get('target_type')
-                                            } if fallback_result.get('success') else None,
-                                            'input_value': action_params.get('text')
-                                        }
-
-                            except Exception as e:
-                                logger.warning(f"[{run_id}] Fallback input detection error: {e}")
-
-                            except Exception as e:
-                                logger.warning(f"[{run_id}] Fallback input detection error: {e}")
-
-                        # Link fallback info to element_diagnostics (Phase 44, per D-03)
-                        if td_post_process_result and td_post_process_result.get('fallback'):
-                            element_diagnostics['fallback_triggered'] = True
-                            element_diagnostics['fallback_reason'] = td_post_process_result['fallback'].get('trigger_reason')
-                            element_diagnostics['fallback_result'] = td_post_process_result['fallback']
-
-                            logger.info(f"[{run_id}] Element diagnostics: {element_diagnostics}")
-
-
                         # 记录动作中的 index 信息（用于调试定位问题）
                         if 'index' in action_params:
                             logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
@@ -707,9 +576,6 @@ class AgentService:
                 "duration_ms": 0,  # Will be updated if timing wrapper exists
                 "element_count": element_count,
             }
-            # 添加 TD 后处理结果 (Phase 42, D-06)
-            if td_post_process_result:
-                step_stats['td_post_process'] = td_post_process_result
             step_stats_data["value"] = json.dumps(step_stats, ensure_ascii=False)
 
             # Check for loop intervention (D-01, D-02)
@@ -758,7 +624,6 @@ class AgentService:
             task=actual_task,
             llm=llm,
             browser_session=browser_session,
-            tools=tools,
             max_actions_per_step=5,
             register_new_step_callback=step_callback,
         )
