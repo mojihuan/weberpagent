@@ -52,14 +52,14 @@
 
 ### SIMPLIFY: 代码简化
 
-- [ ] **SIMPLIFY-01**: 简化 step_callback
+- [x] **SIMPLIFY-01**: 简化 step_callback
   - 保留基础日志（URL、DOM、动作、推理）
   - 保留截图保存
   - 保留 step_stats 基础统计（action_count, element_count）
   - 移除所有自定义扩展相关的调用
   - **Complexity**: Medium
 
-- [ ] **SIMPLIFY-02**: 清理导入和变量
+- [x] **SIMPLIFY-02**: 清理导入和变量
   - 移除 `from backend.agent.tools import register_scroll_table_tool`
   - 移除 `tools = register_scroll_table_tool()` 调用
   - Agent 创建时不传入 `tools` 参数
@@ -123,8 +123,8 @@
 | CLEANUP-03 | Phase 45 | Complete |
 | CLEANUP-04 | Phase 45 | Complete |
 | CLEANUP-05 | Phase 45 | Complete |
-| SIMPLIFY-01 | Phase 46 | Pending |
-| SIMPLIFY-02 | Phase 46 | Pending |
+| SIMPLIFY-01 | Phase 46 | Complete |
+| SIMPLIFY-02 | Phase 46 | Complete |
 | TEST-01 | Phase 46 | Complete |
 | VALIDATE-01 | Phase 47 | Pending |
 

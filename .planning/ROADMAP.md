@@ -9,7 +9,7 @@
 ## Phases
 
 - [x] **Phase 45: 代码移除** - 移除所有自定义 browser-use 扩展方法 (completed 2026-03-26)
-- [ ] **Phase 46: 代码简化与测试** - 简化 step_callback 并更新测试
+- [x] **Phase 46: 代码简化与测试** - 简化 step_callback 并更新测试 (completed 2026-03-26)
 - [ ] **Phase 47: 验证** - 验证基础功能正常运行
 ---
 
@@ -43,11 +43,11 @@ Plans:
 3. test_scroll_table_tool.py 测试文件已删除
 4. test_agent_service.py 中依赖自定义方法的测试已更新或删除
 5. 所有剩余单元测试通过
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 46-01: Delete obsolete scroll_table test files (TEST-01) - Wave 1
-- [ ] 46-02: Verify step_callback simplification (SIMPLIFY-01, SIMPLIFY-02) - Wave 2
+- [x] 46-02: Verify step_callback simplification (SIMPLIFY-01, SIMPLIFY-02) - Wave 2
 
 ### Phase 47: 验证
 **Goal:** Agent 能正常启动、执行测试并生成报告，基础功能完全正常
@@ -66,7 +66,7 @@ Phase 45 -> Phase 46 -> Phase 47
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 45. 代码移除 | v0.6.2 | 5/5 | Complete    | 2026-03-26 |
-| 46. 代码简化与测试 | v0.6.2 | 1/2 | In Progress|  |
+| 46. 代码简化与测试 | v0.6.2 | 2/2 | Complete   | 2026-03-26 |
 | 47. 验证 | v0.6.2 | 0/0 | Not started | - |
 ---
 
