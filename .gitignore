@@ -274,3 +274,6 @@ echo
 *.egg-info/
 
 _documents/
+
+
+outputs/

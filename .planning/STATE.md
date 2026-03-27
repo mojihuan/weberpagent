@@ -58,3 +58,9 @@ Recent decision for v0.6.2:
 ### Session Continuity
 
 **Next action:** Run `/gsd:plan-phase 45` to plan Phase 45 (代码移除)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260326-w3d | 日志结构化存储 | 2026-03-26 | 72734ac | [260326-w3d-dom-txt](./quick/260326-w3d-dom-txt/) |
