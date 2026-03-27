@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.6.2
 milestone_name: 回归原生 browser-use
 status: Milestone complete
-last_updated: "2026-03-26T15:03:16.503Z"
+last_updated: "2026-03-27T02:45:08.699Z"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -64,3 +64,4 @@ Recent decision for v0.6.2:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260326-w3d | 日志结构化存储 | 2026-03-26 | 72734ac | [260326-w3d-dom-txt](./quick/260326-w3d-dom-txt/) |
+| 260327-exm | 修复DOM生成始终为0且txt文件中DOM为空的问题 | 2026-03-27 | 5400c7a | [260327-exm-dom-0-txt-dom](./quick/260327-exm-dom-0-txt-dom/) |

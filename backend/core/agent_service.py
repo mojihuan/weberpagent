@@ -159,34 +159,29 @@ class AgentService:
                 url = getattr(browser_state, "url", "") or ""
                 logger.info(f"[{run_id}][BROWSER] URL: {url}")
 
-                # 记录 DOM 状态（使用正确的属性名 dom_state）
+                # 记录 DOM 状态
                 dom_state = getattr(browser_state, "dom_state", None)
+                dom_str = ""
+                element_count = 0
                 if dom_state:
-                    # dom_state 可能是字符串或对象
-                    dom_str = str(dom_state)
-                    logger.info(f"[{run_id}][BROWSER] DOM 状态长度: {len(dom_str)} 字符")
+                    # 使用 llm_representation() 获取 DOM 文本
+                    try:
+                        dom_str = dom_state.llm_representation()
+                    except Exception:
+                        dom_str = str(dom_state)
+                    logger.info(f"[{run_id}][BROWSER] DOM 长度: {len(dom_str)} 字符")
 
                     # 计算 DOM 哈希用于停滞检测
                     dom_hash = hashlib.sha256(dom_str.encode('utf-8')).hexdigest()[:12]
+
+                    # 使用 selector_map 计算元素数量
+                    selector_map = getattr(dom_state, "selector_map", None)
+                    if selector_map is not None:
+                        element_count = len(selector_map) if hasattr(selector_map, '__len__') else 0
+                    logger.info(f"[{run_id}][BROWSER] 元素数量: {element_count}")
                 else:
                     dom_hash = ""
                     logger.warning(f"[{run_id}][BROWSER] dom_state 为空")
-
-                # 记录元素树信息（如果存在）
-                element_tree = getattr(browser_state, "element_tree", None)
-                element_count = 0
-                if element_tree is not None:
-                    element_count = len(element_tree) if hasattr(element_tree, '__len__') else 0
-                    logger.info(f"[{run_id}][BROWSER] 元素数量: {element_count}")
-
-                    # 记录前 5 个元素的关键信息
-                    for i, elem in enumerate(list(element_tree)[:5]):
-                        if hasattr(elem, '__dict__'):
-                            elem_dict = {k: v for k, v in elem.__dict__.items()
-                                        if k in ('index', 'tag_name', 'role', 'text', 'aria_label')}
-                            logger.info(f"[{run_id}][BROWSER] 元素[{i}]: {elem_dict}")
-                        elif isinstance(elem, dict):
-                            logger.info(f"[{run_id}][BROWSER] 元素[{i}]: {elem}")
 
                 # 记录页面信息
                 page_info = getattr(browser_state, "page_info", None)
@@ -196,7 +191,7 @@ class AgentService:
                 # 结构化日志: 保存 DOM 到 per-run 目录
                 run_logger.log_browser(
                     url=url,
-                    dom_content=dom_str if dom_state else "",
+                    dom_content=dom_str,
                     step=step,
                     element_count=element_count,
                 )
@@ -248,13 +243,7 @@ class AgentService:
                 logger.warning(f"[{run_id}][AGENT] agent_output 为空!")
 
             # Collect step statistics (Phase 41, LOG-02, per D-02)
-            # Get element count (number of interactive elements on page)
-            element_count = 0
-            if browser_state:
-                element_tree = getattr(browser_state, "element_tree", None)
-                if element_tree is not None:
-                    # element_tree is a list-like structure
-                    element_count = len(element_tree) if hasattr(element_tree, '__len__') else 0
+            # element_count 已在上方从 dom_state.selector_map 计算
 
             # Action count: how many actions agent decided to take this step
             action_count = 1  # Default to 1 action
@@ -276,21 +265,6 @@ class AgentService:
                     action_params=action_params,
                     reasoning=reasoning,
                     step=step,
-                )
-
-            # 结构化日志: 记录浏览器状态
-            if browser_state:
-                url = getattr(browser_state, "url", "")
-                dom_content = ""
-                element_count = 0
-                if hasattr(browser_state, "dom") and browser_state.dom:
-                    dom_content = browser_state.dom
-                    element_count = dom_content.count("<") if dom_content else 0
-                run_logger.log_browser(
-                    url=url,
-                    dom_content=dom_content,
-                    step=step,
-                    element_count=element_count,
                 )
 
             # 提取截图
