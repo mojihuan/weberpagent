@@ -234,3 +234,58 @@ def test_run_assertion_result_cascade_delete():
     assertion_results_rel = run_mapper.relationships["assertion_results"]
     assert "delete" in assertion_results_rel.cascade
     assert "delete-orphan" in assertion_results_rel.cascade
+
+
+# ============================================================================
+# Task: Step.loop_intervention field tests (Phase 39, LOG-01)
+# ============================================================================
+
+
+def test_step_loop_intervention_field_exists():
+    """Step model has loop_intervention Text field for storing diagnostic JSON"""
+    from sqlalchemy import inspect
+    from backend.db.models import Step
+
+    mapper = inspect(Step)
+    assert "loop_intervention" in mapper.columns
+    # Verify it's a Text column
+    col = mapper.columns["loop_intervention"]
+    assert col.type.__class__.__name__ == "Text"
+
+
+def test_step_loop_intervention_nullable():
+    """Step.loop_intervention is Optional (nullable=True)"""
+    from sqlalchemy import inspect
+    from backend.db.models import Step
+
+    mapper = inspect(Step)
+    col = mapper.columns["loop_intervention"]
+    assert col.nullable is True
+
+
+def test_step_loop_intervention_stores_json():
+    """Step can store and retrieve JSON string in loop_intervention"""
+    from backend.db.models import Step
+    import json
+
+    diagnostic = {
+        "stagnation": 5,
+        "max_repetition_count": 3,
+        "recent_actions": [{"action": "click", "params": {"index": 1}}],
+        "intervention_triggered": True,
+    }
+    json_str = json.dumps(diagnostic, ensure_ascii=False)
+
+    step = Step(
+        run_id="run12345",
+        step_index=1,
+        action="click",
+        status="success",
+        loop_intervention=json_str,
+    )
+
+    assert step.loop_intervention == json_str
+    # Verify it can be parsed back
+    parsed = json.loads(step.loop_intervention)
+    assert parsed["stagnation"] == 5
+    assert parsed["intervention_triggered"] is True

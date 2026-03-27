@@ -116,6 +116,12 @@ export interface SSEStepEvent {
   screenshot_url: string | null
   status: string
   duration_ms: number | null
+  step_stats?: {
+    action_count: number
+    stagnation: number
+    duration_ms: number
+    element_count: number
+  }
 }
 
 export interface SSEFinishedEvent {
@@ -133,6 +139,12 @@ export interface Step {
   status: 'success' | 'failed'
   error?: string
   duration_ms: number
+  step_stats?: {
+    action_count: number
+    stagnation: number
+    duration_ms: number
+    element_count: number
+  }
 }
 
 // Report 报告

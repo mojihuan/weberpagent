@@ -13,24 +13,31 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.5.0 项目云端部署
+## Current Milestone: v0.6.2 回归原生 browser-use
 
-**Goal:** 将 aiDriveUITest 项目部署到国产云端服务器，并完成 Git 仓库迁移
+**Goal:** 移除所有自定义的 browser-use 扩展方法，完全依赖 browser-use 原生能力执行测试
 
 **Target features:**
-- Git 仓库迁移 (当前项目 + webseleniumerp 外置项目)
-- 云服务器选型调研 (预算100元/月以下)
-- 云端部署执行 (后端 + 前端 + 数据库)
+- **移除 scroll_table_and_input 工具** - 删除自定义表格输入工具
+- **移除 TD 后处理逻辑** - 删除 `_post_process_td_click` 方法
+- **移除 JavaScript fallback** - 删除 `_fallback_input` 方法
+- **移除元素诊断日志** - 删除 `_collect_element_diagnostics` 方法
+- **移除循环干预逻辑** - 删除 `LoopInterventionTracker` 类
+- **保留基础功能** - step_callback 日志、截图保存、报告生成
+
+**Key context:**
+- v0.6.0-v0.6.1 添加了大量自定义扩展来处理表格输入问题
+- 这些扩展增加了维护成本，可能与 browser-use 更新不兼容
+- 回归原生能力可以简化代码，但可能需要调整测试用例写法
 
 **Key constraints:**
-- 预算: 100元/月以下
-- 需要运行浏览器 (Playwright Chromium)
-- 需要持久化存储 (SQLite)
-- LLM 调用需要稳定网络
+- 保持 step_callback 的基础日志功能
+- 保持截图保存功能
+- 保持与现有测试报告系统的兼容性
 
 ## Current Status
 
-**最新版本:** v0.4.2 人工验证断言系统 ✓ SHIPPED (2026-03-23)
+**最新版本:** v0.5.0 项目云端部署 ✓ SHIPPED (2026-03-24)
 
 断言系统已完成人工验证，`sell_sale_item_list_assert` 能正确执行并返回结果。修复了 5 个 bug，创建了完整的使用指南文档。
 
@@ -44,6 +51,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.4.0 断言系统集成 (2026-03-21) - ✓ SHIPPED
 - v0.4.1 断言系统调通 (2026-03-22) - ✓ SHIPPED
 - v0.4.2 人工验证断言系统 (2026-03-23) - ✓ SHIPPED
+- v0.5.0 项目云端部署 (2026-03-24) - ✓ SHIPPED
 
 **三层参数架构现已完整:**
 - api_params: API 查询参数 (i, j, k 等)
@@ -99,16 +107,29 @@ v0.4.2 人工验证断言系统 (2026-03-23):
 
 ### Active
 
-**v0.5.0 项目云端部署:**
-- [ ] **GIT-01**: 将 weberpagent 项目 git 源迁移到用户自己的仓库
-- [ ] **GIT-02**: 将 webseleniumerp 外置项目 git 源迁移到用户自己的仓库
-- [ ] **CLOUD-01**: 调研国产云服务器性价比方案 (100元/月以下)
-- [ ] **CLOUD-02**: 选择并购买云服务器
-- [ ] **DEPLOY-01**: 部署后端服务 (FastAPI + uvicorn)
-- [ ] **DEPLOY-02**: 部署前端服务 (React + Nginx)
-- [ ] **DEPLOY-03**: 配置数据库持久化 (SQLite)
-- [ ] **DEPLOY-04**: 配置浏览器环境 (Playwright Chromium)
-- [ ] **DEPLOY-05**: 配置域名和 HTTPS (可选)
+(None - all requirements for v0.6.2 validated)
+
+### Validated
+
+**Phase 46 代码简化与测试 (2026-03-26):**
+- [x] **TEST-01**: 删除过时 scroll_table 测试文件 - 移除 352 行测试代码
+- [x] **SIMPLIFY-01**: step_callback 已简化 - 只包含基本日志功能
+- [x] **SIMPLIFY-02**: Agent 无自定义工具 - 无 tools= 参数
+
+**Phase 45 代码清理 (2026-03-26):**
+- [x] **CLEANUP-01**: 移除 scroll_table_and_input 工具 - 删除 backend/agent/tools/ 目录
+- [x] **CLEANUP-02**: 移除 TD 后处理逻辑 - 删除 `_post_process_td_click` 方法及相关调用
+- [x] **CLEANUP-03**: 移除 JavaScript fallback - 删除 `_fallback_input` 方法及相关调用
+- [x] **CLEANUP-04**: 移除元素诊断日志 - 删除 `_collect_element_diagnostics` 方法及相关调用
+- [x] **CLEANUP-05**: 移除循环干预逻辑 - 删除 `LoopInterventionTracker` 类及相关调用
+
+### Validated (Previous Milestones)
+
+**v0.5.0 项目云端部署 (Shipped: 2026-03-24):**
+- [x] **GIT-01**: Git 仓库迁移完成
+- [x] **CLOUD-01/02**: 阿里云轻量 2核4G (约16.6元/月)
+- [x] **DEPLOY-01-04**: FastAPI + Gunicorn + Nginx + SQLite WAL 部署完成
+- [x] **DEPLOY-05**: HTTPS 跳过（无域名）
 
 ### Out of Scope
 
@@ -183,4 +204,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 - v0.5.0 milestone started*
+*Last updated: 2026-03-26 - Phase 46 complete: removed obsolete test files, verified simplification*

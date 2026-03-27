@@ -1,14 +1,16 @@
 """Agent 服务 - 封装 browser-use Agent"""
 
 import base64
+import hashlib
+import json
 import logging
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Union
 
 from browser_use import Agent, BrowserSession, BrowserProfile
 
 from backend.llm.factory import create_llm
+from backend.utils.run_logger import RunLogger
 
 
 # 服务器环境必需的 Chrome 参数
@@ -44,6 +46,7 @@ class AgentService:
         self.output_dir = Path(output_dir)
         self.screenshots_dir = Path(screenshots_dir)
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
+        self._browser_session = None  # 存储浏览器会话引用供 step_callback 访问
 
     async def save_screenshot(
         self, screenshot_data: Union[bytes, str], run_id: str, step_index: int
@@ -58,8 +61,10 @@ class AgentService:
         Returns:
             截图文件路径
         """
-        filename = f"{run_id}_{step_index}.png"
-        filepath = self.screenshots_dir / filename
+        filename = f"step_{step_index}.png"
+        run_screenshots_dir = Path(self.output_dir, run_id, "screenshots")
+        run_screenshots_dir.mkdir(parents=True, exist_ok=True)
+        filepath = run_screenshots_dir / filename
 
         # 处理不同类型的输入
         if isinstance(screenshot_data, str):
@@ -68,7 +73,6 @@ class AgentService:
                 screenshot_bytes = base64.b64decode(screenshot_data)
             except Exception as e:
                 logger.warning(f"[{run_id}] base64 解码失败，尝试直接编码: {e}")
-                # 如果不是 base64，可能是普通的字符串路径或其他格式
                 screenshot_bytes = screenshot_data.encode('utf-8')
         else:
             screenshot_bytes = screenshot_data
@@ -138,12 +142,79 @@ class AgentService:
         # 创建本地浏览器会话
         browser_session = create_browser_session()
 
+        # 存储引用供 step_callback 访问 (Phase 42, D-01)
+        self._browser_session = browser_session
+
+        # 创建 per-run 结构化日志记录器
+        run_logger = RunLogger(run_id, str(self.output_dir))
+        run_logger.log("info", "system", "Run started", max_steps=max_steps)
+
+        step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
+
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
+
+            # ===== 详细日志: browser_state =====
+            if browser_state:
+                url = getattr(browser_state, "url", "") or ""
+                logger.info(f"[{run_id}][BROWSER] URL: {url}")
+
+                # 记录 DOM 状态（使用正确的属性名 dom_state）
+                dom_state = getattr(browser_state, "dom_state", None)
+                if dom_state:
+                    # dom_state 可能是字符串或对象
+                    dom_str = str(dom_state)
+                    logger.info(f"[{run_id}][BROWSER] DOM 状态长度: {len(dom_str)} 字符")
+
+                    # 计算 DOM 哈希用于停滞检测
+                    dom_hash = hashlib.sha256(dom_str.encode('utf-8')).hexdigest()[:12]
+                else:
+                    dom_hash = ""
+                    logger.warning(f"[{run_id}][BROWSER] dom_state 为空")
+
+                # 记录元素树信息（如果存在）
+                element_tree = getattr(browser_state, "element_tree", None)
+                element_count = 0
+                if element_tree is not None:
+                    element_count = len(element_tree) if hasattr(element_tree, '__len__') else 0
+                    logger.info(f"[{run_id}][BROWSER] 元素数量: {element_count}")
+
+                    # 记录前 5 个元素的关键信息
+                    for i, elem in enumerate(list(element_tree)[:5]):
+                        if hasattr(elem, '__dict__'):
+                            elem_dict = {k: v for k, v in elem.__dict__.items()
+                                        if k in ('index', 'tag_name', 'role', 'text', 'aria_label')}
+                            logger.info(f"[{run_id}][BROWSER] 元素[{i}]: {elem_dict}")
+                        elif isinstance(elem, dict):
+                            logger.info(f"[{run_id}][BROWSER] 元素[{i}]: {elem}")
+
+                # 记录页面信息
+                page_info = getattr(browser_state, "page_info", None)
+                if page_info:
+                    logger.debug(f"[{run_id}][BROWSER] page_info: {page_info}")
+
+                # 结构化日志: 保存 DOM 到 per-run 目录
+                run_logger.log_browser(
+                    url=url,
+                    dom_content=dom_str if dom_state else "",
+                    step=step,
+                    element_count=element_count,
+                )
+
+            else:
+                logger.warning(f"[{run_id}][BROWSER] browser_state 为空!")
+                dom_hash = ""
+
+            # ===== 详细日志: agent_output =====
             # 提取动作和推理 - 从 agent_output 顶层获取
             action = ""
+            action_name = ""
+            action_params = {}
             reasoning = ""
             if agent_output:
+                # 记录完整的 agent_output 结构
+                logger.info(f"[{run_id}][AGENT] agent_output 类型: {type(agent_output).__name__}")
+
                 # 获取动作名称（第一个动作的类型）
                 if hasattr(agent_output, "action") and agent_output.action:
                     first_action = agent_output.action[0]
@@ -155,15 +226,72 @@ class AgentService:
                         # 格式化为可读字符串
                         action = f"{action_name}: {action_params}" if action_params else action_name
 
+                        logger.info(f"[{run_id}][AGENT] 动作: {action_name}, 参数: {action_params}")
+
+                        # 记录动作中的 index 信息（用于调试定位问题）
+                        if 'index' in action_params:
+                            logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
+
                 # 获取推理信息（evaluation + memory + next_goal）
                 parts = []
                 if hasattr(agent_output, "evaluation_previous_goal") and agent_output.evaluation_previous_goal:
                     parts.append(f"Eval: {agent_output.evaluation_previous_goal}")
+                    logger.info(f"[{run_id}][AGENT] 评估: {agent_output.evaluation_previous_goal}")
                 if hasattr(agent_output, "memory") and agent_output.memory:
                     parts.append(f"Memory: {agent_output.memory}")
+                    logger.debug(f"[{run_id}][AGENT] 记忆: {agent_output.memory[:100]}...")
                 if hasattr(agent_output, "next_goal") and agent_output.next_goal:
                     parts.append(f"Goal: {agent_output.next_goal}")
+                    logger.info(f"[{run_id}][AGENT] 下一步: {agent_output.next_goal}")
                 reasoning = " | ".join(parts) if parts else ""
+            else:
+                logger.warning(f"[{run_id}][AGENT] agent_output 为空!")
+
+            # Collect step statistics (Phase 41, LOG-02, per D-02)
+            # Get element count (number of interactive elements on page)
+            element_count = 0
+            if browser_state:
+                element_tree = getattr(browser_state, "element_tree", None)
+                if element_tree is not None:
+                    # element_tree is a list-like structure
+                    element_count = len(element_tree) if hasattr(element_tree, '__len__') else 0
+
+            # Action count: how many actions agent decided to take this step
+            action_count = 1  # Default to 1 action
+            if agent_output and hasattr(agent_output, "action") and agent_output.action:
+                action_count = len(agent_output.action)
+
+            # Build step_stats dict (per D-02)
+            step_stats = {
+                "action_count": action_count,
+                "duration_ms": 0,  # Will be updated if timing wrapper exists
+                "element_count": element_count,
+            }
+            step_stats_data["value"] = json.dumps(step_stats, ensure_ascii=False)
+
+            # 结构化日志: 记录 agent 动作
+            if action_name:
+                run_logger.log_agent(
+                    action_name=action_name,
+                    action_params=action_params,
+                    reasoning=reasoning,
+                    step=step,
+                )
+
+            # 结构化日志: 记录浏览器状态
+            if browser_state:
+                url = getattr(browser_state, "url", "")
+                dom_content = ""
+                element_count = 0
+                if hasattr(browser_state, "dom") and browser_state.dom:
+                    dom_content = browser_state.dom
+                    element_count = dom_content.count("<") if dom_content else 0
+                run_logger.log_browser(
+                    url=url,
+                    dom_content=dom_content,
+                    step=step,
+                    element_count=element_count,
+                )
 
             # 提取截图
             screenshot_path = None
@@ -174,13 +302,15 @@ class AgentService:
                         screenshot_bytes, run_id, step
                     )
                     logger.debug(f"[{run_id}] 截图已保存: {screenshot_path}")
+                    run_logger.log("info", "step", f"Screenshot saved", step=step, path=screenshot_path)
 
             # 调用异步回调
             import asyncio
+            step_stats_json = step_stats_data["value"]
             if asyncio.iscoroutinefunction(on_step):
-                await on_step(step, action, reasoning, screenshot_path)
+                await on_step(step, action, reasoning, screenshot_path, step_stats_json)
             else:
-                on_step(step, action, reasoning, screenshot_path)
+                on_step(step, action, reasoning, screenshot_path, step_stats_json)
 
         # 如果有目标 URL，拼接到任务描述前面
         actual_task = task
@@ -198,9 +328,16 @@ class AgentService:
         )
 
         logger.info(f"[{run_id}] 开始执行 agent.run()...")
-        result = await agent.run(max_steps=max_steps)
-        logger.info(f"[{run_id}] agent.run() 完成")
-        return result
+        try:
+            result = await agent.run(max_steps=max_steps)
+            logger.info(f"[{run_id}] agent.run() 完成")
+            run_logger.log("info", "system", "Run completed", success=result.is_successful())
+            return result
+        except Exception:
+            run_logger.log("error", "system", "Run failed with exception")
+            raise
+        finally:
+            run_logger.close()
 
     async def run_with_cleanup(
         self,

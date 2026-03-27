@@ -147,7 +147,7 @@ async def run_agent_background(
 
         step_count = 0
 
-        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None):
+        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None):
             nonlocal step_count
             step_count = step
             logger.info(f"[{run_id}] 步骤 {step}: action={action[:50]}...")
@@ -161,6 +161,7 @@ async def run_agent_background(
                     "screenshot_path": screenshot_path,
                     "status": "success",
                     "duration_ms": 0,
+                    "step_stats": step_stats_json,  # Pass JSON string directly to repository (Phase 41, LOG-02)
                 }
                 await run_repo.add_step(run_id, step_data)
                 logger.debug(f"[{run_id}] 步骤 {step} 已保存到数据库")
@@ -170,6 +171,14 @@ async def run_agent_background(
             # 构造截图 URL（相对路径，前端会添加 API_BASE）
             screenshot_url = f"/runs/{run_id}/screenshots/{step}" if screenshot_path else None
 
+            # Parse step_stats_json back to dict for SSE event (Phase 41, LOG-02)
+            step_stats_dict = None
+            if step_stats_json:
+                try:
+                    step_stats_dict = json.loads(step_stats_json)
+                except json.JSONDecodeError:
+                    pass  # Keep as None if parsing fails
+
             # 发送 step 事件
             event = SSEStepEvent(
                 index=step,
@@ -178,6 +187,7 @@ async def run_agent_background(
                 screenshot_url=screenshot_url,
                 status="success",
                 duration_ms=0,
+                step_stats=step_stats_dict,
             )
             await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
 
