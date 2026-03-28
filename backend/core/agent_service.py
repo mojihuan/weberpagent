@@ -283,6 +283,44 @@ class AgentService:
                     logger.debug(f"[{run_id}] 截图已保存: {screenshot_path}")
                     run_logger.log("info", "step", f"Screenshot saved", step=step, path=screenshot_path)
 
+            # ===== Detector calls (Phase 50, D-02/D-03, INTEG-03/INTEG-04) =====
+            try:
+                # Extract evaluation for detector use
+                evaluation = ""
+                if agent_output and hasattr(agent_output, "evaluation_previous_goal"):
+                    evaluation = agent_output.evaluation_previous_goal or ""
+
+                # Stall detection -- reuse already-extracted action_name, action_params, dom_hash
+                stall_result = agent._stall_detector.check(
+                    action_name=action_name,
+                    target_index=action_params.get("index") if isinstance(action_params, dict) else None,
+                    evaluation=evaluation,
+                    dom_hash=dom_hash,
+                )
+                if stall_result.should_intervene:
+                    agent._pending_interventions.append(stall_result.message)
+                    run_logger.log("warning", "monitor", "Stall detected",
+                                   step=step, message=stall_result.message[:100])
+
+                # Progress tracking
+                progress_result = agent._task_tracker.check_progress(
+                    current_step=step,
+                    max_steps=max_steps,
+                )
+                if progress_result.should_warn:
+                    agent._pending_interventions.append(progress_result.message)
+                    run_logger.log(progress_result.level, "monitor", "Progress warning",
+                                   step=step, level=progress_result.level,
+                                   remaining_steps=progress_result.remaining_steps,
+                                   remaining_tasks=progress_result.remaining_tasks)
+
+                # Update completed steps from evaluation
+                agent._task_tracker.update_from_evaluation(evaluation)
+
+            except Exception as e:
+                logger.error(f"[{run_id}][MONITOR] Detector error (non-blocking): {e}")
+                run_logger.log("error", "monitor", f"Detector error: {e}", step=step)
+
             # 调用异步回调
             import asyncio
             step_stats_json = step_stats_data["value"]
