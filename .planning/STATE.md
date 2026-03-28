@@ -2,21 +2,21 @@
 gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
-status: Ready to plan
-last_updated: "2026-03-28T07:54:37.380Z"
+status: Ready to execute
+last_updated: "2026-03-28T08:33:27.513Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 50
-Plan: Not started
+Phase: 50 (agentservice) — EXECUTING
+Plan: 2 of 2
 
 ## Last Shipped
 
@@ -55,6 +55,8 @@ Recent decision for v0.6.3:
 - [Phase 49]: Chinese-first ENHANCED_SYSTEM_MESSAGE with bilingual test assertions for keyword checks
 - [Phase 49]: CHINESE_ENHANCEMENT kept as backward compat alias to ENHANCED_SYSTEM_MESSAGE
 - [Phase 49]: Agent params hardcoded in agent_service.py per D-06; extend_system_message, loop_detection_window=10, max_failures=4, planning_replan_on_stall=2, enable_planning=True
+- [Phase 50-agentservice]: Detector instances created fresh per run (D-07) to avoid stale state across runs
+- [Phase 50-agentservice]: run_simple() tests kept mocking Agent since that method was not changed per plan scope
 
 ### Session Continuity
 
@@ -72,3 +74,4 @@ Recent decision for v0.6.3:
 | Phase 48-agent P04 | 5min | 2 tasks | 3 files |
 | Phase 49 P01 | 676s | 2 tasks | 2 files |
 | Phase 49 P02 | 339s | 2 tasks | 2 files |
+| Phase 50-agentservice P01 | 4min | 2 tasks | 4 files |

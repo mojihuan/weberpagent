@@ -76,7 +76,7 @@
 6. extend_system_message 传入 ENHANCED_SYSTEM_MESSAGE
 
 **Plans:**
-- [ ] 50-01: Integrate MonitoredAgent into AgentService (INTEG-01, INTEG-02, INTEG-05) - Wave 1
+1/2 plans executed
 - [ ] 50-02: Wire step_callback with detectors and logging (INTEG-03, INTEG-04) - Wave 2
 
 ### Phase 51: 端到端验证
@@ -101,7 +101,7 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 |-------|-----------|-------|--------|
 | 48. 监控模块与 Agent 子类 | 4/4 | Complete    | 2026-03-28 |
 | 49. 提示词优化与参数调优 | 2/2 | Complete    | 2026-03-28 |
-| 50. AgentService 集成 | v0.6.3 | 0/2 | Pending |
+| 50. AgentService 集成 | 1/2 | In Progress|  |
 | 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
 
 ---
