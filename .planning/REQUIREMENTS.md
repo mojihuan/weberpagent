@@ -72,9 +72,9 @@
 ### VALID — 验证
 
 - [x] **VAL-01**: 所有新增模块的单元测试覆盖率 >= 80%
-- [ ] **VAL-02**: 端到端验证：运行 ERP 销售出库测试，确认 Agent 不再对同一元素重复失败超过 2 次
-- [ ] **VAL-03**: 端到端验证：日志中出现 "monitor" 类别条目，干预消息被正确注入
-- [ ] **VAL-04**: 端到端验证：提交前有字段校验拦截
+- [x] **VAL-02**: 端到端验证：运行 ERP 销售出库测试，确认 Agent 不再对同一元素重复失败超过 2 次
+- [x] **VAL-03**: 端到端验证：日志中出现 "monitor" 类别条目，干预消息被正确注入
+- [x] **VAL-04**: 端到端验证：提交前有字段校验拦截
 
 ---
 
@@ -129,9 +129,9 @@
 | INTEG-04 | Phase 50 | Complete |
 | INTEG-05 | Phase 50 | Complete |
 | VAL-01 | Phase 51 | Complete |
-| VAL-02 | Phase 51 | Pending |
-| VAL-03 | Phase 51 | Pending |
-| VAL-04 | Phase 51 | Pending |
+| VAL-02 | Phase 51 | Complete |
+| VAL-03 | Phase 51 | Complete |
+| VAL-04 | Phase 51 | Complete |
 
 ---
 
