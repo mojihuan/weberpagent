@@ -1,5 +1,24 @@
 # Milestones
 
+## v0.6.3 Agent 可靠性优化 (Shipped: 2026-03-28)
+
+**Phases completed:** 4 phases, 10 plans, 20 tasks
+
+**Key accomplishments:**
+
+- StallDetector with consecutive failure detection (2 same-target failures) and stagnant DOM detection (3 identical hashes), frozen StallResult, 100% test coverage
+- Regex-based form field validation guard with frozen GuardResult, blocking submit clicks on value mismatch
+- TDD-built TaskProgressTracker with 4 step format parsers and budget-aware warning/urgent thresholds
+- MonitoredAgent(Agent) subclass wiring StallDetector, PreSubmitGuard, TaskProgressTracker via _pending_interventions bridge and _execute_actions() blocking
+- ENHANCED_SYSTEM_MESSAGE replacing CHINESE_ENHANCEMENT with 5-section ERP-specific guidance: click-to-edit tables, failure recovery, field verification, pre-submit validation, and merged selector strategy
+- ENHANCED_SYSTEM_MESSAGE wired into Agent constructor with 4 tuned browser-use parameters (loop_detection, max_failures, replan_on_stall, enable_planning)
+- MonitoredAgent replaces Agent in run_with_streaming() with 3 fresh detector instances per run and run_logger for structured monitor logging
+- Detector wiring in step_callback: StallDetector.check(), TaskProgressTracker.check_progress()/update_from_evaluation() called with monitor-category structured logging and non-blocking error handling
+- 60/60 Phase 48-50 unit tests pass, 94% coverage across 5 target modules (all >= 80%), full regression suite confirms zero Phase 48-50 regressions
+- E2E ERP sales outbound test confirmed StallDetector stall detection works in production, with run_logger argument bug fixed mid-verification
+
+---
+
 ## v0.4.2 人工验证断言系统 (Shipped: 2026-03-23)
 
 **Phases completed:** 2 phases, 2 plans, 0 tasks

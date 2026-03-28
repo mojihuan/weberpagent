@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
-status: Milestone complete
-last_updated: "2026-03-28T15:35:31.651Z"
+status: v0.6.3 milestone complete
+last_updated: "2026-03-28T15:39:10.736Z"
 progress:
   total_phases: 4
   completed_phases: 4
