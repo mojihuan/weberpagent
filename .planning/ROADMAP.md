@@ -100,7 +100,7 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 | Phase | Milestone | Plans | Status |
 |-------|-----------|-------|--------|
 | 48. 监控模块与 Agent 子类 | 4/4 | Complete    | 2026-03-28 |
-| 49. 提示词优化与参数调优 | 2/2 | Complete   | 2026-03-28 |
+| 49. 提示词优化与参数调优 | 2/2 | Complete    | 2026-03-28 |
 | 50. AgentService 集成 | v0.6.3 | 0/2 | Pending |
 | 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
 
