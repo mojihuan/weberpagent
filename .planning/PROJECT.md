@@ -13,27 +13,26 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.6.2 回归原生 browser-use
+## Current Milestone: v0.6.3 Agent 可靠性优化
 
-**Goal:** 移除所有自定义的 browser-use 扩展方法，完全依赖 browser-use 原生能力执行测试
+**Goal:** 通过中间层监控和 Prompt 优化解决 Agent 循环重试、字段误填、步骤遗漏、提交未校验等核心问题，提升测试执行成功率。
 
 **Target features:**
-- **移除 scroll_table_and_input 工具** - 删除自定义表格输入工具
-- **移除 TD 后处理逻辑** - 删除 `_post_process_td_click` 方法
-- **移除 JavaScript fallback** - 删除 `_fallback_input` 方法
-- **移除元素诊断日志** - 删除 `_collect_element_diagnostics` 方法
-- **移除循环干预逻辑** - 删除 `LoopInterventionTracker` 类
-- **保留基础功能** - step_callback 日志、截图保存、报告生成
+- **StallDetector（停滞检测器）** — 检测 Agent 对同一元素的重复失败操作，2 次即干预
+- **PreSubmitGuard（提交前校验器）** — 提交前校验关键字段值，阻止错误提交
+- **TaskProgressTracker（任务进度追踪器）** — 追踪任务完成进度，步数紧张时发出警告
+- **ENHANCED_SYSTEM_MESSAGE（增强系统提示词）** — click-to-edit 模式指导、失败恢复规则
+- **AgentService 集成** — 将以上模块集成到 step_callback，通过 `_message_manager._add_context_message()` 注入干预消息
 
 **Key context:**
-- v0.6.0-v0.6.1 添加了大量自定义扩展来处理表格输入问题
-- 这些扩展增加了维护成本，可能与 browser-use 更新不兼容
-- 回归原生能力可以简化代码，但可能需要调整测试用例写法
+- v0.6.2 已回归原生 browser-use，移除了所有自定义扩展
+- 运行记录 `outputs/7fcea593` 暴露了 5 个核心问题：表格 click-to-edit 不可见、循环重试、值误填、步骤遗漏、提交未校验
+- 计划依赖 browser-use 0.12.x 的 `_message_manager._add_context_message()` API，需验证可行性
+- 核心风险：消息注入机制可能不可行，需退而求其次
 
 **Key constraints:**
-- 保持 step_callback 的基础日志功能
-- 保持截图保存功能
-- 保持与现有测试报告系统的兼容性
+- 不侵入 browser-use 源码，升级安全
+- 保持 Qwen 3.5 Plus 作为 LLM，通过工程手段弥补指令遵守能力不足
 
 ## Current Status
 
@@ -107,9 +106,22 @@ v0.4.2 人工验证断言系统 (2026-03-23):
 
 ### Active
 
-(None - all requirements for v0.6.2 validated)
+(None - all Phase 48 requirements validated)
 
 ### Validated
+
+**Phase 48 Agent 可靠性优化 (2026-03-28):**
+- [x] **MON-01**: StallDetector 检测 2 次连续同目标失败 → 干预
+- [x] **MON-02**: StallDetector 检测 3 次连续相同 DOM 指纹 → 干预
+- [x] **MON-03**: StallDetector 成功步骤重置失败计数器
+- [x] **MON-04**: PreSubmitGuard 从任务描述提取期望值（金额、付款状态）
+- [x] **MON-05**: PreSubmitGuard 字段不匹配时拦截提交
+- [x] **MON-06**: PreSubmitGuard 无期望值时不拦截
+- [x] **MON-07**: TaskProgressTracker 解析 4 种步骤格式
+- [x] **MON-08**: TaskProgressTracker 步数不足时预警
+- [x] **SUB-01**: MonitoredAgent._prepare_context() 注入干预消息
+- [x] **SUB-02**: step_callback 存储到 _pending_interventions
+- [x] **SUB-03**: _execute_actions() 拦截提交点击
 
 **Phase 46 代码简化与测试 (2026-03-26):**
 - [x] **TEST-01**: 删除过时 scroll_table 测试文件 - 移除 352 行测试代码
@@ -204,4 +216,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 - Phase 46 complete: removed obsolete test files, verified simplification*
+*Last updated: 2026-03-28 - Phase 48 complete: 3 detectors + MonitoredAgent integration (40 tests, 10/10 must-haves)*

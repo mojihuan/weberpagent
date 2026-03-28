@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
-status: Ready to execute
-last_updated: "2026-03-28T07:35:30.281Z"
+status: Phase complete — ready for verification
+last_updated: "2026-03-28T07:47:40.952Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -54,6 +54,7 @@ Recent decision for v0.6.3:
 - [Phase 48-agent]: _execute_actions delegates to super() for None output and empty actions; only blocks on click with should_block=True
 - [Phase 49]: Chinese-first ENHANCED_SYSTEM_MESSAGE with bilingual test assertions for keyword checks
 - [Phase 49]: CHINESE_ENHANCEMENT kept as backward compat alias to ENHANCED_SYSTEM_MESSAGE
+- [Phase 49]: Agent params hardcoded in agent_service.py per D-06; extend_system_message, loop_detection_window=10, max_failures=4, planning_replan_on_stall=2, enable_planning=True
 
 ### Session Continuity
 
@@ -70,3 +71,4 @@ Recent decision for v0.6.3:
 | Phase 48-agent P03 | 4min | 2 tasks | 2 files |
 | Phase 48-agent P04 | 5min | 2 tasks | 3 files |
 | Phase 49 P01 | 676s | 2 tasks | 2 files |
+| Phase 49 P02 | 339s | 2 tasks | 2 files |

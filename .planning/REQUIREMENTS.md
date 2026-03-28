@@ -37,10 +37,10 @@
 
 ### TUNE — 内置参数调优
 
-- [ ] **TUNE-01**: 将 `loop_detection_window` 从默认 20 降到 10，加速循环检测
-- [ ] **TUNE-02**: 将 `max_failures` 从默认 5 降到 4，更早触发失败处理
-- [ ] **TUNE-03**: 将 `planning_replan_on_stall` 从默认 3 降到 2，更激进触发重规划
-- [ ] **TUNE-04**: 验证 `enable_planning=True`（默认）已开启，利用内置 Planning 系统的重规划能力
+- [x] **TUNE-01**: 将 `loop_detection_window` 从默认 20 降到 10，加速循环检测
+- [x] **TUNE-02**: 将 `max_failures` 从默认 5 降到 4，更早触发失败处理
+- [x] **TUNE-03**: 将 `planning_replan_on_stall` 从默认 3 降到 2，更激进触发重规划
+- [x] **TUNE-04**: 验证 `enable_planning=True`（默认）已开启，利用内置 Planning 系统的重规划能力
 
 ### MONITOR — 监控模块
 
@@ -106,10 +106,10 @@
 | SUB-01 | Phase 48 | Complete |
 | SUB-02 | Phase 48 | Complete |
 | SUB-03 | Phase 48 | Complete |
-| TUNE-01 | Phase 49 | Pending |
-| TUNE-02 | Phase 49 | Pending |
-| TUNE-03 | Phase 49 | Pending |
-| TUNE-04 | Phase 49 | Pending |
+| TUNE-01 | Phase 49 | Complete |
+| TUNE-02 | Phase 49 | Complete |
+| TUNE-03 | Phase 49 | Complete |
+| TUNE-04 | Phase 49 | Complete |
 | MON-01 | Phase 48 | Complete |
 | MON-02 | Phase 48 | Complete |
 | MON-03 | Phase 48 | Complete |
