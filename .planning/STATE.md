@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
-status: Ready to execute
-last_updated: "2026-03-28T08:33:27.513Z"
+status: Phase complete — ready for verification
+last_updated: "2026-03-28T08:42:33.520Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -57,6 +57,8 @@ Recent decision for v0.6.3:
 - [Phase 49]: Agent params hardcoded in agent_service.py per D-06; extend_system_message, loop_detection_window=10, max_failures=4, planning_replan_on_stall=2, enable_planning=True
 - [Phase 50-agentservice]: Detector instances created fresh per run (D-07) to avoid stale state across runs
 - [Phase 50-agentservice]: run_simple() tests kept mocking Agent since that method was not changed per plan scope
+- [Phase 50-agentservice]: RunLogger patched in step_callback tests to avoid I/O on closed file when callback invoked after run_with_streaming returns
+- [Phase 50-agentservice]: step_callback extracts evaluation from agent_output.evaluation_previous_goal before detector calls, reusing existing inline pattern
 
 ### Session Continuity
 
@@ -75,3 +77,4 @@ Recent decision for v0.6.3:
 | Phase 49 P01 | 676s | 2 tasks | 2 files |
 | Phase 49 P02 | 339s | 2 tasks | 2 files |
 | Phase 50-agentservice P01 | 4min | 2 tasks | 4 files |
+| Phase 50-agentservice P02 | 5min | 2 tasks | 2 files |

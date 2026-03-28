@@ -10,7 +10,7 @@
 
 - [x] **Phase 48: 监控模块与 Agent 子类** - 创建 MonitoredAgent 子类和 3 个检测器（StallDetector, PreSubmitGuard, TaskProgressTracker） (completed 2026-03-28)
 - [x] **Phase 49: 提示词优化与参数调优** - 创建 ENHANCED_SYSTEM_MESSAGE，调优 browser-use 内置参数 (completed 2026-03-28)
-- [ ] **Phase 50: AgentService 集成** - 将 MonitoredAgent 集成到 AgentService，接通 step_callback
+- [x] **Phase 50: AgentService 集成** - 将 MonitoredAgent 集成到 AgentService，接通 step_callback (completed 2026-03-28)
 - [ ] **Phase 51: 端到端验证** - 运行 ERP 测试验证 Agent 行为改善
 
 ---
@@ -76,8 +76,8 @@
 6. extend_system_message 传入 ENHANCED_SYSTEM_MESSAGE
 
 **Plans:**
-1/2 plans executed
-- [ ] 50-02: Wire step_callback with detectors and logging (INTEG-03, INTEG-04) - Wave 2
+2/2 plans complete
+- [x] 50-02: Wire step_callback with detectors and logging (INTEG-03, INTEG-04) - Wave 2
 
 ### Phase 51: 端到端验证
 **Goal:** ERP 销售出库测试验证 Agent 行为改善，所有单元测试通过
@@ -101,7 +101,7 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 |-------|-----------|-------|--------|
 | 48. 监控模块与 Agent 子类 | 4/4 | Complete    | 2026-03-28 |
 | 49. 提示词优化与参数调优 | 2/2 | Complete    | 2026-03-28 |
-| 50. AgentService 集成 | 1/2 | In Progress|  |
+| 50. AgentService 集成 | 2/2 | Complete   | 2026-03-28 |
 | 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
 
 ---

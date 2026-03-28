@@ -65,8 +65,8 @@
 
 - [x] **INTEG-01**: AgentService.run_with_streaming() 使用 MonitoredAgent 替代原生 Agent
 - [x] **INTEG-02**: 创建 3 个检测器实例（StallDetector, PreSubmitGuard, TaskProgressTracker），传入 MonitoredAgent
-- [ ] **INTEG-03**: step_callback 中调用 StallDetector.check() 和 TaskProgressTracker.check_progress()，结果存入 `_pending_interventions`
-- [ ] **INTEG-04**: 干预消息通过结构化日志记录（category="monitor"），便于排查
+- [x] **INTEG-03**: step_callback 中调用 StallDetector.check() 和 TaskProgressTracker.check_progress()，结果存入 `_pending_interventions`
+- [x] **INTEG-04**: 干预消息通过结构化日志记录（category="monitor"），便于排查
 - [x] **INTEG-05**: extend_system_message 传入 ENHANCED_SYSTEM_MESSAGE
 
 ### VALID — 验证
@@ -125,8 +125,8 @@
 | PRM-05 | Phase 49 | Complete |
 | INTEG-01 | Phase 50 | Complete |
 | INTEG-02 | Phase 50 | Complete |
-| INTEG-03 | Phase 50 | Pending |
-| INTEG-04 | Phase 50 | Pending |
+| INTEG-03 | Phase 50 | Complete |
+| INTEG-04 | Phase 50 | Complete |
 | INTEG-05 | Phase 50 | Complete |
 | VAL-01 | Phase 51 | Pending |
 | VAL-02 | Phase 51 | Pending |
