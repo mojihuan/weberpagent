@@ -126,7 +126,7 @@ class MonitoredAgent(Agent):
                         self._run_logger.log(
                             "warning", "monitor",
                             "Submit blocked",
-                            message=guard_result.message[:100],
+                            detail=guard_result.message[:100],
                         )
                     return
             except Exception as e:
