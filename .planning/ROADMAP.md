@@ -89,9 +89,9 @@
 3. per-run 日志中出现 category="monitor" 条目
 4. 提交前有 PreSubmitGuard 拦截记录
 
-**Plans:**
-- [ ] 51-01: Run unit tests and verify coverage (VAL-01) - Wave 1
-- [ ] 51-02: E2E verification with ERP test case (VAL-02, VAL-03, VAL-04) - Wave 2
+**Plans:** 1/2 plans executed
+- [x] 51-01-PLAN.md — Run unit tests and verify coverage >= 80% for 6 target modules (VAL-01)
+- [ ] 51-02-PLAN.md — E2E ERP test with log analysis for stall/monitor/guard evidence (VAL-02, VAL-03, VAL-04)
 
 ## Progress
 **Execution Order:**
@@ -100,9 +100,9 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 | Phase | Milestone | Plans | Status |
 |-------|-----------|-------|--------|
 | 48. 监控模块与 Agent 子类 | 4/4 | Complete    | 2026-03-28 |
-| 49. 提示词优化与参数调优 | 2/2 | Complete    | 2026-03-28 |
-| 50. AgentService 集成 | 2/2 | Complete   | 2026-03-28 |
-| 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
+| 49. 提示词优化与参数调优 | 2/2 | Complete | 2026-03-28 |
+| 50. AgentService 集成 | 2/2 | Complete | 2026-03-28 |
+| 51. 端到端验证 | 1/2 | In Progress|  |
 
 ---
 
@@ -150,4 +150,4 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 | VAL-04 | Phase 51 | Pending |
 **Total v0.6.3:** 26/26 requirements mapped (100%)
 ---
-*Roadmap updated: 2026-03-28 - Phase 49 plans finalized*
+*Roadmap updated: 2026-03-28 - Phase 51 plans finalized*

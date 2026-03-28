@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
-status: Phase complete — ready for verification
-last_updated: "2026-03-28T08:42:33.520Z"
+status: Ready to execute
+last_updated: "2026-03-28T09:42:24.715Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 50 (agentservice) — EXECUTING
+Phase: 51 (e2e-verification) — EXECUTING
 Plan: 2 of 2
 
 ## Last Shipped
@@ -59,6 +59,8 @@ Recent decision for v0.6.3:
 - [Phase 50-agentservice]: run_simple() tests kept mocking Agent since that method was not changed per plan scope
 - [Phase 50-agentservice]: RunLogger patched in step_callback tests to avoid I/O on closed file when callback invoked after run_with_streaming returns
 - [Phase 50-agentservice]: step_callback extracts evaluation from agent_output.evaluation_previous_goal before detector calls, reusing existing inline pattern
+- [Phase 51]: VAL-01 verified: 60/60 Phase 48-50 unit tests pass, 94% coverage across 5 target modules (all >=80%)
+- [Phase 51]: Full regression suite: 550 passed, 54 pre-existing failures in unrelated modules, 3 Phase 48-50 tests fail in suite context but pass in isolation (mock pollution)
 
 ### Session Continuity
 
@@ -78,3 +80,4 @@ Recent decision for v0.6.3:
 | Phase 49 P02 | 339s | 2 tasks | 2 files |
 | Phase 50-agentservice P01 | 4min | 2 tasks | 4 files |
 | Phase 50-agentservice P02 | 5min | 2 tasks | 2 files |
+| Phase 51 P01 | 6min | 2 tasks | 0 files |
