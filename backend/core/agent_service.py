@@ -300,7 +300,7 @@ class AgentService:
                 if stall_result.should_intervene:
                     agent._pending_interventions.append(stall_result.message)
                     run_logger.log("warning", "monitor", "Stall detected",
-                                   step=step, message=stall_result.message[:100])
+                                   step=step, detail=stall_result.message[:100])
 
                 # Progress tracking
                 progress_result = agent._task_tracker.check_progress(
@@ -310,7 +310,7 @@ class AgentService:
                 if progress_result.should_warn:
                     agent._pending_interventions.append(progress_result.message)
                     run_logger.log(progress_result.level, "monitor", "Progress warning",
-                                   step=step, level=progress_result.level,
+                                   step=step,
                                    remaining_steps=progress_result.remaining_steps,
                                    remaining_tasks=progress_result.remaining_tasks)
 
