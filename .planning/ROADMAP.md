@@ -1,139 +1,152 @@
 # Roadmap: aiDriveUITest
 
-## Milestone: v0.6.2 回归原生 browser-use
+## Milestone: v0.6.3 Agent 可靠性优化
 
-**Goal:** 移除所有自定义的 browser-use 扩展方法，完全依赖 browser-use 原生能力执行测试
-**Created:** 2026-03-26
+**Goal:** 通过子类化 Agent + 调优内置参数 + Prompt 优化，解决 Agent 循环重试、字段误填、步骤遗漏、提交未校验等核心问题
+**Created:** 2026-03-27
 ---
 
 ## Phases
 
-- [x] **Phase 45: 代码移除** - 移除所有自定义 browser-use 扩展方法 (completed 2026-03-26)
-- [x] **Phase 46: 代码简化与测试** - 简化 step_callback 并更新测试 (completed 2026-03-26)
-- [x] **Phase 47: 验证** - 验证基础功能正常运行 (completed 2026-03-26)
+- [ ] **Phase 48: 监控模块与 Agent 子类** - 创建 MonitoredAgent 子类和 3 个检测器（StallDetector, PreSubmitGuard, TaskProgressTracker）
+- [ ] **Phase 49: 提示词优化与参数调优** - 创建 ENHANCED_SYSTEM_MESSAGE，调优 browser-use 内置参数
+- [ ] **Phase 50: AgentService 集成** - 将 MonitoredAgent 集成到 AgentService，接通 step_callback
+- [ ] **Phase 51: 端到端验证** - 运行 ERP 测试验证 Agent 行为改善
+
 ---
 
 ## Phase Details
-### Phase 45: 代码移除
-**Goal:** 所有自定义扩展方法从代码库中完全移除，不再有 scroll_table_and_input 工具、TD 后处理、JavaScript fallback、元素诊断日志和循环干预逻辑
-**Depends on:** Phase 44 (v0.6.1 已完成)
-**Requirements:** CLEANUP-01, CLEANUP-02, CLEANUP-03, CLEANUP-04, CLEANUP-05
+
+### Phase 48: 监控模块与 Agent 子类
+**Goal:** MonitoredAgent 子类创建完成，3 个检测器（StallDetector, PreSubmitGuard, TaskProgressTracker）实现并通过单元测试
+**Depends on:** Phase 47 (v0.6.2 已完成)
+**Requirements:** SUB-01, SUB-02, SUB-03, MON-01, MON-02, MON-03, MON-04, MON-05, MON-06, MON-07, MON-08
 **Success Criteria** (what must be TRUE):
-1. `backend/agent/tools/` 目录及 scroll_table_tool.py 文件不存在
-2. `_post_process_td_click` 方法已从 agent_service.py 中删除
-3. `_fallback_input` 方法已从 agent_service.py 中删除
-4. `_collect_element_diagnostics` 方法已从 agent_service.py 中删除
-5. `LoopInterventionTracker` 类及相关变量已从 agent_service.py 中删除
-**Plans:** 5/5 plans complete
+1. `MonitoredAgent(Agent)` 子类存在于 `backend/agent/monitored_agent.py`，重写 `_prepare_context()` 和 `_execute_actions()`
+2. StallDetector 在连续 2 次同目标失败时返回 `should_intervene=True`
+3. StallDetector 在连续 3 步 DOM 指纹相同（element_count + url + dom_hash）时返回 `should_intervene=True`
+4. StallDetector 成功操作后重置计数器
+5. PreSubmitGuard 从 task 正则提取销售金额/物流费用/金额/付款状态的期望值
+6. PreSubmitGuard 检测到提交意图且字段不匹配时返回 `should_block=True`
+7. PreSubmitGuard 提取不到期望值时返回 `should_block=False`
+8. TaskProgressTracker 正确解析 Step N / 第N步 / - [ ] / 数字编号格式
+9. TaskProgressTracker 在 remaining_steps <= remaining_tasks 时返回 level="urgent"
+10. 所有新增模块单元测试通过，覆盖率 >= 80%
 
-Plans:
-- [x] 45-01: Delete tools directory (CLEANUP-01) - Wave 2
-- [x] 45-02: Remove TD post-processing (CLEANUP-02) - Wave 1
-- [x] 45-03: Remove fallback and diagnostics (CLEANUP-03, CLEANUP-04) - Wave 1
-- [x] 45-04: Remove LoopInterventionTracker (CLEANUP-05) - Wave 1
-- [x] 45-05: Remove test classes for deleted methods - Wave 3
+**Key Design Decisions:**
+- **消息注入**: 重写 `_prepare_context()`，在 `super()._prepare_context()` 之后注入 `_pending_interventions`，确保消息在 context_messages 清空之后、get_messages() 之前添加
+- **Action 拦截**: 重写 `_execute_actions()`，在提交 action 执行前检查 PreSubmitGuard
+- **DOM 指纹**: 使用 `(element_count, url, dom_hash[:12])` 元组，避免对完整 DOM 文本计算哈希
+- **step_callback 职责**: 只检测并存储干预消息到 `_pending_interventions`，不直接调用 `_add_context_message()`
 
-### Phase 46: 代码简化与测试
-**Goal:** step_callback 仅保留基础日志功能，所有相关测试已更新并通过
-**Depends on:** Phase 45
-**Requirements:** SIMPLIFY-01, SIMPLIFY-02, TEST-01
+**Plans:**
+1/4 plans executed
+- [ ] 48-02: Create PreSubmitGuard with unit tests (MON-04, MON-05, MON-06) - Wave 1
+- [ ] 48-03: Create TaskProgressTracker with unit tests (MON-07, MON-08) - Wave 1
+- [ ] 48-04: Create MonitoredAgent subclass (SUB-01, SUB-02, SUB-03) - Wave 2
+
+### Phase 49: 提示词优化与参数调优
+**Goal:** ENHANCED_SYSTEM_MESSAGE 创建完成并通过 extend_system_message 注入，browser-use 内置参数已调优
+**Depends on:** None (可与 Phase 48 并行)
+**Requirements:** PRM-01, PRM-02, PRM-03, PRM-04, PRM-05, TUNE-01, TUNE-02, TUNE-03, TUNE-04
 **Success Criteria** (what must be TRUE):
-1. step_callback 仅记录 URL、DOM、动作、推理和截图，无自定义扩展调用
-2. Agent 创建时不传入 tools 参数，无 register_scroll_table_tool 导入
-3. test_scroll_table_tool.py 测试文件已删除
-4. test_agent_service.py 中依赖自定义方法的测试已更新或删除
-5. 所有剩余单元测试通过
-**Plans:** 2/2 plans complete
+1. ENHANCED_SYSTEM_MESSAGE 包含 click-to-edit 模式说明
+2. ENHANCED_SYSTEM_MESSAGE 包含失败恢复强制规则（2 次失败后切换策略）
+3. ENHANCED_SYSTEM_MESSAGE 包含字段填写后验证指导
+4. ENHANCED_SYSTEM_MESSAGE 包含提交前校验规则
+5. ENHANCED_SYSTEM_MESSAGE 通过 `extend_system_message` 参数注入（替换 CHINESE_ENHANCEMENT）
+6. `loop_detection_window=10`, `max_failures=4`, `planning_replan_on_stall=2` 参数已配置
+7. `enable_planning=True` 已确认开启
 
-Plans:
-- [x] 46-01: Delete obsolete scroll_table test files (TEST-01) - Wave 1
-- [x] 46-02: Verify step_callback simplification (SIMPLIFY-01, SIMPLIFY-02) - Wave 2
+**Plans:**
+- [ ] 49-01: Create ENHANCED_SYSTEM_MESSAGE (PRM-01~05) - Wave 1
+- [ ] 49-02: Configure browser-use parameter tuning (TUNE-01~04) - Wave 1
 
-### Phase 47: 验证
-**Goal:** Agent 能正常启动、执行测试并生成报告，基础功能完全正常
-**Depends on:** Phase 46
-**Requirements:** VALIDATE-01
+### Phase 50: AgentService 集成
+**Goal:** AgentService 使用 MonitoredAgent，step_callback 接通 3 个检测器，干预消息正确注入
+**Depends on:** Phase 48, Phase 49
+**Requirements:** INTEG-01, INTEG-02, INTEG-03, INTEG-04, INTEG-05
 **Success Criteria** (what must be TRUE):
-1. Agent 能正常启动并连接到目标页面
-2. step_callback 正常记录执行日志
-3. 截图正常保存到指定目录
-4. 测试报告正常生成
-**Plans:** 1/1 plans complete
+1. `run_with_streaming()` 创建 MonitoredAgent 实例替代原生 Agent
+2. 3 个检测器实例在 Agent 创建前初始化，传入 MonitoredAgent
+3. step_callback 调用 StallDetector.check() 和 TaskProgressTracker.check_progress()
+4. 干预消息存储到 `_pending_interventions`（由 _prepare_context 注入）
+5. 干预消息通过 run_logger.log(category="monitor") 记录
+6. extend_system_message 传入 ENHANCED_SYSTEM_MESSAGE
 
-Plans:
-- [ ] 47-01: E2E verification with 销售出库 test case (VALIDATE-01) - Wave 1
+**Plans:**
+- [ ] 50-01: Integrate MonitoredAgent into AgentService (INTEG-01, INTEG-02, INTEG-05) - Wave 1
+- [ ] 50-02: Wire step_callback with detectors and logging (INTEG-03, INTEG-04) - Wave 2
+
+### Phase 51: 端到端验证
+**Goal:** ERP 销售出库测试验证 Agent 行为改善，所有单元测试通过
+**Depends on:** Phase 50
+**Requirements:** VAL-01, VAL-02, VAL-03, VAL-04
+**Success Criteria** (what must be TRUE):
+1. 所有新增模块单元测试通过，覆盖率 >= 80%
+2. ERP 销售出库测试中 Agent 不再对同一元素重复失败超过 2 次
+3. per-run 日志中出现 category="monitor" 条目
+4. 提交前有 PreSubmitGuard 拦截记录
+
+**Plans:**
+- [ ] 51-01: Run unit tests and verify coverage (VAL-01) - Wave 1
+- [ ] 51-02: E2E verification with ERP test case (VAL-02, VAL-03, VAL-04) - Wave 2
 
 ## Progress
 **Execution Order:**
-Phase 45 -> Phase 46 -> Phase 47
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 45. 代码移除 | v0.6.2 | 5/5 | Complete    | 2026-03-26 |
-| 46. 代码简化与测试 | v0.6.2 | 2/2 | Complete    | 2026-03-26 |
-| 47. 验证 | v0.6.2 | 0/1 | Complete    | 2026-03-26 |
+Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
+
+| Phase | Milestone | Plans | Status |
+|-------|-----------|-------|--------|
+| 48. 监控模块与 Agent 子类 | 1/4 | In Progress|  |
+| 49. 提示词优化与参数调优 | v0.6.3 | 0/2 | Pending |
+| 50. AgentService 集成 | v0.6.3 | 0/2 | Pending |
+| 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
+
 ---
 
-## Previous Milestone: v0.6.1 表格输入框定位优化 (Complete)
-### Phase 42: DOM 解析器增强
-**Goal:** 表格内的输入框被正确识别为可交互元素,Agent 点击 td 后能自动定位到内部 input 元素
-**Depends on:** Phase 41 (v0.6.0 已完成)
-**Requirements:** DOM-01
-**Success Criteria** (what must be TRUE):
-  1. Agent 点击 td 元素后，焦点自动转移到内部输入框
-  2. TD 后处理在每次点击动作后执行
-  3. 诊断信息记录在 step_stats['td_post_process'] 字段
-  4. 现有非表格场景的 DOM 解析不受影响
-**Plans:** 1 plan
-Plans:
-- [x] 42-01: TD 后处理实现 (DOM-01)
-### Phase 43: 智能定位与降级
-**Goal:** Agent 点击表格单元格时能正确定位到内部输入框,失败时自动降级到 JavaScript 方案
-**Depends on:** Phase 42
-**Requirements:** DOM-02, FALLBACK-01
-**Success Criteria** (what must be TRUE):
-  1. Agent 点击 td 元素时,自动查找并聚焦到内部的 input/textarea/select
-  2. 当普通点击未能使输入框获得焦点时,自动使用 `page.evaluate()` 设置值
-  3. 降级策略的触发和执行被记录在执行日志中
-  4. 用户无需手动介入即可完成表格输入操作
-**Plans:** 1 plan
-Plans:
-- [x] 43-01: JavaScript fallback for td input (DOM-02, FALLBACK-01)
-### Phase 44: 日志与验证
-**Goal:** 开发者能通过日志快速定位元素定位失败原因,整体解决方案得到验证
-**Depends on:** Phase 42
-**Requirements:** LOG-03
-**Success Criteria** (what must be TRUE):
-  1. 日志记录 `is_interactive=False` 的元素信息(标签、索引、父元素链)
-  2. 日志记录 `ignored_by_paint_order=True` 的父元素链
-  3. 日志记录降级策略的触发原因和执行结果
-  4. Agent 能在 3 步以内成功定位并输入表格单元格内的输入框
-  5. Stagnation 不再因输入框定位问题超过 5
-**Plans:** 2 plans
-Plans:
-- [x] 44-01: Element diagnostics logging (LOG-03)
-- [ ] 44-02: Validation and verification (LOG-03)
-## v0.6.1 Progress (Complete)
-**Execution Order:**
-Phase 42 -> Phase 43 -> Phase 44
+## Previous Milestone: v0.6.2 回归原生 browser-use (Complete)
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 42. DOM 解析器增强 | v0.6.1 | 1/1 | Complete    | 2026-03-25 |
-| 43. 智能定位与降级 | v0.6.1 | 1/1 | Complete   | 2026-03-25 |
-| 44. 日志与验证 | v0.6.1 | 1/2 | In Progress | - |
+| 45. 代码移除 | v0.6.2 | 5/5 | Complete | 2026-03-26 |
+| 46. 代码简化与测试 | v0.6.2 | 2/2 | Complete | 2026-03-26 |
+| 47. 验证 | v0.6.2 | 0/1 | Complete | 2026-03-26 |
+
 ---
 
 ## Coverage
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEANUP-01 | Phase 45 | Complete |
-| CLEANUP-02 | Phase 45 | Complete |
-| CLEANUP-03 | Phase 45 | Complete |
-| CLEANUP-04 | Phase 45 | Complete |
-| CLEANUP-05 | Phase 45 | Complete |
-| SIMPLIFY-01 | Phase 46 | Complete |
-| SIMPLIFY-02 | Phase 46 | Complete |
-| TEST-01 | Phase 46 | Complete |
-| VALIDATE-01 | Phase 47 | Pending |
-**Total v0.6.2:** 9/9 requirements mapped (100%)
+| SUB-01 | Phase 48 | Pending |
+| SUB-02 | Phase 48 | Pending |
+| SUB-03 | Phase 48 | Pending |
+| TUNE-01 | Phase 49 | Pending |
+| TUNE-02 | Phase 49 | Pending |
+| TUNE-03 | Phase 49 | Pending |
+| TUNE-04 | Phase 49 | Pending |
+| MON-01 | Phase 48 | Pending |
+| MON-02 | Phase 48 | Pending |
+| MON-03 | Phase 48 | Pending |
+| MON-04 | Phase 48 | Pending |
+| MON-05 | Phase 48 | Pending |
+| MON-06 | Phase 48 | Pending |
+| MON-07 | Phase 48 | Pending |
+| MON-08 | Phase 48 | Pending |
+| PRM-01 | Phase 49 | Pending |
+| PRM-02 | Phase 49 | Pending |
+| PRM-03 | Phase 49 | Pending |
+| PRM-04 | Phase 49 | Pending |
+| PRM-05 | Phase 49 | Pending |
+| INTEG-01 | Phase 50 | Pending |
+| INTEG-02 | Phase 50 | Pending |
+| INTEG-03 | Phase 50 | Pending |
+| INTEG-04 | Phase 50 | Pending |
+| INTEG-05 | Phase 50 | Pending |
+| VAL-01 | Phase 51 | Pending |
+| VAL-02 | Phase 51 | Pending |
+| VAL-03 | Phase 51 | Pending |
+| VAL-04 | Phase 51 | Pending |
+**Total v0.6.3:** 26/26 requirements mapped (100%)
 ---
-*Roadmap updated: 2026-03-26 - Phase 47 plan created*
+*Roadmap updated: 2026-03-27 - Milestone v0.6.3 roadmap created*

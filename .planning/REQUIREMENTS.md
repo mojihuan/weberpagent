@@ -1,85 +1,80 @@
-# Requirements: v0.6.2 回归原生 browser-use
+# Requirements: v0.6.3 Agent 可靠性优化
 
-**Milestone:** v0.6.2
-**Goal:** 移除所有自定义的 browser-use 扩展方法，完全依赖 browser-use 原生能力执行测试
-**Created:** 2026-03-26
+**Milestone:** v0.6.3
+**Goal:** 通过子类化 Agent + 调优内置参数 + Prompt 优化，解决 Agent 循环重试、字段误填、步骤遗漏、提交未校验等核心问题
+**Created:** 2026-03-27
 
 ---
 
 ## Problem Context
 
-**背景:** v0.6.0-v0.6.1 添加了大量自定义扩展来处理表格输入问题
+**背景:** 运行记录 `outputs/7fcea593` 暴露了 5 个核心问题
 
 **问题:**
-- 这些扩展增加了维护成本
-- 可能与 browser-use 更新不兼容
-- 代码复杂度增加，难以调试
+1. 表格 click-to-edit 单元格不可见 — Ant Design 表格 `<td>` 在 DOM 快照中为空
+2. 循环重试同一失败操作 — Agent 对同一 index 连续失败 12 步
+3. 值被误填到其他字段 — 150 被填入物流费用字段
+4. 步骤遗漏 — 30 步限制中前面浪费太多步数
+5. 提交前校验形同虚设 — 多个字段未正确填写就点了确认
 
-**决策:** 回归原生 browser-use 能力，简化代码
+**源码分析关键发现:**
+- browser-use `_add_context_message()` 存在，但 step_callback 中注入的消息会在下一步被 `prepare_step_state()` 清空
+- browser-use 已有内置循环检测（阈值 5/8/12），但偏弱
+- browser-use 有内置 Planning 系统（`enable_planning=True`），可利用重规划能力
+- step_callback 无法阻止 action 执行
+
+**决策:** 子类化 Agent + 调优内置参数 + Prompt 优化，不侵入 browser-use 源码
 
 ---
 
 ## In Scope (This Milestone)
 
-### CLEANUP: 代码移除
+### SUBCLASS — Agent 子类化
 
-- [x] **CLEANUP-01**: 移除 scroll_table_and_input 工具
-  - 删除 `backend/agent/tools/` 目录（scroll_table_tool.py, __init__.py）
-  - 移除 `backend/agent/__init__.py` 中的相关导出
-  - **Complexity**: Low
+- [ ] **SUB-01**: 创建 `MonitoredAgent(Agent)` 子类，重写 `_prepare_context()` 在内置 nudge 之后注入自定义干预消息
+- [ ] **SUB-02**: step_callback 只负责检测和存储干预消息到 `_pending_interventions`，不直接调用 `_add_context_message`
+- [ ] **SUB-03**: 重写 `_execute_actions()` 实现 PreSubmitGuard 的 action 拦截（阻止提交 click 执行）
 
-- [x] **CLEANUP-02**: 移除 TD 后处理逻辑
-  - 删除 `_post_process_td_click` 方法
-  - 移除 step_callback 中的 TD 后处理调用
-  - 移除 `td_post_process_result` 变量及相关逻辑
-  - **Complexity**: Medium
+### TUNE — 内置参数调优
 
-- [x] **CLEANUP-03**: 移除 JavaScript fallback
-  - 删除 `_fallback_input` 方法
-  - 移除 step_callback 中的 fallback 调用逻辑
-  - **Complexity**: Medium
+- [ ] **TUNE-01**: 将 `loop_detection_window` 从默认 20 降到 10，加速循环检测
+- [ ] **TUNE-02**: 将 `max_failures` 从默认 5 降到 4，更早触发失败处理
+- [ ] **TUNE-03**: 将 `planning_replan_on_stall` 从默认 3 降到 2，更激进触发重规划
+- [ ] **TUNE-04**: 验证 `enable_planning=True`（默认）已开启，利用内置 Planning 系统的重规划能力
 
-- [x] **CLEANUP-04**: 移除元素诊断日志
-  - 删除 `_collect_element_diagnostics` 方法
-  - 移除 `element_diagnostics` 变量及相关逻辑
-  - **Complexity**: Low
+### MONITOR — 监控模块
 
-- [x] **CLEANUP-05**: 移除循环干预逻辑
-  - 删除 `LoopInterventionTracker` 类
-  - 移除 `tracker` 实例化及 `should_intervene()` 调用
-  - 移除 `loop_intervention_data` 变量
-  - **Complexity**: Medium
+- [x] **MON-01**: StallDetector 检测连续 2 次对同一 target_index 执行相同 action 且 evaluation 含失败关键词
+- [x] **MON-02**: StallDetector 检测连续 3 步 DOM 指纹完全相同（页面无变化），使用轻量指纹（element_count + url + dom_hash 前 12 位）
+- [x] **MON-03**: StallDetector 成功操作后重置连续失败计数器
+- [ ] **MON-04**: PreSubmitGuard 从 task 描述正则提取期望值（销售金额、物流费用、金额、付款状态）
+- [ ] **MON-05**: PreSubmitGuard 在 step_callback 中检测提交意图（click + 确认/提交/保存），通过 `_execute_actions()` 拦截并注入校验报告
+- [ ] **MON-06**: PreSubmitGuard 正则提取不到期望值时跳过校验，不阻塞流程
+- [ ] **MON-07**: TaskProgressTracker 从 task 描述解析结构化步骤列表（支持 Step N、第N步、- [ ]、数字编号格式）
+- [ ] **MON-08**: TaskProgressTracker 剩余步数 < 剩余任务 * 1.5 时发出 warning，<= 剩余任务时发出 urgent
 
-### SIMPLIFY: 代码简化
+### PROMPT — 提示词优化
 
-- [x] **SIMPLIFY-01**: 简化 step_callback
-  - 保留基础日志（URL、DOM、动作、推理）
-  - 保留截图保存
-  - 保留 step_stats 基础统计（action_count, element_count）
-  - 移除所有自定义扩展相关的调用
-  - **Complexity**: Medium
+- [ ] **PRM-01**: ENHANCED_SYSTEM_MESSAGE 包含 click-to-edit 模式说明（click td → 等待 input → input 值）
+- [ ] **PRM-02**: ENHANCED_SYSTEM_MESSAGE 包含失败恢复强制规则（2 次失败后禁止重试，强制使用 evaluate/find_elements/滚动）
+- [ ] **PRM-03**: ENHANCED_SYSTEM_MESSAGE 包含字段填写后立即验证指导（截图确认值已正确填入）
+- [ ] **PRM-04**: ENHANCED_SYSTEM_MESSAGE 包含提交前完整校验规则
+- [ ] **PRM-05**: 通过 `extend_system_message` 参数注入（替换现有 `CHINESE_ENHANCEMENT`）
 
-- [x] **SIMPLIFY-02**: 清理导入和变量
-  - 移除 `from backend.agent.tools import register_scroll_table_tool`
-  - 移除 `tools = register_scroll_table_tool()` 调用
-  - Agent 创建时不传入 `tools` 参数
-  - **Complexity**: Low
+### INTEG — 集成
 
-### TEST: 测试更新
+- [ ] **INTEG-01**: AgentService.run_with_streaming() 使用 MonitoredAgent 替代原生 Agent
+- [ ] **INTEG-02**: 创建 3 个检测器实例（StallDetector, PreSubmitGuard, TaskProgressTracker），传入 MonitoredAgent
+- [ ] **INTEG-03**: step_callback 中调用 StallDetector.check() 和 TaskProgressTracker.check_progress()，结果存入 `_pending_interventions`
+- [ ] **INTEG-04**: 干预消息通过结构化日志记录（category="monitor"），便于排查
+- [ ] **INTEG-05**: extend_system_message 传入 ENHANCED_SYSTEM_MESSAGE
 
-- [x] **TEST-01**: 更新单元测试
-  - 移除 `test_scroll_table_tool.py` 测试文件
-  - 更新 `test_agent_service.py` 中依赖自定义方法的测试
-  - 确保现有测试通过
-  - **Complexity**: Medium
+### VALID — 验证
 
-### VALIDATE: 验证
-
-- [x] **VALIDATE-01**: 基础功能验证
-  - 确保 Agent 仍能正常启动和执行
-  - 确保 step_callback 正常记录日志
-  - 确保截图正常保存
-  - **Complexity**: Low
+- [ ] **VAL-01**: 所有新增模块的单元测试覆盖率 >= 80%
+- [ ] **VAL-02**: 端到端验证：运行 ERP 销售出库测试，确认 Agent 不再对同一元素重复失败超过 2 次
+- [ ] **VAL-03**: 端到端验证：日志中出现 "monitor" 类别条目，干预消息被正确注入
+- [ ] **VAL-04**: 端到端验证：提交前有字段校验拦截
 
 ---
 
@@ -87,30 +82,20 @@
 
 | Item | Reason |
 |------|--------|
-| 修改 browser-use 核心库 | 不需要 |
-| 修改前端代码 | 与此次清理无关 |
-| 修改测试报告系统 | 保持兼容 |
-| 修改断言系统 | 与此次清理无关 |
-| 修改前置条件系统 | 与此次清理无关 |
-
----
-
-## Future Considerations
-
-如果遇到表格输入问题:
-1. 调整测试用例的描述方式
-2. 使用 browser-use 原生的 scroll + click + input 组合
-3. 等待 browser-use 官方解决
+| 侵入修改 browser-use 源码 | 通过子类化和公开 API 实现 |
+| 更换 LLM 模型 | 保持 Qwen 3.5 Plus，通过工程手段弥补 |
+| 通用 ERP 适配 | JS 校验脚本针对当前目标 ERP 适配 |
 
 ---
 
 ## Success Criteria
 
-1. 所有自定义扩展方法被移除
-2. Agent 仍能正常启动和执行
-3. step_callback 保留基础日志功能
-4. 截图保存功能正常
-5. 所有测试通过
+1. MonitoredAgent 子类正确注入干预消息到 LLM 上下文
+2. StallDetector 在 2 次连续失败后生成干预消息
+3. PreSubmitGuard 在提交前拦截并校验关键字段
+4. TaskProgressTracker 在步数紧张时发出预警
+5. ENHANCED_SYSTEM_MESSAGE 通过 extend_system_message 注入
+6. 端到端测试验证 Agent 行为改善
 
 ---
 
@@ -118,17 +103,37 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| CLEANUP-01 | Phase 45 | Complete |
-| CLEANUP-02 | Phase 45 | Complete |
-| CLEANUP-03 | Phase 45 | Complete |
-| CLEANUP-04 | Phase 45 | Complete |
-| CLEANUP-05 | Phase 45 | Complete |
-| SIMPLIFY-01 | Phase 46 | Complete |
-| SIMPLIFY-02 | Phase 46 | Complete |
-| TEST-01 | Phase 46 | Complete |
-| VALIDATE-01 | Phase 47 | Complete |
+| SUB-01 | Phase 48 | Pending |
+| SUB-02 | Phase 48 | Pending |
+| SUB-03 | Phase 48 | Pending |
+| TUNE-01 | Phase 49 | Pending |
+| TUNE-02 | Phase 49 | Pending |
+| TUNE-03 | Phase 49 | Pending |
+| TUNE-04 | Phase 49 | Pending |
+| MON-01 | Phase 48 | Complete |
+| MON-02 | Phase 48 | Complete |
+| MON-03 | Phase 48 | Complete |
+| MON-04 | Phase 48 | Pending |
+| MON-05 | Phase 48 | Pending |
+| MON-06 | Phase 48 | Pending |
+| MON-07 | Phase 48 | Pending |
+| MON-08 | Phase 48 | Pending |
+| PRM-01 | Phase 49 | Pending |
+| PRM-02 | Phase 49 | Pending |
+| PRM-03 | Phase 49 | Pending |
+| PRM-04 | Phase 49 | Pending |
+| PRM-05 | Phase 49 | Pending |
+| INTEG-01 | Phase 50 | Pending |
+| INTEG-02 | Phase 50 | Pending |
+| INTEG-03 | Phase 50 | Pending |
+| INTEG-04 | Phase 50 | Pending |
+| INTEG-05 | Phase 50 | Pending |
+| VAL-01 | Phase 51 | Pending |
+| VAL-02 | Phase 51 | Pending |
+| VAL-03 | Phase 51 | Pending |
+| VAL-04 | Phase 51 | Pending |
 
 ---
 
-*Requirements for milestone v0.6.2*
-*Created: 2026-03-26*
+*Requirements for milestone v0.6.3*
+*Created: 2026-03-27*
