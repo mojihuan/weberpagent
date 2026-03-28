@@ -81,24 +81,26 @@ class TestTaskProgressTrackerProgress:
     def test_warning_when_steps_tight(self):
         """Remaining steps < remaining_tasks * 1.5 triggers 'warning'."""
         tracker = self._make_tracker_with_steps(5)
-        # 10 max, at step 6: remaining=4, remaining_tasks=5 -> 4 < 7.5 -> warning
-        result = tracker.check_progress(current_step=6, max_steps=10)
+        # 10 max, at step 4: remaining=6, remaining_tasks=5
+        # 6 <= 5 is False, 6 < 7.5 is True -> warning
+        result = tracker.check_progress(current_step=4, max_steps=10)
 
         assert result.level == "warning"
         assert result.should_warn is True
-        assert result.remaining_steps == 4
+        assert result.remaining_steps == 6
         assert result.remaining_tasks == 5
         assert "预警" in result.message
 
     def test_no_warning_when_plenty_steps(self):
         """Plenty of remaining steps produces no warning."""
         tracker = self._make_tracker_with_steps(5)
-        # 10 max, at step 3: remaining=7, remaining_tasks=5 -> 7 >= 7.5 -> no warning
-        result = tracker.check_progress(current_step=3, max_steps=10)
+        # 10 max, at step 2: remaining=8, remaining_tasks=5
+        # 8 <= 5 is False, 8 < 7.5 is False -> no warning
+        result = tracker.check_progress(current_step=2, max_steps=10)
 
         assert result.level == ""
         assert result.should_warn is False
-        assert result.remaining_steps == 7
+        assert result.remaining_steps == 8
         assert result.remaining_tasks == 5
 
     def test_boundary_exactly_equal(self):
