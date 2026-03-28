@@ -40,8 +40,8 @@
 - **step_callback 职责**: 只检测并存储干预消息到 `_pending_interventions`，不直接调用 `_add_context_message()`
 
 **Plans:**
-1/4 plans executed
-- [ ] 48-02: Create PreSubmitGuard with unit tests (MON-04, MON-05, MON-06) - Wave 1
+2/4 plans executed
+- [x] 48-02: Create PreSubmitGuard with unit tests (MON-04, MON-05, MON-06) - Wave 1
 - [ ] 48-03: Create TaskProgressTracker with unit tests (MON-07, MON-08) - Wave 1
 - [ ] 48-04: Create MonitoredAgent subclass (SUB-01, SUB-02, SUB-03) - Wave 2
 
@@ -98,7 +98,7 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 
 | Phase | Milestone | Plans | Status |
 |-------|-----------|-------|--------|
-| 48. 监控模块与 Agent 子类 | 1/4 | In Progress|  |
+| 48. 监控模块与 Agent 子类 | 2/4 | In Progress|  |
 | 49. 提示词优化与参数调优 | v0.6.3 | 0/2 | Pending |
 | 50. AgentService 集成 | v0.6.3 | 0/2 | Pending |
 | 51. 端到端验证 | v0.6.3 | 0/2 | Pending |

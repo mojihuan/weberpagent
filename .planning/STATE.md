@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
 status: Ready to execute
-last_updated: "2026-03-28T05:33:12.367Z"
+last_updated: "2026-03-28T05:43:21.365Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 48 (agent) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Last Shipped
 
@@ -46,6 +46,8 @@ Recent decision for v0.6.3:
 - 停滞阈值设为 2 次失败即切换，比 browser-use 默认更激进
 - [Phase 48-agent]: StallResult uses frozen=True dataclass for immutability per D-04 and coding rules
 - [Phase 48-agent]: Avoided Pitfall 6: _check_consecutive_failures initializes baseline from first failure record before comparison loop
+- [Phase 48-agent]: Overlap-tracked regex extraction prevents generic '金额' matching inside specific '销售金额'
+- [Phase 48-agent]: PreSubmitGuard.check() accepts actual_values as parameter for pure unit testing without browser
 
 ### Session Continuity
 
@@ -58,3 +60,4 @@ Recent decision for v0.6.3:
 | 260326-w3d | 日志结构化存储 | 2026-03-26 | 72734ac | [260326-w3d-dom-txt](./quick/260326-w3d-dom-txt/) |
 | 260327-exm | 修复DOM生成始终为0且txt文件中DOM为空的问题 | 2026-03-27 | 5400c7a | [260327-exm-dom-0-txt-dom/](./quick/260327-exm-dom-0-txt-dom/) |
 | Phase 48-agent P01 | 3min | 2 tasks | 2 files |
+| Phase 48-agent P02 | 6min | 2 tasks | 2 files |

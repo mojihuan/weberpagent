@@ -47,9 +47,9 @@
 - [x] **MON-01**: StallDetector 检测连续 2 次对同一 target_index 执行相同 action 且 evaluation 含失败关键词
 - [x] **MON-02**: StallDetector 检测连续 3 步 DOM 指纹完全相同（页面无变化），使用轻量指纹（element_count + url + dom_hash 前 12 位）
 - [x] **MON-03**: StallDetector 成功操作后重置连续失败计数器
-- [ ] **MON-04**: PreSubmitGuard 从 task 描述正则提取期望值（销售金额、物流费用、金额、付款状态）
-- [ ] **MON-05**: PreSubmitGuard 在 step_callback 中检测提交意图（click + 确认/提交/保存），通过 `_execute_actions()` 拦截并注入校验报告
-- [ ] **MON-06**: PreSubmitGuard 正则提取不到期望值时跳过校验，不阻塞流程
+- [x] **MON-04**: PreSubmitGuard 从 task 描述正则提取期望值（销售金额、物流费用、金额、付款状态）
+- [x] **MON-05**: PreSubmitGuard 在 step_callback 中检测提交意图（click + 确认/提交/保存），通过 `_execute_actions()` 拦截并注入校验报告
+- [x] **MON-06**: PreSubmitGuard 正则提取不到期望值时跳过校验，不阻塞流程
 - [ ] **MON-07**: TaskProgressTracker 从 task 描述解析结构化步骤列表（支持 Step N、第N步、- [ ]、数字编号格式）
 - [ ] **MON-08**: TaskProgressTracker 剩余步数 < 剩余任务 * 1.5 时发出 warning，<= 剩余任务时发出 urgent
 
@@ -113,9 +113,9 @@
 | MON-01 | Phase 48 | Complete |
 | MON-02 | Phase 48 | Complete |
 | MON-03 | Phase 48 | Complete |
-| MON-04 | Phase 48 | Pending |
-| MON-05 | Phase 48 | Pending |
-| MON-06 | Phase 48 | Pending |
+| MON-04 | Phase 48 | Complete |
+| MON-05 | Phase 48 | Complete |
+| MON-06 | Phase 48 | Complete |
 | MON-07 | Phase 48 | Pending |
 | MON-08 | Phase 48 | Pending |
 | PRM-01 | Phase 49 | Pending |
