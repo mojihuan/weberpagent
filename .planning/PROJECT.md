@@ -216,4 +216,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 - Phase 48 complete: 3 detectors + MonitoredAgent integration (40 tests, 10/10 must-haves)*
+*Last updated: 2026-03-28 - Phase 49 complete: ENHANCED_SYSTEM_MESSAGE (5 ERP guidance sections) + Agent parameter tuning (14 tests, 7/7 must-haves)*
