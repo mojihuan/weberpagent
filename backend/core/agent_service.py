@@ -9,6 +9,7 @@ from typing import Any, Callable, Union
 
 from browser_use import Agent, BrowserSession, BrowserProfile
 
+from backend.agent.prompts import ENHANCED_SYSTEM_MESSAGE
 from backend.llm.factory import create_llm
 from backend.utils.run_logger import RunLogger
 
@@ -299,6 +300,11 @@ class AgentService:
             browser_session=browser_session,
             max_actions_per_step=5,
             register_new_step_callback=step_callback,
+            extend_system_message=ENHANCED_SYSTEM_MESSAGE,
+            loop_detection_window=10,
+            max_failures=4,
+            planning_replan_on_stall=2,
+            enable_planning=True,
         )
 
         logger.info(f"[{run_id}] 开始执行 agent.run()...")
