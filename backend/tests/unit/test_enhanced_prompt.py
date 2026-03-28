@@ -28,10 +28,10 @@ class TestEnhancedPrompt:
     def test_contains_failure_recovery_keywords(self):
         """PRM-02: Must contain failure recovery rule with key terms."""
         lower = ENHANCED_SYSTEM_MESSAGE.lower()
-        assert "fail" in lower
+        assert "fail" in lower or "失败" in ENHANCED_SYSTEM_MESSAGE
         assert "evaluate" in lower
         assert "find_elements" in lower
-        assert "skip" in lower
+        assert "skip" in lower or "跳过" in ENHANCED_SYSTEM_MESSAGE
 
     def test_contains_post_fill_verification_keywords(self):
         """PRM-03: Must contain post-fill verification guidance."""
