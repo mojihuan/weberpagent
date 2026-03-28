@@ -9,6 +9,10 @@ from typing import Any, Callable, Union
 
 from browser_use import Agent, BrowserSession, BrowserProfile
 
+from backend.agent.monitored_agent import MonitoredAgent
+from backend.agent.stall_detector import StallDetector
+from backend.agent.pre_submit_guard import PreSubmitGuard
+from backend.agent.task_progress_tracker import TaskProgressTracker
 from backend.agent.prompts import ENHANCED_SYSTEM_MESSAGE
 from backend.llm.factory import create_llm
 from backend.utils.run_logger import RunLogger
@@ -293,8 +297,14 @@ class AgentService:
             actual_task = f"目标URL: {target_url}\n\n任务:\n{task}"
             logger.info(f"[{run_id}] 已将目标 URL 拼接到任务描述中")
 
-        logger.info(f"[{run_id}] 创建 Agent: task={actual_task[:80]}..., max_steps={max_steps}")
-        agent = Agent(
+        logger.info(f"[{run_id}] Creating MonitoredAgent: task={actual_task[:80]}..., max_steps={max_steps}")
+
+        # Initialize detectors (D-07)
+        stall_detector = StallDetector()
+        pre_submit_guard = PreSubmitGuard()
+        task_progress_tracker = TaskProgressTracker()
+
+        agent = MonitoredAgent(
             task=actual_task,
             llm=llm,
             browser_session=browser_session,
@@ -305,6 +315,10 @@ class AgentService:
             max_failures=4,
             planning_replan_on_stall=2,
             enable_planning=True,
+            stall_detector=stall_detector,
+            pre_submit_guard=pre_submit_guard,
+            task_progress_tracker=task_progress_tracker,
+            run_logger=run_logger,
         )
 
         logger.info(f"[{run_id}] 开始执行 agent.run()...")
