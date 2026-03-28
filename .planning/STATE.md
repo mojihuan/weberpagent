@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.6.3
 milestone_name: Agent 可靠性优化
 status: Ready to execute
-last_updated: "2026-03-28T05:43:21.365Z"
+last_updated: "2026-03-28T05:51:16.051Z"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -16,7 +16,7 @@ progress:
 ## Current Position
 
 Phase: 48 (agent) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 ## Last Shipped
 
@@ -48,6 +48,8 @@ Recent decision for v0.6.3:
 - [Phase 48-agent]: Avoided Pitfall 6: _check_consecutive_failures initializes baseline from first failure record before comparison loop
 - [Phase 48-agent]: Overlap-tracked regex extraction prevents generic '金额' matching inside specific '销售金额'
 - [Phase 48-agent]: PreSubmitGuard.check() accepts actual_values as parameter for pure unit testing without browser
+- [Phase 48-agent]: Step patterns tried in priority order (Step N > Chinese > checkbox > numbered); first match wins
+- [Phase 48-agent]: Fixed plan test data for warning/no-warning thresholds: remaining must be > tasks for warning, >= tasks*1.5 for no-warning
 
 ### Session Continuity
 
@@ -61,3 +63,4 @@ Recent decision for v0.6.3:
 | 260327-exm | 修复DOM生成始终为0且txt文件中DOM为空的问题 | 2026-03-27 | 5400c7a | [260327-exm-dom-0-txt-dom/](./quick/260327-exm-dom-0-txt-dom/) |
 | Phase 48-agent P01 | 3min | 2 tasks | 2 files |
 | Phase 48-agent P02 | 6min | 2 tasks | 2 files |
+| Phase 48-agent P03 | 4min | 2 tasks | 2 files |
