@@ -59,8 +59,9 @@
 7. `enable_planning=True` 已确认开启
 
 **Plans:**
-- [ ] 49-01: Create ENHANCED_SYSTEM_MESSAGE (PRM-01~05) - Wave 1
-- [ ] 49-02: Configure browser-use parameter tuning (TUNE-01~04) - Wave 1
+1/2 plans executed
+- [x] 49-01-PLAN.md — Create ENHANCED_SYSTEM_MESSAGE with 4-section ERP guidance (PRM-01~05)
+- [ ] 49-02-PLAN.md — Wire extend_system_message + tune Agent parameters (TUNE-01~04)
 
 ### Phase 50: AgentService 集成
 **Goal:** AgentService 使用 MonitoredAgent，step_callback 接通 3 个检测器，干预消息正确注入
@@ -98,8 +99,8 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 
 | Phase | Milestone | Plans | Status |
 |-------|-----------|-------|--------|
-| 48. 监控模块与 Agent 子类 | 4/4 | Complete   | 2026-03-28 |
-| 49. 提示词优化与参数调优 | v0.6.3 | 0/2 | Pending |
+| 48. 监控模块与 Agent 子类 | 4/4 | Complete    | 2026-03-28 |
+| 49. 提示词优化与参数调优 | 1/2 | In Progress|  |
 | 50. AgentService 集成 | v0.6.3 | 0/2 | Pending |
 | 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
 
@@ -118,21 +119,21 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 ## Coverage
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUB-01 | Phase 48 | Pending |
-| SUB-02 | Phase 48 | Pending |
-| SUB-03 | Phase 48 | Pending |
+| SUB-01 | Phase 48 | Complete |
+| SUB-02 | Phase 48 | Complete |
+| SUB-03 | Phase 48 | Complete |
 | TUNE-01 | Phase 49 | Pending |
 | TUNE-02 | Phase 49 | Pending |
 | TUNE-03 | Phase 49 | Pending |
 | TUNE-04 | Phase 49 | Pending |
-| MON-01 | Phase 48 | Pending |
-| MON-02 | Phase 48 | Pending |
-| MON-03 | Phase 48 | Pending |
-| MON-04 | Phase 48 | Pending |
-| MON-05 | Phase 48 | Pending |
-| MON-06 | Phase 48 | Pending |
-| MON-07 | Phase 48 | Pending |
-| MON-08 | Phase 48 | Pending |
+| MON-01 | Phase 48 | Complete |
+| MON-02 | Phase 48 | Complete |
+| MON-03 | Phase 48 | Complete |
+| MON-04 | Phase 48 | Complete |
+| MON-05 | Phase 48 | Complete |
+| MON-06 | Phase 48 | Complete |
+| MON-07 | Phase 48 | Complete |
+| MON-08 | Phase 48 | Complete |
 | PRM-01 | Phase 49 | Pending |
 | PRM-02 | Phase 49 | Pending |
 | PRM-03 | Phase 49 | Pending |
@@ -149,4 +150,4 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 | VAL-04 | Phase 51 | Pending |
 **Total v0.6.3:** 26/26 requirements mapped (100%)
 ---
-*Roadmap updated: 2026-03-27 - Milestone v0.6.3 roadmap created*
+*Roadmap updated: 2026-03-28 - Phase 49 plans finalized*

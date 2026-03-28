@@ -55,11 +55,11 @@
 
 ### PROMPT — 提示词优化
 
-- [ ] **PRM-01**: ENHANCED_SYSTEM_MESSAGE 包含 click-to-edit 模式说明（click td → 等待 input → input 值）
-- [ ] **PRM-02**: ENHANCED_SYSTEM_MESSAGE 包含失败恢复强制规则（2 次失败后禁止重试，强制使用 evaluate/find_elements/滚动）
-- [ ] **PRM-03**: ENHANCED_SYSTEM_MESSAGE 包含字段填写后立即验证指导（截图确认值已正确填入）
-- [ ] **PRM-04**: ENHANCED_SYSTEM_MESSAGE 包含提交前完整校验规则
-- [ ] **PRM-05**: 通过 `extend_system_message` 参数注入（替换现有 `CHINESE_ENHANCEMENT`）
+- [x] **PRM-01**: ENHANCED_SYSTEM_MESSAGE 包含 click-to-edit 模式说明（click td → 等待 input → input 值）
+- [x] **PRM-02**: ENHANCED_SYSTEM_MESSAGE 包含失败恢复强制规则（2 次失败后禁止重试，强制使用 evaluate/find_elements/滚动）
+- [x] **PRM-03**: ENHANCED_SYSTEM_MESSAGE 包含字段填写后立即验证指导（截图确认值已正确填入）
+- [x] **PRM-04**: ENHANCED_SYSTEM_MESSAGE 包含提交前完整校验规则
+- [x] **PRM-05**: 通过 `extend_system_message` 参数注入（替换现有 `CHINESE_ENHANCEMENT`）
 
 ### INTEG — 集成
 
@@ -118,11 +118,11 @@
 | MON-06 | Phase 48 | Complete |
 | MON-07 | Phase 48 | Complete |
 | MON-08 | Phase 48 | Complete |
-| PRM-01 | Phase 49 | Pending |
-| PRM-02 | Phase 49 | Pending |
-| PRM-03 | Phase 49 | Pending |
-| PRM-04 | Phase 49 | Pending |
-| PRM-05 | Phase 49 | Pending |
+| PRM-01 | Phase 49 | Complete |
+| PRM-02 | Phase 49 | Complete |
+| PRM-03 | Phase 49 | Complete |
+| PRM-04 | Phase 49 | Complete |
+| PRM-05 | Phase 49 | Complete |
 | INTEG-01 | Phase 50 | Pending |
 | INTEG-02 | Phase 50 | Pending |
 | INTEG-03 | Phase 50 | Pending |
