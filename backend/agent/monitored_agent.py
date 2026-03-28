@@ -41,12 +41,14 @@ class MonitoredAgent(Agent):
         stall_detector: StallDetector | None = None,
         pre_submit_guard: PreSubmitGuard | None = None,
         task_progress_tracker: TaskProgressTracker | None = None,
+        run_logger: Any = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._stall_detector = stall_detector or StallDetector()
         self._pre_submit_guard = pre_submit_guard or PreSubmitGuard()
         self._task_tracker = task_progress_tracker or TaskProgressTracker()
+        self._run_logger = run_logger
         self._pending_interventions: list[str] = []
 
         # Parse task for progress tracking
@@ -69,6 +71,12 @@ class MonitoredAgent(Agent):
                     self._message_manager._add_context_message(
                         UserMessage(content=msg)
                     )
+                    if self._run_logger:
+                        self._run_logger.log(
+                            "info", "monitor",
+                            "Intervention injected",
+                            message=msg[:100],
+                        )
                 self._pending_interventions = []
         except Exception as e:
             logger.error("[monitor] Failed to inject interventions: %s", e)
@@ -114,6 +122,12 @@ class MonitoredAgent(Agent):
                         "[PreSubmitGuard] Blocked submit: %s",
                         guard_result.message[:100],
                     )
+                    if self._run_logger:
+                        self._run_logger.log(
+                            "warning", "monitor",
+                            "Submit blocked",
+                            message=guard_result.message[:100],
+                        )
                     return
             except Exception as e:
                 logger.error("[monitor] PreSubmitGuard check failed: %s", e)

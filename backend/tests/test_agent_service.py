@@ -43,7 +43,7 @@ async def test_run_simple_mock(agent_service):
 async def test_run_with_callback(agent_service):
     """测试带回调的执行"""
     with (
-        patch("backend.core.agent_service.Agent") as MockAgent,
+        patch("backend.core.agent_service.MonitoredAgent") as MockAgent,
         patch("backend.core.agent_service.create_llm") as mock_create_llm,
     ):
         # Mock LLM

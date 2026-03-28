@@ -70,7 +70,7 @@ class TestAgentParams:
     @pytest.mark.asyncio
     async def test_extend_system_message_passed(self):
         """Agent() receives extend_system_message=ENHANCED_SYSTEM_MESSAGE."""
-        with patch("backend.core.agent_service.Agent") as mock_agent_cls:
+        with patch("backend.core.agent_service.MonitoredAgent") as mock_agent_cls:
             kwargs = await _invoke_run_with_streaming(mock_agent_cls)
 
         assert "extend_system_message" in kwargs, (
@@ -86,7 +86,7 @@ class TestAgentParams:
     @pytest.mark.asyncio
     async def test_loop_detection_window_is_10(self):
         """Agent() receives loop_detection_window=10 (TUNE-01, down from default 20)."""
-        with patch("backend.core.agent_service.Agent") as mock_agent_cls:
+        with patch("backend.core.agent_service.MonitoredAgent") as mock_agent_cls:
             kwargs = await _invoke_run_with_streaming(mock_agent_cls)
 
         assert kwargs.get("loop_detection_window") == 10, (
@@ -96,7 +96,7 @@ class TestAgentParams:
     @pytest.mark.asyncio
     async def test_max_failures_is_4(self):
         """Agent() receives max_failures=4 (TUNE-02, down from default 5)."""
-        with patch("backend.core.agent_service.Agent") as mock_agent_cls:
+        with patch("backend.core.agent_service.MonitoredAgent") as mock_agent_cls:
             kwargs = await _invoke_run_with_streaming(mock_agent_cls)
 
         assert kwargs.get("max_failures") == 4, (
@@ -106,7 +106,7 @@ class TestAgentParams:
     @pytest.mark.asyncio
     async def test_planning_replan_on_stall_is_2(self):
         """Agent() receives planning_replan_on_stall=2 (TUNE-03, down from default 3)."""
-        with patch("backend.core.agent_service.Agent") as mock_agent_cls:
+        with patch("backend.core.agent_service.MonitoredAgent") as mock_agent_cls:
             kwargs = await _invoke_run_with_streaming(mock_agent_cls)
 
         assert kwargs.get("planning_replan_on_stall") == 2, (
@@ -116,7 +116,7 @@ class TestAgentParams:
     @pytest.mark.asyncio
     async def test_enable_planning_is_true(self):
         """Agent() receives enable_planning=True (TUNE-04, confirmed)."""
-        with patch("backend.core.agent_service.Agent") as mock_agent_cls:
+        with patch("backend.core.agent_service.MonitoredAgent") as mock_agent_cls:
             kwargs = await _invoke_run_with_streaming(mock_agent_cls)
 
         assert kwargs.get("enable_planning") is True, (
