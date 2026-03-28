@@ -31,9 +31,9 @@
 
 ### SUBCLASS — Agent 子类化
 
-- [ ] **SUB-01**: 创建 `MonitoredAgent(Agent)` 子类，重写 `_prepare_context()` 在内置 nudge 之后注入自定义干预消息
-- [ ] **SUB-02**: step_callback 只负责检测和存储干预消息到 `_pending_interventions`，不直接调用 `_add_context_message`
-- [ ] **SUB-03**: 重写 `_execute_actions()` 实现 PreSubmitGuard 的 action 拦截（阻止提交 click 执行）
+- [x] **SUB-01**: 创建 `MonitoredAgent(Agent)` 子类，重写 `_prepare_context()` 在内置 nudge 之后注入自定义干预消息
+- [x] **SUB-02**: step_callback 只负责检测和存储干预消息到 `_pending_interventions`，不直接调用 `_add_context_message`
+- [x] **SUB-03**: 重写 `_execute_actions()` 实现 PreSubmitGuard 的 action 拦截（阻止提交 click 执行）
 
 ### TUNE — 内置参数调优
 
@@ -103,9 +103,9 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| SUB-01 | Phase 48 | Pending |
-| SUB-02 | Phase 48 | Pending |
-| SUB-03 | Phase 48 | Pending |
+| SUB-01 | Phase 48 | Complete |
+| SUB-02 | Phase 48 | Complete |
+| SUB-03 | Phase 48 | Complete |
 | TUNE-01 | Phase 49 | Pending |
 | TUNE-02 | Phase 49 | Pending |
 | TUNE-03 | Phase 49 | Pending |

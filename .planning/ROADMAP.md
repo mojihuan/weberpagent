@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 48: 监控模块与 Agent 子类** - 创建 MonitoredAgent 子类和 3 个检测器（StallDetector, PreSubmitGuard, TaskProgressTracker）
+- [x] **Phase 48: 监控模块与 Agent 子类** - 创建 MonitoredAgent 子类和 3 个检测器（StallDetector, PreSubmitGuard, TaskProgressTracker） (completed 2026-03-28)
 - [ ] **Phase 49: 提示词优化与参数调优** - 创建 ENHANCED_SYSTEM_MESSAGE，调优 browser-use 内置参数
 - [ ] **Phase 50: AgentService 集成** - 将 MonitoredAgent 集成到 AgentService，接通 step_callback
 - [ ] **Phase 51: 端到端验证** - 运行 ERP 测试验证 Agent 行为改善
@@ -40,10 +40,10 @@
 - **step_callback 职责**: 只检测并存储干预消息到 `_pending_interventions`，不直接调用 `_add_context_message()`
 
 **Plans:**
-3/4 plans executed
+4/4 plans complete
 - [x] 48-02: Create PreSubmitGuard with unit tests (MON-04, MON-05, MON-06) - Wave 1
 - [x] 48-03: Create TaskProgressTracker with unit tests (MON-07, MON-08) - Wave 1
-- [ ] 48-04: Create MonitoredAgent subclass (SUB-01, SUB-02, SUB-03) - Wave 2
+- [x] 48-04: Create MonitoredAgent subclass (SUB-01, SUB-02, SUB-03) - Wave 2
 
 ### Phase 49: 提示词优化与参数调优
 **Goal:** ENHANCED_SYSTEM_MESSAGE 创建完成并通过 extend_system_message 注入，browser-use 内置参数已调优
@@ -98,7 +98,7 @@ Phase 48 + Phase 49 (parallel) → Phase 50 → Phase 51
 
 | Phase | Milestone | Plans | Status |
 |-------|-----------|-------|--------|
-| 48. 监控模块与 Agent 子类 | 3/4 | In Progress|  |
+| 48. 监控模块与 Agent 子类 | 4/4 | Complete   | 2026-03-28 |
 | 49. 提示词优化与参数调优 | v0.6.3 | 0/2 | Pending |
 | 50. AgentService 集成 | v0.6.3 | 0/2 | Pending |
 | 51. 端到端验证 | v0.6.3 | 0/2 | Pending |
