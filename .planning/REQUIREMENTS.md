@@ -9,10 +9,10 @@
 
 ### Table Interactions (TBL)
 
-- [ ] **TBL-01**: Agent 能定位并点击表格行中的 checkbox 实现单行选择
-- [ ] **TBL-02**: Agent 能定位并点击表头的全选 checkbox 实现全选操作
-- [ ] **TBL-03**: Agent 能识别并点击表格中的超链接文本（如订单号、物品编号链接）
-- [ ] **TBL-04**: Agent 能定位并点击表格行中的图标/操作按钮（编辑、删除、查看等）
+- [x] **TBL-01**: Agent 能定位并点击表格行中的 checkbox 实现单行选择
+- [x] **TBL-02**: Agent 能定位并点击表头的全选 checkbox 实现全选操作
+- [x] **TBL-03**: Agent 能识别并点击表格中的超链接文本（如订单号、物品编号链接）
+- [x] **TBL-04**: Agent 能定位并点击表格行中的图标/操作按钮（编辑、删除、查看等）
 
 ### File Import (IMP)
 
@@ -48,10 +48,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TBL-01 | Phase 53 | Pending |
-| TBL-02 | Phase 53 | Pending |
-| TBL-03 | Phase 53 | Pending |
-| TBL-04 | Phase 53 | Pending |
+| TBL-01 | Phase 53 | Complete |
+| TBL-02 | Phase 53 | Complete |
+| TBL-03 | Phase 53 | Complete |
+| TBL-04 | Phase 53 | Complete |
 | IMP-01 | Phase 54 | Pending |
 | IMP-02 | Phase 54 | Pending |
 | AST-01 | Phase 55 | Pending |

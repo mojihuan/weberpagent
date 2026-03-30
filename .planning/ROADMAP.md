@@ -65,11 +65,11 @@ Plans:
   3. Agent 能识别并点击表格中的超链接文本（如订单号、物品编号链接）
   4. Agent 能定位并点击表格行中的图标/操作按钮（编辑、删除、查看等）
   5. ENHANCED_SYSTEM_MESSAGE 中包含表格交互的明确指导段落
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 53-01: 扩展 ENHANCED_SYSTEM_MESSAGE 添加表格交互指导段落
-- [ ] 53-02: ERP 场景验证表格交互（checkbox、超链接、图标）
+- [x] 53-01-PLAN.md — TDD: 添加表格交互测试 + ENHANCED_SYSTEM_MESSAGE 第 7 段
+- [ ] 53-02-PLAN.md — 采购单列表 ERP 场景验证（checkbox 单选/全选、超链接、图标按钮）
 
 ### Phase 54: 文件导入
 **Goal**: Agent 能触发文件上传对话框并成功上传 Excel 和图片文件完成数据导入
@@ -122,11 +122,11 @@ Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 52. Prompt 增强 — 键盘操作 | v0.7.0 | 3/3 | Complete    | 2026-03-30 |
-| 53. Prompt 增强 — 表格交互 | v0.7.0 | 0/2 | Not started | - |
+| 53. Prompt 增强 — 表格交互 | v0.7.0 | 1/2 | In Progress|  |
 | 54. 文件导入 | v0.7.0 | 0/1 | Not started | - |
 | 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |
 | 56. E2E 综合验证 | v0.7.0 | 0/1 | Not started | - |
 
 ---
 
-*Roadmap updated: 2026-03-30 - Phase 52 gap closure plan 52-03 added for Escape/Control+a verification*
+*Roadmap updated: 2026-03-30 - Phase 53 planned: 2 plans (prompt+test, ERP validation)*
