@@ -4,7 +4,7 @@
 
 - ✅ **v0.6.3 Agent 可靠性优化** — Phases 48-51 (shipped 2026-03-28)
 - ✅ **v0.6.2 回归原生 browser-use** — Phases 45-47 (shipped 2026-03-27)
-- 📋 **Next milestone** — TBD
+- 🚧 **v0.7.0 更多操作边界测试** — Phases 52-56 (in progress)
 
 ## Phases
 
@@ -27,6 +27,105 @@
 
 </details>
 
+### 🚧 v0.7.0 更多操作边界测试 (In Progress)
+
+**Milestone Goal:** 扩展 AI Agent 操作能力边界，覆盖 ERP 测试中表格交互、文件导入、键盘操作和缓存断言等场景。
+
+- [ ] **Phase 52: Prompt 增强 — 键盘操作** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加键盘操作指导，Agent 能执行粘贴、回车、ESC 操作
+- [ ] **Phase 53: Prompt 增强 — 表格交互** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加表格操作指导，Agent 能定位 checkbox、超链接、图标按钮
+- [ ] **Phase 54: 文件导入** — 验证并增强 Agent 文件上传能力，覆盖 Excel 和图片上传场景
+- [ ] **Phase 55: 断言参数调优与缓存断言** — 修复断言参数传递问题，实现缓存查询和断言验证
+- [ ] **Phase 56: E2E 综合验证** — 用用户提供的 8 个测试用例端到端验证所有新操作能力
+
+## Phase Details
+
+### Phase 52: Prompt 增强 — 键盘操作
+**Goal**: Agent 能通过 Prompt 指导正确执行 Ctrl+V 粘贴、Enter 回车确认、ESC 关闭弹窗等键盘操作
+**Depends on**: Phase 51 (v0.6.3 ENHANCED_SYSTEM_MESSAGE 基础)
+**Requirements**: KB-01, KB-02, KB-03
+**Success Criteria** (what must be TRUE):
+  1. Agent 能在输入框中执行 Ctrl+V 粘贴操作，将内容填入目标字段
+  2. Agent 能在物品编号等输入框中按 Enter 键触发搜索或确认
+  3. Agent 能按 ESC 键关闭弹出的日期选择器或其他遮挡元素
+  4. ENHANCED_SYSTEM_MESSAGE 中包含键盘操作的明确指导段落
+**Plans**: TBD
+
+Plans:
+- [ ] 52-01: 扩展 ENHANCED_SYSTEM_MESSAGE 添加键盘操作指导段落
+- [ ] 52-02: ERP 场景验证键盘操作（粘贴、回车、ESC）
+
+### Phase 53: Prompt 增强 — 表格交互
+**Goal**: Agent 能准确定位并操作表格中的 checkbox、超链接和图标按钮
+**Depends on**: Phase 52
+**Requirements**: TBL-01, TBL-02, TBL-03, TBL-04
+**Success Criteria** (what must be TRUE):
+  1. Agent 能定位并点击表格行中的 checkbox 实现单行选择
+  2. Agent 能定位并点击表头的全选 checkbox 实现批量全选
+  3. Agent 能识别并点击表格中的超链接文本（如订单号、物品编号链接）
+  4. Agent 能定位并点击表格行中的图标/操作按钮（编辑、删除、查看等）
+  5. ENHANCED_SYSTEM_MESSAGE 中包含表格交互的明确指导段落
+**Plans**: TBD
+
+Plans:
+- [ ] 53-01: 扩展 ENHANCED_SYSTEM_MESSAGE 添加表格交互指导段落
+- [ ] 53-02: ERP 场景验证表格交互（checkbox、超链接、图标）
+
+### Phase 54: 文件导入
+**Goal**: Agent 能触发文件上传对话框并成功上传 Excel 和图片文件完成数据导入
+**Depends on**: Phase 53
+**Requirements**: IMP-01, IMP-02
+**Success Criteria** (what must be TRUE):
+  1. Agent 能点击导入按钮触发文件上传对话框并上传 Excel 文件完成数据导入
+  2. Agent 能点击上传按钮触发文件上传对话框并上传图片文件
+  3. ENHANCED_SYSTEM_MESSAGE 中包含文件上传操作的指导段落（如有必要）
+**Plans**: TBD
+
+Plans:
+- [ ] 54-01: 验证并增强文件上传能力（Excel 导入 + 图片上传）
+
+### Phase 55: 断言参数调优与缓存断言
+**Goal**: 断言接口参数正确传递，且支持执行前查询缓存、执行后用缓存值断言的完整流程
+**Depends on**: Phase 54
+**Requirements**: AST-01, AST-02, CAC-01, CAC-02
+**Success Criteria** (what must be TRUE):
+  1. 断言调用能正确传递 headers 参数并完成接口验证
+  2. inventory_list_data 的 i/j 参数组合正确传递并返回有效库存数据
+  3. 执行用例步骤前能通过查询列表获取物品编号等数据并缓存到 context
+  4. 执行完用例后能用缓存的值进行断言验证（无需硬编码唯一标识）
+**Plans**: TBD
+
+Plans:
+- [ ] 55-01: 修复断言参数传递问题（headers、i/j 参数）
+- [ ] 55-02: 实现缓存查询与断言验证流程
+
+### Phase 56: E2E 综合验证
+**Goal**: 用用户提供的 8 个 ERP 测试用例端到端验证所有新操作能力协同工作
+**Depends on**: Phase 55
+**Requirements**: (验证 Phase 52-55 的所有需求)
+**Success Criteria** (what must be TRUE):
+  1. 键盘操作测试用例（粘贴、回车、ESC）全部执行通过
+  2. 表格交互测试用例（checkbox、超链接、图标）全部执行通过
+  3. 文件导入测试用例（Excel、图片上传）全部执行通过
+  4. 断言与缓存测试用例（参数验证、缓存断言）全部执行通过
+  5. 所有测试用例生成的报告正确展示执行步骤和结果
+**Plans**: TBD
+
+Plans:
+- [ ] 56-01: E2E 验证全部 8 个用户测试用例
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 52. Prompt 增强 — 键盘操作 | v0.7.0 | 0/2 | Not started | - |
+| 53. Prompt 增强 — 表格交互 | v0.7.0 | 0/2 | Not started | - |
+| 54. 文件导入 | v0.7.0 | 0/1 | Not started | - |
+| 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |
+| 56. E2E 综合验证 | v0.7.0 | 0/1 | Not started | - |
+
 ---
 
-*Roadmap updated: 2026-03-28 - v0.6.3 milestone archived*
+*Roadmap updated: 2026-03-30 - v0.7.0 milestone roadmap created*

@@ -13,16 +13,23 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
+## Current Milestone: v0.7.0 更多操作边界测试
+
+**Goal:** 扩展 AI Agent 的操作能力边界，支持表格复杂交互、文件导入、键盘操作和缓存断言等 ERP 测试中常见但尚未覆盖的操作场景。
+
+**Target features:**
+- 表格单选/全选 — 表格中的 checkbox 单行选择和全选操作
+- 表格超链接/图标点击 — 表格中可点击的链接和图标操作
+- 导入 Excel/图片 — 文件上传（Excel 导入、图片上传）
+- 断言参数调优 — headers、i、j 参数组合的断言验证
+- 键盘操作 — 粘贴(Ctrl+V)、回车(Enter)、ESC 等键盘快捷键
+- 缓存断言 — 执行前查询获取物品编号并缓存，执行后用缓存值断言
+
 ## Current State
 
 **最新版本:** v0.6.3 Agent 可靠性优化 ✓ SHIPPED (2026-03-28)
 
 通过中间层监控 + Prompt 优化解决 Agent 循环重试、字段误填、步骤遗漏等核心问题。
-- StallDetector 检测停滞并注入干预消息（E2E 验证：4 次检测，0 次连续失败违规）
-- TaskProgressTracker 追踪任务进度预警
-- PreSubmitGuard 提交前校验（结构集成已完成，DOM 值提取待实现）
-- ENHANCED_SYSTEM_MESSAGE 中文优先的 5 段式 ERP 指导
-- 60/60 单元测试通过，5 模块覆盖率 94%
 
 **Server online**: 121.40.191.49
 
@@ -64,7 +71,20 @@ v0.1-v0.4.2 核心功能:
 
 ### Active
 
-(None — all requirements for current milestone validated)
+**v0.7.0 更多操作边界测试:**
+- TBL-01: 表格 checkbox 单选操作
+- TBL-02: 表格 checkbox 全选操作
+- TBL-03: 表格超链接点击
+- TBL-04: 表格图标按钮点击
+- IMP-01: 导入 Excel 文件上传
+- IMP-02: 导入图片文件上传
+- AST-01: 断言 headers 参数验证
+- AST-02: 断言 i、j 参数组合验证
+- KB-01: 键盘粘贴操作 (Ctrl+V)
+- KB-02: 键盘回车操作 (Enter)
+- KB-03: 键盘 ESC 操作
+- CAC-01: 执行前查询缓存物品编号
+- CAC-02: 执行后用缓存值断言
 
 ### Backlog
 
@@ -116,4 +136,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-03-28 after v0.6.3 milestone*
+*Last updated: 2026-03-30 after v0.7.0 milestone start*
