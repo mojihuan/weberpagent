@@ -121,7 +121,7 @@ Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 52. Prompt 增强 — 键盘操作 | v0.7.0 | 3/3 | Complete   | 2026-03-30 |
+| 52. Prompt 增强 — 键盘操作 | v0.7.0 | 3/3 | Complete    | 2026-03-30 |
 | 53. Prompt 增强 — 表格交互 | v0.7.0 | 0/2 | Not started | - |
 | 54. 文件导入 | v0.7.0 | 0/1 | Not started | - |
 | 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |
