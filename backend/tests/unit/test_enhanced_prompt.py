@@ -103,6 +103,7 @@ class TestEnhancedPrompt:
         assert "el-checkbox" in lower
         assert "evaluate" in lower
         assert "queryselector" in lower
+        assert "不要用 input[type=checkbox]" in ENHANCED_SYSTEM_MESSAGE
         assert "表格交互" in ENHANCED_SYSTEM_MESSAGE
 
     def test_table_section_line_count(self):

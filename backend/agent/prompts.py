@@ -38,8 +38,8 @@ Ant Design 表格的 `<td>` 在 DOM 快照中显示为空，实际是 click-to-e
 输入框有旧内容需要改为新值时 → 先 send_keys('Control+a') 全选旧内容，再 input 新值覆盖，不要逐字删除。
 
 ## 7. 表格交互
-ERP 表格无 <a> 标签，"超链接"是 <span class="hand"> → 用 evaluate JS querySelector 定位后 click。
-checkbox 是 Element UI 组件（el-checkbox__inner），非原生 input → 用 evaluate JS 点击 .el-checkbox 元素，标准 click 会命中外层 td/tr。
+ERP 表格无 <a> 标签，"超链接"是 <span class="hand"> → evaluate JS: document.querySelector('.hand').click()。
+checkbox 是 Element UI 组件 → evaluate JS: document.querySelector('.el-checkbox').click()，不要用 input[type=checkbox]（那是隐藏元素）。
 操作列按钮 → 直接 click 按钮文本即可。
 不要用 find_elements 查找 td a，不要反复 click 同一个 index。
 """
