@@ -64,3 +64,34 @@ class TestEnhancedPrompt:
         """Must NOT contain redundant JSON action output format template."""
         assert '"action":' not in ENHANCED_SYSTEM_MESSAGE
         assert '"selector":' not in ENHANCED_SYSTEM_MESSAGE
+
+    def test_contains_keyboard_operation_keywords(self):
+        """KB-01~03: Must contain keyboard operation guidance with key terms."""
+        lower = ENHANCED_SYSTEM_MESSAGE.lower()
+        assert "send_keys" in lower
+        assert "enter" in lower
+        assert "escape" in lower
+        assert "control" in lower
+        assert "键盘操作" in ENHANCED_SYSTEM_MESSAGE
+
+    def test_no_ctrl_v_guidance(self):
+        """D-06: Must NOT contain Ctrl+V paste guidance."""
+        lower = ENHANCED_SYSTEM_MESSAGE.lower()
+        assert "control+v" not in lower
+        assert "ctrl+v" not in lower
+
+    def test_keyboard_section_line_count(self):
+        """D-04: Keyboard operation section must not exceed 10 lines."""
+        lines = ENHANCED_SYSTEM_MESSAGE.splitlines()
+        section_start = None
+        section_end = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("## 6."):
+                section_start = i
+            elif section_start is not None and line.strip().startswith("## "):
+                section_end = i
+                break
+        assert section_start is not None, "Section '## 6.' not found"
+        end = section_end if section_end is not None else len(lines)
+        section_lines = [l for l in lines[section_start:end] if l.strip()]
+        assert len(section_lines) <= 10
