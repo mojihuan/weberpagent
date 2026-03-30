@@ -31,7 +31,7 @@
 
 **Milestone Goal:** 扩展 AI Agent 操作能力边界，覆盖 ERP 测试中表格交互、文件导入、键盘操作和缓存断言等场景。
 
-- [ ] **Phase 52: Prompt 增强 — 键盘操作** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加键盘操作指导，Agent 能执行 Control+a 全选覆盖、Enter 搜索触发、Escape 关闭弹窗 (gap closure in progress)
+- [x] **Phase 52: Prompt 增强 — 键盘操作** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加键盘操作指导，Agent 能执行 Control+a 全选覆盖、Enter 搜索触发、Escape 关闭弹窗 (gap closure in progress) (completed 2026-03-30)
 - [ ] **Phase 53: Prompt 增强 — 表格交互** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加表格操作指导，Agent 能定位 checkbox、超链接、图标按钮
 - [ ] **Phase 54: 文件导入** — 验证并增强 Agent 文件上传能力，覆盖 Excel 和图片上传场景
 - [ ] **Phase 55: 断言参数调优与缓存断言** — 修复断言参数传递问题，实现缓存查询和断言验证
@@ -53,7 +53,7 @@
 Plans:
 - [x] 52-01-PLAN.md — TDD: 添加键盘操作测试 + ENHANCED_SYSTEM_MESSAGE 第 6 段
 - [x] 52-02-PLAN.md — 采购单 ERP 场景验证（Enter/Escape/Control+a）
-- [ ] 52-03-PLAN.md — Gap closure: 强化 Escape/Control+a prompt 措辞 + 聚焦验证
+- [x] 52-03-PLAN.md — Gap closure: 强化 Escape/Control+a prompt 措辞 + 聚焦验证
 
 ### Phase 53: Prompt 增强 — 表格交互
 **Goal**: Agent 能准确定位并操作表格中的 checkbox、超链接和图标按钮
@@ -121,7 +121,7 @@ Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 52. Prompt 增强 — 键盘操作 | v0.7.0 | 2/3 | Gap closure | - |
+| 52. Prompt 增强 — 键盘操作 | v0.7.0 | 3/3 | Complete   | 2026-03-30 |
 | 53. Prompt 增强 — 表格交互 | v0.7.0 | 0/2 | Not started | - |
 | 54. 文件导入 | v0.7.0 | 0/1 | Not started | - |
 | 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |

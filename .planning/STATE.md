@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: 更多操作边界测试
 status: Phase complete — ready for verification
-last_updated: "2026-03-30T07:29:43.899Z"
+last_updated: "2026-03-30T08:55:49.419Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 0
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 52 — Prompt 增强 — 键盘操作
+**Current focus:** Phase 52 — prompt
 
 ## Current Position
 
-Phase: 52 (Prompt 增强 — 键盘操作) — EXECUTING
-Plan: 2 of 2
+Phase: 52 (prompt) — EXECUTING
+Plan: 3 of 3
 
 ## Session Continuity
 
@@ -58,6 +58,8 @@ Recent decisions for v0.7.0:
 - (— roadmap just created)
 - [Phase 52]: Keyboard prompt uses scene-action pairs: Enter search, Escape close, Control+a select-all; no Ctrl+V
 - [Phase 52-prompt]: Enter search (KB-02) verified passing in ERP; Escape and Control+a deferred to focused tests
+- [Phase 52-prompt]: Negation instructions in prompt effective: 'do not click close button' blocked Agent alternative path
+- [Phase 52-prompt]: Control+a PARTIAL PASS accepted as browser runtime limitation; Agent behavior correct per prompt
 
 ### Pending Todos
 
@@ -74,6 +76,7 @@ None yet.
 | 2026-03-30 | 260330-elb | 生成19个测试步骤文档 | COMPLETED - 8212行文档 |
 | Phase 52 P01 | 2min | 2 tasks | 2 files |
 | Phase 52-prompt P02 | 21min | 2 tasks | 2 files |
+| Phase 52-prompt P03 | 210s | 2 tasks | 2 files |
 
 ## Session Continuity
 
