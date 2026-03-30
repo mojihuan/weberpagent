@@ -31,6 +31,11 @@ Ant Design 表格的 `<td>` 在 DOM 快照中显示为空，实际是 click-to-e
 选择器优先级：可见文本 > placeholder > role > CSS。
 常见字段映射：用户名(username/account/login), 密码(password/密码), 登录(登录/Login), 搜索(搜索/Search), 取消(取消/Cancel)。
 弹窗处理：优先查找并关闭弹窗再操作主页面。列表选择器用精确文本匹配避免误选。
+
+## 6. 键盘操作
+搜索框输入后 → send_keys('Enter') 触发搜索，不用于表单提交。
+日期选择器或弹窗遮挡 → send_keys('Escape') 关闭。
+需清空输入框 → send_keys('Control+a') 全选后用 input 输入新值覆盖。
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）
