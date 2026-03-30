@@ -8,7 +8,7 @@ import time
 import uuid
 from typing import Any
 
-from browser_use import Agent
+from browser_use import Agent, BrowserProfile
 from browser_use.llm import ChatOpenAI
 
 from backend.utils.logger import StructuredLogger
@@ -112,6 +112,7 @@ class ProxyBrowserAgent:
                 max_failures=self.max_failures,
                 use_vision=self.use_vision,
                 register_new_step_callback=self._on_step,
+                browser_profile=BrowserProfile(wait_between_actions=0.5),
             )
 
             # 执行

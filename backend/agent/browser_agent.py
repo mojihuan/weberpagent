@@ -5,7 +5,7 @@ import time
 import uuid
 from typing import Any
 
-from browser_use import Agent
+from browser_use import Agent, BrowserProfile
 
 from backend.llm.base import BaseLLM
 from backend.llm.browser_use_adapter import BrowserUseAdapter
@@ -88,6 +88,7 @@ class UIBrowserAgent:
                 max_failures=self.max_failures,
                 use_vision=self.use_vision,
                 register_new_step_callback=self._on_step,
+                browser_profile=BrowserProfile(wait_between_actions=0.5),
             )
 
             # 执行
