@@ -26,9 +26,9 @@
 
 ### Keyboard Operations (KB)
 
-- [ ] **KB-01**: Agent 能执行 Ctrl+V 粘贴操作，将剪贴板内容粘贴到输入框
-- [ ] **KB-02**: Agent 能在输入框中按回车键触发搜索/确认（如物品编号输入后回车）
-- [ ] **KB-03**: Agent 能按 ESC 键关闭弹窗（如日期选择器遮挡时的处理）
+- [x] **KB-01**: Agent 能使用 send_keys('Control+a') 全选输入框内容后用 input 覆盖输入新值（原"Ctrl+V 粘贴"已重新定义为"全选+覆盖"模式，per Phase 52 D-05/D-06）
+- [x] **KB-02**: Agent 能在输入框中按回车键触发搜索/确认（如物品编号输入后回车）
+- [x] **KB-03**: Agent 能按 ESC 键关闭弹窗（如日期选择器遮挡时的处理）
 
 ### Cache Assertions (CAC)
 
@@ -56,9 +56,9 @@
 | IMP-02 | Phase 54 | Pending |
 | AST-01 | Phase 55 | Pending |
 | AST-02 | Phase 55 | Pending |
-| KB-01 | Phase 52 | Pending |
-| KB-02 | Phase 52 | Pending |
-| KB-03 | Phase 52 | Pending |
+| KB-01 | Phase 52 | Complete |
+| KB-02 | Phase 52 | Complete |
+| KB-03 | Phase 52 | Complete |
 | CAC-01 | Phase 55 | Pending |
 | CAC-02 | Phase 55 | Pending |
 
@@ -69,4 +69,4 @@
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after roadmap creation*
+*Last updated: 2026-03-30 — KB-01 description updated to reflect Phase 52 design decision (D-05/D-06)*
