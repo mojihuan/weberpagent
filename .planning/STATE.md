@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: 更多操作边界测试
-status: Ready to execute
-last_updated: "2026-03-30T07:11:23.982Z"
+status: Phase complete — ready for verification
+last_updated: "2026-03-30T07:29:43.899Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -57,6 +57,7 @@ Recent decisions for v0.7.0:
 
 - (— roadmap just created)
 - [Phase 52]: Keyboard prompt uses scene-action pairs: Enter search, Escape close, Control+a select-all; no Ctrl+V
+- [Phase 52-prompt]: Enter search (KB-02) verified passing in ERP; Escape and Control+a deferred to focused tests
 
 ### Pending Todos
 
@@ -72,6 +73,7 @@ None yet.
 |------|---------|-------------|--------|
 | 2026-03-30 | 260330-elb | 生成19个测试步骤文档 | COMPLETED - 8212行文档 |
 | Phase 52 P01 | 2min | 2 tasks | 2 files |
+| Phase 52-prompt P02 | 21min | 2 tasks | 2 files |
 
 ## Session Continuity
 
