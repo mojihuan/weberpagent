@@ -100,7 +100,7 @@ class TestEnhancedPrompt:
         """TBL-01~04: Must contain table interaction guidance with key terms."""
         lower = ENHANCED_SYSTEM_MESSAGE.lower()
         assert "checkbox" in lower
-        assert "span" in lower
+        assert "el-checkbox" in lower
         assert "evaluate" in lower
         assert "queryselector" in lower
         assert "表格交互" in ENHANCED_SYSTEM_MESSAGE
