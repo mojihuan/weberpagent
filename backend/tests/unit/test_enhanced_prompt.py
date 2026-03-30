@@ -100,10 +100,9 @@ class TestEnhancedPrompt:
         """TBL-01~04: Must contain table interaction guidance with key terms."""
         lower = ENHANCED_SYSTEM_MESSAGE.lower()
         assert "checkbox" in lower
-        assert "thead" in lower
-        assert "tbody" in lower
-        assert "aria-label" in lower
-        assert "title" in lower
+        assert "span" in lower
+        assert "evaluate" in lower
+        assert "queryselector" in lower
         assert "表格交互" in ENHANCED_SYSTEM_MESSAGE
 
     def test_table_section_line_count(self):

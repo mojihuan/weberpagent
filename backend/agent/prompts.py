@@ -38,10 +38,10 @@ Ant Design 表格的 `<td>` 在 DOM 快照中显示为空，实际是 click-to-e
 输入框有旧内容需要改为新值时 → 先 send_keys('Control+a') 全选旧内容，再 input 新值覆盖，不要逐字删除。
 
 ## 7. 表格交互
-表头全选 → click thead 中的 checkbox；行选择 → click tbody 行中的 checkbox。
-表格超链接（订单号、编号等）→ click 可见文本匹配的 <a> 元素，无需 find_elements 预查找。
-行末操作按钮（编辑、删除等）→ click title 或 aria-label 属性匹配的元素。
-不要通过索引或坐标定位表格元素，不要假设 checkbox 固定在某一列。
+ERP 表格无 <a> 标签，订单号等"超链接"实际是 <span> 元素 → 用 evaluate 执行 JS querySelector 定位后 click。
+checkbox（全选/行选择）→ 用 evaluate 执行 JS 直接 querySelector('input[type=checkbox]').click()，标准 click 会命中外层 td/tr。
+操作列按钮 → 直接 click 按钮文本（收货、发货等普通 button 元素）。
+不要用 find_elements 查找 td a，不要反复 click 同一个 index，不要假设表格超链接是 <a> 标签。
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）
