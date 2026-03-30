@@ -27,9 +27,10 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.6.3 Agent 可靠性优化 ✓ SHIPPED (2026-03-28)
+**最新版本:** v0.7.0 开发中 — Phase 52 键盘操作 Prompt 完成 (2026-03-30)
 
 通过中间层监控 + Prompt 优化解决 Agent 循环重试、字段误填、步骤遗漏等核心问题。
+Phase 52 完成: ENHANCED_SYSTEM_MESSAGE 第 6 段键盘操作指导（Enter/Escape/Control+a + 否定指令）。
 
 **Server online**: 121.40.191.49
 
