@@ -19,19 +19,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 52 — prompt
+**Current focus:** Phase 53 — prompt (表格交互)
 
 ## Current Position
 
 Phase: 53
-Plan: Not started
+Plan: Not started (context gathered)
 
 ## Session Continuity
 
-**Resume from:** `.planning/phases/52-prompt/52-CONTEXT.md`
-**Next action:** `/gsd:plan-phase 52` to plan keyboard operations prompt enhancement
+**Resume from:** `.planning/phases/53-prompt/53-CONTEXT.md`
+**Next action:** `/gsd:plan-phase 53` to plan table interaction prompt enhancement
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Last Shipped
 
@@ -60,6 +60,7 @@ Recent decisions for v0.7.0:
 - [Phase 52-prompt]: Enter search (KB-02) verified passing in ERP; Escape and Control+a deferred to focused tests
 - [Phase 52-prompt]: Negation instructions in prompt effective: 'do not click close button' blocked Agent alternative path
 - [Phase 52-prompt]: Control+a PARTIAL PASS accepted as browser runtime limitation; Agent behavior correct per prompt
+- [Phase 53-prompt]: Table interaction prompt — DOM position for checkbox, text for links, title/aria-label for icons; 采购单 one-stop validation; negation instructions included
 
 ### Pending Todos
 
@@ -80,4 +81,4 @@ None yet.
 
 ## Session Continuity
 
-**Next action:** `/gsd:plan-phase 52` to plan keyboard operations prompt enhancement
+**Next action:** `/gsd:plan-phase 53` to plan table interaction prompt enhancement
