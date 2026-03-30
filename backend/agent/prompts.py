@@ -34,8 +34,8 @@ Ant Design 表格的 `<td>` 在 DOM 快照中显示为空，实际是 click-to-e
 
 ## 6. 键盘操作
 搜索框输入后 → send_keys('Enter') 触发搜索，不用于表单提交。
-日期选择器或弹窗遮挡 → send_keys('Escape') 关闭。
-需清空输入框 → send_keys('Control+a') 全选后用 input 输入新值覆盖。
+遇到日期选择器、下拉弹窗遮挡页面时 → 必须用 send_keys('Escape') 关闭，不要点击关闭按钮或弹窗外区域。
+输入框有旧内容需要改为新值时 → 先 send_keys('Control+a') 全选旧内容，再 input 新值覆盖，不要逐字删除。
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）
