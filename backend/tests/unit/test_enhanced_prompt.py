@@ -48,10 +48,10 @@ class TestEnhancedPrompt:
         assert "validate" in lower or "检查" in ENHANCED_SYSTEM_MESSAGE
         assert "check" in lower or "核实" in ENHANCED_SYSTEM_MESSAGE
 
-    def test_line_count_under_70(self):
-        """D-01: ENHANCED_SYSTEM_MESSAGE must be under 70 lines."""
+    def test_line_count_under_80(self):
+        """D-01: ENHANCED_SYSTEM_MESSAGE must be under 80 lines."""
         lines = ENHANCED_SYSTEM_MESSAGE.strip().splitlines()
-        assert len(lines) <= 70
+        assert len(lines) <= 80
 
     def test_contains_chinese_form_field_mapping(self):
         """PRM-05: Must merge Chinese form field mapping from CHINESE_ENHANCEMENT."""
@@ -118,6 +118,30 @@ class TestEnhancedPrompt:
                 section_end = i
                 break
         assert section_start is not None, "Section '## 7.' not found"
+        end = section_end if section_end is not None else len(lines)
+        section_lines = [l for l in lines[section_start:end] if l.strip()]
+        assert len(section_lines) <= 10
+
+    def test_contains_file_upload_keywords(self):
+        """IMP-01/02: Must contain file upload guidance with key terms."""
+        lower = ENHANCED_SYSTEM_MESSAGE.lower()
+        assert "upload_file" in lower
+        assert "file input" in lower or "文件上传" in ENHANCED_SYSTEM_MESSAGE
+        assert "文件上传" in ENHANCED_SYSTEM_MESSAGE
+        assert "available_file_paths" in lower
+
+    def test_file_upload_section_line_count(self):
+        """D-06: File upload section must not exceed 10 lines."""
+        lines = ENHANCED_SYSTEM_MESSAGE.splitlines()
+        section_start = None
+        section_end = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("## 8."):
+                section_start = i
+            elif section_start is not None and line.strip().startswith("## "):
+                section_end = i
+                break
+        assert section_start is not None, "Section '## 8.' not found"
         end = section_end if section_end is not None else len(lines)
         section_lines = [l for l in lines[section_start:end] if l.strip()]
         assert len(section_lines) <= 10

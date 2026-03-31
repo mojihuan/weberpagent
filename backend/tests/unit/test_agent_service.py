@@ -6,6 +6,38 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 
+class TestScanTestFiles:
+    """Verify scan_test_files returns correct file paths."""
+
+    def test_scan_test_files_returns_list(self):
+        """scan_test_files() must return a list of strings."""
+        from backend.core.agent_service import scan_test_files
+
+        result = scan_test_files()
+        assert isinstance(result, list)
+        assert all(isinstance(p, str) for p in result)
+
+    def test_scan_test_files_returns_absolute_paths(self):
+        """Each path returned by scan_test_files() must be absolute."""
+        from backend.core.agent_service import scan_test_files
+
+        result = scan_test_files()
+        for path in result:
+            assert path.startswith("/"), f"Path is not absolute: {path}"
+
+    @patch("backend.core.agent_service.Path")
+    def test_scan_test_files_handles_missing_dir(self, mock_path_cls):
+        """scan_test_files() returns empty list when directory does not exist."""
+        mock_dir = MagicMock()
+        mock_dir.exists.return_value = False
+        mock_path_cls.return_value = mock_dir
+
+        from backend.core.agent_service import scan_test_files
+
+        result = scan_test_files()
+        assert result == []
+
+
 class TestLLMTemperature:
     """Verify LLM temperature configuration (SVC-03)"""
 
