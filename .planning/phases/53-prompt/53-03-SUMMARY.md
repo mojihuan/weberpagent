@@ -41,10 +41,10 @@ patterns-established:
   - "Monkey-patch pattern: _PATCHED flag for idempotency, wrap original methods, restore ERP nodes post-filtering"
   - "ERP class detection via _has_erp_clickable_class with substring matching on split class list"
 
-requirements-completed: [TBL-01, TBL-03]
+requirements-completed: [TBL-01, TBL-02, TBL-03, TBL-04]
 
 # Metrics
-duration: 8min
+duration: 8min + 15min gap closure
 completed: 2026-03-31
 ---
 
@@ -92,11 +92,23 @@ Each task was committed atomically:
 None - plan executed exactly as written for Tasks 1-3.
 
 ## Issues Encountered
-None.
+
+### Gap 1: Missing third patch for ClickableElementDetector.is_interactive
+- **Problem:** Original patch only covered paint order removal and bounding box exclusion (pipeline stages 2-3), but interactive element detection (stage 4) still skipped `<span class="hand">` and `<span class="el-checkbox__inner">` because they lack form controls, event handlers, ARIA roles, or interactive tag names.
+- **Fix:** Added `_patch_is_interactive()` that patches `ClickableElementDetector.is_interactive()` to return True for ERP-classed nodes.
+- **Commit:** `501a5f1`
+
+### Gap 2: apply_dom_patch() not called in actual execution path
+- **Problem:** `apply_dom_patch()` was only called in `browser_agent.py` and `proxy_agent.py`, but the actual execution path uses `MonitoredAgent` via `agent_service.py` which never called the patch. All three DOM serializer patches were never applied during real task execution.
+- **Fix:** Added `apply_dom_patch()` call in `agent_service.py` before `MonitoredAgent` creation.
+- **Commit:** `b586b54`
+
+### Human Verification Result
+- All four scenarios (TBL-01 checkbox single select, TBL-02 checkbox select-all, TBL-03 hyperlink click, TBL-04 icon button) **PASSED** after gap closure fixes.
 
 ## Next Phase Readiness
-- dom_patch module ready for integration testing in ERP
-- Task 4 (human verification of TBL-01 checkbox and TBL-03 hyperlink) is pending human verification
+- dom_patch module fully integrated and human-verified in ERP
+- All TBL requirements (TBL-01 through TBL-04) verified passing
 
 ## Self-Check: PASSED
 - All 6 files verified as existing
