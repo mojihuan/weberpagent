@@ -9,6 +9,7 @@ import uuid
 from typing import Any
 
 from browser_use import Agent, BrowserProfile
+from browser_use.browser.profile import ViewportSize
 from browser_use.llm import ChatOpenAI
 
 from backend.utils.logger import StructuredLogger
@@ -116,7 +117,10 @@ class ProxyBrowserAgent:
                 max_failures=self.max_failures,
                 use_vision=self.use_vision,
                 register_new_step_callback=self._on_step,
-                browser_profile=BrowserProfile(wait_between_actions=0.5),
+                browser_profile=BrowserProfile(
+                    wait_between_actions=0.5,
+                    viewport=ViewportSize(width=1920, height=1080),
+                ),
             )
 
             # 执行

@@ -44,9 +44,12 @@ SERVER_BROWSER_ARGS = [
 
 def create_browser_session() -> BrowserSession:
     """创建适用于服务器的 BrowserSession"""
+    from browser_use.browser.profile import ViewportSize
+
     browser_profile = BrowserProfile(
         headless=True,
         args=SERVER_BROWSER_ARGS,
+        viewport=ViewportSize(width=1920, height=1080),
     )
     return BrowserSession(browser_profile=browser_profile)
 
