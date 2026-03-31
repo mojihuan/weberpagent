@@ -8,6 +8,7 @@ create_step_callback() for register_new_step_callback integration.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 from typing import Any, Callable
@@ -133,6 +134,15 @@ class MonitoredAgent(Agent):
                 logger.error("[monitor] PreSubmitGuard check failed: %s", e)
 
         await super()._execute_actions()
+
+        # Post-upload wait: let ERP asynchronously process the uploaded file
+        # (render thumbnail, send to server, etc.) before the next screenshot
+        if action_name == "upload_file":
+            try:
+                await asyncio.sleep(3)
+                logger.info("[monitor] Post-upload wait completed (3s)")
+            except Exception as e:
+                logger.error("[monitor] Post-upload wait failed: %s", e)
 
     def create_step_callback(self) -> Callable:
         """Return async step callback for register_new_step_callback.
