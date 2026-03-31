@@ -14,6 +14,7 @@ from browser_use.llm import ChatOpenAI
 from backend.utils.logger import StructuredLogger
 from backend.utils.screenshot import ScreenshotManager
 from backend.agent.prompts import CHINESE_ENHANCEMENT
+from backend.agent.dom_patch import apply_dom_patch
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,9 @@ class ProxyBrowserAgent:
         logger.info(f"代理地址: {self.proxy_url}")
 
         try:
+            # Apply DOM serializer patch for ERP table elements
+            apply_dom_patch()
+
             # 创建 Browser-Use Agent
             agent = Agent(
                 task=self.task,

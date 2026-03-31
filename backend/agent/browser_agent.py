@@ -12,6 +12,7 @@ from backend.llm.browser_use_adapter import BrowserUseAdapter
 from backend.utils.logger import StructuredLogger
 from backend.utils.screenshot import ScreenshotManager
 from backend.agent.prompts import CHINESE_ENHANCEMENT
+from backend.agent.dom_patch import apply_dom_patch
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,9 @@ class UIBrowserAgent:
         logger.info(f"任务 ID: {self.task_id}")
 
         try:
+            # Apply DOM serializer patch for ERP table elements
+            apply_dom_patch()
+
             # 创建 Browser-Use Agent
             agent = Agent(
                 task=self.task,
