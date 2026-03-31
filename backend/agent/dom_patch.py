@@ -62,13 +62,43 @@ def _reset_paint_order_for_erp_nodes(node) -> None:
         _reset_paint_order_for_erp_nodes(child)
 
 
+def _patch_is_interactive() -> None:
+    """Patch ClickableElementDetector.is_interactive.
+
+    Returns True for nodes with ERP clickable CSS classes, ensuring they
+    get assigned interactive indices during DOM serialization. Without this,
+    <span class="hand"> and <span class="el-checkbox__inner"> are skipped
+    because they lack form controls, event handler attributes, ARIA roles,
+    or interactive tag names.
+    """
+    from browser_use.dom.serializer.clickable_elements import ClickableElementDetector
+
+    original_is_interactive = ClickableElementDetector.is_interactive
+
+    def patched_is_interactive(node) -> bool:
+        attributes = getattr(node, "attributes", None)
+        if attributes:
+            class_value = attributes.get("class", "")
+            if class_value:
+                for cls in class_value.split():
+                    for erp_cls in _ERP_CLICKABLE_CLASSES:
+                        if erp_cls in cls:
+                            return True
+        return original_is_interactive(node)
+
+    ClickableElementDetector.is_interactive = patched_is_interactive
+    logger.debug("dom_patch: patched ClickableElementDetector.is_interactive")
+
+
 def apply_dom_patch() -> None:
     """Apply monkey-patches to browser-use DOM serializer.
 
-    Patches two mechanisms that absorb sub-elements:
-    1. PaintOrderRemover.calculate_paint_order - resets ignored_by_paint_order
+    Patches three mechanisms:
+    1. ClickableElementDetector.is_interactive - marks ERP elements as
+       interactive so they receive clickable indices.
+    2. PaintOrderRemover.calculate_paint_order - resets ignored_by_paint_order
        for ERP nodes after the original method runs.
-    2. DOMTreeSerializer._should_exclude_child - returns False for ERP nodes
+    3. DOMTreeSerializer._should_exclude_child - returns False for ERP nodes
        so they are never excluded by bounding box filtering.
 
     Idempotent: multiple calls are safe and only patch once.
@@ -79,10 +109,11 @@ def apply_dom_patch() -> None:
         return
 
     try:
+        _patch_is_interactive()
         _patch_paint_order_remover()
         _patch_should_exclude_child()
         _PATCHED = True
-        logger.info("dom_patch: successfully applied both patches")
+        logger.info("dom_patch: successfully applied all 3 patches")
     except Exception as exc:
         logger.error("dom_patch: failed to apply: %s", exc)
         raise

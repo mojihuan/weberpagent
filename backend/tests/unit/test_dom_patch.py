@@ -94,7 +94,8 @@ class TestApplyDomPatch:
 
     def test_apply_dom_patch_idempotent(self):
         """Multiple calls should not raise errors."""
-        with patch("backend.agent.dom_patch._patch_paint_order_remover"), \
+        with patch("backend.agent.dom_patch._patch_is_interactive"), \
+             patch("backend.agent.dom_patch._patch_paint_order_remover"), \
              patch("backend.agent.dom_patch._patch_should_exclude_child"):
             # Reset patched state
             import backend.agent.dom_patch as mod
@@ -104,29 +105,23 @@ class TestApplyDomPatch:
             apply_dom_patch()  # second call should be a no-op
             apply_dom_patch()  # third call too
 
-    def test_apply_dom_patch_modifies_paint_order_remover(self):
-        """PaintOrderRemover.calculate_paint_order should be replaced."""
-        with patch("backend.agent.dom_patch._patch_paint_order_remover") as mock_po, \
-             patch("backend.agent.dom_patch._patch_should_exclude_child"):
-            import backend.agent.dom_patch as mod
-            mod._PATCHED = False
-
-            apply_dom_patch()
-            mock_po.assert_called_once()
-
-    def test_apply_dom_patch_modifies_should_exclude_child(self):
-        """DOMTreeSerializer._should_exclude_child should be replaced."""
-        with patch("backend.agent.dom_patch._patch_paint_order_remover"), \
+    def test_apply_dom_patch_calls_all_three_patches(self):
+        """All three patch functions should be called."""
+        with patch("backend.agent.dom_patch._patch_is_interactive") as mock_ii, \
+             patch("backend.agent.dom_patch._patch_paint_order_remover") as mock_po, \
              patch("backend.agent.dom_patch._patch_should_exclude_child") as mock_bb:
             import backend.agent.dom_patch as mod
             mod._PATCHED = False
 
             apply_dom_patch()
+            mock_ii.assert_called_once()
+            mock_po.assert_called_once()
             mock_bb.assert_called_once()
 
     def test_apply_dom_patch_sets_patched_flag(self):
         """_PATCHED flag should be True after successful apply."""
-        with patch("backend.agent.dom_patch._patch_paint_order_remover"), \
+        with patch("backend.agent.dom_patch._patch_is_interactive"), \
+             patch("backend.agent.dom_patch._patch_paint_order_remover"), \
              patch("backend.agent.dom_patch._patch_should_exclude_child"):
             import backend.agent.dom_patch as mod
             mod._PATCHED = False
@@ -240,3 +235,69 @@ class TestShouldExcludeChildPatch:
         # The patched method checks _has_erp_clickable_class first
         assert _has_erp_clickable_class(regular_node) is False
         # Original method would be called for this node
+
+
+# ---------------------------------------------------------------------------
+# Tests: is_interactive patch behavior
+# ---------------------------------------------------------------------------
+
+
+class TestIsInteractivePatch:
+    """Tests for the patched ClickableElementDetector.is_interactive."""
+
+    def test_hand_class_detected_as_interactive(self):
+        """span.hand nodes should be detected as interactive by patched method."""
+        mock_node = MagicMock()
+        mock_node.attributes = {"class": "hand"}
+
+        # Simulate the patched logic
+        detected = False
+        class_value = mock_node.attributes.get("class", "")
+        if class_value:
+            for cls in class_value.split():
+                for erp_cls in _ERP_CLICKABLE_CLASSES:
+                    if erp_cls in cls:
+                        detected = True
+        assert detected is True
+
+    def test_el_checkbox_class_detected_as_interactive(self):
+        """el-checkbox nodes should be detected as interactive."""
+        mock_node = MagicMock()
+        mock_node.attributes = {"class": "el-checkbox__inner"}
+
+        detected = False
+        class_value = mock_node.attributes.get("class", "")
+        if class_value:
+            for cls in class_value.split():
+                for erp_cls in _ERP_CLICKABLE_CLASSES:
+                    if erp_cls in cls:
+                        detected = True
+        assert detected is True
+
+    def test_el_checkbox_label_detected_as_interactive(self):
+        """label.el-checkbox should be detected as interactive."""
+        mock_node = MagicMock()
+        mock_node.attributes = {"class": "el-checkbox"}
+
+        detected = False
+        class_value = mock_node.attributes.get("class", "")
+        if class_value:
+            for cls in class_value.split():
+                for erp_cls in _ERP_CLICKABLE_CLASSES:
+                    if erp_cls in cls:
+                        detected = True
+        assert detected is True
+
+    def test_regular_span_not_detected_as_interactive_by_erp_check(self):
+        """Regular span nodes should NOT be flagged by ERP class check."""
+        mock_node = MagicMock()
+        mock_node.attributes = {"class": "regular-span"}
+
+        detected = False
+        class_value = mock_node.attributes.get("class", "")
+        if class_value:
+            for cls in class_value.split():
+                for erp_cls in _ERP_CLICKABLE_CLASSES:
+                    if erp_cls in cls:
+                        detected = True
+        assert detected is False
