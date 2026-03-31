@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: 更多操作边界测试
 status: Ready to execute
-last_updated: "2026-03-31T04:38:13.561Z"
+last_updated: "2026-03-31T05:44:17.211Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 20
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 53 — prompt
+**Current focus:** Phase 54 — import
 
 ## Current Position
 
-Phase: 53 (prompt) — EXECUTING
-Plan: 2 of 3
+Phase: 54 (import) — EXECUTING
+Plan: 2 of 2
 
 ## Session Continuity
 
@@ -65,6 +65,8 @@ Recent decisions for v0.7.0:
 - [Phase 53]: DOM serializer monkey-patch patches PaintOrderRemover and _should_exclude_child for ERP span.hand/el-checkbox elements
 - [Phase 53]: Prompt Section 7 updated: click(index) primary strategy, evaluate JS as fallback after DOM patch gives elements independent indices
 - [Phase 53-prompt]: Table interaction ERP verification: all 4 scenarios (TBL-01~04) passed — checkbox DOM position, text links, title/aria-label icons
+- [Phase 54]: Section 8 file upload prompt uses scene-action pairs with upload_file guidance and negation instructions
+- [Phase 54]: scan_test_files returns empty list for missing directory; available_file_paths injected into MonitoredAgent
 
 ### Pending Todos
 
@@ -85,6 +87,7 @@ None yet.
 | Phase 53 P01 | 2min | 2 tasks | 2 files |
 | Phase 53 P03 | 8min | 3 tasks | 6 files |
 | Phase 53-prompt P02 | 1min | 2 tasks | 2 files |
+| Phase 54 P01 | 3min | 2 tasks | 4 files |
 
 ## Session Continuity
 

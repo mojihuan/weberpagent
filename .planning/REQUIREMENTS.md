@@ -16,8 +16,8 @@
 
 ### File Import (IMP)
 
-- [ ] **IMP-01**: Agent 能触发文件上传对话框并上传 Excel 文件完成数据导入
-- [ ] **IMP-02**: Agent 能触发文件上传并上传图片文件
+- [x] **IMP-01**: Agent 能触发文件上传对话框并上传 Excel 文件完成数据导入
+- [x] **IMP-02**: Agent 能触发文件上传并上传图片文件
 
 ### Assertion Tuning (AST)
 
@@ -52,8 +52,8 @@
 | TBL-02 | Phase 53 | Complete |
 | TBL-03 | Phase 53 | Complete |
 | TBL-04 | Phase 53 | Complete |
-| IMP-01 | Phase 54 | Pending |
-| IMP-02 | Phase 54 | Pending |
+| IMP-01 | Phase 54 | Complete |
+| IMP-02 | Phase 54 | Complete |
 | AST-01 | Phase 55 | Pending |
 | AST-02 | Phase 55 | Pending |
 | KB-01 | Phase 52 | Complete |

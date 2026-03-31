@@ -78,11 +78,12 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Agent 能点击导入按钮触发文件上传对话框并上传 Excel 文件完成数据导入
   2. Agent 能点击上传按钮触发文件上传对话框并上传图片文件
-  3. ENHANCED_SYSTEM_MESSAGE 中包含文件上传操作的指导段落（如有必要）
-**Plans**: TBD
+  3. ENHANCED_SYSTEM_MESSAGE 中包含文件上传操作的指导段落
+**Plans**: 2 plans
 
 Plans:
-- [ ] 54-01: 验证并增强文件上传能力（Excel 导入 + 图片上传）
+- [x] 54-01-PLAN.md — TDD: 添加文件上传测试 + scan_test_files + ENHANCED_SYSTEM_MESSAGE 第 8 段
+- [ ] 54-02-PLAN.md — ERP 场景验证（采购单 Excel 导入 + 商品图片上传）
 
 ### Phase 55: 断言参数调优与缓存断言
 **Goal**: 断言接口参数正确传递，且支持执行前查询缓存、执行后用缓存值断言的完整流程
@@ -122,11 +123,11 @@ Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 52. Prompt 增强 — 键盘操作 | v0.7.0 | 3/3 | Complete    | 2026-03-30 |
-| 53. Prompt 增强 — 表格交互 | v0.7.0 | 3/3 | Complete   | 2026-03-31 |
-| 54. 文件导入 | v0.7.0 | 0/1 | Not started | - |
+| 53. Prompt 增强 — 表格交互 | v0.7.0 | 3/3 | Complete | 2026-03-31 |
+| 54. 文件导入 | v0.7.0 | 1/2 | In Progress|  |
 | 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |
 | 56. E2E 综合验证 | v0.7.0 | 0/1 | Not started | - |
 
 ---
 
-*Roadmap updated: 2026-03-30 - Phase 53 planned: 2 plans (prompt+test, ERP validation)*
+*Roadmap updated: 2026-03-31 - Phase 54 planned: 2 plans (infrastructure+prompt, ERP validation)*
