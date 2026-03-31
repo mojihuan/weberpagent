@@ -129,7 +129,13 @@ if [ "$BACKEND_ONLY" = false ]; then
   log "部署前端到 Nginx..."
   rm -rf "$NGINX_ROOT"/*
   cp -r "$PROJECT_PATH/frontend/dist/"* "$NGINX_ROOT"/
-  systemctl reload nginx
+  if systemctl is-active --quiet nginx; then
+    systemctl reload nginx
+  else
+    log "Nginx 未运行，启动中..."
+    systemctl start nginx
+    systemctl enable nginx
+  fi
 fi
 
 # ========== 健康检查 ==========
