@@ -19,6 +19,18 @@ from backend.llm.factory import create_llm
 from backend.utils.run_logger import RunLogger
 
 
+def scan_test_files() -> list[str]:
+    """Scan data/test-files/ directory for uploadable test files.
+
+    Returns absolute file paths for all files in data/test-files/.
+    Returns empty list if directory does not exist.
+    """
+    test_dir = Path("data/test-files")
+    if not test_dir.exists():
+        return []
+    return [str(f.resolve()) for f in sorted(test_dir.iterdir()) if f.is_file()]
+
+
 # 服务器环境必需的 Chrome 参数
 SERVER_BROWSER_ARGS = [
     '--no-sandbox',
@@ -346,10 +358,15 @@ class AgentService:
         pre_submit_guard = PreSubmitGuard()
         task_progress_tracker = TaskProgressTracker()
 
+        # Scan test files for upload_file whitelist
+        file_paths = scan_test_files()
+        logger.info(f"[{run_id}] Available upload files: {len(file_paths)} files")
+
         agent = MonitoredAgent(
             task=actual_task,
             llm=llm,
             browser_session=browser_session,
+            available_file_paths=file_paths,
             max_actions_per_step=5,
             register_new_step_callback=step_callback,
             extend_system_message=ENHANCED_SYSTEM_MESSAGE,

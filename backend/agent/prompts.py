@@ -42,6 +42,11 @@ Ant Design 表格的 `<td>` 在 DOM 快照中显示为空，实际是 click-to-e
 如果 click 未命中目标元素 → fallback 用 evaluate JS: document.querySelector('.hand').click() 或 document.querySelector('.el-checkbox').click()。
 操作列按钮 → 直接 click 按钮文本即可。
 不要用 find_elements 查找 td a（表格无 <a> 标签），不要反复 click 同一个 index。
+
+## 8. 文件上传
+遇到导入/上传按钮触发文件选择时 → 不要 click type="file" 的 input 元素（会被拦截），用 upload_file(index, '文件路径') 上传。
+文件路径从 <available_file_paths> 标签中选择匹配类型的文件。Excel 导入选 .xlsx，图片上传选 .jpg/.png。
+上传后等待文件名显示确认成功，不要用 evaluate 模拟文件选择。
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）
