@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: 更多操作边界测试
-status: Ready to execute
-last_updated: "2026-03-31T05:44:17.211Z"
+status: Phase complete — ready for verification
+last_updated: "2026-03-31T06:48:33.193Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -67,6 +67,8 @@ Recent decisions for v0.7.0:
 - [Phase 53-prompt]: Table interaction ERP verification: all 4 scenarios (TBL-01~04) passed — checkbox DOM position, text links, title/aria-label icons
 - [Phase 54]: Section 8 file upload prompt uses scene-action pairs with upload_file guidance and negation instructions
 - [Phase 54]: scan_test_files returns empty list for missing directory; available_file_paths injected into MonitoredAgent
+- [Phase 54]: IMP-01 Excel import PASS: upload_file mechanism correct, template error is expected data issue
+- [Phase 54]: IMP-02 image upload PASS: upload_file correct, post-upload 3s wait added for screenshot capture
 
 ### Pending Todos
 
@@ -88,6 +90,7 @@ None yet.
 | Phase 53 P03 | 8min | 3 tasks | 6 files |
 | Phase 53-prompt P02 | 1min | 2 tasks | 2 files |
 | Phase 54 P01 | 3min | 2 tasks | 4 files |
+| Phase 54 P02 | 1min | 3 tasks | 2 files |
 
 ## Session Continuity
 

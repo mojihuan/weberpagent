@@ -33,7 +33,7 @@
 
 - [x] **Phase 52: Prompt 增强 — 键盘操作** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加键盘操作指导，Agent 能执行 Control+a 全选覆盖、Enter 搜索触发、Escape 关闭弹窗 (gap closure in progress) (completed 2026-03-30)
 - [x] **Phase 53: Prompt 增强 — 表格交互** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加表格操作指导，Agent 能定位 checkbox、超链接、图标按钮 (completed 2026-03-31)
-- [ ] **Phase 54: 文件导入** — 验证并增强 Agent 文件上传能力，覆盖 Excel 和图片上传场景
+- [x] **Phase 54: 文件导入** — 验证并增强 Agent 文件上传能力，覆盖 Excel 和图片上传场景 (completed 2026-03-31)
 - [ ] **Phase 55: 断言参数调优与缓存断言** — 修复断言参数传递问题，实现缓存查询和断言验证
 - [ ] **Phase 56: E2E 综合验证** — 用用户提供的 8 个测试用例端到端验证所有新操作能力
 
@@ -83,7 +83,7 @@ Plans:
 
 Plans:
 - [x] 54-01-PLAN.md — TDD: 添加文件上传测试 + scan_test_files + ENHANCED_SYSTEM_MESSAGE 第 8 段
-- [ ] 54-02-PLAN.md — ERP 场景验证（采购单 Excel 导入 + 商品图片上传）
+- [x] 54-02-PLAN.md — ERP 场景验证（采购单 Excel 导入 + 商品图片上传）
 
 ### Phase 55: 断言参数调优与缓存断言
 **Goal**: 断言接口参数正确传递，且支持执行前查询缓存、执行后用缓存值断言的完整流程
@@ -124,7 +124,7 @@ Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
 |-------|-----------|----------------|--------|-----------|
 | 52. Prompt 增强 — 键盘操作 | v0.7.0 | 3/3 | Complete    | 2026-03-30 |
 | 53. Prompt 增强 — 表格交互 | v0.7.0 | 3/3 | Complete | 2026-03-31 |
-| 54. 文件导入 | v0.7.0 | 1/2 | In Progress|  |
+| 54. 文件导入 | v0.7.0 | 2/2 | Complete   | 2026-03-31 |
 | 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |
 | 56. E2E 综合验证 | v0.7.0 | 0/1 | Not started | - |
 
