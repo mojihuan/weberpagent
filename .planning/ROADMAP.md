@@ -35,7 +35,7 @@
 - [x] **Phase 53: Prompt 增强 — 表格交互** — 扩展 ENHANCED_SYSTEM_MESSAGE 添加表格操作指导，Agent 能定位 checkbox、超链接、图标按钮 (completed 2026-03-31)
 - [x] **Phase 54: 文件导入** — 验证并增强 Agent 文件上传能力，覆盖 Excel 和图片上传场景 (completed 2026-03-31)
 - [ ] **Phase 55: 断言参数调优与缓存断言** — 修复断言参数传递问题，实现缓存查询和断言验证
-- [ ] **Phase 56: E2E 综合验证** — 用用户提供的 8 个测试用例端到端验证所有新操作能力
+- [ ] **Phase 56: E2E 综合验证** — 用全部 11 个 ERP 测试用例端到端验证所有新操作能力 + 断言功能
 
 ## Phase Details
 
@@ -101,19 +101,20 @@ Plans:
 - [ ] 55-02: 实现缓存查询与断言验证流程
 
 ### Phase 56: E2E 综合验证
-**Goal**: 用用户提供的 8 个 ERP 测试用例端到端验证所有新操作能力协同工作
+**Goal**: 用全部 11 个 ERP 测试用例（9 操作类 + 2 断言类）端到端验证 Phase 52-54 新增操作能力 + AST-01/02 断言功能协同工作
 **Depends on**: Phase 55
-**Requirements**: (验证 Phase 52-55 的所有需求)
+**Requirements**: KB-01, KB-02, KB-03, TBL-01, TBL-02, TBL-03, TBL-04, IMP-01, IMP-02, AST-01, AST-02
 **Success Criteria** (what must be TRUE):
   1. 键盘操作测试用例（Control+a 全选覆盖、Enter 搜索触发、ESC 关闭弹窗）全部执行通过
   2. 表格交互测试用例（checkbox、超链接、图标）全部执行通过
   3. 文件导入测试用例（Excel、图片上传）全部执行通过
-  4. 断言与缓存测试用例（参数验证、缓存断言）全部执行通过
-  5. 所有测试用例生成的报告正确展示执行步骤和结果
-**Plans**: TBD
+  4. 断言验证测试用例（headers 参数、i/j 参数组合）全部执行通过
+  5. 综合验证报告正确汇总全部 11 个场景结果
+**Plans**: 2 plans
 
 Plans:
-- [ ] 56-01: E2E 验证全部 8 个用户测试用例
+- [x] 56-01-PLAN.md — 创建断言测试步骤文档 + 验证测试环境就绪
+- [ ] 56-02-PLAN.md — 执行全部 11 个 E2E 测试用例 + 生成综合验证报告
 
 ## Progress
 
@@ -126,8 +127,8 @@ Phases execute in numeric order: 52 → 53 → 54 → 55 → 56
 | 53. Prompt 增强 — 表格交互 | v0.7.0 | 3/3 | Complete | 2026-03-31 |
 | 54. 文件导入 | v0.7.0 | 2/2 | Complete    | 2026-03-31 |
 | 55. 断言参数调优与缓存断言 | v0.7.0 | 0/2 | Not started | - |
-| 56. E2E 综合验证 | v0.7.0 | 0/1 | Not started | - |
+| 56. E2E 综合验证 | v0.7.0 | 1/2 | In Progress|  |
 
 ---
 
-*Roadmap updated: 2026-03-31 - Phase 54 planned: 2 plans (infrastructure+prompt, ERP validation)*
+*Roadmap updated: 2026-03-31 - Phase 56 planned: 2 plans (assertion doc + env prep, E2E execution + report)*

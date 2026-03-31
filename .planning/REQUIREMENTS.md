@@ -21,8 +21,8 @@
 
 ### Assertion Tuning (AST)
 
-- [ ] **AST-01**: 断言能正确传递 headers 参数并完成接口调用验证
-- [ ] **AST-02**: inventory_list_data 的 i(库存状态)、j(物品状态) 参数组合正确传递并返回有效数据
+- [x] **AST-01**: 断言能正确传递 headers 参数并完成接口调用验证
+- [x] **AST-02**: inventory_list_data 的 i(库存状态)、j(物品状态) 参数组合正确传递并返回有效数据
 
 ### Keyboard Operations (KB)
 
@@ -54,8 +54,8 @@
 | TBL-04 | Phase 53 | Complete |
 | IMP-01 | Phase 54 | Complete |
 | IMP-02 | Phase 54 | Complete |
-| AST-01 | Phase 55 | Pending |
-| AST-02 | Phase 55 | Pending |
+| AST-01 | Phase 55 | Complete |
+| AST-02 | Phase 55 | Complete |
 | KB-01 | Phase 52 | Complete |
 | KB-02 | Phase 52 | Complete |
 | KB-03 | Phase 52 | Complete |
