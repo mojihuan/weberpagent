@@ -14,6 +14,7 @@ from backend.agent.stall_detector import StallDetector
 from backend.agent.pre_submit_guard import PreSubmitGuard
 from backend.agent.task_progress_tracker import TaskProgressTracker
 from backend.agent.prompts import ENHANCED_SYSTEM_MESSAGE
+from backend.agent.dom_patch import apply_dom_patch
 from backend.llm.factory import create_llm
 from backend.utils.run_logger import RunLogger
 
@@ -336,6 +337,9 @@ class AgentService:
             logger.info(f"[{run_id}] 已将目标 URL 拼接到任务描述中")
 
         logger.info(f"[{run_id}] Creating MonitoredAgent: task={actual_task[:80]}..., max_steps={max_steps}")
+
+        # Apply DOM serializer monkey-patch for ERP table elements (checkbox, links)
+        apply_dom_patch()
 
         # Initialize detectors (D-07)
         stall_detector = StallDetector()
