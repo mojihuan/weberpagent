@@ -13,24 +13,16 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.7.0 更多操作边界测试
+## Current Milestone: TBD
 
-**Goal:** 扩展 AI Agent 的操作能力边界，支持表格复杂交互、文件导入、键盘操作和缓存断言等 ERP 测试中常见但尚未覆盖的操作场景。
-
-**Target features:**
-- 表格单选/全选 — 表格中的 checkbox 单行选择和全选操作
-- 表格超链接/图标点击 — 表格中可点击的链接和图标操作
-- 导入 Excel/图片 — 文件上传（Excel 导入、图片上传）
-- 断言参数调优 — headers、i、j 参数组合的断言验证
-- 键盘操作 — 粘贴(Ctrl+V)、回车(Enter)、ESC 等键盘快捷键
-- 缓存断言 — 执行前查询获取物品编号并缓存，执行后用缓存值断言
+Ready to plan next milestone.
 
 ## Current State
 
-**最新版本:** v0.7.0 完成 — Phase 56 E2E 综合验证 11/11 通过 (2026-03-31)
+**最新版本:** v0.7.0 更多操作边界测试 (shipped 2026-04-01)
 
 通过中间层监控 + Prompt 优化解决 Agent 循环重试、字段误填、步骤遗漏等核心问题。
-v0.7.0 完成: 键盘操作(Phase 52) + 表格交互(Phase 53) + 文件导入(Phase 54) + E2E 综合验证(Phase 56)，11 个测试用例全部通过，无退化。
+v0.7.0: 键盘操作 + 表格交互 + 文件导入 + E2E 综合验证(11/11)，无退化。
 
 **Server online**: 121.40.191.49
 
@@ -38,6 +30,7 @@ v0.7.0 完成: 键盘操作(Phase 52) + 表格交互(Phase 53) + 文件导入(Ph
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
 - v0.6.2: 回归原生 browser-use (2026-03-27)
 - v0.6.3: Agent 可靠性优化 (2026-03-28)
+- v0.7.0: 更多操作边界测试 (2026-04-01)
 
 ## Requirements
 
@@ -51,6 +44,13 @@ v0.7.0 完成: 键盘操作(Phase 52) + 表格交互(Phase 53) + 文件导入(Ph
 - ✓ ENHANCED_SYSTEM_MESSAGE — 5 段式 ERP 指导 + browser-use 参数调优 — Phase 49
 - ✓ AgentService 集成 — MonitoredAgent 替换 + step_callback 检测器调用 — Phase 50
 - ✓ E2E 验证 — 60/60 测试通过，94% 覆盖率，ERP 测试无循环违规 — Phase 51
+
+**v0.7.0 更多操作边界测试 (2026-04-01):**
+- ✓ KB-01/02/03: 键盘操作 (Enter/Escape/Control+a) — Phase 52/56
+- ✓ TBL-01/02/03/04: 表格交互 (checkbox/超链接/图标) — Phase 53/56
+- ✓ IMP-01/02: 文件导入 (Excel/图片) — Phase 54/56
+- ✓ AST-01/02: 断言参数验证 (headers/i/j) — Phase 56
+- ⏭ CAC-01/02: 缓存断言 — Deferred，推迟到有实际需求时实现
 
 <details>
 <summary>v0.6.2 及更早版本的已验证需求</summary>
@@ -72,21 +72,7 @@ v0.1-v0.4.2 核心功能:
 
 ### Active
 
-**v0.7.0 更多操作边界测试 (2026-03-31):**
-- ✓ KB-01: 键盘粘贴操作 (Ctrl+V) — Phase 52/56
-- ✓ KB-02: 键盘回车操作 (Enter) — Phase 52/56
-- ✓ KB-03: 键盘 ESC 操作 — Phase 52/56
-- ✓ TBL-01: 表格 checkbox 单选操作 — Phase 53/56
-- ✓ TBL-02: 表格 checkbox 全选操作 — Phase 53/56
-- ✓ TBL-03: 表格超链接点击 — Phase 53/56
-- ✓ TBL-04: 表格图标按钮点击 — Phase 53/56
-- ✓ IMP-01: 导入 Excel 文件上传 — Phase 54/56
-- ✓ IMP-02: 导入图片文件上传 — Phase 54/56
-- ✓ AST-01: 断言 headers 参数验证 — Phase 56
-- ✓ AST-02: 断言 i、j 参数组合验证 — Phase 56
-
-**Deferred:**
-- CAC-01/CAC-02: 缓存断言 — 推迟到有实际需求时实现
+_(等待下一个里程碑规划)_
 
 ### Backlog
 
@@ -138,4 +124,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-03-31 after Phase 56 E2E comprehensive verification*
+*Last updated: 2026-04-01 after v0.7.0 milestone completion*

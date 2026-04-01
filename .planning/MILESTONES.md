@@ -1,5 +1,24 @@
 # Milestones
 
+## v0.7.0 更多操作边界测试 (Shipped: 2026-04-01)
+
+**Phases completed:** 5 phases, 10 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Added 3-line keyboard operation section to ENHANCED_SYSTEM_MESSAGE with send_keys guidance for Enter search, Escape close, and Control+a select-all
+- Verified Agent send_keys('Enter') compliance in purchase order ERP scenario; keyboard prompt enhancement confirmed effective, 1/3 scenarios passing
+- Strengthened Escape and Control+a keyboard prompt with negation instructions; verified Escape PASS and Control+a PARTIAL PASS (browser runtime limitation)
+- Added section 7 table interaction guidance to ENHANCED_SYSTEM_MESSAGE covering checkbox (thead/tbody), hyperlink text clicks, and icon button title/aria-label positioning
+- All 4 ERP purchase order table interaction scenarios verified passing — checkbox single-row (TBL-01), checkbox select-all (TBL-02), hyperlink text click (TBL-03), icon button title/aria-label (TBL-04)
+- Monkey-patch browser-use DOM serializer to give span.hand and .el-checkbox independent clickable indices, integrated into Agent creation with updated prompt
+- scan_test_files() scans data/test-files/ for absolute paths, available_file_paths injected into MonitoredAgent, and Section 8 file upload prompt added with upload_file guidance and negation instructions
+- Excel import (IMP-01) and image upload (IMP-02) both verified passing in ERP -- Agent correctly uses upload_file action for both file types, confirming Section 8 prompt and scan_test_files infrastructure work end-to-end
+- Created AST-01/02 assertion verification test steps document and confirmed all E2E test environment dependencies are ready
+- 11/11 E2E test cases passed (100%) covering keyboard, table, file upload, and assertion scenarios with no regressions
+
+---
+
 ## v0.6.3 Agent 可靠性优化 (Shipped: 2026-03-28)
 
 **Phases completed:** 4 phases, 10 plans, 20 tasks

@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v0.7.0
 milestone_name: 更多操作边界测试
-status: Milestone complete
-last_updated: "2026-03-31T08:59:00.130Z"
+status: v0.7.0 milestone complete
+last_updated: "2026-04-01T03:45:44.637Z"
 progress:
   total_phases: 5
   completed_phases: 4
