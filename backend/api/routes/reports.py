@@ -112,9 +112,7 @@ async def get_report(
         steps=step_responses,
         assertion_results=transform_assertion_results(data["assertion_results"]),
         ui_assertion_results=transform_assertion_results(data["ui_assertion_results"]),
-        api_assertion_results=transform_assertion_results(data["api_assertion_results"]),
         pass_rate=data["pass_rate"],
-        api_pass_rate=data["api_pass_rate"],
         precondition_results=data.get("precondition_results"),
         timeline_items=data.get("timeline_items"),
     )

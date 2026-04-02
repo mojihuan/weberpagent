@@ -111,19 +111,8 @@ class ReportService:
         # Get assertion results
         assertion_results = await self.assertion_result_repo.list_by_run(run_id)
 
-        # Separate UI assertions from API assertions
-        ui_assertion_results = [
-            ar for ar in assertion_results
-            if not ar.assertion_id.startswith("api_")
-        ]
-        api_assertion_results = [
-            ar for ar in assertion_results
-            if ar.assertion_id.startswith("api_")
-        ]
-
         # Calculate pass rate
         pass_rate = self.calculate_pass_rate(assertion_results)
-        api_pass_rate = self.calculate_pass_rate(api_assertion_results) if api_assertion_results else "N/A"
 
         # Phase 59: Build timeline_items
         precondition_results = await self.precondition_result_repo.list_by_run(run_id)
@@ -160,7 +149,7 @@ class ReportService:
             })
 
         # Add UI assertion results
-        for ar in ui_assertion_results:
+        for ar in assertion_results:
             timeline_items.append({
                 "type": "assertion",
                 "id": ar.id,
@@ -174,43 +163,6 @@ class ReportService:
                 "duration_ms": None,
             })
 
-        # Add API assertion results (group field rows by assertion index)
-        api_assertion_groups: dict[str, list] = {}
-        for ar in api_assertion_results:
-            parts = ar.assertion_id.split("_")
-            group_key = f"{parts[0]}_{parts[1]}" if len(parts) >= 2 and parts[0] == "api" else ar.assertion_id
-            if group_key not in api_assertion_groups:
-                api_assertion_groups[group_key] = []
-            api_assertion_groups[group_key].append(ar)
-
-        for group_key, field_rows in api_assertion_groups.items():
-            first = field_rows[0]
-            seq_num = first.sequence_number if first.sequence_number is not None else 0
-            field_results = [
-                {
-                    "field_name": row.assertion_id.split("_", 2)[-1] if "_" in row.assertion_id.split("_", 1)[-1] else row.assertion_id,
-                    "expected": None,
-                    "actual": row.actual_value,
-                    "passed": row.status == "pass",
-                    "message": row.message or "",
-                    "assertion_type": "api",
-                }
-                for row in field_rows
-            ]
-            all_passed = all(row.status == "pass" for row in field_rows)
-            timeline_items.append({
-                "type": "assertion",
-                "id": first.id,
-                "sequence_number": seq_num,
-                "assertion_id": first.assertion_id,
-                "assertion_name": None,
-                "status": "pass" if all_passed else "fail",
-                "message": first.message,
-                "actual_value": first.actual_value,
-                "field_results": field_results,
-                "duration_ms": None,
-            })
-
         # Sort by sequence_number
         timeline_items.sort(key=lambda x: x["sequence_number"])
 
@@ -218,10 +170,8 @@ class ReportService:
             "report": report,
             "steps": steps,
             "assertion_results": assertion_results,
-            "ui_assertion_results": ui_assertion_results,
-            "api_assertion_results": api_assertion_results,
+            "ui_assertion_results": assertion_results,
             "pass_rate": pass_rate,
-            "api_pass_rate": api_pass_rate,
             "precondition_results": None,  # legacy
             "timeline_items": timeline_items,
         }

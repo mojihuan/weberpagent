@@ -154,7 +154,6 @@ class TestRunAgentBackgroundWiring:
                 task_description="Test task description",
                 max_steps=10,
                 preconditions=None,
-                api_assertions=None,
                 target_url=None
             )
 
