@@ -1,6 +1,6 @@
 // frontend/src/api/reports.ts
 import { apiClient } from './client'
-import type { Report, Step, AssertionResult } from '../types'
+import type { Report, Step, AssertionResult, ReportTimelineItem } from '../types'
 
 interface StepApiResponse {
   id: string
@@ -55,6 +55,7 @@ interface ReportDetailApiResponse extends ReportApiResponse {
   pass_rate?: string
   api_pass_rate?: string
   precondition_results?: PreconditionResultApiResponse[]
+  timeline_items?: ReportTimelineItem[]
 }
 
 interface ReportsListApiResponse {
@@ -136,6 +137,7 @@ export interface ReportDetailResponse extends Report {
   pass_rate?: string
   api_pass_rate?: string
   precondition_results?: PreconditionResult[]
+  timeline_items?: ReportTimelineItem[]
 }
 
 export async function listReports(params?: ReportsListParams): Promise<{ reports: Report[]; total: number; page: number; page_size: number }> {
@@ -168,5 +170,6 @@ export async function getReport(reportId: string): Promise<ReportDetailResponse>
     pass_rate: response.pass_rate,
     api_pass_rate: response.api_pass_rate,
     precondition_results: response.precondition_results,
+    timeline_items: response.timeline_items,
   }
 }

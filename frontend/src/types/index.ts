@@ -169,6 +169,59 @@ export type TimelineItem =
   | TimelineItemPrecondition
   | TimelineItemAssertion
 
+// Report TimelineItem types for report detail page
+export interface ReportTimelineStep {
+  type: 'step'
+  id: string
+  sequence_number: number
+  step_index: number
+  action: string
+  reasoning: string | null
+  screenshot_url: string | null
+  status: string
+  error: string | null
+  duration_ms: number | null
+}
+
+export interface ReportTimelinePrecondition {
+  type: 'precondition'
+  id: string
+  sequence_number: number
+  index: number
+  code: string
+  status: string
+  error: string | null
+  duration_ms: number | null
+  variables: Record<string, unknown> | null
+}
+
+export interface ReportTimelineAssertionFieldResult {
+  field_name: string
+  expected: unknown
+  actual: unknown
+  passed: boolean
+  message: string
+  assertion_type: string
+}
+
+export interface ReportTimelineAssertion {
+  type: 'assertion'
+  id: string
+  sequence_number: number
+  assertion_id: string
+  assertion_name: string | null
+  status: string
+  message: string | null
+  actual_value: string | null
+  field_results: ReportTimelineAssertionFieldResult[] | null
+  duration_ms: number | null
+}
+
+export type ReportTimelineItem =
+  | ReportTimelineStep
+  | ReportTimelinePrecondition
+  | ReportTimelineAssertion
+
 // Report 报告
 export interface Report {
   id: string
