@@ -112,7 +112,7 @@ Plans:
 
 Plans:
 - [x] 60-01-PLAN.md — Backend: delete api_assertion_service.py, clean schemas/models/repository/runs/report_service/reports/tests, drop DB column
-- [ ] 60-02-PLAN.md — Frontend: clean types/useRunStream/StepTimeline, simplify TaskForm to always-show business assertions, delete ApiAssertionResults
+- [x] 60-02-PLAN.md — Frontend: clean types/useRunStream/StepTimeline, simplify TaskForm to always-show business assertions, delete ApiAssertionResults
 **UI hint**: yes
 
 ### Phase 61: E2E 验证
@@ -139,7 +139,7 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 | 57. AI 推理格式优化 | v0.8.0 | 0/? | Complete    | 2026-04-02 |
 | 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete    | 2026-04-02 |
 | 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete    | 2026-04-02 |
-| 60. 任务表单优化 | v0.8.0 | 1/2 | In Progress|  |
+| 60. 任务表单优化 | v0.8.0 | 2/2 | Complete   | 2026-04-02 |
 | 61. E2E 验证 | v0.8.0 | 0/? | Not started | - |
 
 ---

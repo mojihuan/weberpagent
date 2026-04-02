@@ -25,7 +25,7 @@
 
 ### 任务表单优化 (FORM)
 
-- [ ] **FORM-01**: 任务表单中移除"接口断言"和"业务断言"的 tab 切换，仅保留业务断言配置区域
+- [x] **FORM-01**: 任务表单中移除"接口断言"和"业务断言"的 tab 切换，仅保留业务断言配置区域
 - [x] **FORM-02**: 移除表单中 api_assertions 相关的 textarea 列表（不再支持自由代码式接口断言）
 
 ## v2 Requirements
@@ -53,7 +53,7 @@ _(无推迟需求)_
 | FMT-01 | Phase 57 | Pending |
 | FMT-02 | Phase 57 | Pending |
 | FMT-03 | Phase 57 | Pending |
-| FORM-01 | Phase 60 | Pending |
+| FORM-01 | Phase 60 | Complete |
 | FORM-02 | Phase 60 | Complete |
 
 **Coverage:**
