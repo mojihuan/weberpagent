@@ -13,13 +13,20 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: TBD
+## Current Milestone: v0.8.0 报告完善与 UI 优化
 
-Ready to plan next milestone.
+**Goal:** 修复报告中缺失前置条件/断言步骤的问题，优化 AI 推理展示格式和任务表单交互
+
+**Target features:**
+- 报告展示前置条件和断言的执行步骤及结果
+- AI 推理过程格式化展示（每项单独一行）
+- 任务表单移除冗余的断言 tab
 
 ## Current State
 
 **最新版本:** v0.7.0 更多操作边界测试 (shipped 2026-04-01)
+
+Phase 57 complete — AI 推理格式优化: Eval/Verdict/Memory/Goal 分行彩色 badge 展示。
 
 通过中间层监控 + Prompt 优化解决 Agent 循环重试、字段误填、步骤遗漏等核心问题。
 v0.7.0: 键盘操作 + 表格交互 + 文件导入 + E2E 综合验证(11/11)，无退化。
@@ -72,7 +79,10 @@ v0.1-v0.4.2 核心功能:
 
 ### Active
 
-_(等待下一个里程碑规划)_
+- [ ] 报告执行步骤中展示前置条件步骤和断言步骤
+- [ ] 报告详情中展示前置条件和断言的执行结果
+- [ ] AI 推理过程格式化展示（Eval/Verdict/Memory/Goal 分行）
+- [ ] 任务表单移除冗余的断言 tab
 
 ### Backlog
 
@@ -124,4 +134,4 @@ _(等待下一个里程碑规划)_
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-01 after v0.7.0 milestone completion*
+*Last updated: 2026-04-02 after v0.8.0 milestone started*
