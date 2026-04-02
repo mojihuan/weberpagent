@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: 报告完善与 UI 优化
-status: Ready to plan
-last_updated: "2026-04-02T03:17:34.323Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-02T05:56:15.601Z"
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -18,12 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 57 — ai
+**Current focus:** Phase 58 — exec-display
 
 ## Current Position
 
-Phase: 58
-Plan: Not started
+Phase: 58 (exec-display) — EXECUTING
+Plan: 1 of 1
 
 ## Session Continuity
 
@@ -50,6 +50,9 @@ Plan: Not started
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+- [Phase 58-exec-display]: TimelineItem discriminated union for unified timeline rendering
+- [Phase 58-exec-display]: Replace-not-append pattern prevents duplicate timeline entries from SSE running->final events
 
 ### Pending Todos
 

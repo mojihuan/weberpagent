@@ -82,7 +82,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 57-01-PLAN.md — Create parseReasoning utility + ReasoningText component, integrate into ReasoningLog and StepItem
+- [x] 58-01-PLAN.md — Add TimelineItem union type, update useRunStream to unified timeline, rewrite StepTimeline for 3 item types, wire RunMonitor/RunHeader
 **UI hint**: yes
 
 ### Phase 59: 报告步骤展示
@@ -96,7 +96,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 57-01-PLAN.md — Create parseReasoning utility + ReasoningText component, integrate into ReasoningLog and StepItem
+- [ ] 59-01-PLAN.md — To be planned
 **UI hint**: yes
 
 ### Phase 60: 任务表单优化
@@ -110,7 +110,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 57-01-PLAN.md — Create parseReasoning utility + ReasoningText component, integrate into ReasoningLog and StepItem
+- [ ] 60-01-PLAN.md — To be planned
 **UI hint**: yes
 
 ### Phase 61: E2E 验证
@@ -125,7 +125,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 57-01-PLAN.md — Create parseReasoning utility + ReasoningText component, integrate into ReasoningLog and StepItem
+- [ ] 61-01-PLAN.md — To be planned
 
 ## Progress
 
@@ -135,11 +135,10 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 57. AI 推理格式优化 | v0.8.0 | 0/? | Complete    | 2026-04-02 |
-| 58. 执行步骤展示 | v0.8.0 | 0/? | Not started | - |
+| 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete   | 2026-04-02 |
 | 59. 报告步骤展示 | v0.8.0 | 0/? | Not started | - |
 | 60. 任务表单优化 | v0.8.0 | 0/? | Not started | - |
 | 61. E2E 验证 | v0.8.0 | 0/? | Not started | - |
 
 ---
-
 *Roadmap updated: 2026-04-02 — v0.8.0 milestone roadmap created*
