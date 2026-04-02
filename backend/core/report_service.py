@@ -10,6 +10,7 @@ from backend.db.repository import (
     StepRepository,
     ReportRepository,
     AssertionResultRepository,
+    PreconditionResultRepository,
 )
 from backend.db.models import Report
 
@@ -31,6 +32,7 @@ class ReportService:
         self.step_repo = StepRepository(session)
         self.report_repo = ReportRepository(session)
         self.assertion_result_repo = AssertionResultRepository(session)
+        self.precondition_result_repo = PreconditionResultRepository(session)
 
     async def generate_report(self, run_id: str) -> Optional[Report]:
         """Generate a comprehensive test report for a run.
@@ -123,6 +125,95 @@ class ReportService:
         pass_rate = self.calculate_pass_rate(assertion_results)
         api_pass_rate = self.calculate_pass_rate(api_assertion_results) if api_assertion_results else "N/A"
 
+        # Phase 59: Build timeline_items
+        precondition_results = await self.precondition_result_repo.list_by_run(run_id)
+
+        timeline_items: list[dict] = []
+
+        # Add UI steps
+        for s in steps:
+            timeline_items.append({
+                "type": "step",
+                "id": s.id,
+                "sequence_number": s.sequence_number if s.sequence_number is not None else s.step_index,
+                "step_index": s.step_index,
+                "action": s.action,
+                "reasoning": s.reasoning,
+                "screenshot_url": f"/api/runs/{run_id}/screenshots/{s.step_index}" if s.screenshot_path else None,
+                "status": s.status,
+                "error": s.error,
+                "duration_ms": s.duration_ms,
+            })
+
+        # Add precondition results
+        for pr in precondition_results:
+            timeline_items.append({
+                "type": "precondition",
+                "id": pr.id,
+                "sequence_number": pr.sequence_number,
+                "index": pr.index,
+                "code": pr.code,
+                "status": pr.status,
+                "error": pr.error,
+                "duration_ms": pr.duration_ms,
+                "variables": pr.variables,  # JSON string, frontend deserializes
+            })
+
+        # Add UI assertion results
+        for ar in ui_assertion_results:
+            timeline_items.append({
+                "type": "assertion",
+                "id": ar.id,
+                "sequence_number": ar.sequence_number if ar.sequence_number is not None else 0,
+                "assertion_id": ar.assertion_id,
+                "assertion_name": None,
+                "status": ar.status,
+                "message": ar.message,
+                "actual_value": ar.actual_value,
+                "field_results": None,
+                "duration_ms": None,
+            })
+
+        # Add API assertion results (group field rows by assertion index)
+        api_assertion_groups: dict[str, list] = {}
+        for ar in api_assertion_results:
+            parts = ar.assertion_id.split("_")
+            group_key = f"{parts[0]}_{parts[1]}" if len(parts) >= 2 and parts[0] == "api" else ar.assertion_id
+            if group_key not in api_assertion_groups:
+                api_assertion_groups[group_key] = []
+            api_assertion_groups[group_key].append(ar)
+
+        for group_key, field_rows in api_assertion_groups.items():
+            first = field_rows[0]
+            seq_num = first.sequence_number if first.sequence_number is not None else 0
+            field_results = [
+                {
+                    "field_name": row.assertion_id.split("_", 2)[-1] if "_" in row.assertion_id.split("_", 1)[-1] else row.assertion_id,
+                    "expected": None,
+                    "actual": row.actual_value,
+                    "passed": row.status == "pass",
+                    "message": row.message or "",
+                    "assertion_type": "api",
+                }
+                for row in field_rows
+            ]
+            all_passed = all(row.status == "pass" for row in field_rows)
+            timeline_items.append({
+                "type": "assertion",
+                "id": first.id,
+                "sequence_number": seq_num,
+                "assertion_id": first.assertion_id,
+                "assertion_name": None,
+                "status": "pass" if all_passed else "fail",
+                "message": first.message,
+                "actual_value": first.actual_value,
+                "field_results": field_results,
+                "duration_ms": None,
+            })
+
+        # Sort by sequence_number
+        timeline_items.sort(key=lambda x: x["sequence_number"])
+
         return {
             "report": report,
             "steps": steps,
@@ -131,7 +222,8 @@ class ReportService:
             "api_assertion_results": api_assertion_results,
             "pass_rate": pass_rate,
             "api_pass_rate": api_pass_rate,
-            "precondition_results": None,  # TODO: Extract from run metadata when storage is implemented
+            "precondition_results": None,  # legacy
+            "timeline_items": timeline_items,
         }
 
     @staticmethod

@@ -3,24 +3,12 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.repository import (
-    PreconditionResultRepository,
-    RunRepository,
-    TaskRepository,
-)
-from backend.db.schemas import TaskCreate
+from backend.db.models import Task, Run, PreconditionResult
+from backend.db.repository import PreconditionResultRepository
 
 
 class TestPreconditionResultRepository:
     """Tests for PreconditionResultRepository."""
-
-    @pytest.fixture
-    async def task_repo(self, db_session: AsyncSession) -> TaskRepository:
-        return TaskRepository(db_session)
-
-    @pytest.fixture
-    async def run_repo(self, db_session: AsyncSession) -> RunRepository:
-        return RunRepository(db_session)
 
     @pytest.fixture
     async def precondition_result_repo(
@@ -29,15 +17,17 @@ class TestPreconditionResultRepository:
         return PreconditionResultRepository(db_session)
 
     @pytest.fixture
-    async def setup_run(
-        self,
-        db_session: AsyncSession,
-        task_repo: TaskRepository,
-        run_repo: RunRepository,
-    ):
-        """Create a task and run for testing."""
-        task = await task_repo.create(TaskCreate(name="Test Task", description="Test"))
-        run = await run_repo.create(task_id=task.id)
+    async def setup_run(self, db_session: AsyncSession):
+        """Create a task and run directly (avoids TaskRepository Pydantic issue)."""
+        task = Task(name="Test Task", description="Test")
+        db_session.add(task)
+        await db_session.commit()
+        await db_session.refresh(task)
+
+        run = Run(task_id=task.id, status="pending")
+        db_session.add(run)
+        await db_session.commit()
+        await db_session.refresh(run)
         return {"task": task, "run": run}
 
     async def test_create_stores_precondition_result_with_all_fields(
@@ -102,13 +92,13 @@ class TestPreconditionResultRepository:
         run_id = setup_run["run"].id
 
         # Insert in reverse order
-        r3 = await precondition_result_repo.create(
+        await precondition_result_repo.create(
             run_id=run_id, sequence_number=3, index=2, code="c3", status="success"
         )
-        r1 = await precondition_result_repo.create(
+        await precondition_result_repo.create(
             run_id=run_id, sequence_number=1, index=0, code="c1", status="success"
         )
-        r2 = await precondition_result_repo.create(
+        await precondition_result_repo.create(
             run_id=run_id, sequence_number=2, index=1, code="c2", status="success"
         )
 

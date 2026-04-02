@@ -31,7 +31,7 @@ from backend.core.assertion_service import AssertionService
 from backend.core.precondition_service import PreconditionService
 from backend.core.api_assertion_service import ApiAssertionService
 from backend.core.external_precondition_bridge import execute_all_assertions
-from backend.db.repository import AssertionResultRepository
+from backend.db.repository import AssertionResultRepository, PreconditionResultRepository
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +80,8 @@ async def run_agent_background(
         agent_service = AgentService()
         report_service = ReportService(session)
         assertion_service = AssertionService(session)
+        precondition_result_repo = PreconditionResultRepository(session)
+        global_seq = 0
 
         # === 执行前置条件 ===
         context: dict[str, Any] = {}
@@ -113,6 +115,19 @@ async def run_agent_background(
                     variables=result.variables if result.success else None,
                 )
                 await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
+
+                # Phase 59: 持久化前置条件结果
+                global_seq += 1
+                await precondition_result_repo.create(
+                    run_id=run_id,
+                    sequence_number=global_seq,
+                    index=i,
+                    code=code,
+                    status="success" if result.success else "failed",
+                    error=result.error,
+                    duration_ms=result.duration_ms,
+                    variables=json.dumps(result.variables) if (result.success and result.variables) else None,
+                )
 
                 if not result.success:
                     # 前置条件失败，终止执行
@@ -148,9 +163,12 @@ async def run_agent_background(
         step_count = 0
 
         async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None):
-            nonlocal step_count
+            nonlocal step_count, global_seq
             step_count = step
             logger.info(f"[{run_id}] 步骤 {step}: action={action[:50]}...")
+
+            # Phase 59: assign global sequence number
+            global_seq += 1
 
             # 保存步骤到数据库
             try:
@@ -162,6 +180,7 @@ async def run_agent_background(
                     "status": "success",
                     "duration_ms": 0,
                     "step_stats": step_stats_json,  # Pass JSON string directly to repository (Phase 41, LOG-02)
+                    "sequence_number": global_seq,  # Phase 59
                 }
                 await run_repo.add_step(run_id, step_data)
                 logger.debug(f"[{run_id}] 步骤 {step} 已保存到数据库")
@@ -214,6 +233,10 @@ async def run_agent_background(
                     assertions=run.task.assertions,
                     history=result,
                 )
+                # Phase 59: assign sequence numbers to UI assertion results
+                for ar in assertion_results:
+                    global_seq += 1
+                    await assertion_result_repo.update_sequence_number(ar.id, global_seq)
                 # 如果任何断言失败，整体状态为失败
                 if any(ar.status == "fail" for ar in assertion_results):
                     final_status = "failed"
@@ -266,6 +289,7 @@ async def run_agent_background(
                     await event_manager.publish(run_id, f"event: api_assertion\ndata: {api_event.model_dump_json()}\n\n")
 
                     # 存储断言结果到数据库
+                    global_seq += 1
                     if api_result.success and api_result.field_results:
                         for field_result in api_result.field_results:
                             await assertion_result_repo.create(
@@ -274,6 +298,7 @@ async def run_agent_background(
                                 status="pass" if field_result.passed else "fail",
                                 message=field_result.message,
                                 actual_value=str(field_result.actual),
+                                sequence_number=global_seq,  # Phase 59
                             )
                     elif not api_result.success:
                         # 执行失败的断言
@@ -283,6 +308,7 @@ async def run_agent_background(
                             status="fail",
                             message=api_result.error or "断言执行失败",
                             actual_value="",
+                            sequence_number=global_seq,  # Phase 59
                         )
 
                 # 更新最终状态：如果有任何 API 断言失败

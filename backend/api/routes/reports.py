@@ -116,4 +116,5 @@ async def get_report(
         pass_rate=data["pass_rate"],
         api_pass_rate=data["api_pass_rate"],
         precondition_results=data.get("precondition_results"),
+        timeline_items=data.get("timeline_items"),
     )

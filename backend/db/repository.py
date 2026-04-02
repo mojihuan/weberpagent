@@ -310,6 +310,7 @@ class AssertionResultRepository:
         status: str,
         message: str | None = None,
         actual_value: str | None = None,
+        sequence_number: int | None = None,
     ) -> AssertionResult:
         """Create and persist assertion result."""
         result = AssertionResult(
@@ -318,6 +319,7 @@ class AssertionResultRepository:
             status=status,
             message=message,
             actual_value=actual_value,
+            sequence_number=sequence_number,
         )
         self.session.add(result)
         await self.session.commit()

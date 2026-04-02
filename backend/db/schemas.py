@@ -231,6 +231,7 @@ class ReportDetailResponse(ReportResponse):
     pass_rate: Optional[str] = None
     api_pass_rate: Optional[str] = None
     precondition_results: Optional[List[SSEPreconditionEvent]] = None
+    timeline_items: Optional[List[dict[str, Any]]] = None  # Phase 59: unified timeline
 
 
 class ReportListParams(BaseModel):
