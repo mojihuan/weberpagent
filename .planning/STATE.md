@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: 报告完善与 UI 优化
-status: Phase 60 context gathered
-last_updated: "2026-04-02T10:00:00Z"
+status: Ready to execute
+last_updated: "2026-04-02T13:04:02.518Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,12 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 59 — report-steps
+**Current focus:** Phase 60 — task-form-opt
 
 ## Current Position
 
-Phase: 59 (report-steps) — COMPLETE
-Plan: 2 of 2 complete
+Phase: 60 (task-form-opt) — EXECUTING
+Plan: 2 of 2
 
 ## Session Continuity
 
@@ -56,6 +56,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 59-report-steps]: ReportTimelineItem discriminated union types for report detail unified timeline
 - [Phase 59-report-steps]: TimelineItemCard component with type-specific color scheme (amber precondition, purple assertion, green/red step)
 - [Phase 59-report-steps]: Backward-compatible fallback rendering for old reports without timeline_items
+- [Phase 60]: Kept ui_assertion_results as alias for assertion_results in report data for backward compatibility
+- [Phase 60]: Added AssertionResultRepository as top-level variable in run_agent_background after removing api_assertions block
 
 ### Pending Todos
 
