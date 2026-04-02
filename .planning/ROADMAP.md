@@ -96,8 +96,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 59-01-PLAN.md — Backend: PreconditionResult model, global sequence_number, timeline API
-- [ ] 59-02-PLAN.md — Frontend: TimelineItemCard component, unified report timeline, remove old sections
+- [x] 59-01-PLAN.md — Backend: PreconditionResult model, global sequence_number, timeline API
+- [x] 59-02-PLAN.md — Frontend: TimelineItemCard component, unified report timeline, remove old sections
 **UI hint**: yes
 
 ### Phase 60: 任务表单优化
@@ -137,7 +137,7 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 |-------|-----------|----------------|--------|-----------|
 | 57. AI 推理格式优化 | v0.8.0 | 0/? | Complete    | 2026-04-02 |
 | 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete    | 2026-04-02 |
-| 59. 报告步骤展示 | v0.8.0 | 0/? | Not started | - |
+| 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete    | 2026-04-02 |
 | 60. 任务表单优化 | v0.8.0 | 0/? | Not started | - |
 | 61. E2E 验证 | v0.8.0 | 0/? | Not started | - |
 

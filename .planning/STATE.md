@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.8.0
 milestone_name: 报告完善与 UI 优化
 status: Executing Phase 59
-last_updated: "2026-04-02T07:46:51.292Z"
+last_updated: "2026-04-02T08:57:25Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-04-02)
 ## Current Position
 
 Phase: 59 (report-steps) — EXECUTING
-Plan: 1 of 2
+Plan: 2 of 2 complete
 
 ## Session Continuity
 
-**Resume from:** `.planning/phases/59-report-steps/59-CONTEXT.md`
-**Next action:** `/gsd:plan-phase 59`
+**Resume from:** `.planning/phases/59-report-steps/59-02-SUMMARY.md`
+**Next action:** Phase 59 complete, advance to next phase
 
 ## Last Shipped
 
@@ -53,6 +53,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 - [Phase 58-exec-display]: TimelineItem discriminated union for unified timeline rendering
 - [Phase 58-exec-display]: Replace-not-append pattern prevents duplicate timeline entries from SSE running->final events
+- [Phase 59-report-steps]: ReportTimelineItem discriminated union types for report detail unified timeline
+- [Phase 59-report-steps]: TimelineItemCard component with type-specific color scheme (amber precondition, purple assertion, green/red step)
+- [Phase 59-report-steps]: Backward-compatible fallback rendering for old reports without timeline_items
 
 ### Pending Todos
 

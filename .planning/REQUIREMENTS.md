@@ -13,9 +13,9 @@
 
 ### 报告详情 (RPT)
 
-- [ ] **RPT-01**: 报告详情页的步骤列表中展示前置条件步骤及其执行结果（成功/失败、耗时、变量输出）
-- [ ] **RPT-02**: 报告详情页的步骤列表中展示断言步骤及其执行结果（通过/失败、断言名称、失败信息）
-- [ ] **RPT-03**: 前置条件和断言步骤在报告步骤列表中按实际执行顺序与其他步骤交错展示
+- [x] **RPT-01**: 报告详情页的步骤列表中展示前置条件步骤及其执行结果（成功/失败、耗时、变量输出）
+- [x] **RPT-02**: 报告详情页的步骤列表中展示断言步骤及其执行结果（通过/失败、断言名称、失败信息）
+- [x] **RPT-03**: 前置条件和断言步骤在报告步骤列表中按实际执行顺序与其他步骤交错展示
 
 ### AI 推理格式 (FMT)
 
@@ -47,9 +47,9 @@ _(无推迟需求)_
 | EXEC-01 | Phase 58 | Complete |
 | EXEC-02 | Phase 58 | Complete |
 | EXEC-03 | Phase 58 | Complete |
-| RPT-01 | Phase 59 | Pending |
-| RPT-02 | Phase 59 | Pending |
-| RPT-03 | Phase 59 | Pending |
+| RPT-01 | Phase 59 | Complete |
+| RPT-02 | Phase 59 | Complete |
+| RPT-03 | Phase 59 | Complete |
 | FMT-01 | Phase 57 | Pending |
 | FMT-02 | Phase 57 | Pending |
 | FMT-03 | Phase 57 | Pending |
