@@ -59,6 +59,9 @@ class Run(Base):
     assertion_results: Mapped[List["AssertionResult"]] = relationship(
         "AssertionResult", back_populates="run", cascade="all, delete-orphan"
     )
+    precondition_results: Mapped[List["PreconditionResult"]] = relationship(
+        "PreconditionResult", back_populates="run", cascade="all, delete-orphan"
+    )
 
 
 class Assertion(Base):
@@ -88,6 +91,7 @@ class AssertionResult(Base):
     message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # explanation
     actual_value: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # actual captured value
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    sequence_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     # 关系
     run: Mapped["Run"] = relationship("Run", back_populates="assertion_results")
@@ -109,10 +113,30 @@ class Step(Base):
     duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     loop_intervention: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string for loop diagnostic info (Phase 39, LOG-01)
     step_stats: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string for step execution stats (Phase 41, LOG-02)
+    sequence_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Phase 59: global sequence for timeline ordering
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     # 关系
     run: Mapped["Run"] = relationship("Run", back_populates="steps")
+
+
+class PreconditionResult(Base):
+    """前置条件执行结果模型"""
+    __tablename__ = "precondition_results"
+
+    id: Mapped[str] = mapped_column(String(8), primary_key=True, default=generate_id)
+    run_id: Mapped[str] = mapped_column(String(8), ForeignKey("runs.id"), nullable=False)
+    sequence_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    index: Mapped[int] = mapped_column(Integer, nullable=False)
+    code: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)  # success, failed
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    variables: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    # 关系
+    run: Mapped["Run"] = relationship("Run", back_populates="precondition_results")
 
 
 class Report(Base):

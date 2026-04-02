@@ -7,7 +7,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.db.models import Task, Run, Step, Report, AssertionResult
+from backend.db.models import Task, Run, Step, Report, AssertionResult, PreconditionResult
 from backend.db.schemas import TaskCreate, TaskUpdate
 
 
@@ -330,6 +330,82 @@ class AssertionResultRepository:
             select(AssertionResult)
             .where(AssertionResult.run_id == run_id)
             .order_by(AssertionResult.created_at)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
+    async def update_sequence_number(self, result_id: str, sequence_number: int) -> None:
+        """Update sequence_number on an existing AssertionResult."""
+        from sqlalchemy import update
+        stmt = (
+            update(AssertionResult)
+            .where(AssertionResult.id == result_id)
+            .values(sequence_number=sequence_number)
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+    async def create_with_sequence(
+        self,
+        run_id: str,
+        assertion_id: str,
+        status: str,
+        message: str | None = None,
+        actual_value: str | None = None,
+        sequence_number: int | None = None,
+    ) -> AssertionResult:
+        """Create assertion result with optional sequence_number."""
+        result = AssertionResult(
+            run_id=run_id,
+            assertion_id=assertion_id,
+            status=status,
+            message=message,
+            actual_value=actual_value,
+            sequence_number=sequence_number,
+        )
+        self.session.add(result)
+        await self.session.commit()
+        await self.session.refresh(result)
+        return result
+
+
+class PreconditionResultRepository:
+    """前置条件结果仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(
+        self,
+        run_id: str,
+        sequence_number: int,
+        index: int,
+        code: str,
+        status: str,
+        error: str | None = None,
+        duration_ms: int | None = None,
+        variables: str | None = None,
+    ) -> PreconditionResult:
+        result = PreconditionResult(
+            run_id=run_id,
+            sequence_number=sequence_number,
+            index=index,
+            code=code,
+            status=status,
+            error=error,
+            duration_ms=duration_ms,
+            variables=variables,
+        )
+        self.session.add(result)
+        await self.session.commit()
+        await self.session.refresh(result)
+        return result
+
+    async def list_by_run(self, run_id: str) -> List[PreconditionResult]:
+        stmt = (
+            select(PreconditionResult)
+            .where(PreconditionResult.run_id == run_id)
+            .order_by(PreconditionResult.sequence_number)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars())

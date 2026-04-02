@@ -36,6 +36,21 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
-    """初始化数据库（创建表）"""
+    """初始化数据库（创建表 + 添加新列）"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        # Phase 59: Add sequence_number columns to existing tables if missing
+        from sqlalchemy import text
+
+        # steps.sequence_number
+        result = await conn.execute(text("PRAGMA table_info(steps)"))
+        columns = [row[1] for row in result]
+        if "sequence_number" not in columns:
+            await conn.execute(text("ALTER TABLE steps ADD COLUMN sequence_number INTEGER"))
+
+        # assertion_results.sequence_number
+        result = await conn.execute(text("PRAGMA table_info(assertion_results)"))
+        columns = [row[1] for row in result]
+        if "sequence_number" not in columns:
+            await conn.execute(text("ALTER TABLE assertion_results ADD COLUMN sequence_number INTEGER"))
