@@ -93,10 +93,11 @@ Plans:
   1. 用户在报告详情页看到前置条件步骤，显示执行状态（成功/失败）、耗时和变量输出信息
   2. 用户在报告详情页看到断言步骤，显示执行状态（通过/失败）、断言名称和失败信息（如有）
   3. 前置条件和断言步骤与普通步骤按实际执行顺序交错展示在同一个步骤列表中
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 59-01-PLAN.md — To be planned
+- [ ] 59-01-PLAN.md — Backend: PreconditionResult model, global sequence_number, timeline API
+- [ ] 59-02-PLAN.md — Frontend: TimelineItemCard component, unified report timeline, remove old sections
 **UI hint**: yes
 
 ### Phase 60: 任务表单优化
@@ -135,7 +136,7 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 57. AI 推理格式优化 | v0.8.0 | 0/? | Complete    | 2026-04-02 |
-| 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete   | 2026-04-02 |
+| 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete    | 2026-04-02 |
 | 59. 报告步骤展示 | v0.8.0 | 0/? | Not started | - |
 | 60. 任务表单优化 | v0.8.0 | 0/? | Not started | - |
 | 61. E2E 验证 | v0.8.0 | 0/? | Not started | - |
