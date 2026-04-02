@@ -49,6 +49,7 @@ export interface Run {
   steps: Step[]
   preconditions?: SSEPreconditionEvent[]
   api_assertions?: SSEApiAssertionEvent[]
+  timeline: TimelineItem[]
 }
 
 // Assertion 断言定义
@@ -146,6 +147,27 @@ export interface Step {
     element_count: number
   }
 }
+
+// TimelineItem types for unified execution timeline
+export interface TimelineItemStep {
+  type: 'step'
+  data: Step
+}
+
+export interface TimelineItemPrecondition {
+  type: 'precondition'
+  data: SSEPreconditionEvent
+}
+
+export interface TimelineItemAssertion {
+  type: 'assertion'
+  data: SSEApiAssertionEvent
+}
+
+export type TimelineItem =
+  | TimelineItemStep
+  | TimelineItemPrecondition
+  | TimelineItemAssertion
 
 // Report 报告
 export interface Report {
