@@ -51,9 +51,7 @@ interface ReportDetailApiResponse extends ReportApiResponse {
   steps: StepApiResponse[]
   assertion_results: AssertionResultApiResponse[]
   ui_assertion_results?: AssertionResultApiResponse[]
-  api_assertion_results?: AssertionResultApiResponse[]
   pass_rate?: string
-  api_pass_rate?: string
   precondition_results?: PreconditionResultApiResponse[]
   timeline_items?: ReportTimelineItem[]
 }
@@ -133,9 +131,7 @@ export interface ReportDetailResponse extends Report {
   steps: Step[]
   assertion_results?: AssertionResult[]
   ui_assertion_results?: AssertionResult[]
-  api_assertion_results?: AssertionResult[]
   pass_rate?: string
-  api_pass_rate?: string
   precondition_results?: PreconditionResult[]
   timeline_items?: ReportTimelineItem[]
 }
@@ -166,9 +162,7 @@ export async function getReport(reportId: string): Promise<ReportDetailResponse>
     steps: response.steps.map(transformStep),
     assertion_results: (response.assertion_results || []).map(transformAssertionResult),
     ui_assertion_results: (response.ui_assertion_results || []).map(transformAssertionResult),
-    api_assertion_results: (response.api_assertion_results || []).map(transformAssertionResult),
     pass_rate: response.pass_rate,
-    api_pass_rate: response.api_pass_rate,
     precondition_results: response.precondition_results,
     timeline_items: response.timeline_items,
   }

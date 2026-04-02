@@ -1,6 +1,6 @@
 // frontend/src/hooks/useRunStream.ts
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Run, Step, SSEPreconditionEvent, SSEApiAssertionEvent } from '../types'
+import type { Run, Step, SSEPreconditionEvent } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
 
@@ -49,7 +49,6 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
         started_at: new Date().toISOString(),
         steps: [],
         preconditions: [],
-        api_assertions: [],
         timeline: [],
       })
       setIsConnected(true)
@@ -91,7 +90,6 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
             started_at: new Date().toISOString(),
             steps: [],
             preconditions: [data],
-            api_assertions: [],
             timeline: [{ type: 'precondition' as const, data }],
           }
         }
@@ -105,34 +103,6 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
           ? prev.preconditions?.map((p, _i) => p.index === data.index ? data : p) ?? [data]
           : [...(prev.preconditions || []), data]
         return { ...prev, preconditions: newPreconditions, timeline: newTimeline }
-      })
-    })
-
-    eventSource.addEventListener('api_assertion', (e: MessageEvent) => {
-      const data: SSEApiAssertionEvent = JSON.parse(e.data)
-      setRun(prev => {
-        if (!prev) {
-          return {
-            id: runId,
-            task_id: '',
-            status: 'running',
-            started_at: new Date().toISOString(),
-            steps: [],
-            preconditions: [],
-            api_assertions: [data],
-            timeline: [{ type: 'assertion' as const, data }],
-          }
-        }
-        const existingIdx = prev.timeline.findIndex(
-          item => item.type === 'assertion' && item.data.index === data.index
-        )
-        const newTimeline = existingIdx >= 0
-          ? prev.timeline.map((item, i) => i === existingIdx ? { type: 'assertion' as const, data } : item)
-          : [...prev.timeline, { type: 'assertion' as const, data }]
-        const newAssertions = existingIdx >= 0
-          ? prev.api_assertions?.map((a, _i) => a.index === data.index ? data : a) ?? [data]
-          : [...(prev.api_assertions || []), data]
-        return { ...prev, api_assertions: newAssertions, timeline: newTimeline }
       })
     })
 

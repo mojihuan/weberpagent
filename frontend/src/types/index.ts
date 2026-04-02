@@ -6,7 +6,6 @@ export interface Task {
   target_url: string
   max_steps: number
   preconditions?: string[]
-  api_assertions?: string[]
   assertions?: AssertionConfig[]
   status: 'draft' | 'ready'
   created_at: string
@@ -20,7 +19,6 @@ export interface CreateTaskDto {
   target_url: string
   max_steps: number
   preconditions?: string[]
-  api_assertions?: string[]
   assertions?: AssertionConfig[]
 }
 
@@ -32,7 +30,6 @@ export interface UpdateTaskDto {
   max_steps?: number
   status?: 'draft' | 'ready'
   preconditions?: string[]
-  api_assertions?: string[]
   assertions?: AssertionConfig[]
 }
 
@@ -48,7 +45,6 @@ export interface Run {
   finished_at?: string
   steps: Step[]
   preconditions?: SSEPreconditionEvent[]
-  api_assertions?: SSEApiAssertionEvent[]
   timeline: TimelineItem[]
 }
 
@@ -72,26 +68,6 @@ export interface AssertionResult {
   message: string | null
   actual_value: string | null
   created_at: string
-}
-
-// ApiAssertionFieldResult 接口断言字段结果
-export interface ApiAssertionFieldResult {
-  field_name: string
-  expected: any
-  actual: any
-  passed: boolean
-  message: string
-  assertion_type: string
-}
-
-// SSEApiAssertionEvent SSE 接口断言事件
-export interface SSEApiAssertionEvent {
-  index: number
-  code: string
-  status: 'running' | 'success' | 'failed'
-  error?: string
-  duration_ms: number
-  field_results?: ApiAssertionFieldResult[]
 }
 
 // SSEPreconditionEvent SSE 前置条件事件
@@ -159,15 +135,9 @@ export interface TimelineItemPrecondition {
   data: SSEPreconditionEvent
 }
 
-export interface TimelineItemAssertion {
-  type: 'assertion'
-  data: SSEApiAssertionEvent
-}
-
 export type TimelineItem =
   | TimelineItemStep
   | TimelineItemPrecondition
-  | TimelineItemAssertion
 
 // Report TimelineItem types for report detail page
 export interface ReportTimelineStep {
@@ -264,9 +234,7 @@ export interface ReportDetailResponse extends Report {
   steps: Step[]
   assertion_results?: AssertionResult[]
   ui_assertion_results?: AssertionResult[]
-  api_assertion_results?: AssertionResult[]
   pass_rate?: string
-  api_pass_rate?: string
 }
 
 // External Operations - External precondition operations from webseleniumerp
