@@ -21,7 +21,6 @@ interface FormData {
   target_url: string
   max_steps: number
   preconditions: string[]
-  api_assertions: string[]
   assertions: AssertionConfig[]
 }
 
@@ -37,7 +36,6 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     target_url: initialData?.target_url || '',
     max_steps: initialData?.max_steps || 20,
     preconditions: initialData?.preconditions || [''],
-    api_assertions: initialData?.api_assertions || [''],
     assertions: initialData?.assertions || [],
   })
   const [errors, setErrors] = useState<FormErrors>({})
@@ -59,9 +57,6 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
   // Assertion selector state
   const [assertionSelectorOpen, setAssertionSelectorOpen] = useState(false)
 
-  // Assertion tab state
-  const [assertionTab, setAssertionTab] = useState<'api' | 'business'>('api')
-
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -70,7 +65,6 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         target_url: initialData.target_url,
         max_steps: initialData.max_steps,
         preconditions: initialData.preconditions || [''],
-        api_assertions: initialData.api_assertions || [''],
         assertions: initialData.assertions || [],
       })
     }
@@ -105,7 +99,6 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
       onSubmit({
         ...formData,
         preconditions: formData.preconditions.filter(p => p.trim()),
-        api_assertions: formData.api_assertions.filter(a => a.trim()),
         assertions: formData.assertions,
       })
     }
@@ -131,24 +124,6 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     setFormData(prev => ({
       ...prev,
       preconditions: prev.preconditions.map((p, i) => i === index ? value : p)
-    }))
-  }
-
-  const handleAddApiAssertion = () => {
-    setFormData(prev => ({ ...prev, api_assertions: [...prev.api_assertions, ''] }))
-  }
-
-  const handleRemoveApiAssertion = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      api_assertions: prev.api_assertions.filter((_, i) => i !== index),
-    }))
-  }
-
-  const handleApiAssertionChange = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      api_assertions: prev.api_assertions.map((a, i) => i === index ? value : a),
     }))
   }
 
@@ -453,137 +428,70 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         <label className="block text-sm font-medium text-gray-700 mb-1">
           断言 <span className="text-gray-400 text-xs">(可选)</span>
         </label>
+        <div>
+          <p className="text-xs text-gray-500 mb-2">
+            选择业务断言方法，配置参数后系统自动执行验证
+          </p>
 
-        {/* Tab switcher */}
-        <div className="flex gap-2 mb-3">
+          {/* Add assertion button */}
           <button
             type="button"
-            onClick={() => setAssertionTab('api')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              assertionTab === 'api'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            onClick={() => setAssertionSelectorOpen(true)}
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 mb-3"
           >
-            接口断言
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            添加断言
           </button>
-          <button
-            type="button"
-            onClick={() => setAssertionTab('business')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              assertionTab === 'business'
-                ? 'bg-orange-100 text-orange-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            业务断言
-          </button>
-        </div>
 
-        {/* Tab content */}
-        {assertionTab === 'api' ? (
-          /* Existing api_assertions section */
-          <div>
-            <p className="text-xs text-gray-500 mb-2">
-              输入 Python 代码进行 API 断言，支持时间断言、数据匹配等
-            </p>
+          {/* Assertion cards */}
+          {formData.assertions.length > 0 && (
             <div className="space-y-2">
-              {formData.api_assertions.map((assertion, index) => (
-                <div key={index} className="flex gap-2">
-                  <textarea
-                    value={assertion}
-                    onChange={e => handleApiAssertionChange(index, e.target.value)}
-                    placeholder="例如：result = api.get_order({{order_id}}); assert result['status'] == 'success'"
-                    rows={4}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-                  />
-                  {formData.api_assertions.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveApiAssertion(index)}
-                      className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg"
-                    >
-                      删除
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={handleAddApiAssertion}
-                className="text-sm text-blue-500 hover:text-blue-600"
-              >
-                + 添加接口断言
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Business assertions section */
-          <div>
-            <p className="text-xs text-gray-500 mb-2">
-              选择业务断言方法，配置参数后系统自动执行验证
-            </p>
-
-            {/* Add assertion button */}
-            <button
-              type="button"
-              onClick={() => setAssertionSelectorOpen(true)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 mb-3"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              添加断言
-            </button>
-
-            {/* Assertion cards */}
-            {formData.assertions.length > 0 && (
-              <div className="space-y-2">
-                {formData.assertions.map((config, index) => (
-                  <div
-                    key={index}
-                    className="border border-orange-200 bg-orange-50 rounded-lg p-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <span className="font-mono text-sm text-blue-600">
-                          {config.methodName}
-                        </span>
-                        <span className="text-gray-400 mx-2">|</span>
-                        <span className="text-sm text-gray-600 truncate">
-                          headers={config.headers}, data={config.data}
-                          {Object.keys(config.params).length > 0 && (
-                            <span>
-                              , {Object.entries(config.params)
-                                .map(([k, v]) => `${k}=${v}`)
-                                .join(', ')}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAssertion(index)}
-                          className="text-sm text-red-500 hover:text-red-600"
-                        >
-                          删除
-                        </button>
-                      </div>
+              {formData.assertions.map((config, index) => (
+                <div
+                  key={index}
+                  className="border border-orange-200 bg-orange-50 rounded-lg p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-mono text-sm text-blue-600">
+                        {config.methodName}
+                      </span>
+                      <span className="text-gray-400 mx-2">|</span>
+                      <span className="text-sm text-gray-600 truncate">
+                        headers={config.headers}, data={config.data}
+                        {Object.keys(config.params).length > 0 && (
+                          <span>
+                            , {Object.entries(config.params)
+                              .map(([k, v]) => `${k}=${v}`)
+                              .join(', ')}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAssertion(index)}
+                        className="text-sm text-red-500 hover:text-red-600"
+                      >
+                        删除
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
+          )}
 
-            {/* Empty state */}
-            {formData.assertions.length === 0 && (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                暂无业务断言配置，点击"添加断言"开始配置
-              </div>
-            )}
-          </div>
-        )}
+          {/* Empty state */}
+          {formData.assertions.length === 0 && (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              暂无业务断言配置，点击"添加断言"开始配置
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
