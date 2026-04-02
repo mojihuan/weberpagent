@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { Layers, CheckCircle, XCircle, Clock } from 'lucide-react'
-import { ReportHeader, SummaryCard, StepItem, AssertionResults, ApiAssertionResults, PreconditionSection } from '../components/Report'
+import { ReportHeader, SummaryCard, TimelineItemCard } from '../components/Report'
 import { getReport, type ReportDetailResponse } from '../api/reports'
 
 export function ReportDetail() {
@@ -72,34 +72,33 @@ export function ReportDetail() {
         />
       </div>
 
-      {/* Precondition Execution Results */}
-      {data.precondition_results && data.precondition_results.length > 0 && (
-        <PreconditionSection results={data.precondition_results} />
-      )}
-
-      {/* UI 断言结果 */}
-      {data.assertion_results && data.assertion_results.length > 0 && (
-        <AssertionResults results={data.assertion_results} />
-      )}
-
-      {/* 接口断言结果 */}
-      {data.api_assertion_results && data.api_assertion_results.length > 0 && (
-        <ApiAssertionResults
-          results={data.api_assertion_results}
-          passRate={data.api_pass_rate || 'N/A'}
-        />
-      )}
-
-      {/* 步骤列表 */}
+      {/* 统一时间线 */}
       <div className="space-y-3">
         <h2 className="text-lg font-medium text-gray-900 mb-3">执行步骤</h2>
-        {data.steps.map((step, index) => (
-          <StepItem
-            key={step.index}
-            step={step}
-            defaultExpanded={index === 0 || step.status === 'failed'}
-          />
-        ))}
+        {(() => {
+          const displayItems = data.timeline_items && data.timeline_items.length > 0
+            ? data.timeline_items
+            : data.steps.map((step, idx) => ({
+                type: 'step' as const,
+                id: `legacy-${idx}`,
+                sequence_number: idx,
+                step_index: step.index,
+                action: step.action,
+                reasoning: step.reasoning || null,
+                screenshot_url: step.screenshot || null,
+                status: step.status,
+                error: step.error || null,
+                duration_ms: step.duration_ms,
+              }))
+
+          return displayItems.map((item, index) => (
+            <TimelineItemCard
+              key={`${item.type}-${item.id}`}
+              item={item}
+              defaultExpanded={index === 0 || item.status === 'failed' || item.status === 'fail'}
+            />
+          ))
+        })()}
       </div>
     </div>
   )
