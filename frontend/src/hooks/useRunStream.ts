@@ -1,6 +1,6 @@
 // frontend/src/hooks/useRunStream.ts
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Run, Step, SSEPreconditionEvent, SSEApiAssertionEvent, TimelineItem } from '../types'
+import type { Run, Step, SSEPreconditionEvent, SSEApiAssertionEvent } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
 

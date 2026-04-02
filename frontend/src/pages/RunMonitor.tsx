@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { RunHeader, StepTimeline, ScreenshotPanel, ReasoningLog } from '../components/RunMonitor'
 import { ImageViewer } from '../components/shared'
 import { useRunStream } from '../hooks/useRunStream'
+import type { TimelineItem } from '../types'
 import { tasksApi } from '../api/tasks'
 
 export function RunMonitor() {
@@ -21,10 +22,10 @@ export function RunMonitor() {
 
   // 自动跟随最新步骤
   useEffect(() => {
-    if (run?.steps.length) {
-      setViewIndex(run.steps.length - 1)
+    if (run?.timeline?.length) {
+      setViewIndex(run.timeline.length - 1)
     }
-  }, [run?.steps.length])
+  }, [run?.timeline?.length])
 
   // 获取任务名称
   useEffect(() => {
@@ -48,8 +49,13 @@ export function RunMonitor() {
     navigate(`/reports/${id}`)
   }
 
-  const handleStepClick = (index: number) => {
-    setViewIndex(index)
+  const handleTimelineItemClick = (item: TimelineItem, timelineIndex: number) => {
+    if (item.type === 'step' && run) {
+      const stepIndex = run.timeline
+        .slice(0, timelineIndex + 1)
+        .filter(i => i.type === 'step').length - 1
+      setViewIndex(stepIndex)
+    }
   }
 
   const handleViewChange = (index: number) => {
@@ -79,8 +85,8 @@ export function RunMonitor() {
       <RunHeader
         taskName={taskName}
         status={run.status}
-        currentStep={run.steps.length}
-        totalSteps={run.steps.length > 0 ? run.steps.length : 10}
+        currentStep={run.timeline.filter(i => i.type === 'step' ? (i.data.status === 'success' || i.data.status === 'failed') : (i.data.status === 'success' || i.data.status === 'failed')).length}
+        totalSteps={run.timeline.length}
         onStop={handleStop}
         onViewReport={handleViewReport}
       />
@@ -101,9 +107,9 @@ export function RunMonitor() {
         <div className="w-1/2 flex flex-col min-h-0">
           <div className="flex-1 min-h-0 border-b border-gray-200">
             <StepTimeline
-              steps={run.steps}
-              currentStepIndex={run.steps.length - 1}
-              onStepClick={handleStepClick}
+              items={run.timeline}
+              currentStepIndex={run.timeline.length - 1}
+              onItemClick={handleTimelineItemClick}
             />
           </div>
           <div className="flex-1 min-h-0">
