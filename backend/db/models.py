@@ -28,8 +28,6 @@ class Task(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
     # 前置条件（JSON 字符串数组）
     preconditions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    # 接口断言（JSON 字符串数组）
-    api_assertions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # 外部断言配置（JSON 字符串数组）Phase 25
     external_assertions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 

@@ -15,7 +15,6 @@ class TaskBase(BaseModel):
     target_url: str = Field(default="", max_length=500)
     max_steps: int = Field(default=10, ge=1, le=100)
     preconditions: Optional[List[str]] = Field(default=None, description="前置条件代码列表")
-    api_assertions: Optional[List[str]] = Field(default=None, description="接口断言代码列表")
     assertions: Optional[List[dict[str, Any]]] = Field(default=None, description="业务断言配置列表")
 
 
@@ -32,7 +31,6 @@ class TaskUpdate(BaseModel):
     max_steps: Optional[int] = Field(None, ge=1, le=100)
     status: Optional[str] = Field(None, pattern="^(draft|ready)$")
     preconditions: Optional[List[str]] = Field(None, description="前置条件代码列表")
-    api_assertions: Optional[List[str]] = Field(None, description="接口断言代码列表")
     assertions: Optional[List[dict[str, Any]]] = Field(None, description="业务断言配置列表")
 
 
@@ -47,7 +45,6 @@ class TaskResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     preconditions: Optional[List[str]] = None
-    api_assertions: Optional[List[str]] = None
     assertions: Optional[List[dict[str, Any]]] = None
 
     @model_validator(mode='before')
@@ -66,13 +63,12 @@ class TaskResponse(BaseModel):
                 'created_at': data.created_at,
                 'updated_at': data.updated_at,
                 'preconditions': data.preconditions,
-                'api_assertions': data.api_assertions,
                 'assertions': data.external_assertions,  # 从 external_assertions 读取
             }
             return result
         return data
 
-    @field_validator('preconditions', 'api_assertions', 'assertions', mode='before')
+    @field_validator('preconditions', 'assertions', mode='before')
     @classmethod
     def deserialize_json_list(cls, v):
         """Deserialize JSON string to list if needed."""
@@ -193,16 +189,6 @@ class SSEPreconditionEvent(BaseModel):
     variables: Optional[dict[str, Any]] = None  # 设置的变量
 
 
-class SSEApiAssertionEvent(BaseModel):
-    """SSE 接口断言事件"""
-    index: int
-    code: str
-    status: str  # running, success, failed
-    error: Optional[str] = None
-    duration_ms: int = 0
-    field_results: Optional[List[dict[str, Any]]] = None
-
-
 # === Report Schemas ===
 
 class ReportResponse(BaseModel):
@@ -227,9 +213,7 @@ class ReportDetailResponse(ReportResponse):
     steps: List[StepResponse] = []
     assertion_results: List["AssertionResultResponse"] = []
     ui_assertion_results: Optional[List["AssertionResultResponse"]] = None
-    api_assertion_results: Optional[List["AssertionResultResponse"]] = None
     pass_rate: Optional[str] = None
-    api_pass_rate: Optional[str] = None
     precondition_results: Optional[List[SSEPreconditionEvent]] = None
     timeline_items: Optional[List[dict[str, Any]]] = None  # Phase 59: unified timeline
 
