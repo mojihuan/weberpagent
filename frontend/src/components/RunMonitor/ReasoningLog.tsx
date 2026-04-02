@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { ReasoningText } from '../shared'
 import type { Step } from '../../types'
 
 interface ReasoningLogProps {
@@ -38,12 +39,7 @@ export function ReasoningLog({ steps, autoScroll = true }: ReasoningLogProps) {
 
               {/* Reasoning 标签 */}
               {step.reasoning && (
-                <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 shrink-0">
-                    Reasoning
-                  </span>
-                  <span className="text-sm text-gray-600">{step.reasoning}</span>
-                </div>
+                <ReasoningText text={step.reasoning} />
               )}
 
               {/* 错误信息 */}

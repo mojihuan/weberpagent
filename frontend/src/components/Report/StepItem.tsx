@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, CheckCircle, XCircle, Clock } from 'lucide-react'
-import { ImageViewer } from '../shared'
+import { ImageViewer, ReasoningText } from '../shared'
 import type { Step } from '../../types'
 
 interface StepItemProps {
@@ -111,7 +111,7 @@ export function StepItem({ step, defaultExpanded = false }: StepItemProps) {
               <p className="text-sm font-medium text-gray-700 mb-2">AI 推理过程</p>
               <div className="h-48 overflow-y-auto p-3 bg-white rounded-lg border border-gray-200">
                 {step.reasoning ? (
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{step.reasoning}</p>
+                  <ReasoningText text={step.reasoning} />
                 ) : (
                   <p className="text-sm text-gray-400 italic">暂无推理记录</p>
                 )}
