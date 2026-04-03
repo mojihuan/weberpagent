@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.8.0
-milestone_name: 报告完善与 UI 优化
-status: Executing Phase 61
-last_updated: "2026-04-03T06:43:06.051Z"
+milestone: v0.8.1
+milestone_name: 修复销售出库表格填写问题
+status: Planning
+last_updated: "2026-04-03T06:50:00.000Z"
 progress:
-  total_phases: 6
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 7
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -18,17 +18,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 61 — e2e
+**Current focus:** v0.8.1 — 修复销售出库表格填写问题
+
+## Last Shipped
+
+**v0.8.0 报告完善与 UI 优化** (2026-04-03)
+
+- Phase 57: parseReasoning() + ReasoningText — Eval/Verdict/Memory/Goal 分行彩色 badge
+- Phase 58: StepTimeline 统一时间线 — 前置条件/断言步骤交错排列
+- Phase 59: 报告详情时间线 — PreconditionResult + global sequence_number
+- Phase 60: 任务表单优化 — 删除 api_assertions，无 tab 切换
+- Phase 61: E2E 验证 — 6/6 检查 PASS（FMT-01/02/03 手动确认完成）
+
+**Server online**: 121.40.191.49
 
 ## Current Position
 
-Phase: 61 (e2e) — EXECUTING
-Plan: 1 of 2
+v0.8.1 milestone planning — researching DOM patch and prompt enhancements for sales outbound table
 
-## Session Continuity
+## Pending Issues
 
-**Resume from:** `.planning/phases/60-task-form-opt/60-CONTEXT.md`
-**Next action:** Run /gsd:plan-phase 60
+- **销售出库填写失败**: Agent 无法定位商品行的"销售金额"输入框，DOM 中表格行不可见导致 AI 无法识别
+- 需要增强 DOM Patch 让表格行可见，增强提示词添加销售出库填写指导
 
 ## Last Shipped
 
