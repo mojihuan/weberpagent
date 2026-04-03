@@ -197,6 +197,7 @@ class SSEAssertionEvent(BaseModel):
     status: str  # pass, fail
     message: Optional[str] = None
     actual_value: Optional[str] = None
+    field_results: Optional[list[dict[str, Any]]] = None
 
 
 # === Report Schemas ===

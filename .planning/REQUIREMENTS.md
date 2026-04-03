@@ -19,9 +19,9 @@
 
 ### AI 推理格式 (FMT)
 
-- [ ] **FMT-01**: AI 推理过程中 Eval/Verdict/Memory/Goal 每项独占一行展示（替代当前的 `|` 分隔单行显示）
-- [ ] **FMT-02**: 报告详情页 StepItem 中的推理文本按行解析并格式化展示（带标签高亮）
-- [ ] **FMT-03**: 执行监控 ReasoningLog 中的推理文本同步格式化展示
+- [x] **FMT-01**: AI 推理过程中 Eval/Verdict/Memory/Goal 每项独占一行展示（替代当前的 `|` 分隔单行显示）
+- [x] **FMT-02**: 报告详情页 StepItem 中的推理文本按行解析并格式化展示（带标签高亮）
+- [x] **FMT-03**: 执行监控 ReasoningLog 中的推理文本同步格式化展示
 
 ### 任务表单优化 (FORM)
 
@@ -50,9 +50,9 @@ _(无推迟需求)_
 | RPT-01 | Phase 59 | Complete |
 | RPT-02 | Phase 59 | Complete |
 | RPT-03 | Phase 59 | Complete |
-| FMT-01 | Phase 57 | Pending |
-| FMT-02 | Phase 57 | Pending |
-| FMT-03 | Phase 57 | Pending |
+| FMT-01 | Phase 57 | Complete |
+| FMT-02 | Phase 57 | Complete |
+| FMT-03 | Phase 57 | Complete |
 | FORM-01 | Phase 60 | Complete |
 | FORM-02 | Phase 60 | Complete |
 

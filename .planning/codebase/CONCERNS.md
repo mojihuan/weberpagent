@@ -1,178 +1,164 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-14
+**Analysis Date:** 2026-04-03
 
 ## Tech Debt
 
-**Hardcoded credentials in config files:**
-- Issue: Password hardcoded in `backend/config/test_targets.yaml`
-- Files: `[backend/config/test_targets.yaml:11]`
-- Impact: Security risk if configuration is committed
-- Fix approach: Move to environment variables or secure config system
-
 **Large file sizes:**
-- Issue: Several files exceed ideal size limits (200-400 lines)
+- Issue: Several files exceed ideal size limits
 - Files:
-  - `[backend/api/routes/runs.py]` (298 lines) - Consider splitting into smaller modules
-  - `[backend/llm/config.py]` (272 lines) - Consider extracting validation logic
-  - `[backend/llm/openai.py]` (265 lines) - Consider separating concerns
-- Impact: Harder to maintain and understand
-- Fix approach: Extract smaller modules, separate concerns (validation, API calls, etc.)
+  - `backend/api/routes/runs.py` (547 lines) - Full execution pipeline in single file
+  - `backend/core/external_precondition_bridge.py` (51KB) - Complex external module integration
+  - `backend/llm/config.py` (273 lines) - Config loading and validation
+- Impact: Harder to maintain, harder to test
+- Fix approach: Split into smaller modules by responsibility
 
-**Broad exception handling:**
-- Issue: Missing proper error handling in repository pattern
-- Files: `[backend/db/repository.py]`
-- Impact: Silent failures, hard to debug issues
-- Fix approach: Add specific exception handling and proper error propagation
+**Legacy Agent Wrappers:**
+- Issue: Multiple agent implementations (browser_agent.py, proxy_agent.py, monitored_agent.py)
+- Files: `backend/agent/browser_agent.py`, `backend/agent/proxy_agent.py`, `backend/agent/monitored_agent.py`
+- Impact: Confusion about which to use
+- Fix approach: Deprecate old wrappers, document monitored_agent as primary
+
+**Monolith Background Task:**
+- Issue: `run_agent_background()` function handles entire pipeline
+- File: `backend/api/routes/runs.py`
+- Impact: Hard to test individual stages, long function
+- Fix approach: Extract to `AgentOrchestrator` class
 
 ## Known Bugs
 
-**Memory view error in browser automation:**
-- Symptoms: Memory type conversion errors during screenshot processing
-- Files: `[backend/utils/screenshot.py]` (not fully inspected)
-- Trigger: Occurs during browser automation steps
-- Workaround: Debug logs enabled in `backend/api/main.py`
-- Status: Documented in `docs/troubleshooting/memoryview-error-fix.md`
-
-**Missing exception handling in repository:**
-- Symptoms: Potential silent failures in database operations
-- Files: `[backend/db/repository.py]`
-- Trigger: When database operations fail unexpectedly
-- Workaround: None identified
-- Priority: High - could lead to data integrity issues
+**No critical bugs identified in current analysis**
 
 ## Security Considerations
 
-**Hardcoded password exposure:**
-- Risk: Test credentials committed to version control
-- Files: `[backend/config/test_targets.yaml]`
-- Current mitigation: Only in test config, not production
-- Recommendations:
-  - Move to environment variables
-  - Use secret management system
-  - Add to .gitignore if not already
+**API Keys via Environment:**
+- Risk: Secrets in `.env` file, need to ensure gitignore
+- Files: `.env`, `backend/config/settings.py`
+- Current mitigation: `.env` not committed to git
+- Recommendations: Document required env vars clearly
 
-**Environment variable management:**
-- Risk: Multiple API keys handled through env vars (DASHSCOPE_API_KEY, OPENAI_API_KEY)
-- Files: `[backend/llm/config.py]`, `[backend/api/routes/runs.py]`
-- Current mitigation: Proper env var checks
-- Recommendations: Centralize config management, add validation
+**Precondition Code Execution:**
+- Risk: User-provided Python code executed via `exec()`
+- Files: `backend/core/precondition_service.py`
+- Current mitigation: Sandboxed with limited builtins, timeout
+- Recommendations: Consider more restrictive sandbox or dedicated execution service
 
-**File system access:**
-- Risk: Screenshots stored locally without encryption
-- Files: `[backend/data/screenshots/]`
-- Current mitigation: Directory access restricted
-- Recommendations: Consider secure storage for sensitive screenshots
+**No Rate Limiting:**
+- Risk: API abuse, LLM API quota exhaustion
+- Files: `backend/api/main.py`
+- Current mitigation: None
+- Recommendations: Add rate limiting middleware
 
 ## Performance Bottlenecks
 
-**Synchronous database operations:**
-- Problem: Repository pattern lacks proper error handling
-- Files: `[backend/db/repository.py]`
-- Cause: No transaction rollback or error propagation
-- Improvement path: Add proper exception handling and session management
+**Sequential Precondition Execution:**
+- Problem: Preconditions execute sequentially, not in parallel
+- Files: `backend/api/routes/runs.py:91-142`
+- Cause: Simple for-loop with await
+- Improvement: Use `asyncio.gather()` for independent preconditions
 
-**Large max_steps values in tests:**
-- Problem: Some tests use high step counts (25-30)
-- Files: `[backend/tests/test_delivery_form.py:114]`, `[backend/tests/test_purchase_e2e.py:62]`
-- Cause: Complex scenarios require more steps
-- Improvement path: Optimize test scenarios, reduce where possible
+**Screenshot Storage:**
+- Problem: Screenshots saved synchronously during execution
+- Files: `backend/core/agent_service.py:292-298`
+- Impact: Adds latency to step callbacks
+- Improvement: Queue screenshot saves for async processing
 
-**In-memory storage:**
-- Problem: Task and run storage uses JSON files
-- Files: `[backend/data/tasks.json]`, `[backend/data/runs.json]`
-- Cause: Simple file-based persistence
-- Improvement path: Migrate to proper database for production
+**LLM Retry Overhead:**
+- Problem: 3 retries with exponential backoff can cause long waits
+- Files: `backend/llm/factory.py:156-221`
+- Impact: Up to 7 seconds delay on failures (1s + 2s + 4s)
+- Improvement: Tune retry parameters, add circuit breaker
 
 ## Fragile Areas
 
-**Browser automation dependency:**
-- Files: `[backend/agent/browser_agent.py]`, `[backend/agent/proxy_agent.py]`
-- Why fragile: Heavy reliance on external browser automation libraries
-- Safe modification: Test thoroughly with different page structures
-- Test coverage: Present but may not cover all edge cases
+**DOM Patch Compatibility:**
+- Files: `backend/agent/dom_patch.py`
+- Why fragile: Monkey-patches browser-use internals
+- Safe modification: Test with browser-use version upgrades
+- Risk: Browser-use updates may break patches
 
-**LLM integration layer:**
-- Files: `[backend/llm/factory.py]`, `[backend/llm/base.py]`
-- Why fragile: Multiple LLM providers with different APIs
-- Safe modification: Use factory pattern, add abstraction layer
-- Test coverage: Good coverage of LLM switching
+**Detector Configuration:**
+- Files: `backend/agent/stall_detector.py`, `backend/agent/pre_submit_guard.py`
+- Why fragile: Hardcoded thresholds (2 consecutive failures, 3 stagnant steps)
+- Safe modification: Add configuration options
+- Test coverage: Unit tests needed
 
-**Event streaming:**
-- Files: `[backend/api/routes/runs.py]`, `[backend/core/event_manager.py]`
-- Why fragile: Real-time event delivery can fail
-- Safe modification: Add retry logic and error recovery
-- Test coverage: Limited e2e testing of streaming
+**Context Variable Substitution:**
+- Files: `backend/core/precondition_service.py:336-361`
+- Why fragile: Jinja2 strict undefined mode can fail on missing variables
+- Safe modification: Improve error messages, add validation
+- Test coverage: Missing
 
 ## Scaling Limits
 
-**File-based storage:**
-- Current capacity: Small JSON files
-- Limit: Not scalable for production traffic
-- Scaling path: Migrate to SQLite or PostgreSQL already configured
+**SQLite Concurrency:**
+- Current capacity: WAL mode supports concurrent reads, limited writes
+- Limit: High write volume will cause lock contention
+- Scaling path: Migrate to PostgreSQL for production
 
-**In-memory task management:**
-- Current capacity: Limited by server memory
-- Limit: Single process limitation
-- Scaling path: Add proper queue system (Celery or similar)
+**SSE Memory:**
+- Current capacity: EventManager stores all events in memory
+- Limit: Long-running executions accumulate memory
+- Scaling path: Implement event pagination, limit history
 
-**Screenshot storage:**
-- Current capacity: Local filesystem
-- Limit: Storage space and access speed
-- Scaling path: Cloud storage integration
+**Agent Step Count:**
+- Current capacity: Default max_steps=10, configurable up to 100
+- Limit: Very long tasks may timeout
+- Scaling path: Add checkpoint/resume capability
 
 ## Dependencies at Risk
 
 **browser-use:**
-- Risk: Heavy dependency on specific browser automation library
-- Impact: Core functionality relies on this package
-- Migration plan: Evaluate alternative browser automation frameworks
+- Risk: Active development, breaking changes possible
+- Impact: Agent execution depends on internal APIs
+- Migration plan: Monitor releases, test before upgrades
+- Version: 0.12.2+ currently used
 
-**FastAPI + SQLAlchemy:**
-- Risk: Version compatibility issues
-- Impact: API layer and database access
-- Migration plan: Keep updated, test compatibility before upgrades
+**dashscope SDK:**
+- Risk: Alibaba Cloud SDK, regional availability
+- Impact: Primary LLM integration
+- Migration plan: Abstract behind BaseLLM, support multiple providers
 
 ## Missing Critical Features
 
-**Input validation:**
-- Problem: Limited validation on API endpoints
-- Files: `[backend/api/schemas/index.py]`
-- Blocks: Preventing invalid requests
-- Priority: High - security and data integrity
+**Test Coverage:**
+- Problem: No unit tests for detectors, services, or core logic
+- Files: `backend/tests/` mostly empty
+- Blocks: Safe refactoring
+- Priority: High
 
-**Rate limiting:**
-- Problem: No rate limiting on API endpoints
-- Files: `[backend/api/main.py]`
-- Blocks: API abuse prevention
-- Priority: Medium - production readiness
+**Checkpoint/Resume:**
+- Problem: Long executions cannot resume after failure
+- Files: `backend/core/agent_service.py`
+- Blocks: Production reliability
+- Priority: Medium
 
-**Monitoring and observability:**
-- Problem: Limited metrics and logging
-- Files: `[backend/utils/logger.py]`
-- Blocks: Performance monitoring and debugging
-- Priority: Medium - operational readiness
+**LLM Cost Tracking:**
+- Problem: No tracking of API usage or costs
+- Files: `backend/llm/` not instrumented
+- Blocks: Cost monitoring
+- Priority: Low
 
 ## Test Coverage Gaps
 
-**Error handling paths:**
-- What's not tested: Database failure scenarios
-- Files: `[backend/db/repository.py]`
-- Risk: Silent failures in data operations
-- Priority: High - data integrity
+**Detectors:**
+- What's not tested: StallDetector, PreSubmitGuard, TaskProgressTracker
+- Files: `backend/agent/stall_detector.py`, etc.
+- Risk: Regression in stall detection logic
+- Priority: High
 
-**Browser error scenarios:**
-- What's not tested: Page loading failures, element not found
-- Files: `[backend/agent/browser_agent.py]`
-- Risk: Automation failures not properly handled
-- Priority: Medium - reliability
+**PreconditionService:**
+- What's not tested: Variable substitution, context management
+- Files: `backend/core/precondition_service.py`
+- Risk: Wrong variable substitution
+- Priority: High
 
-**Configuration validation:**
-- What's not tested: Invalid LLM configurations
-- Files: `[backend/llm/config.py]`
-- Risk: Invalid configs causing runtime errors
-- Priority: Medium - robustness
+**Event Streaming:**
+- What's not tested: SSE connection management, reconnection
+- Files: `backend/core/event_manager.py`
+- Risk: Stream drops, missed events
+- Priority: Medium
 
 ---
 
-*Concerns audit: 2026-03-14*
+*Concerns audit: 2026-04-03*

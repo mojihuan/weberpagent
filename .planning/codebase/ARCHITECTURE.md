@@ -1,170 +1,194 @@
 # Architecture
 
-**Analysis Date:** 2026-03-14
+**Analysis Date:** 2026-04-03
 
 ## Pattern Overview
 
-**Overall:** Layered Architecture with Event-Driven Processing
+**Overall:** Event-Driven Async Pipeline with LLM-Orchestrated Browser Automation
 
 **Key Characteristics:**
-- Separation of concerns across frontend/backend layers
-- Event-driven real-time updates via SSE
-- Repository pattern for data access
-- Service layer for business logic encapsulation
-- Browser-Use as the core AI automation engine
+- Asynchronous execution pipeline (FastAPI + asyncio)
+- LLM-driven browser automation using browser-use framework
+- SSE (Server-Sent Events) for real-time progress streaming
+- Multi-stage execution: preconditions -> agent run -> assertions -> report
+- Plugin-style detectors for runtime monitoring
 
 ## Layers
 
-**Presentation Layer (Frontend):**
-- Purpose: React-based UI for user interaction
-- Location: `frontend/src/`
-- Contains: React components, pages, hooks, API clients
-- Depends on: REST API endpoints, SSE streams
-- Uses: React Router for navigation, TanStack Query for state management
-
-**API Layer (Backend):**
-- Purpose: FastAPI REST API with SSE support
+**API Layer (FastAPI):**
+- Purpose: HTTP API endpoints for task/run management
 - Location: `backend/api/`
-- Contains: API routes, request/response schemas, CORS middleware
-- Depends on: Core services, database layer
-- Used by: Frontend client applications
+- Contains: Route handlers, SSE event streaming
+- Depends on: Core services
+- Used by: Frontend React application
 
-**Service Layer:**
+**Core Services Layer:**
 - Purpose: Business logic orchestration
 - Location: `backend/core/`
-- Contains: Agent service, event manager, assertion service
-- Depends on: LLM adapters, repository layer, file system
-- Used by: API layer routes
+- Contains: `AgentService`, `PreconditionService`, `AssertionService`, `ReportService`, `EventManager`
+- Depends on: Database repositories, LLM factory
+- Used by: API routes
 
-**Data Layer:**
-- Purpose: Data persistence and access
+**Agent Layer (browser-use):**
+- Purpose: LLM-powered browser automation execution
+- Location: `backend/agent/`
+- Contains: `MonitoredAgent`, `StallDetector`, `PreSubmitGuard`, `TaskProgressTracker`, `Prompts`
+- Depends on: browser-use library, LLM adapters
+- Used by: AgentService
+
+**LLM Integration Layer:**
+- Purpose: Unified interface for AI model providers
+- Location: `backend/llm/`
+- Contains: `Factory`, `BaseLLM`, `Config`, `BrowserUseAdapter`
+- Depends on: External AI APIs (DashScope, OpenAI compatible)
+- Used by: Agent layer, PreconditionService
+
+**Data Access Layer (SQLAlchemy):**
+- Purpose: Database persistence
 - Location: `backend/db/`
-- Contains: SQLAlchemy ORM models, repository classes, schemas
-- Depends on: SQLite database
-- Used by: Service layer, API layer
+- Contains: Models, Repository classes, Schemas
+- Used by: Core services
 
-**External Integration Layer:**
-- Purpose: AI engine and browser automation
-- Location: `backend/llm/`, browser-use external dependency
-- Contains: LLM factory, configuration adapters
-- Depends on: OpenAI/DashScope APIs, Playwright browser
-- Used by: Service layer (AgentService)
+**Utility Layer:**
+- Purpose: Logging, screenshots, file operations
+- Location: `backend/utils/`
+- Contains: `RunLogger`, `StructuredLogger`, `ScreenshotManager`
 
 ## Data Flow
 
-**Test Execution Flow:**
+**Task Execution Pipeline:**
 
-1. **Request Initiation**
-   - Frontend sends POST to `/api/runs` with task details
-   - Backend creates Run record in database (status: pending)
-
-2. **Background Processing**
-   - FastAPI BackgroundTasks start agent execution
-   - EventManager publishes SSE events to subscribers
-   - Run status updated to "running"
-
-3. **AI Agent Execution**
-   - AgentService creates browser-use Agent with configured LLM
-   - Agent executes steps based on natural language task
-   - Step callback captures actions, reasoning, screenshots
-
-4. **Real-time Updates**
-   - Each step triggers callback with action/reasoning/screenshot
-   - Repository saves step data to database
-   - EventManager publishes SSE events to frontend
-   - Frontend updates UI in real-time
-
-5. **Completion & Reporting**
-   - Agent finishes execution (success/failed/stopped)
-   - EventManager publishes final event
-   - AssertionService validates results against configured assertions
-   - ReportRepository generates test report
-
-6. **Frontend Display**
-   - SSE stream updates execution timeline
-   - Screenshots displayed in monitoring interface
-   - Final report shown with step-by-step results
+```
+Frontend Request
+       |
+       v
+POST /api/runs (runs.py:create_run)
+       |
+       v
+Background Task: run_agent_background()
+       |
+       +--> PreconditionService.execute_single()  [Optional]
+       |         |
+       |         v
+       |    ContextWrapper (variable storage)
+       |         |
+       +--> AgentService.run_with_cleanup()
+       |         |
+       |         v
+       |    MonitoredAgent (browser-use)
+       |         |
+       |         +--> StallDetector.check()
+       |         +--> PreSubmitGuard.check()
+       |         +--> TaskProgressTracker.check_progress()
+       |         |
+       |         v
+       |    Per-step callbacks -> EventManager.publish()
+       |         |
+       +--> AssertionService.evaluate_all()  [Optional]
+       |         |
+       |         v
+       +--> execute_all_assertions() (external)  [Optional]
+       |
+       v
+ReportService.generate_report()
+       |
+       v
+Database (SQLite)
+```
 
 **State Management:**
-- Database: Persistent storage for Tasks, Runs, Steps, Reports
-- EventManager: In-memory event streaming for real-time updates
-- React Query: Client-side state management and caching
+- **Run State**: Stored in SQLite database (`Run` model with status: pending/running/success/failed/stopped)
+- **Step State**: Appended to `Step` table per execution step
+- **Variable State**: `ContextWrapper` dict for preconditions, passed via Jinja2 substitution
+- **Event State**: `EventManager` in-memory store with SSE subscription
 
 ## Key Abstractions
 
-**Task:**
-- Purpose: Represents a test case definition
-- Examples: `backend/db/models.py` Task class, `frontend/src/types/index.ts` Task interface
-- Pattern: Entity with relationships to Runs and configuration
+**MonitoredAgent:**
+- Purpose: Wraps browser-use Agent with runtime detectors
+- Location: `backend/agent/monitored_agent.py`
+- Pattern: Inherit from browser-use `Agent`, override `_prepare_context()` and `_execute_actions()`
+- Key methods:
+  - `_prepare_context()`: Injects intervention messages into LLM context
+  - `_execute_actions()`: Blocks submit clicks when PreSubmitGuard detects mismatches
+  - `create_step_callback()`: Returns async callback for detector integration
 
-**Run:**
-- Purpose: Represents a single test execution instance
-- Examples: `backend/db/models.py` Run class, `frontend/src/types/index.ts` Run interface
-- Pattern: Aggregate root containing Steps and Report
+**StallDetector:**
+- Purpose: Detects agent stall via consecutive failures and stagnant DOM
+- Location: `backend/agent/stall_detector.py`
+- Detection: Monitors action_name, target_index, evaluation, dom_hash
+- Triggers: Consecutive 2+ failures on same element OR 3+ steps with identical DOM
 
-**AgentService:**
-- Purpose: Orchestrates browser-use Agent execution
-- Examples: `backend/core/agent_service.py`
-- Pattern: Facade pattern hiding browser-use complexity
+**PreSubmitGuard:**
+- Purpose: Validates form fields before submit clicks
+- Location: `backend/agent/pre_submit_guard.py`
+- Pattern: Extracts expected values via regex from task description
+- Blocks submit when extracted expectations don't match actual values
+
+**TaskProgressTracker:**
+- Purpose: Tracks step progress and warns when budget is tight
+- Location: `backend/agent/task_progress_tracker.py`
+- Pattern: Parses task description into structured step lists
+- Warns when remaining_steps < remaining_tasks * 1.5
 
 **EventManager:**
-- Purpose: Manages SSE event streaming and subscriptions
-- Examples: `backend/core/event_manager.py`
-- Pattern: Pub-sub pattern with in-memory event history
+- Purpose: Pub/sub for SSE events per run
+- Location: `backend/core/event_manager.py`
+- Pattern: Singleton, async queue-based subscription with heartbeat
 
-**Repository:**
-- Purpose: Abstracts data access operations
-- Examples: `backend/db/repository.py`
-- Pattern: Repository pattern for data persistence
+**LLM Factory:**
+- Purpose: Create and cache LLM instances per model
+- Location: `backend/llm/factory.py`
+- Pattern: Class method factory with caching
+- Uses: `tenacity` for retry with exponential backoff
+
+**ContextWrapper:**
+- Purpose: Dict-like interface for precondition execution context
+- Location: `backend/core/precondition_service.py`
+- Supports: Variable storage (`context['var'] = value`), data method calls (`context.get_data()`)
 
 ## Entry Points
 
-**Backend Entry Point:**
+**HTTP API:**
 - Location: `backend/api/main.py`
-- Triggers: HTTP requests from frontend, background tasks
-- Responsibilities: CORS setup, route registration, logging configuration
+- Triggers: Frontend HTTP requests
+- Responsibilities: Route registration, exception handling, CORS
 
-**Frontend Entry Point:**
-- Location: `frontend/src/main.tsx`
-- Triggers: Application startup, route navigation
-- Responsibilities: React app initialization, routing setup
+**Background Task Runner:**
+- Location: `backend/api/routes/runs.py:run_agent_background()`
+- Triggers: POST /api/runs with BackgroundTasks
+- Responsibilities: Full execution pipeline orchestration
 
-**API Endpoints:**
-- `POST /api/tasks` - Create new test task
-- `GET /api/tasks` - List all tasks
-- `POST /api/runs` - Start test execution
-- `GET /api/runs/{id}` - Get execution status (with SSE)
-- `GET /api/reports` - List test reports
-- `GET /api/dashboard` - Dashboard statistics
+**CLI/Server:**
+- Location: `backend/run_server.py`
+- Triggers: `uv run python backend/run_server.py`
+- Responsibilities: FastAPI app startup
 
 ## Error Handling
 
-**Strategy:** Centralized error handling with graceful degradation
+**Strategy:** Layered error handling with graceful degradation
 
 **Patterns:**
-- API layer: HTTPException with status codes and error messages
-- Service layer: Try-catch blocks with logging, fallback behaviors
-- Agent execution: Exception capture in step callbacks
-- SSE: Error events published for frontend display
-- Database: SQLAlchemy transaction rollback on errors
+- Preconditions: Fail-fast (stop execution on first failure)
+- Agent execution: Fault-tolerant detectors (non-blocking errors)
+- Assertions: Non-fail-fast (results collected, status determined by aggregate)
+- API: Global exception handlers with structured JSON responses
 
 ## Cross-Cutting Concerns
 
 **Logging:**
-- Structured logging with timestamps and context IDs
-- DEBUG level for browser-use agent traces
-- Error logging with stack traces and execution context
+- Structured JSONL per-run logs (`RunLogger` in `outputs/{run_id}/logs/run.jsonl`)
+- DOM snapshots saved per step (`outputs/{run_id}/dom/step_N.txt`)
+- Screenshots captured per step (`outputs/{run_id}/screenshots/step_N.png`)
 
 **Validation:**
-- Pydantic schemas for API request/response validation
-- Type-safe interfaces in frontend TypeScript
-- Input sanitization for user-provided task descriptions
+- Pydantic BaseSettings for config (`backend/config/settings.py`)
+- Pydantic schemas for API request/response (`backend/db/schemas.py`)
 
 **Authentication:**
-- Basic auth support for ERP system access
-- API key-based LLM authentication
-- Environment-based configuration security
+- API keys via environment variables (DASHSCOPE_API_KEY, OPENAI_API_KEY)
+- ERP credentials via environment variables
 
 ---
 
-*Architecture analysis: 2026-03-14*
+*Architecture analysis: 2026-04-03*

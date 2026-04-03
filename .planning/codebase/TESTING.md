@@ -1,84 +1,93 @@
-# Testing
+# Testing Patterns
 
-**Analysis Date:** 2026-03-14
+**Analysis Date:** 2026-04-03
 
 ## Test Framework
 
 **Backend:**
-- Framework: pytest
+- Framework: pytest 8.0.0+
 - Location: `backend/tests/`
-- Configuration: `pyproject.toml` (pytest settings)
+- Config: `pyproject.toml` pytest section
+- Async: pytest-asyncio 0.24.0+
 
 **Frontend:**
-- Framework: Not detected (no test files found)
-- Location: Would be `frontend/src/__tests__/` or `*.test.ts(x)`
+- Framework: Playwright (E2E only)
+- Location: `e2e/`
+- No unit tests currently
 
-## Test Structure
+## Test File Organization
 
+**Backend:**
 ```
 backend/tests/
 ├── __init__.py
-├── conftest.py              # Shared fixtures
-├── test_dashboard_api.py    # Dashboard API tests
-├── test_delivery_form.py    # Delivery form E2E tests
-└── test_purchase_e2e.py     # Purchase flow E2E tests
+├── conftest.py           # Shared fixtures
+├── test_*.py            # Unit/integration tests
 ```
 
-## Test Patterns
+**E2E:**
+```
+e2e/
+├── *.spec.ts            # Playwright E2E tests
+```
+
+## Test Structure
 
 **Fixture Pattern (conftest.py):**
 ```python
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
 @pytest.fixture
-def client():
-    """Create test client for API testing."""
-    app = FastAPI()
-    # Setup...
-    yield TestClient(app)
-    # Teardown...
+async def db_session():
+    """Create async database session for tests."""
+    # Setup
+    session = AsyncSession(bind=engine)
+    yield session
+    await session.rollback()
 ```
 
-**API Test Pattern:**
+**Service Test Pattern:**
 ```python
-def test_dashboard_stats(client):
-    """Test dashboard statistics endpoint."""
-    response = client.get("/api/dashboard/stats")
-    assert response.status_code == 200
-    data = response.json()
-    assert "total_tasks" in data
+class TestAgentService:
+    @pytest.fixture
+    def agent_service(self):
+        return AgentService(output_dir="outputs")
+
+    @pytest.mark.asyncio
+    async def test_run_simple(self, agent_service):
+        result = await agent_service.run_simple(
+            task="Open example.com",
+            max_steps=3,
+        )
+        assert result is not None
 ```
 
-**E2E Test Pattern (browser-use):**
-```python
-async def test_delivery_form():
-    """Test delivery form submission flow."""
-    agent = Agent(task="Fill delivery form...", llm=llm)
-    result = await agent.run()
-    assert result.is_done
-```
-
-## Mocking Strategy
+## Mocking
 
 **LLM Mocking:**
-- Mock browser-use Agent for unit tests
-- Use fake responses for predictable testing
+```python
+from unittest.mock import MagicMock
 
-**Database Mocking:**
-- Use SQLite in-memory database for tests
-- Fixture-based test data isolation
+@pytest.fixture
+def mock_llm():
+    llm = MagicMock()
+    llm.invoke = MagicMock(return_value=MagicMock(content="click(index=1)"))
+    return llm
+```
 
-**API Mocking:**
-- Mock external ERP system responses
-- Use TestClient for internal API testing
+**Detector Mocking:**
+```python
+@pytest.fixture
+def mock_stall_detector():
+    from backend.agent.stall_detector import StallDetector, StallResult
 
-## Coverage
-
-**Current Coverage:**
-- Backend: Partial (API endpoints, some E2E flows)
-- Frontend: Not measured (no tests)
-
-**Coverage Command:**
-```bash
-uv run pytest backend/tests/ -v --cov=backend --cov-report=term-missing
+    detector = StallDetector()
+    # Override check to return non-intervention
+    detector.check = MagicMock(
+        return_value=StallResult(should_intervene=False, message="")
+    )
+    return detector
 ```
 
 ## Test Commands
@@ -87,40 +96,77 @@ uv run pytest backend/tests/ -v --cov=backend --cov-report=term-missing
 # Run all backend tests
 uv run pytest backend/tests/ -v
 
+# Run with coverage
+uv run pytest backend/tests/ --cov=backend --cov-report=term
+
 # Run specific test file
 uv run pytest backend/tests/test_dashboard_api.py -v
 
-# Run with coverage
-uv run pytest backend/tests/ --cov=backend
+# Run E2E tests
+cd e2e && npx playwright test
 
-# Run E2E tests (requires browser)
-uv run pytest backend/tests/test_purchase_e2e.py -v
+# Run E2E with UI
+cd e2e && npx playwright test --ui
 ```
 
-## Test Data
+## Coverage
 
-**Location:** `backend/data/` (JSON files for testing)
+**Current:**
+- Backend: Partial (API endpoints covered)
+- Frontend: No unit tests
 
-**Fixtures:** Defined in `conftest.py`
+**Target:** 80%+ for new code
 
-**Test Config:** `backend/config/test_targets.yaml`
+## Test Types
 
-## Best Practices
+**Unit Tests:**
+- Services (AgentService, PreconditionService)
+- Detectors (StallDetector, PreSubmitGuard)
+- Utilities (RunLogger, ContextWrapper)
 
-1. **Isolation:** Each test should be independent
-2. **Fixtures:** Use conftest.py for shared setup
-3. **Mocking:** Mock external dependencies (LLM, browser)
-4. **Coverage:** Aim for 80%+ coverage on new code
-5. **Naming:** `test_<feature>_<scenario>_<expected_result>`
+**Integration Tests:**
+- API endpoints (tasks, runs, reports)
+- Database operations
+- SSE streaming
+
+**E2E Tests:**
+- Critical user flows (login, task creation, execution)
+- Playwright with browser automation
+
+## Common Patterns
+
+**Async Testing:**
+```python
+@pytest.mark.asyncio
+async def test_async_service():
+    result = await service.execute()
+    assert result.success is True
+```
+
+**Error Testing:**
+```python
+def test_precondition_syntax_error():
+    result = asyncio.run(
+        service.execute_single(code="invalid syntax !!", index=0)
+    )
+    assert result.success is False
+    assert "SyntaxError" in result.error
+```
 
 ## Missing Test Coverage
 
-- Frontend unit tests (no test files)
-- Error handling paths
-- Edge cases in agent execution
-- SSE streaming functionality
-- Report generation logic
+**Critical Gaps:**
+- MonitoredAgent detector integration tests
+- SSE event streaming tests
+- PreconditionService variable substitution tests
+- Report generation service tests
+- Frontend component tests
+
+**Recommended additions:**
+- `backend/tests/test_detectors.py` - Detector unit tests
+- `backend/tests/test_sse.py` - SSE streaming tests
+- `backend/tests/test_preconditions.py` - Precondition service tests
 
 ---
 
-*Testing analysis: 2026-03-14*
+*Testing analysis: 2026-04-03*

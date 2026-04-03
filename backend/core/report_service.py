@@ -146,7 +146,7 @@ class ReportService:
                 "status": pr.status,
                 "error": pr.error,
                 "duration_ms": pr.duration_ms,
-                "variables": pr.variables,  # JSON string, frontend deserializes
+                "variables": json.loads(pr.variables) if pr.variables else None,
             })
 
         # Add UI assertion results

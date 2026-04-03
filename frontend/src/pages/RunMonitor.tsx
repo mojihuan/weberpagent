@@ -110,6 +110,7 @@ export function RunMonitor() {
               items={run.timeline}
               currentStepIndex={run.timeline.length - 1}
               onItemClick={handleTimelineItemClick}
+              isRunning={run.status === 'running'}
             />
           </div>
           <div className="flex-1 min-h-0">

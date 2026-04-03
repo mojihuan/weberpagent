@@ -307,6 +307,7 @@ async def run_agent_background(
                             status=status_str,
                             message='; '.join(message_parts) if message_parts else None,
                             actual_value=None,
+                            field_results=field_results if field_results else None,
                         )
                         await event_manager.publish(
                             run_id,

@@ -94,6 +94,16 @@ export interface SSEAssertionEvent {
   status: 'pass' | 'fail'
   message?: string
   actual_value?: string
+  field_results?: Array<{
+    name: string
+    field_name?: string  // alias
+    expected?: string
+    actual?: string
+    passed: boolean
+    message?: string
+    description?: string
+    comparison_type?: string
+  }>
 }
 
 // SSE Event Types

@@ -1,185 +1,231 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-03-14
+**Analysis Date:** 2026-04-03
 
 ## Directory Layout
 
 ```
 aiDriveUITest/
-├── backend/                        # Python backend (FastAPI)
-│   ├── api/                        # API layer
-│   │   ├── main.py                 # FastAPI application entry point
-│   │   ├── routes/                 # API route definitions
-│   │   │   ├── tasks.py            # Task management endpoints
-│   │   │   ├── runs.py             # Execution management + SSE
-│   │   │   ├── reports.py          # Report query endpoints
-│   │   │   └── dashboard.py       # Dashboard data endpoints
-│   │   └── schemas/                # Pydantic models
-│   │       ├── __init__.py
-│   │       ├── index.py           # Main schemas (Task, Run, Step, Report)
-│   │       └── task.py            # Task-specific schemas
-│   ├── core/                       # Core business logic
-│   │   ├── agent_service.py        # Browser-Use agent wrapper
-│   │   ├── event_manager.py        # SSE event management
-│   │   └── assertion_service.py    # Result validation
-│   ├── db/                         # Data layer
-│   │   ├── models.py               # SQLAlchemy ORM models
-│   │   ├── schemas.py              # Data transfer objects
-│   │   ├── repository.py           # Repository pattern implementation
-│   │   └── database.py             # Database connection setup
+├── backend/
+│   ├── api/
+│   │   ├── main.py                 # FastAPI app entry point
+│   │   └── routes/
+│   │       ├── tasks.py            # Task CRUD endpoints
+│   │       ├── runs.py             # Run execution + SSE streaming
+│   │       ├── reports.py         # Report endpoints
+│   │       ├── dashboard.py        # Dashboard stats
+│   │       ├── external_operations.py
+│   │       ├── external_data_methods.py
+│   │       └── external_assertions.py
+│   ├── agent/                      # Browser automation layer
+│   │   ├── browser_agent.py        # UIBrowserAgent wrapper (legacy)
+│   │   ├── proxy_agent.py          # ProxyBrowserAgent wrapper (legacy)
+│   │   ├── monitored_agent.py      # MonitoredAgent (current implementation)
+│   │   ├── stall_detector.py       # Stall detection
+│   │   ├── pre_submit_guard.py     # Form validation guard
+│   │   ├── task_progress_tracker.py # Step progress tracking
+│   │   ├── dom_patch.py            # browser-use DOM monkey-patch
+│   │   └── prompts.py              # System prompts (ENHANCED_SYSTEM_MESSAGE)
+│   ├── core/                       # Business logic services
+│   │   ├── agent_service.py        # Agent execution service (main entry)
+│   │   ├── precondition_service.py # Precondition execution
+│   │   ├── assertion_service.py    # UI assertion validation
+│   │   ├── report_service.py        # Report generation
+│   │   ├── event_manager.py        # SSE pub/sub
+│   │   ├── external_precondition_bridge.py # External assertion execution
+│   │   ├── precondition_service.py # Variable substitution (Jinja2)
+│   │   └── random_generators.py    # Test data generators
 │   ├── llm/                        # LLM integration
-│   │   ├── factory.py              # LLM instance factory
-│   │   └── openai.py              # OpenAI-compatible implementation
-│   ├── agent/                      # Browser-Use integration (archived)
-│   ├── config/                     # Configuration files
-│   ├── data/                       # Runtime data storage
-│   │   └── screenshots/           # Screenshot storage
-│   ├── storage/                    # File storage utilities
-│   ├── tests/                      # Backend tests
-│   │   ├── __init__.py
-│   │   ├── test_dashboard_api.py  # Dashboard API tests
-│   │   └── conftest.py            # Test configuration
-│   └── utils/                      # Utility functions
-├── frontend/                       # React frontend
-│   ├── src/
-│   │   ├── pages/                  # Page components
-│   │   │   ├── Dashboard.tsx       # Dashboard page
-│   │   │   ├── Tasks.tsx          # Task management page
-│   │   │   ├── TaskDetail.tsx     # Task detail page
-│   │   │   ├── RunList.tsx        # Execution list page
-│   │   │   ├── RunMonitor.tsx     # Real-time monitoring page
-│   │   │   ├── Reports.tsx        # Reports list page
-│   │   │   └── ReportDetail.tsx   # Report detail page
-│   │   ├── components/             # Reusable components
-│   │   │   ├── Layout.tsx         # Main layout component
-│   │   │   ├── Sidebar.tsx        # Navigation sidebar
-│   │   │   ├── TaskDetail/       # Task detail components
-│   │   │   ├── RunMonitor/       # Monitoring components
-│   │   │   └── common/           # Common UI components
-│   │   ├── hooks/                 # Custom React hooks
-│   │   ├── api/                   # API client
-│   │   │   ├── client.ts          # Base API client
-│   │   │   ├── tasks.ts          # Task API calls
-│   │   │   ├── runs.ts           # Run API calls
-│   │   │   └── reports.ts        # Report API calls
-│   │   ├── types/                 # TypeScript type definitions
-│   │   │   └── index.ts          # Main type exports
-│   │   ├── assets/                # Static assets
-│   │   └── App.tsx                # Main app component
-│   ├── public/                     # Public assets
-│   ├── package.json               # Dependencies and scripts
-│   └── dist/                       # Build output
-├── docs/                          # Documentation
-│   ├── plans/                     # Design and implementation plans
-│   └── troubleshooting/           # Issue resolution guides
-├── .planning/codebase/             # Architecture analysis documents
-├── .venv/                         # Python virtual environment
-├── .env.example                   # Environment variables template
-├── pyproject.toml                 # Python project configuration
-├── uv.lock                        # Dependency lock file
-└── README.md                      # Project documentation
+│   │   ├── factory.py              # LLM factory with caching
+│   │   ├── base.py                 # BaseLLM abstract class
+│   │   ├── config.py               # YAML config loader
+│   │   ├── browser_use_adapter.py  # browser-use adapter
+│   │   └── openai.py               # OpenAI implementation
+│   ├── db/                         # Database layer
+│   │   ├── database.py             # SQLAlchemy async setup
+│   │   ├── models.py               # ORM models (Task, Run, Step, Report, Assertion)
+│   │   ├── repository.py          # Data access objects
+│   │   └── schemas.py             # Pydantic schemas
+│   ├── config/                     # Configuration
+│   │   ├── settings.py             # Pydantic settings from env
+│   │   └── validators.py           # Config validators
+│   ├── utils/                      # Utilities
+│   │   ├── logger.py               # Structured logging
+│   │   ├── run_logger.py           # Per-run JSONL logger
+│   │   └── screenshot.py           # Screenshot utilities
+│   ├── run_server.py               # Server entry point
+│   └── _archived/                  # Archived code (legacy implementations)
+├── frontend/                       # React + Vite frontend
+│   └── src/
+│       ├── components/             # React components
+│       ├── pages/                  # Page components
+│       ├── hooks/                  # Custom React hooks
+│       ├── api/                    # API client
+│       └── types/index.ts          # TypeScript interfaces
+├── webseleniumerp/                # External Selenium project
+│   ├── api/                       # API modules
+│   ├── common/                    # Common utilities
+│   ├── pages/                     # Page objects
+│   ├── testcase/                  # Test cases
+│   ├── use_case/                  # Use cases
+│   ├── base_prerequisites.py     # Precondition operations
+│   ├── base_assertions.py        # Business assertions
+│   └── run_testcase.py            # Test runner
+├── data/
+│   ├── database.db               # SQLite database
+│   ├── screenshots/              # Screenshot storage
+│   └── test-files/               # Uploadable test files
+├── outputs/                       # Execution outputs (per run)
+│   └── {run_id}/
+│       ├── logs/run.jsonl        # Structured logs
+│       ├── dom/step_N.txt        # DOM snapshots
+│       └── screenshots/step_N.png # Screenshots
+├── e2e/                          # Playwright E2E tests
+├── pyproject.toml                # Python dependencies
+└── .env                         # Environment config
 ```
 
 ## Directory Purposes
 
 **backend/api/:**
-- Purpose: HTTP API interface layer
-- Contains: FastAPI routes, request/response schemas, CORS configuration
-- Key files: `main.py` (entry point), `routes/*.py` (endpoints)
+- Purpose: HTTP API endpoints
+- Contains: FastAPI routers, request/response handlers
+- Key files: `main.py`, `routes/runs.py`
+
+**backend/agent/:**
+- Purpose: Browser automation with LLM
+- Contains: Agent wrappers, detectors, DOM patches, prompts
+- Key files: `monitored_agent.py`, `stall_detector.py`, `dom_patch.py`
 
 **backend/core/:**
-- Purpose: Business logic and service orchestration
-- Contains: Agent service, event management, assertion logic
-- Key files: `agent_service.py` (browser-use wrapper), `event_manager.py` (SSE)
+- Purpose: Business logic orchestration
+- Contains: Service classes, event management
+- Key files: `agent_service.py`, `precondition_service.py`
+
+**backend/llm/:**
+- Purpose: AI model integration
+- Contains: LLM factory, adapters, config
+- Key files: `factory.py`, `base.py`
 
 **backend/db/:**
-- Purpose: Data persistence and access
-- Contains: Database models, repositories, DTOs
-- Key files: `models.py` (ORM), `repository.py` (data access)
+- Purpose: Data persistence
+- Contains: Models, repositories, schemas
+- Key files: `models.py`, `repository.py`
 
-**frontend/src/:**
-- Purpose: React application source code
-- Contains: Components, pages, API clients, types
-- Key files: `App.tsx` (main app), `pages/*.tsx` (page components)
-
-**docs/plans/:**
-- Purpose: Project planning and design documentation
-- Contains: Implementation plans, architectural decisions
-- Key files: Various markdown files for different features
+**webseleniumerp/:**
+- Purpose: External Selenium automation project (reused for preconditions/assertions)
+- Contains: Page objects, API wrappers, precondition operations, business assertions
+- Key files: `base_prerequisites.py`, `base_assertions.py`
 
 ## Key File Locations
 
 **Entry Points:**
-- `backend/api/main.py`: FastAPI application entry
-- `frontend/src/main.tsx`: React application entry
+- `backend/api/main.py`: FastAPI app initialization
+- `backend/run_server.py`: Server startup script
+- `backend/api/routes/runs.py`: Background execution entry
 
 **Configuration:**
-- `.env.example`: Environment variables template
-- `pyproject.toml`: Python project configuration
-- `frontend/package.json`: Frontend dependencies
+- `backend/config/settings.py`: Pydantic settings from env
+- `backend/llm/config.py`: YAML-based LLM config
+- `.env`: Environment variables
 
 **Core Logic:**
-- `backend/core/agent_service.py`: AI agent orchestration
-- `backend/db/repository.py`: Data access abstraction
-- `frontend/src/api/client.ts`: HTTP client configuration
+- `backend/core/agent_service.py`: Agent execution orchestration (main entry)
+- `backend/agent/monitored_agent.py`: Monitored browser-use Agent
+- `backend/api/routes/runs.py:run_agent_background()`: Full pipeline
 
 **Testing:**
-- `backend/tests/`: Backend test files
-- Frontend tests: Not detected in current structure
+- `backend/tests/`: Unit tests
+- `e2e/`: Playwright E2E tests
 
 ## Naming Conventions
 
 **Files:**
-- Python: `snake_case.py` (e.g., `agent_service.py`)
-- TypeScript/React: `PascalCase.tsx` (e.g., `TaskDetail.tsx`)
-- Test files: `test_*.py` or `*_test.py`
+- Python: snake_case (`agent_service.py`, `run_logger.py`)
+- TypeScript: camelCase (`index.ts`, `RunMonitor.tsx`)
+- Directories: snake_case
 
-**Directories:**
-- Lowercase with underscores: `api/`, `core/`, `db/`
-- PascalCase for React: `components/`, `pages/`
-- Singular nouns where appropriate: `repository.py` (not `repositories/`)
+**Functions/Classes:**
+- Classes: PascalCase (`MonitoredAgent`, `AgentService`)
+- Functions: snake_case (`create_llm`, `run_agent_background`)
 
-**Variables/Classes:**
-- Python: `snake_case` for variables/functions, `PascalCase` for classes
-- TypeScript: `camelCase` for variables/functions, `PascalCase` for interfaces/classes
-- Database models: `PascalCase` (e.g., `Task`, `Run`)
+**Variables:**
+- snake_case (`run_id`, `step_index`)
+- Constants: SCREAMING_SNAKE_CASE (`SERVER_BROWSER_ARGS`)
 
 ## Where to Add New Code
 
-**New Test Feature:**
-- Primary code: `backend/api/routes/tasks.py` or new route file
-- Tests: `backend/tests/test_[feature].py`
-- Frontend: `frontend/src/pages/TaskDetail/components/`
+**New Feature (API endpoint):**
+- Primary code: `backend/api/routes/{feature}.py`
+- Register in: `backend/api/main.py`
+- Add schema: `backend/db/schemas.py`
 
-**New Component/Module:**
-- Implementation:
-  - Backend: `backend/core/[feature]_service.py`
-  - Frontend: `frontend/src/components/[Feature]/`
-- API: `backend/api/routes/[feature].py`
-- Types: `frontend/src/types/[feature].ts`
+**New Agent Detector:**
+- Implementation: `backend/agent/{detector_name}.py`
+- Integration: `backend/agent/monitored_agent.py` (inject in `__init__`)
 
-**Utilities/Helpers:**
-- Backend utilities: `backend/utils/[helper].py`
-- Frontend utilities: `frontend/src/hooks/use[Helper].ts`
-- Shared types: `frontend/src/types/index.ts`
+**New Core Service:**
+- Implementation: `backend/core/{service_name}_service.py`
+- Used by: `backend/api/routes/runs.py`
+
+**New Database Model:**
+- Model: `backend/db/models.py`
+- Repository: `backend/db/repository.py`
+- Schema: `backend/db/schemas.py`
+
+**Utilities:**
+- Shared helpers: `backend/utils/{utility_name}.py`
 
 ## Special Directories
 
-**backend/data/screenshots/:**
-- Purpose: Stores execution screenshots
-- Generated: Yes (by AgentService)
-- Committed: No (should be in .gitignore)
+**outputs/:**
+- Purpose: Per-run execution artifacts
+- Contains: JSONL logs, DOM snapshots, screenshots
+- Generated: Yes (during execution)
+- Committed: No (gitignored)
 
-**docs/plans/:**
-- Purpose: Project planning and documentation
-- Generated: Yes (by planning process)
-- Committed: Yes (version-controlled documentation)
+**data/:**
+- Purpose: Persistent runtime data
+- Contains: SQLite database, test files
+- Generated: Yes (automatic)
+- Committed: `database.db` may be committed for dev
 
-**.venv/:**
-- Purpose: Python virtual environment
-- Generated: Yes (by uv sync)
-- Committed: No (in .gitignore)
+**webseleniumerp/:**
+- Purpose: External Selenium automation project
+- Contains: Page objects, test cases, API wrappers
+- Used by: PreconditionService for external operations
+
+## Database Models
+
+**Task:**
+- Purpose: Test case definition
+- Fields: id, name, description, target_url, max_steps, preconditions, external_assertions
+
+**Run:**
+- Purpose: Single test execution instance
+- Fields: id, task_id, status, started_at, finished_at, external_assertion_results
+- Relations: task, steps, assertion_results, precondition_results
+
+**Step:**
+- Purpose: Individual execution step
+- Fields: id, run_id, step_index, action, reasoning, screenshot_path, status, error, step_stats, sequence_number
+
+**Assertion:**
+- Purpose: UI assertion definition
+- Fields: id, task_id, name, type, expected
+
+**AssertionResult:**
+- Purpose: Assertion execution result
+- Fields: id, run_id, assertion_id, status, message, actual_value, sequence_number
+
+**PreconditionResult:**
+- Purpose: Precondition execution result
+- Fields: id, run_id, sequence_number, index, code, status, error, duration_ms, variables
+
+**Report:**
+- Purpose: Test execution summary
+- Fields: id, run_id, task_id, task_name, status, total_steps, success_steps, failed_steps, duration_ms
 
 ---
 
-*Structure analysis: 2026-03-14*
+*Structure analysis: 2026-04-03*

@@ -1,5 +1,21 @@
 # Milestones
 
+## v0.8.0 报告完善与 UI 优化 (Shipped: 2026-04-03)
+
+**Phases completed:** 5 phases, 6 plans, E2E verified
+
+**Key accomplishments:**
+
+- Phase 57: parseReasoning() utility + ReasoningText component — Eval/Verdict/Memory/Goal 分行彩色 badge 展示（紫/绿/橙/蓝），替代 `|` 分隔单行文本
+- Phase 58: StepTimeline 统一时间线 — TimelineItem discriminated union (step|precondition|assertion)，前置条件/断言步骤与普通步骤交错排列，auto-scroll 滚动
+- Phase 59: 报告详情时间线 — PreconditionResult model + global sequence_number + timeline API，ReportTimelineItem union (step|precondition|assertion)，向后兼容 fallback 渲染
+- Phase 60: 任务表单优化 — 删除 api_assertions 相关全部代码（backend + frontend），AssertionSelector 直接展示，无 tab 切换
+- Phase 61: E2E 验证 — 6/6 检查全部 PASS（SC-1 执行监控、SC-2 报告详情、SC-3 任务表单、SC-4 向后兼容），FMT-01/02/03 经手动验证完成
+
+**Tech Debt:** 无新增
+
+---
+
 ## v0.7.0 更多操作边界测试 (Shipped: 2026-04-01)
 
 **Phases completed:** 5 phases, 10 plans, 22 tasks

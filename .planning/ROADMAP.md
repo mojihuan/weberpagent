@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v0.8.0 报告完善与 UI 优化** — Phases 57-61 (in progress)
+- ✅ **v0.8.0 报告完善与 UI 优化** — Phases 57-61 (shipped 2026-04-03)
 - ✅ **v0.7.0 更多操作边界测试** — Phases 52-56 (shipped 2026-04-01)
 - ✅ **v0.6.3 Agent 可靠性优化** — Phases 48-51 (shipped 2026-03-28)
 - ✅ **v0.6.2 回归原生 browser-use** — Phases 45-47 (shipped 2026-03-27)
@@ -19,11 +19,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone Goal:** 修复报告中缺失前置条件/断言步骤的问题，优化 AI 推理展示格式和任务表单交互
 
-- [ ] **Phase 57: AI 推理格式优化** — Eval/Verdict/Memory/Goal 分行展示
-- [ ] **Phase 58: 执行步骤展示** — 前置条件/断言步骤在 StepTimeline 中显示
-- [ ] **Phase 59: 报告步骤展示** — 前置条件/断言步骤在报告详情中显示
-- [ ] **Phase 60: 任务表单优化** — 移除断言 tab，仅保留业务断言
-- [ ] **Phase 61: E2E 验证** — 验证所有变更端到端工作
+- [x] **Phase 57: AI 推理格式优化** — Eval/Verdict/Memory/Goal 分行展示
+- [x] **Phase 58: 执行步骤展示** — 前置条件/断言步骤在 StepTimeline 中显示
+- [x] **Phase 59: 报告步骤展示** — 前置条件/断言步骤在报告详情中显示
+- [x] **Phase 60: 任务表单优化** — 移除断言 tab，仅保留业务断言
+- [x] **Phase 61: E2E 验证** — 验证所有变更端到端工作
 
 <details>
 <summary>✅ v0.7.0 更多操作边界测试 (Phases 52-56) — SHIPPED 2026-04-01</summary>
@@ -124,10 +124,11 @@ Plans:
   2. 执行完成后，报告详情页正确展示前置条件步骤、断言步骤和普通步骤，推理文本格式化显示
   3. 创建新任务时表单中断言区域直接显示业务断言配置，无 tab 切换
   4. 已有任务的报告数据不受影响，历史报告正常展示
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 61-01-PLAN.md — To be planned
+- [ ] 61-01-PLAN.md — Run automated pre-checks + create comprehensive test steps document
+- [ ] 61-02-PLAN.md — Execute manual E2E verification + generate verification results document
 
 ## Progress
 
@@ -136,11 +137,11 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 57. AI 推理格式优化 | v0.8.0 | 0/? | Complete    | 2026-04-02 |
-| 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete    | 2026-04-02 |
-| 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete    | 2026-04-02 |
-| 60. 任务表单优化 | v0.8.0 | 2/2 | Complete   | 2026-04-02 |
-| 61. E2E 验证 | v0.8.0 | 0/? | Not started | - |
+| 57. AI 推理格式优化 | v0.8.0 | 1/1 | Complete | 2026-04-02 |
+| 58. 执行步骤展示 | v0.8.0 | 1/1 | Complete | 2026-04-02 |
+| 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
+| 60. 任务表单优化 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
+| 61. E2E 验证 | v0.8.0 | 2/2 | Complete | 2026-04-03 |
 
 ---
-*Roadmap updated: 2026-04-02 — v0.8.0 milestone roadmap created*
+*Roadmap updated: 2026-04-03 — v0.8.0 milestone shipped, Phase 57-61 complete*
