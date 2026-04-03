@@ -17,8 +17,9 @@ export function ScreenshotPanel({
 }: ScreenshotPanelProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
 
-  const currentStep = steps[currentViewIndex]
-  const hasSteps = steps.length > 0
+  const safeIndex = steps.length > 0 ? Math.min(currentViewIndex, steps.length - 1) : -1
+  const currentStep = safeIndex >= 0 ? steps[safeIndex] : undefined
+  const hasSteps = steps.length > 0 && safeIndex >= 0
   const canGoPrev = currentViewIndex > 0
   const canGoNext = currentViewIndex < steps.length - 1
 
@@ -68,8 +69,8 @@ export function ScreenshotPanel({
               </div>
             )}
             <img
-              src={currentStep.screenshot}
-              alt={`步骤 ${currentStep.index}`}
+              src={currentStep!.screenshot}
+              alt={`步骤 ${currentStep!.index}`}
               className={`max-w-full max-h-full object-contain rounded-lg shadow-lg transition-opacity ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
