@@ -189,6 +189,16 @@ class SSEPreconditionEvent(BaseModel):
     variables: Optional[dict[str, Any]] = None  # 设置的变量
 
 
+class SSEAssertionEvent(BaseModel):
+    """SSE assertion 事件 — UI 断言评估完成后推送"""
+    assertion_id: str
+    assertion_name: str
+    assertion_type: str
+    status: str  # pass, fail
+    message: Optional[str] = None
+    actual_value: Optional[str] = None
+
+
 # === Report Schemas ===
 
 class ReportResponse(BaseModel):

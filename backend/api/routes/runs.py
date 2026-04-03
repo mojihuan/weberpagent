@@ -22,6 +22,7 @@ from backend.db.schemas import (
     SSEFinishedEvent,
     SSEErrorEvent,
     SSEPreconditionEvent,
+    SSEAssertionEvent,
 )
 from backend.core.agent_service import AgentService
 from backend.core.event_manager import event_manager
@@ -226,6 +227,8 @@ async def run_agent_background(
             # 评估断言（如果任务有断言）
             run = await run_repo.get_with_task(run_id)
             if run and run.task and run.task.assertions:
+                # Build lookup map for assertion names
+                assertion_map = {a.id: a for a in run.task.assertions}
                 assertion_results = await assertion_service.evaluate_all(
                     run_id=run_id,
                     assertions=run.task.assertions,
@@ -235,6 +238,20 @@ async def run_agent_background(
                 for ar in assertion_results:
                     global_seq += 1
                     await assertion_result_repo.update_sequence_number(ar.id, global_seq)
+                    # Send SSE event for each assertion result
+                    source_assertion = assertion_map.get(ar.assertion_id)
+                    assertion_event = SSEAssertionEvent(
+                        assertion_id=ar.assertion_id,
+                        assertion_name=source_assertion.name if source_assertion else "未知断言",
+                        assertion_type=source_assertion.type if source_assertion else "unknown",
+                        status=ar.status,
+                        message=ar.message,
+                        actual_value=ar.actual_value,
+                    )
+                    await event_manager.publish(
+                        run_id,
+                        f"event: assertion\ndata: {assertion_event.model_dump_json()}\n\n"
+                    )
                 # 如果任何断言失败，整体状态为失败
                 if any(ar.status == "fail" for ar in assertion_results):
                     final_status = "failed"

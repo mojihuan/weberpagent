@@ -86,6 +86,16 @@ export interface SSEPreconditionEvent {
   variables?: Record<string, any>
 }
 
+// SSEAssertionEvent SSE 断言评估事件
+export interface SSEAssertionEvent {
+  assertion_id: string
+  assertion_name: string
+  assertion_type: string
+  status: 'pass' | 'fail'
+  message?: string
+  actual_value?: string
+}
+
 // SSE Event Types
 export interface SSEStartedEvent {
   run_id: string
@@ -141,9 +151,15 @@ export interface TimelineItemPrecondition {
   data: SSEPreconditionEvent
 }
 
+export interface TimelineItemAssertion {
+  type: 'assertion'
+  data: SSEAssertionEvent
+}
+
 export type TimelineItem =
   | TimelineItemStep
   | TimelineItemPrecondition
+  | TimelineItemAssertion
 
 // Report TimelineItem types for report detail page
 export interface ReportTimelineStep {

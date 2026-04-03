@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, Loader2, Circle, FileCode } from 'lucide-react'
-import type { Step, SSEPreconditionEvent, TimelineItem } from '../../types'
+import { CheckCircle, XCircle, Loader2, Circle, FileCode, ShieldCheck } from 'lucide-react'
+import type { Step, SSEPreconditionEvent, SSEAssertionEvent, TimelineItem } from '../../types'
 
 interface StepTimelineProps {
   items: TimelineItem[]
@@ -10,11 +10,12 @@ interface StepTimelineProps {
 
 function getStatusIcon(
   status: 'success' | 'failed' | 'running' | 'pending',
-  type: 'step' | 'precondition'
+  type: 'step' | 'precondition' | 'assertion'
 ) {
   const colorMap = {
     step: { success: 'text-green-500', running: 'text-blue-500', failed: 'text-red-500', pending: 'text-gray-300' },
     precondition: { success: 'text-amber-500', running: 'text-amber-500', failed: 'text-red-500', pending: 'text-gray-300' },
+    assertion: { success: 'text-purple-500', running: 'text-purple-500', failed: 'text-red-500', pending: 'text-gray-300' },
   }
 
   const color = colorMap[type][status]
@@ -68,6 +69,9 @@ function StepTimeline({ items, currentStepIndex, onItemClick }: StepTimelineProp
         return 'running'
       }
       return 'pending'
+    }
+    if (item.type === 'assertion') {
+      return item.data.status === 'pass' ? 'success' : 'failed'
     }
     // precondition items
     const actualStatus = item.data.status || 'pending'
@@ -139,12 +143,39 @@ function StepTimeline({ items, currentStepIndex, onItemClick }: StepTimelineProp
     )
   }
 
+  const renderAssertionItem = (data: SSEAssertionEvent) => {
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-purple-500" />
+            <span className="text-sm font-medium text-purple-700">
+              断言: {data.assertion_name}
+            </span>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600">
+          {data.status === 'pass' ? '通过' : '失败'}
+        </p>
+        {data.message && (
+          <p className={`text-xs mt-1 truncate ${data.status === 'pass' ? 'text-gray-500' : 'text-red-500'}`}>
+            {data.message}
+          </p>
+        )}
+      </div>
+    )
+  }
+
   const handleItemClick = (item: TimelineItem, timelineIndex: number) => {
     if (item.type === 'step') {
       onItemClick(item, timelineIndex)
     } else {
       toggleExpand(timelineIndex)
     }
+  }
+
+  const getItemType = (item: TimelineItem): 'step' | 'precondition' | 'assertion' => {
+    return item.type
   }
 
   if (items.length === 0) {
@@ -183,11 +214,12 @@ function StepTimeline({ items, currentStepIndex, onItemClick }: StepTimelineProp
                 )}
 
                 {/* Status icon */}
-                <div className="relative z-10 bg-white">{getStatusIcon(status, item.type)}</div>
+                <div className="relative z-10 bg-white">{getStatusIcon(status, getItemType(item))}</div>
 
                 {/* Content */}
                 {item.type === 'step' && renderStepItem(item.data)}
                 {item.type === 'precondition' && renderPreconditionItem(item.data, index)}
+                {item.type === 'assertion' && renderAssertionItem(item.data)}
               </div>
             )
           })}

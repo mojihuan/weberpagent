@@ -315,6 +315,7 @@ class AssertionResultRepository:
         stmt = (
             select(AssertionResult)
             .where(AssertionResult.run_id == run_id)
+            .options(selectinload(AssertionResult.assertion))
             .order_by(AssertionResult.created_at)
         )
         result = await self.session.execute(stmt)

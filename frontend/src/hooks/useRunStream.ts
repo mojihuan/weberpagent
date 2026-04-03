@@ -1,6 +1,6 @@
 // frontend/src/hooks/useRunStream.ts
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Run, Step, SSEPreconditionEvent } from '../types'
+import type { Run, Step, SSEPreconditionEvent, SSEAssertionEvent } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
 
@@ -118,6 +118,27 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
             failed: data.failed ?? 0,
             errors: data.errors ?? 0,
           },
+        }
+      })
+    })
+
+    eventSource.addEventListener('assertion', (e: MessageEvent) => {
+      const data: SSEAssertionEvent = JSON.parse(e.data)
+      setRun(prev => {
+        if (!prev) {
+          return {
+            id: runId,
+            task_id: '',
+            status: 'running',
+            started_at: new Date().toISOString(),
+            steps: [],
+            preconditions: [],
+            timeline: [{ type: 'assertion' as const, data }],
+          }
+        }
+        return {
+          ...prev,
+          timeline: [...prev.timeline, { type: 'assertion' as const, data }],
         }
       })
     })

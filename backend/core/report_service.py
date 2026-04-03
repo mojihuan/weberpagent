@@ -150,12 +150,13 @@ class ReportService:
 
         # Add UI assertion results
         for ar in assertion_results:
+            assertion_name = ar.assertion.name if ar.assertion else None
             timeline_items.append({
                 "type": "assertion",
                 "id": ar.id,
                 "sequence_number": ar.sequence_number if ar.sequence_number is not None else 0,
                 "assertion_id": ar.assertion_id,
-                "assertion_name": None,
+                "assertion_name": assertion_name,
                 "status": ar.status,
                 "message": ar.message,
                 "actual_value": ar.actual_value,
