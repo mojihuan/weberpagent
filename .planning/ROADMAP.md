@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v0.8.1 修复销售出库表格填写问题** — Phase 62 (in progress)
 - ✅ **v0.8.0 报告完善与 UI 优化** — Phases 57-61 (shipped 2026-04-03)
 - ✅ **v0.7.0 更多操作边界测试** — Phases 52-56 (shipped 2026-04-01)
 - ✅ **v0.6.3 Agent 可靠性优化** — Phases 48-51 (shipped 2026-03-28)
@@ -15,15 +16,25 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-### 🚧 v0.8.0 报告完善与 UI 优化 (In Progress)
+### 🚧 v0.8.1 修复销售出库表格填写问题 (In Progress)
 
-**Milestone Goal:** 修复报告中缺失前置条件/断言步骤的问题，优化 AI 推理展示格式和任务表单交互
+**Milestone Goal:** 修复 Agent 在销售出库页面填写商品销售金额时无法定位正确输入框的问题
 
-- [x] **Phase 57: AI 推理格式优化** — Eval/Verdict/Memory/Goal 分行展示
-- [x] **Phase 58: 执行步骤展示** — 前置条件/断言步骤在 StepTimeline 中显示
-- [x] **Phase 59: 报告步骤展示** — 前置条件/断言步骤在报告详情中显示
-- [x] **Phase 60: 任务表单优化** — 移除断言 tab，仅保留业务断言
-- [x] **Phase 61: E2E 验证** — 验证所有变更端到端工作
+**Requirements**: DOM-PATCH-01, PROMPT-01, E2E-01
+
+- [ ] **Phase 62: DOM Patch + Prompt 增强** — 增强 DOM Patch 让表格输入框可见，添加 Section 9 提示词
+  - Plans: 1 plan (62-01)
+
+<details>
+<summary>✅ v0.8.0 报告完善与 UI 优化 (Phases 57-61) — SHIPPED 2026-04-03</summary>
+
+- [x] Phase 57: AI 推理格式优化 — Eval/Verdict/Memory/Goal 分行彩色 badge (1/1 plan)
+- [x] Phase 58: 执行步骤展示 — StepTimeline 统一时间线，前置条件/断言步骤交错排列 (1/1 plan)
+- [x] Phase 59: 报告步骤展示 — 报告详情时间线，PreconditionResult + global sequence_number (2/2 plans)
+- [x] Phase 60: 任务表单优化 — 删除 api_assertions，业务断言直接展示 (2/2 plans)
+- [x] Phase 61: E2E 验证 — 6/6 检查 PASS (2/2 plans)
+
+</details>
 
 <details>
 <summary>✅ v0.7.0 更多操作边界测试 (Phases 52-56) — SHIPPED 2026-04-01</summary>
@@ -127,8 +138,24 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 61-01-PLAN.md — Run automated pre-checks + create comprehensive test steps document
-- [ ] 61-02-PLAN.md — Execute manual E2E verification + generate verification results document
+- [x] 61-01-PLAN.md — Run automated pre-checks + create comprehensive test steps document
+- [x] 61-02-PLAN.md — Execute manual E2E verification + generate verification results document
+
+### Phase 62: 销售出库表格填写修复
+
+**Goal**: Extend DOM Patch to make ERP table cell inputs visible in browser-use DOM snapshot, and add Section 9 to prompts for sales outbound table filling guidance.
+
+**Depends on**: Nothing (self-contained code + prompt change)
+**Requirements**: DOM-PATCH-01, PROMPT-01, E2E-01
+**Success Criteria** (what must be TRUE):
+  1. dom_patch.apply_dom_patch() calls all 4 patches (existing 3 + new _patch_assign_interactive_indices)
+  2. Inputs with placeholder="销售金额" inside `<td>` cells get clickable indices in DOM snapshot
+  3. ENHANCED_SYSTEM_MESSAGE has Section 9 with ERP table cell filling guidance
+  4. Sales outbound E2E: sales amount correctly filled to 150 without field confusion
+**Plans**: 1 plan
+
+Plans:
+- [ ] 62-01-PLAN.md — Extend dom_patch.py with 4th patch + add Section 9 to prompts + E2E verify
 
 ## Progress
 
@@ -142,6 +169,7 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 | 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
 | 60. 任务表单优化 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
 | 61. E2E 验证 | v0.8.0 | 2/2 | Complete | 2026-04-03 |
+| 62. 销售出库表格填写修复 | v0.8.1 | 0/1 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-03 — v0.8.0 milestone shipped, Phase 57-61 complete*
+*Roadmap updated: 2026-04-03 — v0.8.0 shipped, v0.8.1 Phase 62 started*
