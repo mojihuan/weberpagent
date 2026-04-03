@@ -42,15 +42,15 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
 
     eventSource.addEventListener('started', (e: MessageEvent) => {
       const data = JSON.parse(e.data)
-      setRun({
+      setRun(prev => ({
         id: runId,
-        task_id: data.task_id || '',
+        task_id: data.task_id || prev?.task_id || '',
         status: 'running',
         started_at: new Date().toISOString(),
-        steps: [],
-        preconditions: [],
-        timeline: [],
-      })
+        steps: prev?.steps || [],
+        preconditions: prev?.preconditions || [],
+        timeline: prev?.timeline || [],
+      }))
       setIsConnected(true)
       isConnectedRef.current = true
     })
