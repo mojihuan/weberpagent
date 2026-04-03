@@ -46,6 +46,12 @@ export interface Run {
   steps: Step[]
   preconditions?: SSEPreconditionEvent[]
   timeline: TimelineItem[]
+  assertion_summary?: {
+    total: number
+    passed: number
+    failed: number
+    errors: number
+  }
 }
 
 // Assertion 断言定义

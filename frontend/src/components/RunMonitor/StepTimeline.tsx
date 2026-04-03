@@ -60,11 +60,19 @@ function StepTimeline({ items, currentStepIndex, onItemClick }: StepTimelineProp
     const item = items[index]
     if (!item) return 'pending'
     if (item.type === 'step') {
-      if (index < currentStepIndex) return item.data.status || 'success'
-      if (index === currentStepIndex) return item.data.status === 'failed' ? 'failed' : 'running'
+      const actualStatus = item.data.status || 'success'
+      if (index < currentStepIndex) return actualStatus
+      if (index === currentStepIndex) {
+        // Use actual status if terminal, otherwise running
+        if (actualStatus === 'success' || actualStatus === 'failed') return actualStatus
+        return 'running'
+      }
       return 'pending'
     }
-    return item.data.status === 'running' ? 'running' : (item.data.status || 'pending')
+    // precondition items
+    const actualStatus = item.data.status || 'pending'
+    if (actualStatus === 'success' || actualStatus === 'failed') return actualStatus
+    return actualStatus === 'running' ? 'running' : 'pending'
   }
 
   const renderStepItem = (data: Step) => {

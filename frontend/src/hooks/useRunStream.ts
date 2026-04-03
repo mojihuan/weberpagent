@@ -106,6 +106,22 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
       })
     })
 
+    eventSource.addEventListener('external_assertions', (e: MessageEvent) => {
+      const data = JSON.parse(e.data)
+      setRun(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          assertion_summary: {
+            total: data.total ?? 0,
+            passed: data.passed ?? 0,
+            failed: data.failed ?? 0,
+            errors: data.errors ?? 0,
+          },
+        }
+      })
+    })
+
     eventSource.addEventListener('finished', (e: MessageEvent) => {
       const parsed = JSON.parse(e.data)
       setRun(prev => {
@@ -126,6 +142,15 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
         const parsed = JSON.parse(e.data)
         setError(new Error(parsed.error || 'Unknown error'))
       }
+      // Update run status to failed on error
+      setRun(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          status: 'failed',
+          finished_at: new Date().toISOString(),
+        }
+      })
       setIsConnected(false)
       isConnectedRef.current = false
       eventSource.close()
