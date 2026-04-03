@@ -1,5 +1,6 @@
 """Report generation service."""
 
+import json
 import logging
 from typing import Optional
 
@@ -163,6 +164,27 @@ class ReportService:
                 "field_results": None,
                 "duration_ms": None,
             })
+
+        # Add external assertion results from run.external_assertion_results
+        run_data = await self.run_repo.get(run_id)
+        if run_data and run_data.external_assertion_results:
+            try:
+                ext_results = json.loads(run_data.external_assertion_results)
+                for ext in ext_results:
+                    timeline_items.append({
+                        "type": "assertion",
+                        "id": f"ext-{ext.get('sequence_number', 0)}",
+                        "sequence_number": ext.get("sequence_number", 0),
+                        "assertion_id": f"ext-{ext.get('sequence_number', 0)}",
+                        "assertion_name": ext.get("assertion_name", "External Assertion"),
+                        "status": ext.get("status", "unknown"),
+                        "message": ext.get("message"),
+                        "actual_value": None,
+                        "field_results": ext.get("field_results"),
+                        "duration_ms": int(ext.get("duration", 0) * 1000) if ext.get("duration") else None,
+                    })
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.warning(f"Failed to parse external_assertion_results for run {run_id}: {e}")
 
         # Sort by sequence_number
         timeline_items.sort(key=lambda x: x["sequence_number"])

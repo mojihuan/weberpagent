@@ -285,7 +285,35 @@ async def run_agent_background(
                         f"{external_assertion_summary['failed']} failed, {external_assertion_summary['errors']} errors"
                     )
 
-                    # Send SSE event with assertion summary
+                    # Send individual SSE events for each external assertion result
+                    for idx, ext_result in enumerate(external_assertion_summary.get('results', [])):
+                        global_seq += 1
+                        assertion_name = f"{ext_result.get('class_name', '?')}.{ext_result.get('method', '?')}"
+                        status_str = 'pass' if ext_result.get('passed') else 'fail'
+                        message_parts = []
+                        if ext_result.get('error'):
+                            message_parts.append(ext_result['error'])
+                        # Build field_results summary
+                        field_results = ext_result.get('field_results', [])
+                        if field_results:
+                            for fr in field_results:
+                                fr_status = 'pass' if fr.get('passed') else 'fail'
+                                message_parts.append(f"{fr.get('field_name', '?')}: {fr_status}")
+
+                        ext_assertion_event = SSEAssertionEvent(
+                            assertion_id=f"ext-{idx}",
+                            assertion_name=assertion_name,
+                            assertion_type="external",
+                            status=status_str,
+                            message='; '.join(message_parts) if message_parts else None,
+                            actual_value=None,
+                        )
+                        await event_manager.publish(
+                            run_id,
+                            f"event: assertion\ndata: {ext_assertion_event.model_dump_json()}\n\n"
+                        )
+
+                    # Also send summary event
                     assertion_event = {
                         "type": "external_assertions_complete",
                         "total": external_assertion_summary['total'],
@@ -298,6 +326,22 @@ async def run_agent_background(
                         run_id,
                         f"event: external_assertions\ndata: {json.dumps(assertion_event)}\n\n"
                     )
+
+                    # Store external assertion results in DB for report
+                    run_obj = await run_repo.get(run_id)
+                    if run_obj:
+                        results_to_store = []
+                        for idx, ext_result in enumerate(external_assertion_summary.get('results', [])):
+                            results_to_store.append({
+                                "sequence_number": global_seq - len(external_assertion_summary.get('results', [])) + idx + 1,
+                                "assertion_name": f"{ext_result.get('class_name', '?')}.{ext_result.get('method', '?')}",
+                                "status": 'pass' if ext_result.get('passed') else 'fail',
+                                "message": ext_result.get('error'),
+                                "field_results": ext_result.get('field_results'),
+                                "duration": ext_result.get('duration'),
+                            })
+                        run_obj.external_assertion_results = json.dumps(results_to_store)
+                        await session.commit()
 
                     # Store summary in context for potential later use
                     context['external_assertion_summary'] = external_assertion_summary
