@@ -76,7 +76,7 @@ class MonitoredAgent(Agent):
                         self._run_logger.log(
                             "info", "monitor",
                             "Intervention injected",
-                            message=msg[:100],
+                            detail=msg[:100],
                         )
                 self._pending_interventions = []
         except Exception as e:
