@@ -47,6 +47,28 @@ Ant Design 表格的 `<td>` 在 DOM 快照中显示为空，实际是 click-to-e
 遇到导入/上传按钮触发文件选择时 → 不要 click type="file" 的 input 元素（会被拦截），用 upload_file(index, '文件路径') 上传。
 文件路径从 <available_file_paths> 标签中选择匹配类型的文件。Excel 导入选 .xlsx，图片上传选 .jpg/.png。
 上传后等待文件名显示确认成功，不要用 evaluate 模拟文件选择。
+
+## 9. ERP 表格单元格填写
+销售出库等页面的表格中，每个商品行有多个可编辑单元格（销售金额、物流费用等）。
+这些单元格的 `<input>` 在 DOM 快照中可能不易被识别，需要特殊策略：
+
+**单元格定位：**
+- 用 placeholder 精确匹配目标输入框：`placeholder="销售金额"`, `placeholder="物流费用"`
+- 不要用 DOM index 定位（同一列可能有多个相同 placeholder 的输入框）
+- 添加商品后，该商品的行会出现新的可编辑单元格，找到对应 placeholder 的 input
+
+**行定位技巧：**
+- 商品名称（如 I01781131295568）所在行 → 该行的"销售金额"单元格
+- 如果不确定，先点击包含商品名称的单元格激活编辑，再在附近找 input
+
+**禁止行为：**
+- 不要点击 `<td>` 本身（td 元素不是交互元素，会误命中）
+- 不要混淆"物流费用"和"销售金额"——两者是不同字段
+- 不要对非当前商品的行进行操作（先确认商品名称列）
+
+**evaluate JS fallback：**
+- 如果标准 input action 失败，可用 `document.querySelector('input[placeholder="销售金额"]').value = '150'`
+- 填写后必须用 `input.value` 验证值已写入，不要假设成功
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）

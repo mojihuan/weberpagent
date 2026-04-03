@@ -16,6 +16,16 @@ _PATCHED = False
 # CSS class substrings that identify ERP clickable sub-elements
 _ERP_CLICKABLE_CLASSES = frozenset({"hand", "el-checkbox"})
 
+# Placeholder substrings identifying ERP table cell input fields
+# These inputs are inside <td> cells and may lack snapshot_node in AX tree
+_ERP_TABLE_CELL_PLACEHOLDERS = frozenset({
+    "销售金额",
+    "物流费用",
+    "备注",
+    "单号",
+    "数量",
+})
+
 
 def _has_erp_clickable_class(node) -> bool:
     """Check if a SimplifiedNode has an ERP-specific clickable CSS class.
@@ -44,6 +54,60 @@ def _has_erp_clickable_class(node) -> bool:
             if erp_cls in cls:
                 return True
 
+    return False
+
+
+def _is_inside_table_cell(node) -> bool:
+    """Check if a SimplifiedNode is inside a table cell (<td> or <th>).
+
+    Walks the original_node's parent chain looking for td/th tags.
+    Uses original_node.parent_node (AccessibilityNode) not SimplifiedNode.parent.
+
+    Args:
+        node: A SimplifiedNode instance.
+
+    Returns:
+        True if the node is a descendant of <td> or <th>.
+    """
+    current = getattr(node.original_node, "parent_node", None)
+    while current is not None:
+        tag_name = getattr(current, "tag_name", None)
+        if tag_name and tag_name.lower() in ("td", "th"):
+            return True
+        current = getattr(current, "parent_node", None)
+    return False
+
+
+def _is_erp_table_cell_input(node) -> bool:
+    """Check if a SimplifiedNode is an ERP table cell input with relevant placeholder.
+
+    Conditions: (1) inside <td>/<th>, (2) input tag, (3) has placeholder matching ERP fields.
+
+    Args:
+        node: A SimplifiedNode instance.
+
+    Returns:
+        True if the node is an ERP table cell input.
+    """
+    if not _is_inside_table_cell(node):
+        return False
+
+    original = getattr(node, "original_node", None)
+    if original is None:
+        return False
+
+    tag_name = getattr(original, "tag_name", None)
+    if not tag_name or tag_name.lower() != "input":
+        return False
+
+    attributes = getattr(original, "attributes", None)
+    if not attributes:
+        return False
+
+    placeholder = attributes.get("placeholder", "")
+    for erp_placeholder in _ERP_TABLE_CELL_PLACEHOLDERS:
+        if erp_placeholder in placeholder:
+            return True
     return False
 
 
@@ -112,8 +176,9 @@ def apply_dom_patch() -> None:
         _patch_is_interactive()
         _patch_paint_order_remover()
         _patch_should_exclude_child()
+        _patch_assign_interactive_indices()
         _PATCHED = True
-        logger.info("dom_patch: successfully applied all 3 patches")
+        logger.info("dom_patch: successfully applied all 4 patches")
     except Exception as exc:
         logger.error("dom_patch: failed to apply: %s", exc)
         raise
@@ -156,3 +221,45 @@ def _patch_should_exclude_child() -> None:
 
     DOMTreeSerializer._should_exclude_child = patched_should_exclude_child
     logger.debug("dom_patch: patched DOMTreeSerializer._should_exclude_child")
+
+
+def _patch_assign_interactive_indices() -> None:
+    """Patch _assign_interactive_indices_and_mark_new_nodes.
+
+    Adds 'is_erp_table_cell_input' as a visibility exception in the
+    should_make_interactive condition. Without this, inputs inside <td> cells
+    with sales/logistics placeholders are skipped because they lack snapshot_node
+    in the Chromium accessibility tree.
+
+    Pattern follows existing exceptions for file inputs (is_file_input) and
+    shadow DOM elements (is_shadow_dom_element) in serializer.py.
+    """
+    from browser_use.dom.serializer.serializer import DOMTreeSerializer
+
+    original_method = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
+
+    def patched_method(self, node) -> None:
+        # Call original first to handle all standard cases
+        original_method(self, node)
+
+        # Skip if already marked interactive by original method
+        if getattr(node, "is_interactive", False):
+            return
+
+        # Skip if not an ERP table cell input
+        if not _is_erp_table_cell_input(node):
+            return
+
+        # Force interactive assignment for ERP table cell inputs
+        node.is_interactive = True
+        self._selector_map[node.original_node.backend_node_id] = node.original_node
+        counter = getattr(self, "_interactive_counter", 0)
+        self._interactive_counter = counter + 1
+        node.is_new = True
+        logger.debug(
+            "dom_patch: forced interactive for ERP table cell input placeholder=%s",
+            getattr(node.original_node, "attributes", {}).get("placeholder", "")
+        )
+
+    DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = patched_method
+    logger.debug("dom_patch: patched _assign_interactive_indices_and_mark_new_nodes")
