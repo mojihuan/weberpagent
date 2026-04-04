@@ -26,6 +26,60 @@ _ERP_TABLE_CELL_PLACEHOLDERS = frozenset({
     "数量",
 })
 
+# Numeric patterns for ERP table cell values that are editable (click-to-edit)
+# These are displayed as text in <td> cells until clicked to enter edit mode
+# Kept for reference; actual detection uses get_all_children_text() instead
+_ERP_NUMERIC_CELL_PATTERNS = (
+    r"^-?\d+(\.\d{1,2})?$",  # e.g. 0.00, 210, -210.00, 150.5
+)
+
+
+def _is_textual_td_cell(node) -> bool:
+    """Check if a SimplifiedNode is a <td> with meaningful text content.
+
+    ERP Ant Design tables use click-to-edit cells: <td> shows a text value
+    (e.g. "0.00", "210", "iPhone 16 Pro Max") and clicking it reveals an <input>.
+    These <td> cells are currently NOT shown in the DOM dump (empty <td />) because
+    they have should_display=False, which causes their children to be "flattened"
+    and shown as bare text nodes at the <tr> level — making it impossible for the
+    Agent to identify which column is which.
+
+    By marking these cells as interactive, they appear in the dump with proper
+    nesting: <td> [index]<td>...</td></td> with their text content indented inside.
+
+    Returns True if the node is a <td> inside a <tr> that has meaningful text
+    content (from its children).
+
+    Args:
+        node: A SimplifiedNode instance.
+
+    Returns:
+        True if the node is a <td> with text content.
+    """
+    original = getattr(node, "original_node", None)
+    if original is None:
+        return False
+
+    tag_name = getattr(original, "tag_name", None)
+    if not tag_name or tag_name.lower() != "td":
+        return False
+
+    # Must be inside a <tr>
+    parent = getattr(original, "parent_node", None)
+    if parent is None:
+        return False
+    parent_tag = getattr(parent, "tag_name", None)
+    if not parent_tag or parent_tag.lower() != "tr":
+        return False
+
+    # Check if the cell has meaningful text content (from nested <span>/<div> children)
+    # get_all_children_text() recursively collects all TEXT_NODE values from descendants
+    text = original.get_all_children_text()
+    if text and text.strip():
+        return True
+
+    return False
+
 
 def _has_erp_clickable_class(node) -> bool:
     """Check if a SimplifiedNode has an ERP-specific clickable CSS class.
@@ -129,11 +183,11 @@ def _reset_paint_order_for_erp_nodes(node) -> None:
 def _patch_is_interactive() -> None:
     """Patch ClickableElementDetector.is_interactive.
 
-    Returns True for nodes with ERP clickable CSS classes, ensuring they
-    get assigned interactive indices during DOM serialization. Without this,
-    <span class="hand"> and <span class="el-checkbox__inner"> are skipped
-    because they lack form controls, event handler attributes, ARIA roles,
-    or interactive tag names.
+    Returns True for nodes with ERP clickable CSS classes AND for <td> cells
+    with text content (click-to-edit entry points), ensuring they get assigned
+    interactive indices during DOM serialization. Without this, those elements
+    are skipped because they lack form controls, event handler attributes, ARIA
+    roles, or interactive tag names.
     """
     from browser_use.dom.serializer.clickable_elements import ClickableElementDetector
 
@@ -148,6 +202,9 @@ def _patch_is_interactive() -> None:
                     for erp_cls in _ERP_CLICKABLE_CLASSES:
                         if erp_cls in cls:
                             return True
+        # Mark <td> cells with text content as interactive (click-to-edit entry point)
+        if _is_textual_td_cell(node):
+            return True
         return original_is_interactive(node)
 
     ClickableElementDetector.is_interactive = patched_is_interactive
@@ -157,13 +214,19 @@ def _patch_is_interactive() -> None:
 def apply_dom_patch() -> None:
     """Apply monkey-patches to browser-use DOM serializer.
 
-    Patches three mechanisms:
-    1. ClickableElementDetector.is_interactive - marks ERP elements as
-       interactive so they receive clickable indices.
+    Patches 5 mechanisms:
+    1. ClickableElementDetector.is_interactive - marks ERP elements (ERP CSS
+       classes and <td> cells with text) as interactive so they receive
+       clickable indices.
     2. PaintOrderRemover.calculate_paint_order - resets ignored_by_paint_order
        for ERP nodes after the original method runs.
     3. DOMTreeSerializer._should_exclude_child - returns False for ERP nodes
        so they are never excluded by bounding box filtering.
+    4. DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes -
+       forces interactive assignment for ERP table cell inputs.
+    5. ClickableElementDetector.is_interactive (extended) - marks <td> cells
+       with text content as interactive so they appear with proper nesting
+       in DOM dump (fixes click-to-edit cell visibility).
 
     Idempotent: multiple calls are safe and only patch once.
     """
@@ -178,7 +241,7 @@ def apply_dom_patch() -> None:
         _patch_should_exclude_child()
         _patch_assign_interactive_indices()
         _PATCHED = True
-        logger.info("dom_patch: successfully applied all 4 patches")
+        logger.info("dom_patch: successfully applied all 5 patches")
     except Exception as exc:
         logger.error("dom_patch: failed to apply: %s", exc)
         raise

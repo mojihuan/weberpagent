@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v0.8.1 修复销售出库表格填写问题** — Phase 62 (in progress)
+- ✅ **v0.8.1 修复销售出库表格填写问题** — Phase 62 (shipped 2026-04-04)
 - ✅ **v0.8.0 报告完善与 UI 优化** — Phases 57-61 (shipped 2026-04-03)
 - ✅ **v0.7.0 更多操作边界测试** — Phases 52-56 (shipped 2026-04-01)
 - ✅ **v0.6.3 Agent 可靠性优化** — Phases 48-51 (shipped 2026-03-28)
@@ -16,14 +16,13 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-### 🚧 v0.8.1 修复销售出库表格填写问题 (In Progress)
+### ✅ v0.8.1 修复销售出库表格填写问题 (SHIPPED 2026-04-04)
 
 **Milestone Goal:** 修复 Agent 在销售出库页面填写商品销售金额时无法定位正确输入框的问题
 
 **Requirements**: DOM-PATCH-01, PROMPT-01, E2E-01
 
-- [ ] **Phase 62: DOM Patch + Prompt 增强** — 增强 DOM Patch 让表格输入框可见，添加 Section 9 提示词
-  - Plans: 1 plan (62-01)
+- [x] **Phase 62: DOM Patch + Prompt 增强** — DOM Patch 标记 <td> 为可交互，Section 9 提示词添加 click-to-edit 工作流 (1/1 plan)
 
 <details>
 <summary>✅ v0.8.0 报告完善与 UI 优化 (Phases 57-61) — SHIPPED 2026-04-03</summary>
@@ -148,9 +147,9 @@ Plans:
 **Depends on**: Nothing (self-contained code + prompt change)
 **Requirements**: DOM-PATCH-01, PROMPT-01, E2E-01
 **Success Criteria** (what must be TRUE):
-  1. dom_patch.apply_dom_patch() calls all 4 patches (existing 3 + new _patch_assign_interactive_indices)
-  2. Inputs with placeholder="销售金额" inside `<td>` cells get clickable indices in DOM snapshot
-  3. ENHANCED_SYSTEM_MESSAGE has Section 9 with ERP table cell filling guidance
+  1. dom_patch.apply_dom_patch() calls all 5 patches (existing 4 + new _is_textual_td_cell check)
+  2. `<td>` cells with text content in the sales outbound table get clickable indices in DOM snapshot
+  3. ENHANCED_SYSTEM_MESSAGE has Section 9 with click-to-edit workflow guidance
   4. Sales outbound E2E: sales amount correctly filled to 150 without field confusion
 **Plans**: 1 plan
 
@@ -169,7 +168,7 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 | 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
 | 60. 任务表单优化 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
 | 61. E2E 验证 | v0.8.0 | 2/2 | Complete | 2026-04-03 |
-| 62. 销售出库表格填写修复 | v0.8.1 | 0/1 | Not started | - |
+| 62. 销售出库表格填写修复 | v0.8.1 | 1/1 | Complete | 2026-04-04 |
 
 ---
-*Roadmap updated: 2026-04-03 — v0.8.0 shipped, v0.8.1 Phase 62 started*
+*Roadmap updated: 2026-04-04 — v0.8.1 shipped*
