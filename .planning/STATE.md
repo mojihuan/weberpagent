@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.1
 milestone_name: 修复销售出库表格填写问题
-status: Planning
-last_updated: "2026-04-03T06:50:00.000Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-04T04:53:19.876Z"
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** v0.8.1 — 修复销售出库表格填写问题
+**Current focus:** Phase 62 — sales-table-fix
 
 ## Last Shipped
 
@@ -34,12 +34,13 @@ See: .planning/PROJECT.md (updated 2026-04-02)
 
 ## Current Position
 
-v0.8.1 milestone planning — researching DOM patch and prompt enhancements for sales outbound table
+Phase: 62 (sales-table-fix) — COMPLETE
+Plan: 1 of 1 (all plans done)
+Next: v0.8.1 milestone complete, ready for ship
 
 ## Pending Issues
 
-- **销售出库填写失败**: Agent 无法定位商品行的"销售金额"输入框，DOM 中表格行不可见导致 AI 无法识别
-- 需要增强 DOM Patch 让表格行可见，增强提示词添加销售出库填写指导
+None — sales outbound table filling fixed and E2E verified (run aa7a4f49, 26 steps PASS).
 
 ## Last Shipped
 
@@ -71,6 +72,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 60]: Added AssertionResultRepository as top-level variable in run_agent_background after removing api_assertions block
 - [Phase 60]: Business assertions shown unconditionally in TaskForm without tab wrapper (FORM-01)
 - [Phase 60]: Kept ReportTimelineAssertion types for report detail timeline (Phase 59), only removed SSE-specific api_assertion types
+- [Phase 62]: Pivoted from input placeholder detection to td text content detection: click-to-edit tables don't render inputs until td is clicked
+- [Phase 62]: Combined prompts.py and dom_patch.py changes in single fix commit due to interdependent click-to-edit workflow changes
 
 ### Pending Todos
 

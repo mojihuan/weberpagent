@@ -154,7 +154,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 62-01-PLAN.md — Extend dom_patch.py with 4th patch + add Section 9 to prompts + E2E verify
+- [x] 62-01-PLAN.md — Extend dom_patch.py with 4th patch + add Section 9 to prompts + E2E verify
 
 ## Progress
 
@@ -168,7 +168,7 @@ Phases execute in numeric order: 57 → 58 → 59 → 60 → 61
 | 59. 报告步骤展示 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
 | 60. 任务表单优化 | v0.8.0 | 2/2 | Complete | 2026-04-02 |
 | 61. E2E 验证 | v0.8.0 | 2/2 | Complete | 2026-04-03 |
-| 62. 销售出库表格填写修复 | v0.8.1 | 1/1 | Complete | 2026-04-04 |
+| 62. 销售出库表格填写修复 | v0.8.1 | 1/1 | Complete   | 2026-04-04 |
 
 ---
 *Roadmap updated: 2026-04-04 — v0.8.1 shipped*
