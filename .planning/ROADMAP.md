@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone Goal:** 对比 v0.4.0 与当前版本在 browser 使用上的代码差异，找出为什么本地开发不再弹出浏览器窗口。只做分析，不修复。
 
-- [ ] **Phase 63: 代码对比分析** — 对比 v0.4.0 与当前版本 browser-use 初始化、Playwright 配置、版本升级、Agent 配置演变
+- [x] **Phase 63: 代码对比分析** — 对比 v0.4.0 与当前版本 browser-use 初始化、Playwright 配置、版本升级、Agent 配置演变
 - [ ] **Phase 64: 分析报告输出** — 输出结构化分析报告，含差异列表、根因分析、关联性评估
 
 ## Phase Details
@@ -50,7 +50,7 @@ Plans:
   2. 报告包含根因分析，明确指出最可能导致浏览器窗口消失的变更
   3. 报告包含表格输入框定位问题与浏览器模式变更的关联性评估
   4. 报告给出后续修复建议（修复留给后续 milestone，本阶段不实施）
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 64-01: Write structured analysis report with diff list, root cause, and recommendations
@@ -62,7 +62,7 @@ Phases execute in numeric order: 63 → 64
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 63. 代码对比分析 | 2/2 | Complete | 2026-04-06 |
+| 63. 代码对比分析 | 2/2 | Complete    | 2026-04-06 |
 | 64. 分析报告输出 | 0/1 | Not started | - |
 
 <details>
@@ -115,4 +115,4 @@ Phases execute in numeric order: 63 → 64
 
 ---
 
-*Roadmap updated: 2026-04-06 — Phase 63 plans finalized*
+*Roadmap updated: 2026-04-06 — Phase 64 plans finalized*
