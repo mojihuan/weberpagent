@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.8.1
-milestone_name: 修复销售出库表格填写问题
-status: Milestone complete — archived
-last_updated: "2026-04-06T02:00:00.000Z"
+milestone: v0.8.2
+milestone_name: 浏览器模式差异调查
+status: Roadmap created
+last_updated: "2026-04-06T11:00:00.000Z"
 progress:
-  total_phases: 7
-  completed_phases: 6
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 0
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 63 — 代码对比分析
 
 ## Last Shipped
 
@@ -30,8 +30,12 @@ See: .planning/PROJECT.md (updated 2026-04-06)
 
 ## Current Position
 
-Phase: N/A — milestone archived
-Next: `/gsd:new-milestone` to plan next work
+Phase: 63 of 64 (代码对比分析)
+Plan: 0 of 2 in current phase
+Status: Ready to plan
+Last activity: 2026-04-06 — v0.8.2 roadmap created
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Pending Issues
 
