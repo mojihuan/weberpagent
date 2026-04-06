@@ -9,8 +9,8 @@
 
 - [x] **DIFF-01**: 对比 v0.4.0 和当前版本的 browser-use 初始化代码（Agent 构造参数、Browser 配置）
 - [x] **DIFF-02**: 对比 Playwright 配置差异（headless/headed 设置、浏览器启动参数）
-- [ ] **DIFF-03**: 分析 browser-use 版本升级变化（v0.4.0 时的版本 vs 当前版本 API 差异）
-- [ ] **DIFF-04**: 分析 agent_service.py 中 Agent/Browser 配置的完整演变历史
+- [x] **DIFF-03**: 分析 browser-use 版本升级变化（v0.4.0 时的版本 vs 当前版本 API 差异）
+- [x] **DIFF-04**: 分析 agent_service.py 中 Agent/Browser 配置的完整演变历史
 
 ### Analysis Report
 
@@ -34,8 +34,8 @@
 |-------------|-------|--------|
 | DIFF-01 | Phase 63 | Complete |
 | DIFF-02 | Phase 63 | Complete |
-| DIFF-03 | Phase 63 | Pending |
-| DIFF-04 | Phase 63 | Pending |
+| DIFF-03 | Phase 63 | Complete |
+| DIFF-04 | Phase 63 | Complete |
 | RPT-01 | Phase 64 | Pending |
 
 **Coverage:**
