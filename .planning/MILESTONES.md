@@ -1,5 +1,15 @@
 # Milestones
 
+## v0.8.3 分析报告差距对表格填写影响 (Shipped: 2026-04-06)
+
+**Phases completed:** 2 phases, 2 plans, 3 tasks
+
+**Key accomplishments:**
+
+- 四项 Agent 表格交互优化策略设计文档，覆盖行标识定位、反重复机制、三级策略优先级和失败恢复规则，输出 16 项可直接转化的代码任务
+
+---
+
 ## v0.8.1 修复销售出库表格填写问题 (Shipped: 2026-04-06)
 
 **Phases completed:** 7 phases, 9 plans, 11 tasks

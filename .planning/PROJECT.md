@@ -15,28 +15,21 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.8.1 修复销售出库表格填写问题 (shipped 2026-04-06)
+**最新版本:** v0.8.3 分析报告差距对表格填写影响 (shipped 2026-04-06)
+**Next:** 待规划 — 表格交互优化实施 (16 项代码任务) 或 其他方向
 
-## Current Milestone: v0.8.2 浏览器模式差异调查
+## Current State
 
-**Goal:** 对比 v0.4.0 与当前版本在 browser 使用上的代码差异，找出为什么本地开发不再弹出浏览器窗口
+v0.8.3 完成了分析设计工作，确认了以下结论：
+- headless 是加剧因素而非唯一根因
+- DOM Patch 5 个补丁中 4 个仍必要（恢复 headed 后）
+- Section 9 Prompt 确认保留
+- 产出 540 行优化设计文档，16 项代码任务可直接实施
 
-**Target features:**
-- 对比 v0.4.0 和当前版本的 browser-use 初始化代码
-- 对比 Playwright 配置（headless/headed 设置）
-- 分析 browser-use 版本变化和 API 差异
-- 分析 agent_service.py 中 Agent/Browser 配置的演变
-- 输出分析报告（不修复）
-
-**Key context:** v0.4.0 时本地开发会弹出 Playwright 浏览器窗口（headed 模式），现在不再弹出。怀疑这也导致表格输入框定位不准。目标只做分析，不修复。
-
-v0.8.0 + v0.8.1 交付内容:
-- AI 推理格式: Eval/Verdict/Memory/Goal 分行彩色 badge 展示
-- 执行监控: 统一时间线，前置条件/断言步骤交错排列
-- 报告详情: 统一时间线，向后兼容旧报告
-- 任务表单: 移除 api_assertions，业务断言直接展示
-- DOM Patch: 5 个补丁支持 ERP click-to-edit 表格交互
-- Prompt: Section 9 click-to-edit 工作流指导
+**待实施方向:**
+- v0.8.3 设计文档中的 16 项代码任务（行定位/反重复/策略优先级/失败恢复）
+- 恢复 headed 模式（修改 create_browser_session 中的 headless=True）
+- 断言严格度分级设计（deferred）
 
 **Server online**: 121.40.191.49
 
@@ -47,6 +40,8 @@ v0.8.0 + v0.8.1 交付内容:
 - v0.7.0: 更多操作边界测试 (2026-04-01)
 - v0.8.0: 报告完善与 UI 优化 (2026-04-03)
 - v0.8.1: 修复销售出库表格填写问题 (2026-04-06)
+- v0.8.2: 浏览器模式差异调查 (2026-04-06)
+- v0.8.3: 分析报告差距对表格填写影响 (2026-04-06)
 
 ## Requirements
 
@@ -98,14 +93,25 @@ v0.1-v0.4.2 核心功能:
 
 </details>
 
+### Validated (v0.8.2)
+
+- ✓ DIFF-01: 对比 v0.4.0 和当前版本 browser-use 初始化代码差异 — Phase 63
+- ✓ DIFF-02: 对比 Playwright 配置（headless/headed 设置）— Phase 63
+- ✓ DIFF-03: 分析 browser-use 版本变化和 API 差异 — Phase 63
+- ✓ DIFF-04: 分析 agent_service.py 中 Agent/Browser 配置演变 — Phase 63
+- ✓ RPT-01: 输出分析报告（完整技术版 + 精简摘要版）— Phase 64
+
 ### Active
 
-**v0.8.2 浏览器模式差异调查 (2026-04-06):**
-- [x] DIFF-01: 对比 v0.4.0 和当前版本 browser-use 初始化代码差异
-- [x] DIFF-02: 对比 Playwright 配置（headless/headed 设置）
-- [x] DIFF-03: 分析 browser-use 版本变化和 API 差异
-- [x] DIFF-04: 分析 agent_service.py 中 Agent/Browser 配置演变
-- [ ] RPT-01: 输出分析报告（不修复）
+### Validated (v0.8.3)
+
+- ✓ ANALYSIS-01: headless/headed 差异与表格定位不准的因果关联 — 部分，headless 为加剧因素 — Phase 65
+- ✓ ANALYSIS-02: headed 模式恢复后 DOM Patch (5 patches) 有效性评估 — 4/5 仍必要 — Phase 65
+- ✓ ANALYSIS-03: headed 模式恢复后 Section 9 Prompt 有效性评估 — 确认保留 — Phase 65
+- ✓ OPTIMIZE-01: 按行定位 + 直接找 input 的表格输入策略设计 — Phase 66
+- ✓ OPTIMIZE-02: 反重复机制设计（同 index 失败 2 次自动切换）— Phase 66
+- ✓ OPTIMIZE-03: 原生 input → DOM 查询 → evaluate JS 策略优先级 — Phase 66
+- ✓ OPTIMIZE-04: 失败恢复策略设计（无变化/误列/编辑态误判）— Phase 66
 
 ### Backlog
 
@@ -159,4 +165,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-06 after v0.8.2 milestone started*
+*Last updated: 2026-04-06 after v0.8.3 milestone shipped*
