@@ -24,14 +24,12 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.8.0 报告完善与 UI 优化 (shipped 2026-04-03)
+**最新版本:** v0.8.1 修复销售出库表格填写问题 (shipped 2026-04-04)
 
-Phase 57-61 complete — 报告完善与 UI 优化:
-- AI 推理格式: Eval/Verdict/Memory/Goal 分行彩色 badge 展示
-- 执行监控: 前置条件/断言步骤与普通步骤交错排列
-- 报告详情: 统一时间线 + 向后兼容
-- 任务表单: 无 tab 切换，业务断言直接展示
-- E2E 验证: 6/6 检查 PASS (FMT-01/02/03 手动确认)
+Phase 62 complete — 修复销售出库表格填写问题:
+- DOM Patch: td cell 文本内容检测 + ERP 表格单元格 input 可见性 (5 patches)
+- Prompt: Section 9 click-to-edit 工作流指导 + 字段混淆警告
+- E2E 验证: 销售出库 run aa7a4f49 完成 26 步，销售金额=150 填写成功
 
 **Server online**: 121.40.191.49
 
@@ -41,6 +39,7 @@ Phase 57-61 complete — 报告完善与 UI 优化:
 - v0.6.3: Agent 可靠性优化 (2026-03-28)
 - v0.7.0: 更多操作边界测试 (2026-04-01)
 - v0.8.0: 报告完善与 UI 优化 (2026-04-03)
+- v0.8.1: 修复销售出库表格填写问题 (2026-04-04)
 
 ## Requirements
 
@@ -69,6 +68,11 @@ Phase 57-61 complete — 报告完善与 UI 优化:
 - ✓ FORM-01/02: 任务表单移除 api_assertions tab，业务断言直接展示 — Phase 60
 - ✓ E2E 验证: 6/6 检查 PASS — Phase 61
 
+**v0.8.1 修复销售出库表格填写问题 (2026-04-04):**
+- ✓ DOM-PATCH-01: td cell 文本内容检测 + ERP 表格 input 可见性 patch — Phase 62
+- ✓ PROMPT-01: Section 9 click-to-edit 工作流指导 + 字段混淆警告 — Phase 62
+- ✓ E2E-01: 销售出库场景 E2E 验证 (26步完成，销售金额=150) — Phase 62
+
 <details>
 <summary>v0.6.2 及更早版本的已验证需求</summary>
 
@@ -89,9 +93,7 @@ v0.1-v0.4.2 核心功能:
 
 ### Active
 
-- [ ] **v0.8.1** DOM Patch 增强 — 表格行元素可见性
-- [ ] **v0.8.1** 提示词增强 — 销售出库表格填写指导
-- [ ] **v0.8.1** E2E 验证 — 销售出库场景测试
+_No active requirements — v0.8.1 milestone complete._
 
 ### Backlog
 
@@ -143,4 +145,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-03 after v0.8.0 milestone shipped*
+*Last updated: 2026-04-04 after v0.8.1 milestone shipped*

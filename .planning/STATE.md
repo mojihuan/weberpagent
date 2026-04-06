@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v0.8.1
 milestone_name: 修复销售出库表格填写问题
-status: Phase complete — ready for verification
-last_updated: "2026-04-04T04:53:19.876Z"
+status: Milestone complete
+last_updated: "2026-04-04T05:02:21.746Z"
 progress:
   total_phases: 7
   completed_phases: 6
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-04-02)
 
 ## Current Position
 
-Phase: 62 (sales-table-fix) — COMPLETE
-Plan: 1 of 1 (all plans done)
+Phase: 62
+Plan: Not started
 Next: v0.8.1 milestone complete, ready for ship
 
 ## Pending Issues
