@@ -13,23 +13,17 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.8.1 修复销售出库表格填写问题
-
-**Goal:** 修复 Agent 在销售出库页面填写商品销售金额时无法定位正确输入框的问题
-
-**Target features:**
-- 增强 DOM Patch，让表格行元素和单元格内部 input 在 DOM 快照中可见
-- 增强提示词，添加销售出库表格的具体填写指导
-- 验证修复，确保销售出库场景下能正确填写销售金额
-
 ## Current State
 
-**最新版本:** v0.8.1 修复销售出库表格填写问题 (shipped 2026-04-04)
+**最新版本:** v0.8.1 修复销售出库表格填写问题 (shipped 2026-04-06)
 
-Phase 62 complete — 修复销售出库表格填写问题:
-- DOM Patch: td cell 文本内容检测 + ERP 表格单元格 input 可见性 (5 patches)
-- Prompt: Section 9 click-to-edit 工作流指导 + 字段混淆警告
-- E2E 验证: 销售出库 run aa7a4f49 完成 26 步，销售金额=150 填写成功
+v0.8.0 + v0.8.1 交付内容:
+- AI 推理格式: Eval/Verdict/Memory/Goal 分行彩色 badge 展示
+- 执行监控: 统一时间线，前置条件/断言步骤交错排列
+- 报告详情: 统一时间线，向后兼容旧报告
+- 任务表单: 移除 api_assertions，业务断言直接展示
+- DOM Patch: 5 个补丁支持 ERP click-to-edit 表格交互
+- Prompt: Section 9 click-to-edit 工作流指导
 
 **Server online**: 121.40.191.49
 
@@ -39,11 +33,30 @@ Phase 62 complete — 修复销售出库表格填写问题:
 - v0.6.3: Agent 可靠性优化 (2026-03-28)
 - v0.7.0: 更多操作边界测试 (2026-04-01)
 - v0.8.0: 报告完善与 UI 优化 (2026-04-03)
-- v0.8.1: 修复销售出库表格填写问题 (2026-04-04)
+- v0.8.1: 修复销售出库表格填写问题 (2026-04-06)
 
 ## Requirements
 
 ### Validated
+
+**v0.8.1 修复销售出库表格填写问题 (2026-04-06):**
+- ✓ DOM-PATCH-01: td cell 文本内容检测 + ERP 表格 input 可见性 patch — Phase 62
+- ✓ PROMPT-01: Section 9 click-to-edit 工作流指导 + 字段混淆警告 — Phase 62
+- ✓ E2E-01: 销售出库场景 E2E 验证 (26步完成，销售金额=150) — Phase 62
+
+**v0.8.0 报告完善与 UI 优化 (2026-04-03):**
+- ✓ FMT-01/02/03: AI 推理格式 Eval/Verdict/Memory/Goal 分行彩色 badge 展示 — Phase 57
+- ✓ EXEC-01/02/03: 执行监控 StepTimeline 统一时间线，前置条件/断言步骤交错排列 — Phase 58
+- ✓ RPT-01/02/03: 报告详情统一时间线，PreconditionResult + global sequence_number — Phase 59
+- ✓ FORM-01/02: 任务表单移除 api_assertions tab，业务断言直接展示 — Phase 60
+- ✓ E2E 验证: 6/6 检查 PASS — Phase 61
+
+**v0.7.0 更多操作边界测试 (2026-04-01):**
+- ✓ KB-01/02/03: 键盘操作 (Enter/Escape/Control+a) — Phase 52/56
+- ✓ TBL-01/02/03/04: 表格交互 (checkbox/超链接/图标) — Phase 53/56
+- ✓ IMP-01/02: 文件导入 (Excel/图片) — Phase 54/56
+- ✓ AST-01/02: 断言参数验证 (headers/i/j) — Phase 56
+- ⏭ CAC-01/02: 缓存断言 — Deferred，推迟到有实际需求时实现
 
 **v0.6.3 Agent 可靠性优化 (2026-03-28):**
 - ✓ StallDetector — 连续失败检测 + DOM 指纹停滞检测 — Phase 48
@@ -53,25 +66,6 @@ Phase 62 complete — 修复销售出库表格填写问题:
 - ✓ ENHANCED_SYSTEM_MESSAGE — 5 段式 ERP 指导 + browser-use 参数调优 — Phase 49
 - ✓ AgentService 集成 — MonitoredAgent 替换 + step_callback 检测器调用 — Phase 50
 - ✓ E2E 验证 — 60/60 测试通过，94% 覆盖率，ERP 测试无循环违规 — Phase 51
-
-**v0.7.0 更多操作边界测试 (2026-04-01):**
-- ✓ KB-01/02/03: 键盘操作 (Enter/Escape/Control+a) — Phase 52/56
-- ✓ TBL-01/02/03/04: 表格交互 (checkbox/超链接/图标) — Phase 53/56
-- ✓ IMP-01/02: 文件导入 (Excel/图片) — Phase 54/56
-- ✓ AST-01/02: 断言参数验证 (headers/i/j) — Phase 56
-- ⏭ CAC-01/02: 缓存断言 — Deferred，推迟到有实际需求时实现
-
-**v0.8.0 报告完善与 UI 优化 (2026-04-03):**
-- ✓ FMT-01/02/03: AI 推理格式 Eval/Verdict/Memory/Goal 分行彩色 badge 展示 — Phase 57
-- ✓ EXEC-01/02/03: 执行监控 StepTimeline 统一时间线，前置条件/断言步骤交错排列 — Phase 58
-- ✓ RPT-01/02/03: 报告详情统一时间线，PreconditionResult + global sequence_number — Phase 59
-- ✓ FORM-01/02: 任务表单移除 api_assertions tab，业务断言直接展示 — Phase 60
-- ✓ E2E 验证: 6/6 检查 PASS — Phase 61
-
-**v0.8.1 修复销售出库表格填写问题 (2026-04-04):**
-- ✓ DOM-PATCH-01: td cell 文本内容检测 + ERP 表格 input 可见性 patch — Phase 62
-- ✓ PROMPT-01: Section 9 click-to-edit 工作流指导 + 字段混淆警告 — Phase 62
-- ✓ E2E-01: 销售出库场景 E2E 验证 (26步完成，销售金额=150) — Phase 62
 
 <details>
 <summary>v0.6.2 及更早版本的已验证需求</summary>
@@ -93,7 +87,7 @@ v0.1-v0.4.2 核心功能:
 
 ### Active
 
-_No active requirements — v0.8.1 milestone complete._
+_No active requirements — ready for next milestone planning._
 
 ### Backlog
 
@@ -139,10 +133,12 @@ _No active requirements — v0.8.1 milestone complete._
 | 前置条件使用 Python 代码格式 | 灵活性高，可直接调用 API | ✓ Good |
 | exec() + asyncio.wait_for() 执行代码 | 30 秒超时保护 | ✓ Good |
 | 断言结果存入 context 非 fail-fast | 收集所有结果后汇总 | ✓ Good |
+| click-to-edit td 检测取代 input placeholder 检测 | Ant Design 表格不预渲染 input | ✓ Good |
+| DOM Patch 5 patches 覆盖 ERP 特殊模式 | ERP 表格 click-to-edit + checkbox 等 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-04 after v0.8.1 milestone shipped*
+*Last updated: 2026-04-06 after v0.8.1 milestone shipped*

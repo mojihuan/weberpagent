@@ -1,5 +1,19 @@
 # Milestones
 
+## v0.8.1 修复销售出库表格填写问题 (Shipped: 2026-04-06)
+
+**Phases completed:** 7 phases, 9 plans, 11 tasks
+
+**Key accomplishments:**
+
+- Unified TimelineItem with precondition (amber/FileCode), assertion (purple/ShieldCheck), and UI step rendering interleaved in execution order via replace-not-append SSE stream
+- Unified timeline in report detail replaces 3 separate sections with single interleaved list of steps, preconditions, and assertions using Phase 58-consistent color scheme
+- Removed all backend api_assertions feature traces: service file, schema fields, model column, execution logic, report computation, and 3 test files
+- Removed all frontend api_assertions traces: types, SSE hook, StepTimeline rendering, TaskForm tab switcher, and ApiAssertionResults component; TaskForm now shows business assertions unconditionally
+- DOM Patch marks td cells as interactive for click-to-edit tables, plus Section 9 prompt guidance for ERP sales outbound filling
+
+---
+
 ## v0.8.0 报告完善与 UI 优化 (Shipped: 2026-04-03)
 
 **Phases completed:** 5 phases, 6 plans, E2E verified
