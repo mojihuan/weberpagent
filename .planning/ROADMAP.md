@@ -2,7 +2,8 @@
 
 ## Milestones
 
-- 🚧 **v0.8.2 浏览器模式差异调查** — Phases 63-64 (in progress)
+- 🚧 **v0.8.3 分析报告差距对表格填写影响** — Phases 65-66 (in progress)
+- ✅ **v0.8.2 浏览器模式差异调查** — Phases 63-64 (shipped 2026-04-06)
 - ✅ **v0.8.1 修复销售出库表格填写问题** — Phase 62 (shipped 2026-04-06)
 - ✅ **v0.8.0 报告完善与 UI 优化** — Phases 57-61 (shipped 2026-04-03)
 - ✅ **v0.7.0 更多操作边界测试** — Phases 52-56 (shipped 2026-04-01)
@@ -17,53 +18,18 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-### v0.8.2 浏览器模式差异调查 (In Progress)
+### v0.8.3 分析报告差距对表格填写影响 (In Progress)
 
-**Milestone Goal:** 对比 v0.4.0 与当前版本在 browser 使用上的代码差异，找出为什么本地开发不再弹出浏览器窗口。只做分析，不修复。
+- [ ] **Phase 65: 差距关联分析** — 评估 headless/headed 差异与表格定位问题的因果关联，以及 DOM Patch + Prompt 恢复后的有效性
+- [ ] **Phase 66: 优化方案设计** — 设计按行定位、反重复机制、策略优先级、失败恢复四项优化方案
 
-- [x] **Phase 63: 代码对比分析** — 对比 v0.4.0 与当前版本 browser-use 初始化、Playwright 配置、版本升级、Agent 配置演变
-- [ ] **Phase 64: 分析报告输出** — 输出结构化分析报告，含差异列表、根因分析、关联性评估
+<details>
+<summary>v0.8.2 浏览器模式差异调查 (Phases 63-64) — SHIPPED 2026-04-06</summary>
 
-## Phase Details
+- [x] Phase 63: 代码对比分析 — 识别 f951791 为根因 commit (2/2 plans)
+- [x] Phase 64: 分析报告输出 — 完整技术报告 + 精简摘要 (1/1 plan)
 
-### Phase 63: 代码对比分析
-**Goal**: 完成所有维度的代码差异对比，识别导致浏览器窗口不再弹出的具体变更
-**Depends on**: Nothing (first phase in milestone)
-**Requirements**: DIFF-01, DIFF-02, DIFF-03, DIFF-04
-**Success Criteria** (what must be TRUE):
-  1. v0.4.0 和当前版本的 Agent 构造参数对比结果已记录，差异点明确列出
-  2. v0.4.0 和当前版本的 Playwright 配置（headless/headed、启动参数）对比结果已记录，差异点明确列出
-  3. browser-use 库版本变更记录完整，相关 API 变更（特别是 headless 默认值变化）已识别
-  4. agent_service.py 中 Agent/Browser 配置的完整演变历史已梳理，每个版本的配置快照可追溯
-**Plans**: 2 plans
-
-Plans:
-- [x] 63-01: 逐项对比 Agent 构造参数和 Playwright 配置 + headless DOM 渲染差异分析 (DIFF-01, DIFF-02)
-- [x] 63-02: browser-use 版本对比 + Agent/Browser 配置演变时间线 (DIFF-03, DIFF-04)
-
-### Phase 64: 分析报告输出
-**Goal**: 将代码对比发现整理为结构化分析报告，给出根因分析和后续建议
-**Depends on**: Phase 63
-**Requirements**: RPT-01
-**Success Criteria** (what must be TRUE):
-  1. 报告包含完整的差异列表，每项差异附带 v0.4.0 值和当前值
-  2. 报告包含根因分析，明确指出最可能导致浏览器窗口消失的变更
-  3. 报告包含表格输入框定位问题与浏览器模式变更的关联性评估
-  4. 报告给出后续修复建议（修复留给后续 milestone，本阶段不实施）
-**Plans**: 1 plan
-
-Plans:
-- [x] 64-01: Write structured analysis report with diff list, root cause, and recommendations
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 63 → 64
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 63. 代码对比分析 | 2/2 | Complete    | 2026-04-06 |
-| 64. 分析报告输出 | 1/1 | Complete   | 2026-04-06 |
+</details>
 
 <details>
 <summary>v0.8.1 修复销售出库表格填写问题 (Phase 62) — SHIPPED 2026-04-06</summary>
@@ -113,6 +79,46 @@ Phases execute in numeric order: 63 → 64
 
 </details>
 
----
+## Phase Details
 
-*Roadmap updated: 2026-04-06 — Phase 64 plans finalized*
+### Phase 65: 差距关联分析
+**Goal**: 确认 v0.8.2 报告中发现的浏览器模式差异是否直接导致 Agent 表格定位不准，并评估恢复 headed 后现有补丁策略的有效性
+**Depends on**: Phase 64 (v0.8.2 分析报告)
+**Requirements**: ANALYSIS-01, ANALYSIS-02, ANALYSIS-03
+**Success Criteria** (what must be TRUE):
+  1. 分析报告明确回答 headless 模式下 DOM 序列化是否导致 index 偏移或元素不可见，给出因果判定（是/否/部分）及证据链
+  2. 分析报告明确评估 DOM Patch 5 patches 在 headed 模式下的有效性——哪些补丁仍必要、哪些冗余、是否有冲突
+  3. 分析报告明确评估 Section 9 Prompt 在 headed 模式下的有效性——click-to-edit 指导是否仍需保留或需调整
+  4. 三项分析结论均有明确判定（不是模糊描述），并为后续优化方案提供可操作的输入
+**Plans**: 1 plan
+
+Plans:
+- [ ] 65-01-PLAN.md — 三项差距关联分析：因果关联 + DOM Patch 逐 patch 评估 + Section 9 Prompt 评估 + 总结判定表
+
+### Phase 66: 优化方案设计
+**Goal**: 基于 Phase 65 分析结论，设计四项可执行的 Agent 表格交互优化策略，覆盖定位、防重复、优先级、恢复四个维度
+**Depends on**: Phase 65
+**Requirements**: OPTIMIZE-01, OPTIMIZE-02, OPTIMIZE-03, OPTIMIZE-04
+**Success Criteria** (what must be TRUE):
+  1. 设计文档描述"按行定位 + 直接找 input"策略，说明如何先锁定目标行再在行内找 input，包括行定位选择器和 input 匹配规则
+  2. 设计文档描述反重复机制，明确触发条件（同 index 连续失败 2 次、误点错误列 1 次）和切换动作
+  3. 设计文档描述三级策略优先级（原生 input 操作 > DOM 查询定位 > evaluate JS 兜底），明确每级的适用场景和切换条件
+  4. 设计文档描述失败恢复策略，覆盖三种失败模式（点击无 DOM 变化、误点错误列、编辑态判断失误）的快速切换规则
+  5. 四项方案均为分析设计文档，不包含代码实现，但描述足够具体到可直接转化为代码任务
+**Plans**: 1 plan
+
+Plans:
+- [ ] 66-01-PLAN.md — 设计文档：OPTIMIZE-01 行定位 + OPTIMIZE-02 反重复 + OPTIMIZE-03 策略优先级 + OPTIMIZE-04 失败恢复
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 65 → 66
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 65. 差距关联分析 | 0/1 | Complete    | 2026-04-06 |
+| 66. 优化方案设计 | 0/1 | Not started | - |
+
+---
+*Roadmap updated: 2026-04-06 — v0.8.3 roadmap created*
