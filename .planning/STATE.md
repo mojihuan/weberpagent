@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.4
 milestone_name: 基于 v0.8.3 的研究优化
-status: Ready to execute
-last_updated: "2026-04-07T00:57:49.266Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-07T01:03:24.766Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -48,6 +48,8 @@ Recent decisions affecting current work:
 - [Phase 66]: Patch 4 所有增强合并为单一 wrapper，不产生多层 wrapping 链
 - [Phase 67]: Row identity detection uses regex I+digits15 on tr children td text
 - [Phase 67]: Failure tracker keyed by backend_node_id, reset independent of _PATCHED
+- [Phase 67]: wrong_column detection priority over click_no_effect -- evaluation keywords more diagnostic than dom_hash
+- [Phase 67]: edit_not_active only triggers on action_name=input -- prevents false positives from click actions with editable-related keywords
 
 ### Pending Todos
 

@@ -27,7 +27,7 @@ Requirements for v0.8.4 milestone. Each maps to roadmap phases.
 
 ### 失败恢复 (OPTIMIZE-04)
 
-- [ ] **RECOV-01**: StallDetector 新增三种失败模式检测——点击无 DOM 变化（`dom_hash_before == dom_hash_after`）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
+- [x] **RECOV-01**: StallDetector 新增三种失败模式检测——点击无 DOM 变化（`dom_hash_before == dom_hash_after`）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
 - [ ] **RECOV-02**: step_callback 在 detector calls 区域添加新检测逻辑调用，将三种失败模式结果写入 `_failure_tracker` 对应 mode 字段
 - [ ] **RECOV-03**: Section 9 追加 ERP 表格专用失败恢复规则——三种失败模式各自的检测→标注→切换操作流程
 
@@ -74,7 +74,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRAT-01 | Phase 68 | Pending |
 | STRAT-02 | Phase 68 | Pending |
 | STRAT-03 | Phase 68 | Pending |
-| RECOV-01 | Phase 67 | Pending |
+| RECOV-01 | Phase 67 | Complete |
 | RECOV-02 | Phase 69 | Pending |
 | RECOV-03 | Phase 69 | Pending |
 | PROMPT-01 | Phase 69 | Pending |

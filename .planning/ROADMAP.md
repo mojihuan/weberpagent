@@ -100,7 +100,7 @@
 
 Plans:
 - [x] 67-01: 行标识检测与失败追踪状态
-- [ ] 67-02: 失败模式检测器
+- [x] 67-02: 失败模式检测器
 
 ### Phase 68: DOM Patch 增强 — 行标识注入与策略标注
 **Goal**: DOM dump 序列化输出包含行标识注释和策略层级标注，Agent 可据此锁定目标行并选择正确的交互策略，失败元素动态标注防止重复尝试
@@ -142,7 +142,7 @@ Phases execute in numeric order: 67 -> 68 -> 69
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 67. 基础层 | v0.8.4 | 1/2 | In Progress|  |
+| 67. 基础层 | v0.8.4 | 2/2 | Complete   | 2026-04-07 |
 | 68. DOM Patch 增强 | v0.8.4 | 0/? | Not started | - |
 | 69. 服务集成与 Prompt 规则 | v0.8.4 | 0/? | Not started | - |
 
