@@ -132,7 +132,7 @@ Plans:
 
 Plans:
 - [x] 69-01: step_callback 集成与状态重置
-- [ ] 69-02: Section 9 Prompt 规则追加
+- [x] 69-02: Section 9 Prompt 规则追加
 
 ## Progress
 
@@ -143,7 +143,7 @@ Phases execute in numeric order: 67 -> 68 -> 69
 |-------|-----------|----------------|--------|-----------|
 | 67. 基础层 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
 | 68. DOM Patch 增强 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
-| 69. 服务集成与 Prompt 规则 | v0.8.4 | 1/2 | In Progress|  |
+| 69. 服务集成与 Prompt 规则 | v0.8.4 | 2/2 | Complete   | 2026-04-07 |
 
 ---
 *Roadmap updated: 2026-04-07 — Phase 68 plan finalized*

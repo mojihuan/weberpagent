@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.4
 milestone_name: 基于 v0.8.3 的研究优化
-status: Ready to execute
-last_updated: "2026-04-07T14:15:21.638Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-07T14:25:14.813Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -53,6 +53,7 @@ Recent decisions affecting current work:
 - [Phase 68]: _node_annotations uses int backend_node_id as key; _detect_row_identity walks parent chain to find tr ancestor
 - [Phase 68]: _detect_row_identity_from_tr() created for direct tr child scanning in serialize_tree (tr nodes not processed by Patch 4)
 - [Phase 69]: 69-01: detect_failure_mode + update_failure_tracker call chain integrated in step_callback with keyword gate and dom_hash closure — Per D-01/D-02/D-03/D-04: keyword gate prevents redundant calls, closure persists dom_hash across steps, local import avoids cycles
+- [Phase 69-prompt]: 69-02: Section 9 4 rule groups compressed to single-line format (行标识/反重复/策略优先级/失败恢复) — Per D-05/D-06/D-07: compact heading+content format, ordered by logic chain, appended without modifying existing content
 
 ### Pending Todos
 

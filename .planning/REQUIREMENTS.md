@@ -29,13 +29,13 @@ Requirements for v0.8.4 milestone. Each maps to roadmap phases.
 
 - [x] **RECOV-01**: StallDetector 新增三种失败模式检测——点击无 DOM 变化（`dom_hash_before == dom_hash_after`）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
 - [x] **RECOV-02**: step_callback 在 detector calls 区域添加新检测逻辑调用，将三种失败模式结果写入 `_failure_tracker` 对应 mode 字段
-- [ ] **RECOV-03**: Section 9 追加 ERP 表格专用失败恢复规则——三种失败模式各自的检测→标注→切换操作流程
+- [x] **RECOV-03**: Section 9 追加 ERP 表格专用失败恢复规则——三种失败模式各自的检测→标注→切换操作流程
 
 ### Prompt 层集成
 
-- [ ] **PROMPT-01**: Section 9 追加行标识使用规则——Agent 看到行标识注释后如何锁定目标行并在行内操作
-- [ ] **PROMPT-02**: Section 9 追加反重复规则——Agent 看到失败标注后应切换策略，不在同一元素重复尝试
-- [ ] **PROMPT-03**: Section 9 追加策略优先级规则——Agent 遇到策略标注时优先使用策略 1，失败后按标注降级
+- [x] **PROMPT-01**: Section 9 追加行标识使用规则——Agent 看到行标识注释后如何锁定目标行并在行内操作
+- [x] **PROMPT-02**: Section 9 追加反重复规则——Agent 看到失败标注后应切换策略，不在同一元素重复尝试
+- [x] **PROMPT-03**: Section 9 追加策略优先级规则——Agent 遇到策略标注时优先使用策略 1，失败后按标注降级
 
 ## v2 Requirements
 
@@ -76,10 +76,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STRAT-03 | Phase 68 | Complete |
 | RECOV-01 | Phase 67 | Complete |
 | RECOV-02 | Phase 69 | Complete |
-| RECOV-03 | Phase 69 | Pending |
-| PROMPT-01 | Phase 69 | Pending |
-| PROMPT-02 | Phase 69 | Pending |
-| PROMPT-03 | Phase 69 | Pending |
+| RECOV-03 | Phase 69 | Complete |
+| PROMPT-01 | Phase 69 | Complete |
+| PROMPT-02 | Phase 69 | Complete |
+| PROMPT-03 | Phase 69 | Complete |
 
 **Coverage:**
 - v1 requirements: 15 total
