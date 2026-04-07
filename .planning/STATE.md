@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.4
 milestone_name: 基于 v0.8.3 的研究优化
-status: "Phase 67 context gathered"
-last_updated: "2026-04-06T22:00:00.000Z"
+status: Ready to execute
+last_updated: "2026-04-07T00:57:49.266Z"
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 67 — 基础层（行标识检测与失败追踪状态）
+**Current focus:** Phase 67 — 基础层-行标识检测与失败追踪状态
 
 ## Last Shipped
 
@@ -31,12 +31,8 @@ See: .planning/PROJECT.md (updated 2026-04-06)
 
 ## Current Position
 
-Phase: 67 of 69 (基础层 — 行标识检测与失败追踪状态)
-Plan: 0 of ? in current phase
-Status: Context gathered
-Last activity: 2026-04-06 — Phase 67 context gathered, 4 decisions captured
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 67 (基础层-行标识检测与失败追踪状态) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -50,6 +46,8 @@ Recent decisions affecting current work:
 - [Phase 66]: reset_failure_tracker() 必须独立于 apply_dom_patch() 的 _PATCHED 保护
 - [Phase 66]: 三级策略标注只在已失败元素上显示，避免 Agent 偏向 evaluate JS
 - [Phase 66]: Patch 4 所有增强合并为单一 wrapper，不产生多层 wrapping 链
+- [Phase 67]: Row identity detection uses regex I+digits15 on tr children td text
+- [Phase 67]: Failure tracker keyed by backend_node_id, reset independent of _PATCHED
 
 ### Pending Todos
 

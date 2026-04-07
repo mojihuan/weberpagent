@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v0.8.4 基于 v0.8.3 的研究优化** — Phases 67-69 (in progress)
 - ✅ **v0.8.3 分析报告差距对表格填写影响** — Phases 65-66 (shipped 2026-04-06)
 - ✅ **v0.8.2 浏览器模式差异调查** — Phases 63-64 (shipped 2026-04-06)
 - ✅ **v0.8.1 修复销售出库表格填写问题** — Phase 62 (shipped 2026-04-06)
@@ -11,6 +12,14 @@
 - ✅ **v0.6.2 回归原生 browser-use** — Phases 45-47 (shipped 2026-03-27)
 
 ## Phases
+
+### 🚧 v0.8.4 基于 v0.8.3 的研究优化 (In Progress)
+
+**Milestone Goal:** 实施 v0.8.3 设计文档中的 Agent 表格交互优化策略，实现行标识定位、反重复机制、三级策略优先级和失败恢复
+
+- [ ] **Phase 67: 基础层** — 行标识检测、失败追踪状态、失败模式检测器
+- [ ] **Phase 68: DOM Patch 增强** — 行标识注入、策略标注、失败动态标注
+- [ ] **Phase 69: 服务集成与 Prompt 规则** — step_callback 集成、Section 9 规则追加
 
 <details>
 <summary>✅ v0.8.3 分析报告差距对表格填写影响 (Phases 65-66) — SHIPPED 2026-04-06</summary>
@@ -78,14 +87,64 @@
 
 ## Phase Details
 
-*No active phases. Start a new milestone to add phases.*
+### Phase 67: 基础层 — 行标识检测与失败追踪状态
+**Goal**: DOM Patch 能从 ERP 表格行中检测行标识，失败追踪状态在每次 run 正确初始化和重置，失败模式检测器能识别三种 ERP 表格交互失败
+**Depends on**: Nothing (first phase of v0.8.4)
+**Requirements**: ROW-01, ANTI-01, RECOV-01
+**Success Criteria** (what must be TRUE):
+  1. 给定包含 `<tr>` 子 `<td>` 文本为 "I352017041234567" 的 DOM 节点，`_detect_row_identity()` 返回提取的行标识字符串
+  2. `_failure_tracker` 以 `backend_node_id` 为键存储 `{count, last_error, mode}`，`update_failure_tracker()` 能写入新记录和累加失败次数，`reset_failure_tracker()` 清空所有记录
+  3. `reset_failure_tracker()` 作为独立函数在每次 run 开始时被调用，不受 `_PATCHED` 幂等保护影响
+  4. StallDetector 新增 `detect_failure_mode()` 返回 `FailureDetectionResult`，能识别三种模式：点击无 DOM 变化（dom_hash 比对）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
+**Plans**: 2 plans
+
+Plans:
+- [x] 67-01: 行标识检测与失败追踪状态
+- [ ] 67-02: 失败模式检测器
+
+### Phase 68: DOM Patch 增强 — 行标识注入与策略标注
+**Goal**: DOM dump 序列化输出包含行标识注释和策略层级标注，Agent 可据此锁定目标行并选择正确的交互策略，失败元素动态标注防止重复尝试
+**Depends on**: Phase 67
+**Requirements**: ROW-02, ROW-03, STRAT-01, STRAT-02, STRAT-03, ANTI-02
+**Success Criteria** (what must be TRUE):
+  1. DOM dump 序列化输出中，含商品编号的行上方出现 `<!-- 行: {id} -->` 注释，Agent 可据此锁定目标行
+  2. 行内 input 元素带有行归属标注，Agent 可区分不同行的相同 placeholder input（如两行都有"请输入数量"）
+  3. 可见 input 标注为策略 1，hidden input 标注为策略 2，同一元素策略 1 失败 2 次后标注降级为策略 2，策略 2 失败 2 次后降级为策略 3
+  4. 策略标注和失败标注只出现在已失败元素上，未失败元素不显示任何策略/失败信息，避免 evaluate JS 偏差
+  5. 所有对 `_assign_interactive_indices` 的增强合并到 Patch 4 的单一 wrapper 中，不产生多层 wrapping 链
+**Plans**: 2 plans
+
+Plans:
+- [ ] 68-01: Patch 4 增强 — 行归属与策略判定
+- [ ] 68-02: Patch 6 — 行标识注释注入
+- [ ] 68-03: Patch 7 — 失败动态标注注入
+
+### Phase 69: 服务集成与 Prompt 规则
+**Goal**: step_callback 将失败检测结果写入 _failure_tracker，Section 9 包含行标识、反重复、策略优先级和失败恢复的完整操作规则
+**Depends on**: Phase 68
+**Requirements**: ANTI-03, RECOV-02, RECOV-03, PROMPT-01, PROMPT-02, PROMPT-03
+**Success Criteria** (what must be TRUE):
+  1. step_callback 在 detector calls 区域调用 `update_failure_tracker()` 和 `detect_failure_mode()`，将 evaluation 失败关键词和 dom_hash 变化检测结果写入 tracker
+  2. Section 9 包含行标识使用规则，指导 Agent 看到行标识注释后锁定目标行并在行内操作
+  3. Section 9 包含反重复规则，指导 Agent 看到失败标注后切换策略，不在同一元素重复尝试
+  4. Section 9 包含策略优先级规则，指导 Agent 遇到策略标注时优先使用策略 1，失败后按标注降级
+  5. Section 9 包含 ERP 表格三种失败模式的检测-标注-切换操作恢复流程
+**Plans**: 2 plans
+
+Plans:
+- [ ] 69-01: step_callback 集成与状态重置
+- [ ] 69-02: Section 9 Prompt 规则追加
 
 ## Progress
 
+**Execution Order:**
+Phases execute in numeric order: 67 -> 68 -> 69
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 65. 差距关联分析 | v0.8.3 | 1/1 | Complete | 2026-04-06 |
-| 66. 优化方案设计 | v0.8.3 | 1/1 | Complete | 2026-04-06 |
+| 67. 基础层 | v0.8.4 | 1/2 | In Progress|  |
+| 68. DOM Patch 增强 | v0.8.4 | 0/? | Not started | - |
+| 69. 服务集成与 Prompt 规则 | v0.8.4 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-06 — v0.8.3 archived*
+*Roadmap updated: 2026-04-06 — v0.8.4 roadmap created*
