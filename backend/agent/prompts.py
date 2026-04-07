@@ -80,6 +80,10 @@ ERP 销售出库表格使用 click-to-edit 模式：
 - 不要混淆列：总成本列的 td 显示 "210"，销售金额列的 td 显示 "0.00"，两者是不同单元格
 - 通过对应行的物品编号 / IMEI 确认商品所在行，再点击正确的列单元格
 - 填写后验证表格中显示的值已变为目标值（如 0.00 变为 150）
+**行标识定位：** 看到 `<!-- 行: I数字 -->` → 锁定该行内 input，多行相同 placeholder 用行标识区分
+**反重复操作：** 看到 `[已尝试 N 次 模式: ...]` → 切换策略，不要重复相同操作
+**策略优先级：** `[策略: 1-原生 input]`→直接 input；`[策略: 2-需先 click]`→先 click 再 input；`[策略: 3-evaluate JS]`→用 JS 设值
+**失败恢复：** click_no_effect→换 evaluate JS 点击；wrong_column→按 IMEI 重定位；edit_not_active→先 click td 激活再填值
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）
