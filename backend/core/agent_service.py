@@ -171,6 +171,7 @@ class AgentService:
         run_logger.log("info", "system", "Run started", max_steps=max_steps)
 
         step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
+        _prev_dom_hash_data = {"value": None}  # Mutable container for previous step dom_hash (Phase 69, D-02)
 
         async def step_callback(browser_state, agent_output, step: int):
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
@@ -317,6 +318,33 @@ class AgentService:
                     agent._pending_interventions.append(stall_result.message)
                     run_logger.log("warning", "monitor", "Stall detected",
                                    step=step, detail=stall_result.message[:100])
+
+                # --- Phase 69: Failure mode detection + tracker update (D-01/D-02/D-03) ---
+                _failure_keywords = ('失败', 'wrong', 'error', '无法', '不成功', '未成功')
+                if any(kw in evaluation for kw in _failure_keywords):
+                    try:
+                        failure_result = agent._stall_detector.detect_failure_mode(
+                            action_name=action_name,
+                            target_index=action_params.get("index") if isinstance(action_params, dict) else None,
+                            evaluation=evaluation,
+                            dom_hash_before=_prev_dom_hash_data["value"] or "",
+                            dom_hash_after=dom_hash,
+                        )
+                        if failure_result.failure_mode is not None:
+                            from backend.agent.dom_patch import update_failure_tracker
+                            backend_node_id = str(action_params.get("index", ""))
+                            update_failure_tracker(
+                                backend_node_id=backend_node_id,
+                                error=failure_result.details.get("evaluation_snippet", evaluation[:100]),
+                                mode=failure_result.failure_mode,
+                            )
+                            run_logger.log("warning", "monitor", "Failure detected",
+                                           step=step, mode=failure_result.failure_mode)
+                    except Exception as fe:
+                        logger.error(f"[{run_id}][MONITOR] Failure detection error (non-blocking): {fe}")
+
+                # Update previous dom_hash for next step (D-02)
+                _prev_dom_hash_data["value"] = dom_hash
 
                 # Progress tracking
                 progress_result = agent._task_tracker.check_progress(
