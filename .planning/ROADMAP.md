@@ -116,7 +116,7 @@ Plans:
 
 Plans:
 - [x] 68-01: Patch 4 增强 — sidecar 字典 + 行归属与策略判定 (ROW-03, STRAT-01, STRAT-03)
-- [ ] 68-02: 合并 Patch 6+7 — 行标识注释 + 失败动态标注注入 (ROW-02, STRAT-02, ANTI-02)
+- [x] 68-02: 合并 Patch 6+7 — 行标识注释 + 失败动态标注注入 (ROW-02, STRAT-02, ANTI-02)
 
 ### Phase 69: 服务集成与 Prompt 规则
 **Goal**: step_callback 将失败检测结果写入 _failure_tracker，Section 9 包含行标识、反重复、策略优先级和失败恢复的完整操作规则
@@ -142,7 +142,7 @@ Phases execute in numeric order: 67 -> 68 -> 69
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 67. 基础层 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
-| 68. DOM Patch 增强 | v0.8.4 | 1/2 | In Progress|  |
+| 68. DOM Patch 增强 | v0.8.4 | 2/2 | Complete   | 2026-04-07 |
 | 69. 服务集成与 Prompt 规则 | v0.8.4 | 0/? | Not started | - |
 
 ---

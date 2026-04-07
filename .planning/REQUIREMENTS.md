@@ -10,19 +10,19 @@ Requirements for v0.8.4 milestone. Each maps to roadmap phases.
 ### 行标识定位 (OPTIMIZE-01)
 
 - [x] **ROW-01**: DOM Patch 能从 ERP 表格 `<tr>` 的子 `<td>` 文本中检测 IMEI/商品编号（正则 `I\d{15}`），提取为行标识
-- [ ] **ROW-02**: DOM Patch 在 DOM dump 序列化输出中为含商品编号的行注入 `<!-- 行: {id} -->` 注释，Agent 可据此锁定目标行
+- [x] **ROW-02**: DOM Patch 在 DOM dump 序列化输出中为含商品编号的行注入 `<!-- 行: {id} -->` 注释，Agent 可据此锁定目标行
 - [x] **ROW-03**: Patch 4 (`_assign_interactive_indices`) 为行内 input 添加行归属标注，Agent 可区分不同行的相同 placeholder input
 
 ### 反重复机制 (OPTIMIZE-02)
 
 - [x] **ANTI-01**: 模块级 `_failure_tracker` 字典以 `backend_node_id` 为键（非 index）追踪失败历史，包含 count/last_error/mode 字段，并提供独立 `reset_failure_tracker()` 函数在每次 run 开始时重置
-- [ ] **ANTI-02**: DOM Patch 在序列化时根据 `_failure_tracker` 为失败元素动态注入标注（已尝试N次失败、点击无响应、非目标列），且只在已失败元素上标注，避免全局策略偏差
+- [x] **ANTI-02**: DOM Patch 在序列化时根据 `_failure_tracker` 为失败元素动态注入标注（已尝试N次失败、点击无响应、非目标列），且只在已失败元素上标注，避免全局策略偏差
 - [ ] **ANTI-03**: step_callback 在 detector calls 区域调用 `update_failure_tracker()`，将 evaluation 失败关键词和 dom_hash 变化检测结果写入 tracker
 
 ### 策略优先级 (OPTIMIZE-03)
 
 - [x] **STRAT-01**: DOM Patch 基于 `snapshot_node` 存在性和 `is_visible` 状态判定三级策略——可见 input 为策略 1（原生 input），hidden input 为策略 2（click-to-edit），两次失败降级为策略 3（evaluate JS）
-- [ ] **STRAT-02**: DOM Patch 在序列化后处理阶段通过包裹 `serialize_tree()` 输出注入策略注释，只在已失败元素上标注策略层级
+- [x] **STRAT-02**: DOM Patch 在序列化后处理阶段通过包裹 `serialize_tree()` 输出注入策略注释，只在已失败元素上标注策略层级
 - [x] **STRAT-03**: 策略自动降级——`_failure_tracker` 记录同一元素策略 1 失败 2 次后标注降级为策略 2，策略 2 失败 2 次后降级为策略 3
 
 ### 失败恢复 (OPTIMIZE-04)
@@ -66,13 +66,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ROW-01 | Phase 67 | Complete |
-| ROW-02 | Phase 68 | Pending |
+| ROW-02 | Phase 68 | Complete |
 | ROW-03 | Phase 68 | Complete |
 | ANTI-01 | Phase 67 | Complete |
-| ANTI-02 | Phase 68 | Pending |
+| ANTI-02 | Phase 68 | Complete |
 | ANTI-03 | Phase 69 | Pending |
 | STRAT-01 | Phase 68 | Complete |
-| STRAT-02 | Phase 68 | Pending |
+| STRAT-02 | Phase 68 | Complete |
 | STRAT-03 | Phase 68 | Complete |
 | RECOV-01 | Phase 67 | Complete |
 | RECOV-02 | Phase 69 | Pending |

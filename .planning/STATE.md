@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.4
 milestone_name: 基于 v0.8.3 的研究优化
-status: Ready to execute
-last_updated: "2026-04-07T03:16:39.618Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-07T03:34:56.250Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Recent decisions affecting current work:
 - [Phase 67]: wrong_column detection priority over click_no_effect -- evaluation keywords more diagnostic than dom_hash
 - [Phase 67]: edit_not_active only triggers on action_name=input -- prevents false positives from click actions with editable-related keywords
 - [Phase 68]: _node_annotations uses int backend_node_id as key; _detect_row_identity walks parent chain to find tr ancestor
+- [Phase 68]: _detect_row_identity_from_tr() created for direct tr child scanning in serialize_tree (tr nodes not processed by Patch 4)
 
 ### Pending Todos
 
