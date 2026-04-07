@@ -13,23 +13,20 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
+## Current Milestone: v0.8.4 基于 v0.8.3 的研究优化
+
+**目标：** 实施 v0.8.3 设计文档中的 16 项代码任务，实现 Agent 表格交互的四项优化策略
+
+**目标特性：**
+- OPTIMIZE-01: 按行定位 + 直接找 input（行标识机制 + Patch 4 增强）
+- OPTIMIZE-02: 反重复机制（`_failure_tracker` + 动态标注）
+- OPTIMIZE-03: 三级策略优先级（原生 input → click-to-edit → evaluate JS）
+- OPTIMIZE-04: 失败恢复策略（点击无变化 / 误点错误列 / 编辑态误判）
+
 ## Current State
 
-**最新版本:** v0.8.3 分析报告差距对表格填写影响 (shipped 2026-04-06)
-**Next:** 待规划 — 表格交互优化实施 (16 项代码任务) 或 其他方向
-
-## Current State
-
-v0.8.3 完成了分析设计工作，确认了以下结论：
-- headless 是加剧因素而非唯一根因
-- DOM Patch 5 个补丁中 4 个仍必要（恢复 headed 后）
-- Section 9 Prompt 确认保留
-- 产出 540 行优化设计文档，16 项代码任务可直接实施
-
-**待实施方向:**
-- v0.8.3 设计文档中的 16 项代码任务（行定位/反重复/策略优先级/失败恢复）
-- 恢复 headed 模式（修改 create_browser_session 中的 headless=True）
-- 断言严格度分级设计（deferred）
+**最新版本:** v0.8.4 基于 v0.8.3 的研究优化 (in progress)
+**当前里程碑:** v0.8.4 Phase 68 complete — dom-patch 行标识注解与策略标注已实现
 
 **Server online**: 121.40.191.49
 
@@ -103,6 +100,15 @@ v0.1-v0.4.2 核心功能:
 
 ### Active
 
+- ROW-02: DOM dump tr 节点注入行标识注释 — Phase 68
+- ROW-03: _node_annotations 侧字典记录行归属 — Phase 68
+- STRAT-01: 三级策略可见性判定 (visibility-based) — Phase 68
+- STRAT-02: serialize_tree 输出策略标注 — Phase 68
+- STRAT-03: 失败降级逻辑 (failure_count >= 2 → 降级策略) — Phase 68
+- ANTI-02: 误操作防护（策略标注仅对失败元素注入）— Phase 68
+
+Validated in Phase 68: dom-patch — _node_annotations sidecar dict + Patch 4 增强 + Patch 6+7 serialize_tree 注入
+
 ### Validated (v0.8.3)
 
 - ✓ ANALYSIS-01: headless/headed 差异与表格定位不准的因果关联 — 部分，headless 为加剧因素 — Phase 65
@@ -165,4 +171,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-06 after v0.8.3 milestone shipped*
+*Last updated: 2026-04-06 — milestone v0.8.4 started*
