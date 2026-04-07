@@ -138,6 +138,33 @@ def _detect_row_identity(node) -> str | None:
     return None
 
 
+def _detect_row_identity_from_tr(tr_original) -> str | None:
+    """Extract IMEI row identity directly from a <tr> AccessibilityNode's td children.
+
+    Unlike _detect_row_identity which walks the parent chain to find a <tr>,
+    this function assumes the passed node IS the <tr> and scans its children.
+
+    Args:
+        tr_original: An AccessibilityNode with tag_name='tr'.
+
+    Returns:
+        The matched IMEI string, or None.
+    """
+    tr_children = getattr(tr_original, "children", [])
+    for child in tr_children:
+        child_tag = getattr(child, "tag_name", "")
+        if child_tag.lower() != "td":
+            continue
+        text = child.get_all_children_text()
+        if not text:
+            continue
+        match = _ROW_IDENTITY_PATTERN.search(text)
+        if match:
+            return match.group()
+
+    return None
+
+
 def update_failure_tracker(backend_node_id: str, error: str, mode: str) -> None:
     """Update failure tracking record.
 
@@ -304,7 +331,7 @@ def _patch_is_interactive() -> None:
 def apply_dom_patch() -> None:
     """Apply monkey-patches to browser-use DOM serializer.
 
-    Patches 5 mechanisms:
+    Patches 6 mechanisms:
     1. ClickableElementDetector.is_interactive - marks ERP elements (ERP CSS
        classes and <td> cells with text) as interactive so they receive
        clickable indices.
@@ -317,6 +344,8 @@ def apply_dom_patch() -> None:
     5. ClickableElementDetector.is_interactive (extended) - marks <td> cells
        with text content as interactive so they appear with proper nesting
        in DOM dump (fixes click-to-edit cell visibility).
+    6. DOMTreeSerializer.serialize_tree - inject row identity comments (Patch 6)
+       and failure/strategy annotations (Patch 7) into DOM dump output.
 
     Idempotent: multiple calls are safe and only patch once.
     """
@@ -332,8 +361,9 @@ def apply_dom_patch() -> None:
         _patch_paint_order_remover()
         _patch_should_exclude_child()
         _patch_assign_interactive_indices()
+        _patch_serialize_tree_annotations()
         _PATCHED = True
-        logger.info("dom_patch: successfully applied all 5 patches")
+        logger.info("dom_patch: successfully applied all patches (including Phase 68)")
     except Exception as exc:
         logger.error("dom_patch: failed to apply: %s", exc)
         raise
@@ -444,3 +474,83 @@ def _patch_assign_interactive_indices() -> None:
 
     DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = patched_method
     logger.debug("dom_patch: patched _assign_interactive_indices_and_mark_new_nodes")
+
+
+# Strategy names for DOM dump annotation (D-03)
+_STRATEGY_NAMES = {
+    1: "1-原生 input",
+    2: "2-需先 click",
+    3: "3-evaluate JS",
+}
+
+
+def _patch_serialize_tree_annotations() -> None:
+    """Patch 6+7: Inject row identity comments and failure annotations into DOM dump.
+
+    Combines two concerns into a single serialize_tree wrapper to avoid
+    multi-layer wrapping chains (per D-01):
+
+    - Patch 6: Prepend ``<!-- 行: {id} -->`` above ``<tr>`` elements with IMEI row identity
+    - Patch 7: Append strategy + failure annotation for ERP inputs in ``_failure_tracker``
+    """
+    from browser_use.dom.serializer.serializer import DOMTreeSerializer
+
+    original_serialize = DOMTreeSerializer.serialize_tree
+
+    @staticmethod
+    def patched_serialize(node, include_attributes, depth=0):
+        result = original_serialize(node, include_attributes, depth)
+        if not result or not node:
+            return result
+
+        orig = getattr(node, 'original_node', None)
+        if orig is None:
+            return result
+
+        backend_id = getattr(orig, 'backend_node_id', None)
+        if backend_id is None:
+            return result
+
+        depth_str = depth * '\t'
+        lines = []
+
+        # --- Patch 6: Row identity comment ---
+        # For <tr> elements: scan td children directly for IMEI (not from sidecar dict,
+        # since <tr> nodes are not processed by Patch 4)
+        tag = getattr(orig, 'tag_name', '').lower()
+        if tag == 'tr':
+            row_id = _detect_row_identity_from_tr(orig)
+            if row_id:
+                lines.append(f'{depth_str}<!-- 行: {row_id} -->')
+
+        lines.append(result)
+
+        # --- Patch 7: Failure + strategy annotation ---
+        # Only for ERP inputs that appear in _failure_tracker (D-04)
+        ann = _node_annotations.get(backend_id, {})
+        if ann.get('is_erp_input') and str(backend_id) in _failure_tracker:
+            failure = _failure_tracker[str(backend_id)]
+            base_strategy = ann.get('base_strategy', 1)
+
+            # Re-apply failure-based downgrade (tracker may have updated since Patch 4)
+            count = failure['count']
+            if base_strategy == 1 and count >= 2:
+                current_strategy = 2
+            elif base_strategy == 2 and count >= 2:
+                current_strategy = 3
+            else:
+                current_strategy = base_strategy
+
+            parts = []
+            row_id = ann.get('row_identity')
+            if row_id:
+                parts.append(f"[行: {row_id}]")
+            parts.append(f"[策略: {_STRATEGY_NAMES.get(current_strategy, '?')}]")
+            parts.append(f"[已尝试 {count} 次 模式: {failure['mode']}]")
+
+            lines.append(f'{depth_str}<!-- 行内 input {" ".join(parts)} -->')
+
+        return '\n'.join(lines)
+
+    DOMTreeSerializer.serialize_tree = patched_serialize
+    logger.debug("dom_patch: patched serialize_tree for row identity and failure annotations")
