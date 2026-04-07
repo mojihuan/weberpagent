@@ -145,3 +145,62 @@ class TestEnhancedPrompt:
         end = section_end if section_end is not None else len(lines)
         section_lines = [l for l in lines[section_start:end] if l.strip()]
         assert len(section_lines) <= 10
+
+
+class TestSection9Phase69:
+    """Tests for Phase 69 Section 9 prompt rule additions (PROMPT-01/02/03, RECOV-03)."""
+
+    def test_contains_row_identity_rules(self):
+        """PROMPT-01: Section 9 must contain row identity usage rules."""
+        assert "行标识" in ENHANCED_SYSTEM_MESSAGE or "行定位" in ENHANCED_SYSTEM_MESSAGE
+        assert "行:" in ENHANCED_SYSTEM_MESSAGE
+
+    def test_contains_anti_repeat_rules(self):
+        """PROMPT-02: Section 9 must contain anti-repeat rules."""
+        assert (
+            "已尝试" in ENHANCED_SYSTEM_MESSAGE
+            or "反重复" in ENHANCED_SYSTEM_MESSAGE
+            or "不要重复" in ENHANCED_SYSTEM_MESSAGE
+        )
+
+    def test_contains_strategy_priority_rules(self):
+        """PROMPT-03: Section 9 must contain strategy priority rules."""
+        assert "策略" in ENHANCED_SYSTEM_MESSAGE
+        assert (
+            "1-原生 input" in ENHANCED_SYSTEM_MESSAGE
+            or "2-需先 click" in ENHANCED_SYSTEM_MESSAGE
+            or "3-evaluate JS" in ENHANCED_SYSTEM_MESSAGE
+        )
+
+    def test_contains_failure_recovery_rules(self):
+        """RECOV-03: Section 9 must contain failure recovery rules for all three modes."""
+        assert (
+            "click_no_effect" in ENHANCED_SYSTEM_MESSAGE
+            or (
+                "click" in ENHANCED_SYSTEM_MESSAGE
+                and (
+                    "无变化" in ENHANCED_SYSTEM_MESSAGE
+                    or "无响应" in ENHANCED_SYSTEM_MESSAGE
+                )
+            )
+        )
+        assert (
+            "wrong_column" in ENHANCED_SYSTEM_MESSAGE
+            or "错误列" in ENHANCED_SYSTEM_MESSAGE
+            or "误点" in ENHANCED_SYSTEM_MESSAGE
+        )
+        assert (
+            "edit_not_active" in ENHANCED_SYSTEM_MESSAGE
+            or "未激活" in ENHANCED_SYSTEM_MESSAGE
+        )
+
+    def test_total_line_count_under_80(self):
+        """D-05/RESEARCH Pitfall 4: Total ENHANCED_SYSTEM_MESSAGE must stay under 80 lines."""
+        lines = ENHANCED_SYSTEM_MESSAGE.strip().splitlines()
+        assert len(lines) <= 80
+
+    def test_existing_section9_content_unchanged(self):
+        """D-07: Existing Section 9 content must not be modified."""
+        assert "单元格定位" in ENHANCED_SYSTEM_MESSAGE
+        assert "禁止行为" in ENHANCED_SYSTEM_MESSAGE
+        assert "点击编辑工作流" in ENHANCED_SYSTEM_MESSAGE
