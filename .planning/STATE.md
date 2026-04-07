@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.4
 milestone_name: 基于 v0.8.3 的研究优化
-status: Ready to plan
-last_updated: "2026-04-07T03:43:08.464Z"
+status: Ready to execute
+last_updated: "2026-04-07T14:15:21.638Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 68 — dom-patch
+**Current focus:** Phase 69 — prompt
 
 ## Last Shipped
 
@@ -31,8 +31,8 @@ See: .planning/PROJECT.md (updated 2026-04-06)
 
 ## Current Position
 
-Phase: 69
-Plan: Not started
+Phase: 69 (prompt) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -52,6 +52,7 @@ Recent decisions affecting current work:
 - [Phase 67]: edit_not_active only triggers on action_name=input -- prevents false positives from click actions with editable-related keywords
 - [Phase 68]: _node_annotations uses int backend_node_id as key; _detect_row_identity walks parent chain to find tr ancestor
 - [Phase 68]: _detect_row_identity_from_tr() created for direct tr child scanning in serialize_tree (tr nodes not processed by Patch 4)
+- [Phase 69]: 69-01: detect_failure_mode + update_failure_tracker call chain integrated in step_callback with keyword gate and dom_hash closure — Per D-01/D-02/D-03/D-04: keyword gate prevents redundant calls, closure persists dom_hash across steps, local import avoids cycles
 
 ### Pending Todos
 

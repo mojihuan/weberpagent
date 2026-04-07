@@ -17,7 +17,7 @@ Requirements for v0.8.4 milestone. Each maps to roadmap phases.
 
 - [x] **ANTI-01**: 模块级 `_failure_tracker` 字典以 `backend_node_id` 为键（非 index）追踪失败历史，包含 count/last_error/mode 字段，并提供独立 `reset_failure_tracker()` 函数在每次 run 开始时重置
 - [x] **ANTI-02**: DOM Patch 在序列化时根据 `_failure_tracker` 为失败元素动态注入标注（已尝试N次失败、点击无响应、非目标列），且只在已失败元素上标注，避免全局策略偏差
-- [ ] **ANTI-03**: step_callback 在 detector calls 区域调用 `update_failure_tracker()`，将 evaluation 失败关键词和 dom_hash 变化检测结果写入 tracker
+- [x] **ANTI-03**: step_callback 在 detector calls 区域调用 `update_failure_tracker()`，将 evaluation 失败关键词和 dom_hash 变化检测结果写入 tracker
 
 ### 策略优先级 (OPTIMIZE-03)
 
@@ -28,7 +28,7 @@ Requirements for v0.8.4 milestone. Each maps to roadmap phases.
 ### 失败恢复 (OPTIMIZE-04)
 
 - [x] **RECOV-01**: StallDetector 新增三种失败模式检测——点击无 DOM 变化（`dom_hash_before == dom_hash_after`）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
-- [ ] **RECOV-02**: step_callback 在 detector calls 区域添加新检测逻辑调用，将三种失败模式结果写入 `_failure_tracker` 对应 mode 字段
+- [x] **RECOV-02**: step_callback 在 detector calls 区域添加新检测逻辑调用，将三种失败模式结果写入 `_failure_tracker` 对应 mode 字段
 - [ ] **RECOV-03**: Section 9 追加 ERP 表格专用失败恢复规则——三种失败模式各自的检测→标注→切换操作流程
 
 ### Prompt 层集成
@@ -70,12 +70,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROW-03 | Phase 68 | Complete |
 | ANTI-01 | Phase 67 | Complete |
 | ANTI-02 | Phase 68 | Complete |
-| ANTI-03 | Phase 69 | Pending |
+| ANTI-03 | Phase 69 | Complete |
 | STRAT-01 | Phase 68 | Complete |
 | STRAT-02 | Phase 68 | Complete |
 | STRAT-03 | Phase 68 | Complete |
 | RECOV-01 | Phase 67 | Complete |
-| RECOV-02 | Phase 69 | Pending |
+| RECOV-02 | Phase 69 | Complete |
 | RECOV-03 | Phase 69 | Pending |
 | PROMPT-01 | Phase 69 | Pending |
 | PROMPT-02 | Phase 69 | Pending |
