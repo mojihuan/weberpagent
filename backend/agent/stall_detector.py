@@ -16,6 +16,16 @@ FAILURE_KEYWORDS = re.compile(
     re.IGNORECASE,
 )
 
+_WRONG_COLUMN_KEYWORDS = re.compile(
+    r"wrong.?column|错误列|误点|非目标列|clicked.*wrong",
+    re.IGNORECASE,
+)
+
+_EDIT_NOT_ACTIVE_KEYWORDS = re.compile(
+    r"not.?editable|无法输入|元素不可操作|cannot.?type|not.?interactable",
+    re.IGNORECASE,
+)
+
 
 @dataclass(frozen=True)
 class StallResult:
@@ -23,6 +33,19 @@ class StallResult:
 
     should_intervene: bool
     message: str
+
+
+@dataclass(frozen=True)
+class FailureDetectionResult:
+    """失败模式检测结果（不可变）。
+
+    Per D-02: 与 StallResult 平级的 frozen dataclass。
+    failure_mode=None 表示未检测到失败模式。
+    details 包含诊断信息（关键词匹配、hash 比对结果等）。
+    """
+
+    failure_mode: str | None
+    details: dict
 
 
 @dataclass
@@ -135,3 +158,64 @@ class StallDetector:
             return StallResult(should_intervene=True, message=message)
 
         return StallResult(should_intervene=False, message="")
+
+    def detect_failure_mode(
+        self,
+        action_name: str,
+        target_index: int | None,
+        evaluation: str,
+        dom_hash_before: str,
+        dom_hash_after: str,
+    ) -> FailureDetectionResult:
+        """检测三种 ERP 表格交互失败模式。
+
+        Per D-03: 与 check() 平级的独立方法，不修改 _history。
+        检测顺序: wrong_column -> edit_not_active -> click_no_effect。
+
+        Args:
+            action_name: 操作类型（click, input 等）。
+            target_index: 目标元素索引。
+            evaluation: Agent 评估文本。
+            dom_hash_before: 操作前 DOM 哈希。
+            dom_hash_after: 操作后 DOM 哈希。
+
+        Returns:
+            FailureDetectionResult（frozen），failure_mode=None 表示无失败。
+        """
+        # 检测 wrong_column（evaluation 关键词匹配）
+        wrong_match = _WRONG_COLUMN_KEYWORDS.search(evaluation)
+        if wrong_match:
+            return FailureDetectionResult(
+                failure_mode="wrong_column",
+                details={
+                    "keywords_matched": [wrong_match.group()],
+                    "evaluation_snippet": evaluation[:100],
+                    "target_index": target_index,
+                },
+            )
+
+        # 检测 edit_not_active（input 操作 + evaluation 关键词）
+        if action_name == "input":
+            edit_match = _EDIT_NOT_ACTIVE_KEYWORDS.search(evaluation)
+            if edit_match:
+                return FailureDetectionResult(
+                    failure_mode="edit_not_active",
+                    details={
+                        "keywords_matched": [edit_match.group()],
+                        "evaluation_snippet": evaluation[:100],
+                        "target_index": target_index,
+                    },
+                )
+
+        # 检测 click_no_effect（click 操作 + DOM 无变化）
+        if action_name == "click" and dom_hash_before == dom_hash_after:
+            return FailureDetectionResult(
+                failure_mode="click_no_effect",
+                details={
+                    "target_index": target_index,
+                    "dom_hash": dom_hash_before,
+                },
+            )
+
+        # 无失败
+        return FailureDetectionResult(failure_mode=None, details={})
