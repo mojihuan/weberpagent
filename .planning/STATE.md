@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.8.4
 milestone_name: 基于 v0.8.3 的研究优化
-status: Phase complete — ready for verification
-last_updated: "2026-04-07T01:03:24.766Z"
+status: Ready to execute
+last_updated: "2026-04-07T03:16:39.618Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 67 — 基础层-行标识检测与失败追踪状态
+**Current focus:** Phase 68 — dom-patch
 
 ## Last Shipped
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-04-06)
 
 ## Current Position
 
-Phase: 67 (基础层-行标识检测与失败追踪状态) — EXECUTING
+Phase: 68 (dom-patch) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -50,6 +50,7 @@ Recent decisions affecting current work:
 - [Phase 67]: Failure tracker keyed by backend_node_id, reset independent of _PATCHED
 - [Phase 67]: wrong_column detection priority over click_no_effect -- evaluation keywords more diagnostic than dom_hash
 - [Phase 67]: edit_not_active only triggers on action_name=input -- prevents false positives from click actions with editable-related keywords
+- [Phase 68]: _node_annotations uses int backend_node_id as key; _detect_row_identity walks parent chain to find tr ancestor
 
 ### Pending Todos
 
