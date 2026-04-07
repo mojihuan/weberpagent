@@ -142,7 +142,7 @@ Phases execute in numeric order: 67 -> 68 -> 69
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 67. 基础层 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
-| 68. DOM Patch 增强 | v0.8.4 | 2/2 | Complete   | 2026-04-07 |
+| 68. DOM Patch 增强 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
 | 69. 服务集成与 Prompt 规则 | v0.8.4 | 0/? | Not started | - |
 
 ---
