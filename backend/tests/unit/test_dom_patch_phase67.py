@@ -167,7 +167,7 @@ class TestDetectRowIdentity:
         )
         td2 = MockAccessibilityNode(
             tag_name="td",
-            children_text="I01784004409597",
+            children_text="I017840044095970",
         )
         tr_node = MockAccessibilityNode(
             tag_name="tr",
@@ -180,7 +180,7 @@ class TestDetectRowIdentity:
         node = MockSimplifiedNode(original_node=td1)
         result = _detect_row_identity(node)
 
-        assert result == "I01784004409597"
+        assert result == "I017840044095970"
 
     def test_skips_non_td_children_in_tr(self):
         """Non-td children of tr are skipped during IMEI search."""
@@ -212,7 +212,7 @@ class TestDetectRowIdentity:
         )
         td2 = MockAccessibilityNode(
             tag_name="td",
-            children_text="I01784004409597",
+            children_text="I017840044095970",
         )
         tr_node = MockAccessibilityNode(
             tag_name="tr",

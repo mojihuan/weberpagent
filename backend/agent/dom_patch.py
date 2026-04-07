@@ -8,6 +8,7 @@ use standard click(index=N) to interact with them.
 """
 
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,12 @@ _ERP_TABLE_CELL_PLACEHOLDERS = frozenset({
 _ERP_NUMERIC_CELL_PATTERNS = (
     r"^-?\d+(\.\d{1,2})?$",  # e.g. 0.00, 210, -210.00, 150.5
 )
+
+# IMEI / product number format: I + 15 digits
+_ROW_IDENTITY_PATTERN = re.compile(r"I\d{15}")
+
+# Failure tracking state: keyed by backend_node_id
+_failure_tracker: dict[str, dict] = {}
 
 
 def _is_textual_td_cell(node) -> bool:
@@ -79,6 +86,73 @@ def _is_textual_td_cell(node) -> bool:
         return True
 
     return False
+
+
+def _detect_row_identity(node) -> str | None:
+    """Detect row identity (IMEI / product number) from an ERP table row.
+
+    Traverses all <td> children of the <tr> parent that contains *node*,
+    applies the ``I\\d{15}`` regex to each td's text, and returns the
+    first match.
+
+    Args:
+        node: A SimplifiedNode instance.
+
+    Returns:
+        The matched IMEI string, or ``None``.
+    """
+    original = getattr(node, "original_node", None)
+    if original is None:
+        return None
+
+    parent = getattr(original, "parent_node", None)
+    if parent is None:
+        return None
+
+    parent_tag = getattr(parent, "tag_name", None)
+    if not parent_tag or parent_tag.lower() != "tr":
+        return None
+
+    tr_children = getattr(parent, "children", [])
+    for child in tr_children:
+        child_tag = getattr(child, "tag_name", "")
+        if child_tag.lower() != "td":
+            continue
+        text = child.get_all_children_text()
+        if not text:
+            continue
+        match = _ROW_IDENTITY_PATTERN.search(text)
+        if match:
+            return match.group()
+
+    return None
+
+
+def update_failure_tracker(backend_node_id: str, error: str, mode: str) -> None:
+    """Update failure tracking record.
+
+    Args:
+        backend_node_id: Target element's backend_node_id.
+        error: Failure description.
+        mode: Failure mode (click_no_effect / wrong_column / edit_not_active).
+    """
+    global _failure_tracker
+    if backend_node_id in _failure_tracker:
+        _failure_tracker[backend_node_id]["count"] += 1
+        _failure_tracker[backend_node_id]["last_error"] = error
+        _failure_tracker[backend_node_id]["mode"] = mode
+    else:
+        _failure_tracker[backend_node_id] = {
+            "count": 1,
+            "last_error": error,
+            "mode": mode,
+        }
+
+
+def reset_failure_tracker() -> None:
+    """Clear all failure tracking state. Called at the start of every run."""
+    global _failure_tracker
+    _failure_tracker = {}
 
 
 def _has_erp_clickable_class(node) -> bool:
@@ -232,6 +306,7 @@ def apply_dom_patch() -> None:
     """
     global _PATCHED
     if _PATCHED:
+        reset_failure_tracker()  # reset tracker every run, independent of _PATCHED
         logger.debug("dom_patch: already applied, skipping")
         return
 
