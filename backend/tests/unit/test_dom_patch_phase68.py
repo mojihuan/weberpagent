@@ -7,7 +7,7 @@ Tests verify:
 - Reset logic: _reset_node_annotations() clears sidecar dict
 """
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -135,7 +135,7 @@ def _make_erp_input_node(
         backend_node_id=backend_node_id,
         snapshot_node=snapshot_node,
         attributes={"placeholder": placeholder},
-        parent_node=td_node,
+        parent=td_node,
     )
 
     return MockSimplifiedNode(original_node=input_node)
@@ -147,6 +147,37 @@ def _make_imei_td(imei: str = "I352017041234567") -> MockAccessibilityNode:
         tag_name="td",
         children_text=imei,
     )
+
+
+def _call_patched_method(node, is_erp_input: bool = True):
+    """Apply patch and call patched_method with the given node.
+
+    Replaces the original DOMTreeSerializer method with a no-op so that
+    only Phase 68 logic executes (no real serializer traversal).
+    """
+    import backend.agent.dom_patch as mod
+    from browser_use.dom.serializer.serializer import DOMTreeSerializer
+
+    # Step 1: Replace the serializer method with a no-op so
+    # _patch_assign_interactive_indices captures a no-op as original_method.
+    original = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
+    DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = lambda self, node: None
+
+    try:
+        # Step 2: Mock _is_erp_table_cell_input to control ERP input detection
+        with patch.object(mod, "_is_erp_table_cell_input", return_value=is_erp_input):
+            mod._patch_assign_interactive_indices()
+
+            # Step 3: Create a mock serializer and call the patched method
+            serializer = MagicMock()
+            serializer._selector_map = {}
+            serializer._interactive_counter = 0
+
+            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
+            patched(serializer, node)
+    finally:
+        # Restore original method to avoid side effects across tests
+        DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = original
 
 
 # ---------------------------------------------------------------------------
@@ -168,26 +199,7 @@ class TestRowBelongingAnnotation:
             parent_tr_children=[imei_td],
         )
 
-        # Simulate patched_method processing this node
-        with patch.object(
-            mod,
-            "_is_erp_table_cell_input",
-            return_value=True,
-        ):
-            mod._patch_assign_interactive_indices()
-
-            # Need to call patched_method directly on a mock serializer
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            # Get the patched method and call it
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, node)
+        _call_patched_method(node, is_erp_input=True)
 
         assert 100 in mod._node_annotations
         annotation = mod._node_annotations[100]
@@ -198,7 +210,6 @@ class TestRowBelongingAnnotation:
         """Test 4: Non-ERP-input node gets no annotation."""
         import backend.agent.dom_patch as mod
 
-        # A plain span node, not an ERP input
         span_node = MockSimplifiedNode(
             original_node=MockAccessibilityNode(
                 tag_name="span",
@@ -206,23 +217,7 @@ class TestRowBelongingAnnotation:
             )
         )
 
-        with patch.object(
-            mod,
-            "_is_erp_table_cell_input",
-            return_value=False,
-        ):
-            mod._patch_assign_interactive_indices()
-
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, span_node)
+        _call_patched_method(span_node, is_erp_input=False)
 
         assert 200 not in mod._node_annotations
 
@@ -246,19 +241,7 @@ class TestStrategyDetermination:
             parent_tr_children=[imei_td],
         )
 
-        with patch.object(mod, "_is_erp_table_cell_input", return_value=True):
-            mod._patch_assign_interactive_indices()
-
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, node)
+        _call_patched_method(node, is_erp_input=True)
 
         assert 101 in mod._node_annotations
         assert mod._node_annotations[101]["base_strategy"] == 1
@@ -274,19 +257,7 @@ class TestStrategyDetermination:
             parent_tr_children=[imei_td],
         )
 
-        with patch.object(mod, "_is_erp_table_cell_input", return_value=True):
-            mod._patch_assign_interactive_indices()
-
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, node)
+        _call_patched_method(node, is_erp_input=True)
 
         assert 102 in mod._node_annotations
         assert mod._node_annotations[102]["base_strategy"] == 2
@@ -306,19 +277,7 @@ class TestStrategyDetermination:
             parent_tr_children=[imei_td],
         )
 
-        with patch.object(mod, "_is_erp_table_cell_input", return_value=True):
-            mod._patch_assign_interactive_indices()
-
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, node)
+        _call_patched_method(node, is_erp_input=True)
 
         assert 103 in mod._node_annotations
         assert mod._node_annotations[103]["base_strategy"] == 3
@@ -337,19 +296,7 @@ class TestStrategyDetermination:
             parent_tr_children=[imei_td],
         )
 
-        with patch.object(mod, "_is_erp_table_cell_input", return_value=True):
-            mod._patch_assign_interactive_indices()
-
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, node)
+        _call_patched_method(node, is_erp_input=True)
 
         assert 104 in mod._node_annotations
         assert mod._node_annotations[104]["base_strategy"] == 1
@@ -371,19 +318,7 @@ class TestStrategyDetermination:
             parent_tr_children=[imei_td],
         )
 
-        with patch.object(mod, "_is_erp_table_cell_input", return_value=True):
-            mod._patch_assign_interactive_indices()
-
-            from unittest.mock import MagicMock
-
-            serializer = MagicMock()
-            serializer._selector_map = {}
-            serializer._interactive_counter = 0
-
-            from browser_use.dom.serializer.serializer import DOMTreeSerializer
-
-            patched = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
-            patched(serializer, node)
+        _call_patched_method(node, is_erp_input=True)
 
         assert 105 in mod._node_annotations
         assert mod._node_annotations[105]["base_strategy"] == 3

@@ -37,8 +37,13 @@ _ERP_NUMERIC_CELL_PATTERNS = (
 # IMEI / product number format: I + 15 digits
 _ROW_IDENTITY_PATTERN = re.compile(r"I\d{15}")
 
-# Failure tracking state: keyed by backend_node_id
+# Failure tracking state: keyed by backend_node_id (str)
 _failure_tracker: dict[str, dict] = {}
+
+# Node annotations sidecar: keyed by backend_node_id (int)
+# Populated by Patch 4 for ERP table cell inputs.
+# Value: {"row_identity": str | None, "base_strategy": int, "is_erp_input": bool}
+_node_annotations: dict[int, dict] = {}
 
 
 def _is_textual_td_cell(node) -> bool:
@@ -91,9 +96,9 @@ def _is_textual_td_cell(node) -> bool:
 def _detect_row_identity(node) -> str | None:
     """Detect row identity (IMEI / product number) from an ERP table row.
 
-    Traverses all <td> children of the <tr> parent that contains *node*,
-    applies the ``I\\d{15}`` regex to each td's text, and returns the
-    first match.
+    Walks the parent chain from node to find the nearest <tr>, then
+    traverses all <td> children of that <tr>, applies the ``I\\d{15}``
+    regex to each td's text, and returns the first match.
 
     Args:
         node: A SimplifiedNode instance.
@@ -105,15 +110,20 @@ def _detect_row_identity(node) -> str | None:
     if original is None:
         return None
 
-    parent = getattr(original, "parent_node", None)
-    if parent is None:
+    # Walk parent chain to find the nearest <tr>
+    current = getattr(original, "parent_node", None)
+    tr_node = None
+    while current is not None:
+        tag = getattr(current, "tag_name", None)
+        if tag and tag.lower() == "tr":
+            tr_node = current
+            break
+        current = getattr(current, "parent_node", None)
+
+    if tr_node is None:
         return None
 
-    parent_tag = getattr(parent, "tag_name", None)
-    if not parent_tag or parent_tag.lower() != "tr":
-        return None
-
-    tr_children = getattr(parent, "children", [])
+    tr_children = getattr(tr_node, "children", [])
     for child in tr_children:
         child_tag = getattr(child, "tag_name", "")
         if child_tag.lower() != "td":
@@ -153,6 +163,12 @@ def reset_failure_tracker() -> None:
     """Clear all failure tracking state. Called at the start of every run."""
     global _failure_tracker
     _failure_tracker = {}
+
+
+def _reset_node_annotations() -> None:
+    """Clear all node annotations. Called alongside reset_failure_tracker()."""
+    global _node_annotations
+    _node_annotations = {}
 
 
 def _has_erp_clickable_class(node) -> bool:
@@ -307,6 +323,7 @@ def apply_dom_patch() -> None:
     global _PATCHED
     if _PATCHED:
         reset_failure_tracker()  # reset tracker every run, independent of _PATCHED
+        _reset_node_annotations()  # clear annotations alongside tracker
         logger.debug("dom_patch: already applied, skipping")
         return
 
@@ -398,6 +415,32 @@ def _patch_assign_interactive_indices() -> None:
             "dom_patch: forced interactive for ERP table cell input placeholder=%s",
             getattr(node.original_node, "attributes", {}).get("placeholder", "")
         )
+
+        # --- Phase 68: Row identity + strategy annotation ---
+        row_identity = _detect_row_identity(node)
+        backend_node_id = node.original_node.backend_node_id
+        snapshot_node = getattr(node.original_node, 'snapshot_node', None)
+
+        # Base strategy from visibility
+        if snapshot_node:
+            base_strategy = 1  # Visible input: direct input operation
+        else:
+            base_strategy = 2  # Hidden/click-to-edit: need click first
+
+        # Apply failure-based downgrade per STRAT-03
+        tracker_key = str(backend_node_id)  # _failure_tracker uses str keys
+        if tracker_key in _failure_tracker:
+            failure_count = _failure_tracker[tracker_key]['count']
+            if base_strategy == 1 and failure_count >= 2:
+                base_strategy = 2  # Downgrade to click-to-edit
+            if base_strategy == 2 and failure_count >= 2:
+                base_strategy = 3  # Downgrade to evaluate JS
+
+        _node_annotations[backend_node_id] = {
+            'row_identity': row_identity,
+            'base_strategy': base_strategy,
+            'is_erp_input': True,
+        }
 
     DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = patched_method
     logger.debug("dom_patch: patched _assign_interactive_indices_and_mark_new_nodes")
