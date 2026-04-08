@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: Excel 批量导入功能开发
-status: Ready to execute
-last_updated: "2026-04-08T07:06:59.210Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-08T07:30:48.261Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -39,8 +39,10 @@ Plan: 2 of 2
 
 **Velocity:**
 
-- Total plans completed: 0 (in v0.9.0)
+- Total plans completed: 4 (in v0.9.0)
 - Previous milestone (v0.8.4): 6 plans across 3 phases
+- Phase 71-01: 15min, 3 tasks, 8 files
+- Phase 71-02: 8min, 2 tasks, 8 files
 
 *Updated after each plan completion*
 
@@ -61,6 +63,8 @@ Recent decisions affecting current work:
 - [Phase 71]: confirm endpoint re-parses file (stateless) rather than caching server state per D-08
 - [Phase 71]: async with db.begin() wraps all inserts for atomic rollback on import confirm
 - [Phase 71]: assertions key popped and renamed to external_assertions in import confirm
+- [Phase 71]: 71-02: Raw fetch used for FormData upload instead of apiClient (Content-Type: application/json header conflict)
+- [Phase 71]: 71-02: UploadStep internally calls importPreview and passes file+data to parent via callback
 
 ### Pending Todos
 
