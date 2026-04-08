@@ -185,16 +185,18 @@ class TestErrorCollection:
         assert any("合并单元格" in err for err in merged_row.errors)
 
     def test_missing_required_field_reports_error(self):
+        """Row with only target_url filled (no name/description) reports required field error."""
         buf = _make_workbook(rows=[
-            ["", "Description", "", 10, None, None],  # name empty
+            [None, None, "https://a.com", 10, None, None],  # name and description missing
         ])
         result = parse_excel(buf)
         assert len(result.rows[0].errors) >= 1
         assert any("任务名称" in err for err in result.rows[0].errors)
 
     def test_multiple_errors_collected_per_row(self):
+        """Row with only target_url filled reports multiple required field errors."""
         buf = _make_workbook(rows=[
-            ["", "", "", None, None, None],  # name and description empty
+            [None, None, "https://a.com", None, None, None],  # name and description empty, max_steps invalid
         ])
         result = parse_excel(buf)
         errors = result.rows[0].errors
