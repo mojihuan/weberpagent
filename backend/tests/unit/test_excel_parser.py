@@ -215,3 +215,185 @@ class TestRoundTrip:
         assert result.has_errors is False
         for row in result.rows:
             assert row.errors == []
+
+    def test_roundtrip_row1_data_matches_full_example(self):
+        """First example row: all 6 columns filled with valid data."""
+        buf = generate_template()
+        result = parse_excel(buf)
+        row = result.rows[0]
+        assert row.data["name"] == "登录功能测试"
+        assert row.data["description"] == "打开登录页面，输入用户名和密码，点击登录按钮，验证是否跳转到首页"
+        assert row.data["target_url"] == "https://erp.example.com/login"
+        assert row.data["max_steps"] == 15
+        assert isinstance(row.data["preconditions"], list)
+        assert isinstance(row.data["assertions"], list)
+
+    def test_roundtrip_row2_data_matches_minimal_example(self):
+        """Second example row: required fields + target_url + max_steps only."""
+        buf = generate_template()
+        result = parse_excel(buf)
+        row = result.rows[1]
+        assert row.data["name"] == "创建订单测试"
+        assert row.data["description"] == "登录后进入订单页面，填写订单信息并提交，验证订单创建成功"
+        assert row.data["target_url"] == "https://erp.example.com/orders/new"
+        assert row.data["max_steps"] == 20
+        assert row.data["preconditions"] is None
+        assert row.data["assertions"] is None
+
+
+# ---------------------------------------------------------------------------
+# Task 2 comprehensive edge case tests
+# ---------------------------------------------------------------------------
+
+
+class TestHeaderValidation:
+    """Header mismatch detection."""
+
+    def test_header_mismatch_reports_error(self):
+        buf = _make_workbook(headers=["A", "B", "C", "D", "E", "F"])
+        result = parse_excel(buf)
+        assert result.has_errors is True
+        assert len(result.rows) == 1
+        assert result.rows[0].row_number == 0
+        assert len(result.rows[0].errors) >= 1
+
+    def test_header_partial_mismatch(self):
+        """First header wrong, rest correct."""
+        headers = ["Wrong"] + [col["header"] for col in TEMPLATE_COLUMNS[1:]]
+        buf = _make_workbook(headers=headers)
+        result = parse_excel(buf)
+        assert result.has_errors is True
+        assert any("任务名称" in err for err in result.rows[0].errors)
+
+
+class TestStringCoercion:
+    """String column coercion edge cases."""
+
+    def test_number_in_name_column_coerced_to_string(self):
+        buf = _make_workbook(rows=[
+            [12345, "Description", "https://a.com", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["name"] == "12345"
+        assert isinstance(result.rows[0].data["name"], str)
+
+    def test_boolean_in_description_coerced_to_string(self):
+        """Boolean True in description -> "true"."""
+        buf = _make_workbook(rows=[
+            ["Task", True, "https://a.com", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["description"] == "true"
+        assert result.rows[0].errors == []
+
+
+class TestIntCoercion:
+    """max_steps integer coercion edge cases."""
+
+    def test_float_truncated_to_int(self):
+        """15.7 -> 15 (truncation, not rounding)."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", 15.7, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["max_steps"] == 15
+
+    def test_string_float_coerced_to_int(self):
+        """String "10.0" in max_steps -> int 10."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", "10.0", None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["max_steps"] == 10
+
+    def test_invalid_string_in_max_steps_reports_error(self):
+        """String "abc" in max_steps -> error."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", "abc", None, None],
+        ])
+        result = parse_excel(buf)
+        assert any("最大步数" in err for err in result.rows[0].errors)
+
+    def test_boolean_in_max_steps_reports_error(self):
+        """Boolean True in max_steps -> error (boolean is not valid int)."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", True, None, None],
+        ])
+        result = parse_excel(buf)
+        assert any("最大步数" in err for err in result.rows[0].errors)
+
+
+class TestJsonEdgeCases:
+    """JSON column edge cases."""
+
+    def test_preconditions_valid_json_list(self):
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", 10, '["code1", "code2"]', None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["preconditions"] == ["code1", "code2"]
+        assert result.rows[0].errors == []
+
+    def test_preconditions_not_array(self):
+        """Valid JSON but not an array -> error."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", 10, '{"key": "val"}', None],
+        ])
+        result = parse_excel(buf)
+        assert any("数组" in err for err in result.rows[0].errors)
+
+    def test_preconditions_invalid_json(self):
+        """Not valid JSON at all -> error."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", 10, "not json at all", None],
+        ])
+        result = parse_excel(buf)
+        assert any("JSON" in err for err in result.rows[0].errors)
+
+    def test_assertions_valid_json_list(self):
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", "", 10, None, '[{"methodName":"xxx"}]'],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["assertions"] == [{"methodName": "xxx"}]
+        assert result.rows[0].errors == []
+
+
+class TestCollectAllErrors:
+    """Collect-all strategy: all errors preserved across rows."""
+
+    def test_collect_all_errors_across_rows(self):
+        """3 rows: row 2 valid, row 3 has 2 errors, row 4 has 1 error."""
+        buf = _make_workbook(rows=[
+            ["Valid Task", "Valid desc", "", 10, None, None],
+            [None, None, "https://a.com", None, None, None],  # 2+ required errors
+            [None, "Has desc", "", 10, "bad json", None],  # 1 required + 1 json
+        ])
+        result = parse_excel(buf)
+        assert result.total_rows == 3
+        assert result.has_errors is True
+        assert result.rows[0].errors == []
+        assert len(result.rows[1].errors) >= 2
+        assert len(result.rows[2].errors) >= 1
+
+    def test_empty_row_between_data_rows(self):
+        """Empty row between data rows is skipped."""
+        buf = _make_workbook(rows=[
+            ["Task A", "Desc A", "", 10, None, None],
+            [None, None, None, None, None, None],
+            ["Task C", "Desc C", "", 15, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.total_rows == 2
+
+    def test_optional_fields_empty_no_errors(self):
+        """Row with only name + description, all optional fields empty."""
+        buf = _make_workbook(rows=[
+            ["Task", "Desc", None, None, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].errors == []
+        assert result.rows[0].data["target_url"] == ""
+        assert result.rows[0].data["max_steps"] == 10
+        assert result.rows[0].data["preconditions"] is None
+        assert result.rows[0].data["assertions"] is None
