@@ -2,7 +2,8 @@
 
 ## Milestones
 
-- 🚧 **v0.8.4 基于 v0.8.3 的研究优化** — Phases 67-69 (in progress)
+- 🚧 **v0.9.0 Excel 批量导入功能开发** — Phases 70-73 (in progress)
+- ✅ **v0.8.4 基于 v0.8.3 的研究优化** — Phases 67-69 (shipped 2026-04-07)
 - ✅ **v0.8.3 分析报告差距对表格填写影响** — Phases 65-66 (shipped 2026-04-06)
 - ✅ **v0.8.2 浏览器模式差异调查** — Phases 63-64 (shipped 2026-04-06)
 - ✅ **v0.8.1 修复销售出库表格填写问题** — Phase 62 (shipped 2026-04-06)
@@ -13,7 +14,16 @@
 
 ## Phases
 
-### 🚧 v0.8.4 基于 v0.8.3 的研究优化 (In Progress)
+### 🚧 v0.9.0 Excel 批量导入功能开发 (In Progress)
+
+**Milestone Goal:** 实现 Excel 模版设计、解析器、上传 UI 和批量执行完整工作流
+
+- [ ] **Phase 70: Excel 模版设计** — 模版生成 + 下载端点 + 列合约
+- [ ] **Phase 71: Excel 导入 UI** — 文件上传 + 预览校验 + 批量创建
+- [ ] **Phase 72: 批量执行** — 多任务并行执行框架
+- [ ] **Phase 73: 前端集成** — 任务列表页下载模版按钮 + 导入入口
+
+### ✅ v0.8.4 基于 v0.8.3 的研究优化 (Shipped 2026-04-07)
 
 **Milestone Goal:** 实施 v0.8.3 设计文档中的 Agent 表格交互优化策略，实现行标识定位、反重复机制、三级策略优先级和失败恢复
 
@@ -87,6 +97,21 @@
 
 ## Phase Details
 
+### Phase 70: Excel 模版设计 — 模版生成与列合约
+**Goal**: 创建标准化的 .xlsx 模版生成器、共享列合约 (TEMPLATE_COLUMNS) 和模版下载 API 端点
+**Depends on**: Nothing (first phase of v0.9.0)
+**Requirements**: TMPL-01, TMPL-02
+**Success Criteria** (what must be TRUE):
+  1. GET /tasks/template returns a valid .xlsx file with content-disposition header
+  2. Template contains styled headers with 6 columns matching TEMPLATE_COLUMNS
+  3. Template has DataValidation on max_steps column (1-100)
+  4. Template has freeze panes, README sheet, and 2 example rows
+**Plans**: 2 plans
+
+Plans:
+- [x] 70-01: Excel 模版生成器 + 列合约 + 单元测试 + 下载端点
+- [ ] 70-02: Excel 解析器 + 错误收集
+
 ### Phase 67: 基础层 — 行标识检测与失败追踪状态
 **Goal**: DOM Patch 能从 ERP 表格行中检测行标识，失败追踪状态在每次 run 正确初始化和重置，失败模式检测器能识别三种 ERP 表格交互失败
 **Depends on**: Nothing (first phase of v0.8.4)
@@ -137,10 +162,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 67 -> 68 -> 69
+Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
+| 70. Excel 模版设计 | v0.9.0 | 1/2 | In Progress | |
 | 67. 基础层 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
 | 68. DOM Patch 增强 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
 | 69. 服务集成与 Prompt 规则 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |

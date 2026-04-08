@@ -1,11 +1,13 @@
 """任务管理路由"""
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db
 from backend.db.schemas import TaskCreate, TaskUpdate, TaskResponse
 from backend.db.repository import TaskRepository
+from backend.utils.excel_template import generate_template
 
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -13,6 +15,17 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 def get_task_repo(db: AsyncSession = Depends(get_db)) -> TaskRepository:
     return TaskRepository(db)
+
+
+@router.get("/template")
+async def download_template():
+    """下载测试用例 Excel 模版"""
+    buffer = generate_template()
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=task_template.xlsx"},
+    )
 
 
 @router.get("", response_model=list[TaskResponse])
