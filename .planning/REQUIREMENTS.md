@@ -13,9 +13,9 @@
 
 ### IMPT: 批量导入
 
-- [ ] **IMPT-01**: 用户可以上传 .xlsx 文件，系统逐行解析为 TaskCreate 格式并验证所有字段（必填检查、类型校验、前置条件可解析性、断言 JSON 格式）
+- [x] **IMPT-01**: 用户可以上传 .xlsx 文件，系统逐行解析为 TaskCreate 格式并验证所有字段（必填检查、类型校验、前置条件可解析性、断言 JSON 格式）
 - [ ] **IMPT-02**: 用户可以在确认前预览解析结果，有效行显示绿色、无效行显示红色 + 具体错误信息（行号 + 字段 + 原因）
-- [ ] **IMPT-03**: 用户确认导入后，系统批量创建 Task（全部有效才提交，任一失败则全部回滚），导入的任务状态为 draft
+- [x] **IMPT-03**: 用户确认导入后，系统批量创建 Task（全部有效才提交，任一失败则全部回滚），导入的任务状态为 draft
 
 ### BATCH: 批量执行
 
@@ -62,9 +62,9 @@
 |-------------|-------|--------|
 | TMPL-01 | Phase 70 | Complete |
 | TMPL-02 | Phase 70 | Complete |
-| IMPT-01 | Phase 71 | Pending |
+| IMPT-01 | Phase 71 | Complete |
 | IMPT-02 | Phase 71 | Pending |
-| IMPT-03 | Phase 71 | Pending |
+| IMPT-03 | Phase 71 | Complete |
 | BATCH-01 | Phase 72 | Pending |
 | BATCH-02 | Phase 72 | Pending |
 | BATCH-03 | Phase 73 | Pending |

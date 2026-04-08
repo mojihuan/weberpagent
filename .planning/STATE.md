@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: Excel 批量导入功能开发
-status: Ready to plan
-last_updated: "2026-04-08T05:17:08.278Z"
+status: Ready to execute
+last_updated: "2026-04-08T07:06:59.210Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 70 — Excel 模版设计
+**Current focus:** Phase 71 — 批量导入工作流
 
 ## Last Shipped
 
@@ -32,8 +32,8 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 
 ## Current Position
 
-Phase: 71
-Plan: Not started
+Phase: 71 (批量导入工作流) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -58,6 +58,9 @@ Recent decisions affecting current work:
 - [Phase 70]: 70-01: TEMPLATE_COLUMNS as module-level list of dicts (key/header/width/required/default) shared between generator and parser
 - [Phase 70-excel]: 70-02: Empty row detection uses cell.value is None (not empty string) because openpyxl data_only=True normalizes empty strings to None
 - [Phase 70-excel]: 70-02: JSON parse errors store raw string in data[field] so Phase 71 UI can display original user input
+- [Phase 71]: confirm endpoint re-parses file (stateless) rather than caching server state per D-08
+- [Phase 71]: async with db.begin() wraps all inserts for atomic rollback on import confirm
+- [Phase 71]: assertions key popped and renamed to external_assertions in import confirm
 
 ### Pending Todos
 

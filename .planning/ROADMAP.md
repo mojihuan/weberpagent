@@ -122,8 +122,11 @@ Plans:
   2. 上传非 .xlsx 文件或超过 5MB 的文件时，系统拒绝并返回明确的文件格式/大小错误提示
   3. 预览页面存在无效行时，"确认导入"按钮不可点击，防止脏数据进入系统
   4. 用户确认导入后（全部有效），系统在一个数据库事务中批量创建所有 Task，状态为 draft，任一行创建失败则全部回滚
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
+
+Plans:
+- [x] 71-01-PLAN.md — Backend import preview + confirm endpoints with atomic batch create (IMPT-01, IMPT-03)
+- [ ] 71-02-PLAN.md — Frontend ImportModal component + API integration + Tasks page wiring (IMPT-01, IMPT-02, IMPT-03)
 
 ### Phase 72: 批量执行引擎
 **Goal**: QA 可以在任务列表勾选多个 Task 后一键启动并行执行，系统使用 Semaphore 控制并发数防止服务器 OOM
@@ -155,9 +158,9 @@ Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 70. Excel 模版设计 | v0.9.0 | 1/2 | Complete    | 2026-04-08 |
-| 71. 批量导入工作流 | v0.9.0 | 0/? | Not started | - |
+| 71. 批量导入工作流 | v0.9.0 | 1/2 | In Progress|  |
 | 72. 批量执行引擎 | v0.9.0 | 0/? | Not started | - |
 | 73. 批量进度 UI | v0.9.0 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-08 — Phase 70 plan 01 complete*
+*Roadmap updated: 2026-04-08 — Phase 71 planned (2 plans)*
