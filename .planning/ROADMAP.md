@@ -16,26 +16,27 @@
 
 ### 🚧 v0.9.0 Excel 批量导入功能开发 (In Progress)
 
-**Milestone Goal:** 实现 Excel 模版设计、解析器、上传 UI 和批量执行完整工作流
+**Milestone Goal:** 支持 QA 通过 Excel 模版批量创建测试用例，并可勾选用例批量执行
 
-- [ ] **Phase 70: Excel 模版设计** — 模版生成 + 下载端点 + 列合约
-- [ ] **Phase 71: Excel 导入 UI** — 文件上传 + 预览校验 + 批量创建
-- [ ] **Phase 72: 批量执行** — 多任务并行执行框架
-- [ ] **Phase 73: 前端集成** — 任务列表页下载模版按钮 + 导入入口
+- [ ] **Phase 70: Excel 模版设计** — 生成标准化 .xlsx 模版 + openpyxl 解析器，建立列合约
+- [ ] **Phase 71: 批量导入工作流** — 上传解析 → 预览校验 → 确认批量创建 Task
+- [ ] **Phase 72: 批量执行引擎** — 勾选执行 + Semaphore 并发控制
+- [ ] **Phase 73: 批量进度 UI** — 前端批量进度页面，逐任务状态展示 + 跳转
 
-### ✅ v0.8.4 基于 v0.8.3 的研究优化 (Shipped 2026-04-07)
+<details>
+<summary>✅ v0.8.4 基于 v0.8.3 的研究优化 (Phases 67-69) — SHIPPED 2026-04-07</summary>
 
-**Milestone Goal:** 实施 v0.8.3 设计文档中的 Agent 表格交互优化策略，实现行标识定位、反重复机制、三级策略优先级和失败恢复
+- [x] Phase 67: 基础层 — 行标识检测、失败追踪状态、失败模式检测器
+- [x] Phase 68: DOM Patch 增强 — 行标识注入、策略标注、失败动态标注
+- [x] Phase 69: 服务集成与 Prompt 规则 — step_callback 集成、Section 9 规则追加
 
-- [ ] **Phase 67: 基础层** — 行标识检测、失败追踪状态、失败模式检测器
-- [ ] **Phase 68: DOM Patch 增强** — 行标识注入、策略标注、失败动态标注
-- [ ] **Phase 69: 服务集成与 Prompt 规则** — step_callback 集成、Section 9 规则追加
+</details>
 
 <details>
 <summary>✅ v0.8.3 分析报告差距对表格填写影响 (Phases 65-66) — SHIPPED 2026-04-06</summary>
 
 - [x] Phase 65: 差距关联分析 — 1/1 plans
-- [x] Phase 66: 优化方案设计 — 1/1 plans
+- [x] Phase 66: 优化方案设计 — 1/1 plan
 
 </details>
 
@@ -97,67 +98,54 @@
 
 ## Phase Details
 
-### Phase 70: Excel 模版设计 — 模版生成与列合约
-**Goal**: 创建标准化的 .xlsx 模版生成器、共享列合约 (TEMPLATE_COLUMNS) 和模版下载 API 端点
+### Phase 70: Excel 模版设计
+**Goal**: QA 可以下载标准化的 Excel 模版来填写测试用例，后端拥有经过单元测试的 Excel 解析器，建立模版列名/类型/顺序的合约
 **Depends on**: Nothing (first phase of v0.9.0)
 **Requirements**: TMPL-01, TMPL-02
 **Success Criteria** (what must be TRUE):
-  1. GET /tasks/template returns a valid .xlsx file with content-disposition header
-  2. Template contains styled headers with 6 columns matching TEMPLATE_COLUMNS
-  3. Template has DataValidation on max_steps column (1-100)
-  4. Template has freeze panes, README sheet, and 2 example rows
+  1. 用户点击"下载模版"按钮后，浏览器下载一个 .xlsx 文件，包含"测试用例"sheet（列头：任务名称、任务描述、目标URL、最大步数、前置条件、断言）+ 2 行示例数据 + "README" sheet 填写说明
+  2. 模版中"最大步数"列配置了 1-100 的下拉验证，输入超出范围的值时 Excel 显示错误提示
+  3. ExcelParser 解析合法 .xlsx 文件返回结构化的行数据列表，每行包含完整的 TaskCreate 字段
+  4. ExcelParser 遇到空白行跳过、类型不匹配的单元格做类型强制转换（如数字转字符串）、合并单元格报错提示
 **Plans**: 2 plans
 
 Plans:
-- [x] 70-01: Excel 模版生成器 + 列合约 + 单元测试 + 下载端点
-- [ ] 70-02: Excel 解析器 + 错误收集
+- [x] 70-01-PLAN.md — Template generator + column contract + unit tests + download endpoint (TMPL-01, TMPL-02)
+- [ ] 70-02-PLAN.md — ExcelParser with collect-all errors + comprehensive unit tests + round-trip validation (TMPL-01, TMPL-02)
 
-### Phase 67: 基础层 — 行标识检测与失败追踪状态
-**Goal**: DOM Patch 能从 ERP 表格行中检测行标识，失败追踪状态在每次 run 正确初始化和重置，失败模式检测器能识别三种 ERP 表格交互失败
-**Depends on**: Nothing (first phase of v0.8.4)
-**Requirements**: ROW-01, ANTI-01, RECOV-01
+### Phase 71: 批量导入工作流
+**Goal**: QA 上传填写好的 Excel 后，可以在确认前预览解析结果（有效行绿色、无效行红色+错误信息），确认后系统批量创建所有 Task
+**Depends on**: Phase 70 (使用 ExcelParser)
+**Requirements**: IMPT-01, IMPT-02, IMPT-03
 **Success Criteria** (what must be TRUE):
-  1. 给定包含 `<tr>` 子 `<td>` 文本为 "I352017041234567" 的 DOM 节点，`_detect_row_identity()` 返回提取的行标识字符串
-  2. `_failure_tracker` 以 `backend_node_id` 为键存储 `{count, last_error, mode}`，`update_failure_tracker()` 能写入新记录和累加失败次数，`reset_failure_tracker()` 清空所有记录
-  3. `reset_failure_tracker()` 作为独立函数在每次 run 开始时被调用，不受 `_PATCHED` 幂等保护影响
-  4. StallDetector 新增 `detect_failure_mode()` 返回 `FailureDetectionResult`，能识别三种模式：点击无 DOM 变化（dom_hash 比对）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
-**Plans**: 2 plans
+  1. 用户上传 .xlsx 文件后，系统逐行解析并返回预览结果：有效行显示绿色带解析数据，无效行显示红色 + 具体错误信息（行号 + 字段 + 原因）
+  2. 上传非 .xlsx 文件或超过 5MB 的文件时，系统拒绝并返回明确的文件格式/大小错误提示
+  3. 预览页面存在无效行时，"确认导入"按钮不可点击，防止脏数据进入系统
+  4. 用户确认导入后（全部有效），系统在一个数据库事务中批量创建所有 Task，状态为 draft，任一行创建失败则全部回滚
+**Plans**: TBD
+**UI hint**: yes
 
-Plans:
-- [x] 67-01: 行标识检测与失败追踪状态
-- [x] 67-02: 失败模式检测器
-
-### Phase 68: DOM Patch 增强 — 行标识注入与策略标注
-**Goal**: DOM dump 序列化输出包含行标识注释和策略层级标注，Agent 可据此锁定目标行并选择正确的交互策略，失败元素动态标注防止重复尝试
-**Depends on**: Phase 67
-**Requirements**: ROW-02, ROW-03, STRAT-01, STRAT-02, STRAT-03, ANTI-02
+### Phase 72: 批量执行引擎
+**Goal**: QA 可以在任务列表勾选多个 Task 后一键启动并行执行，系统使用 Semaphore 控制并发数防止服务器 OOM
+**Depends on**: Phase 71 (需要已导入的 Task)
+**Requirements**: BATCH-01, BATCH-02
 **Success Criteria** (what must be TRUE):
-  1. DOM dump 序列化输出中，含商品编号的行上方出现 `<!-- 行: {id} -->` 注释，Agent 可据此锁定目标行
-  2. 行内 input 元素带有行归属标注，Agent 可区分不同行的相同 placeholder input（如两行都有"请输入数量"）
-  3. 可见 input 标注为策略 1，hidden input 标注为策略 2，同一元素策略 1 失败 2 次后标注降级为策略 2，策略 2 失败 2 次后降级为策略 3
-  4. 策略标注和失败标注只出现在已失败元素上，未失败元素不显示任何策略/失败信息，避免 evaluate JS 偏差
-  5. 所有对 `_assign_interactive_indices` 的增强合并到 Patch 4 的单一 wrapper 中，不产生多层 wrapping 链
-**Plans**: 2 plans
+  1. 用户在 TaskTable 勾选多个 Task 后，出现"批量执行"按钮，点击后启动所有勾选任务的并行执行
+  2. 批量执行使用 asyncio.Semaphore 控制并发数，默认 2 个浏览器实例同时运行，用户可通过参数配置（硬上限 4）
+  3. 每个任务在批量执行中有独立的状态追踪（等待/执行中/完成/失败），后端提供批量进度查询 API
+  4. 单个任务执行失败不影响其他任务继续执行，失败任务的错误信息被完整记录
+**Plans**: TBD
 
-Plans:
-- [x] 68-01: Patch 4 增强 — sidecar 字典 + 行归属与策略判定 (ROW-03, STRAT-01, STRAT-03)
-- [x] 68-02: 合并 Patch 6+7 — 行标识注释 + 失败动态标注注入 (ROW-02, STRAT-02, ANTI-02)
-
-### Phase 69: 服务集成与 Prompt 规则
-**Goal**: step_callback 将失败检测结果写入 _failure_tracker，Section 9 包含行标识、反重复、策略优先级和失败恢复的完整操作规则
-**Depends on**: Phase 68
-**Requirements**: ANTI-03, RECOV-02, RECOV-03, PROMPT-01, PROMPT-02, PROMPT-03
+### Phase 73: 批量进度 UI
+**Goal**: QA 可以在前端查看批量执行的进度，看到每个任务的状态，点击可跳转到该任务的执行监控详情
+**Depends on**: Phase 72 (需要批量执行 API)
+**Requirements**: BATCH-03
 **Success Criteria** (what must be TRUE):
-  1. step_callback 在 detector calls 区域调用 `update_failure_tracker()` 和 `detect_failure_mode()`，将 evaluation 失败关键词和 dom_hash 变化检测结果写入 tracker
-  2. Section 9 包含行标识使用规则，指导 Agent 看到行标识注释后锁定目标行并在行内操作
-  3. Section 9 包含反重复规则，指导 Agent 看到失败标注后切换策略，不在同一元素重复尝试
-  4. Section 9 包含策略优先级规则，指导 Agent 遇到策略标注时优先使用策略 1，失败后按标注降级
-  5. Section 9 包含 ERP 表格三种失败模式的检测-标注-切换操作恢复流程
-**Plans**: 2 plans
-
-Plans:
-- [x] 69-01: step_callback 集成与状态重置
-- [x] 69-02: Section 9 Prompt 规则追加
+  1. 用户启动批量执行后，跳转到批量进度页面，页面以列表/网格形式展示每个任务的状态标签（等待/执行中/完成/失败）
+  2. 页面每 2 秒轮询后端 API 更新状态，任务从"等待"变为"执行中"再到"完成/失败"的转换实时可见
+  3. 用户点击任意任务条目，跳转到该任务的执行监控详情页（复用现有 RunMonitor）
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress
 
@@ -167,9 +155,9 @@ Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 70. Excel 模版设计 | v0.9.0 | 1/2 | In Progress | |
-| 67. 基础层 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
-| 68. DOM Patch 增强 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
-| 69. 服务集成与 Prompt 规则 | v0.8.4 | 2/2 | Complete    | 2026-04-07 |
+| 71. 批量导入工作流 | v0.9.0 | 0/? | Not started | - |
+| 72. 批量执行引擎 | v0.9.0 | 0/? | Not started | - |
+| 73. 批量进度 UI | v0.9.0 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-07 — Phase 68 plan finalized*
+*Roadmap updated: 2026-04-08 — Phase 70 plan 01 complete*

@@ -1,50 +1,40 @@
-# Requirements: aiDriveUITest v0.8.4
+# Requirements: aiDriveUITest v0.9.0
 
-**Defined:** 2026-04-06
+**Defined:** 2026-04-08
 **Core Value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
+**Milestone:** v0.9.0 Excel 批量导入功能开发
 
 ## v1 Requirements
 
-Requirements for v0.8.4 milestone. Each maps to roadmap phases.
+### TMPL: 模版设计
 
-### 行标识定位 (OPTIMIZE-01)
-
-- [x] **ROW-01**: DOM Patch 能从 ERP 表格 `<tr>` 的子 `<td>` 文本中检测 IMEI/商品编号（正则 `I\d{15}`），提取为行标识
-- [x] **ROW-02**: DOM Patch 在 DOM dump 序列化输出中为含商品编号的行注入 `<!-- 行: {id} -->` 注释，Agent 可据此锁定目标行
-- [x] **ROW-03**: Patch 4 (`_assign_interactive_indices`) 为行内 input 添加行归属标注，Agent 可区分不同行的相同 placeholder input
-
-### 反重复机制 (OPTIMIZE-02)
-
-- [x] **ANTI-01**: 模块级 `_failure_tracker` 字典以 `backend_node_id` 为键（非 index）追踪失败历史，包含 count/last_error/mode 字段，并提供独立 `reset_failure_tracker()` 函数在每次 run 开始时重置
-- [x] **ANTI-02**: DOM Patch 在序列化时根据 `_failure_tracker` 为失败元素动态注入标注（已尝试N次失败、点击无响应、非目标列），且只在已失败元素上标注，避免全局策略偏差
-- [x] **ANTI-03**: step_callback 在 detector calls 区域调用 `update_failure_tracker()`，将 evaluation 失败关键词和 dom_hash 变化检测结果写入 tracker
-
-### 策略优先级 (OPTIMIZE-03)
-
-- [x] **STRAT-01**: DOM Patch 基于 `snapshot_node` 存在性和 `is_visible` 状态判定三级策略——可见 input 为策略 1（原生 input），hidden input 为策略 2（click-to-edit），两次失败降级为策略 3（evaluate JS）
-- [x] **STRAT-02**: DOM Patch 在序列化后处理阶段通过包裹 `serialize_tree()` 输出注入策略注释，只在已失败元素上标注策略层级
-- [x] **STRAT-03**: 策略自动降级——`_failure_tracker` 记录同一元素策略 1 失败 2 次后标注降级为策略 2，策略 2 失败 2 次后降级为策略 3
-
-### 失败恢复 (OPTIMIZE-04)
-
-- [x] **RECOV-01**: StallDetector 新增三种失败模式检测——点击无 DOM 变化（`dom_hash_before == dom_hash_after`）、误点错误列（evaluation 关键词匹配）、编辑态未激活（input 操作失败）
-- [x] **RECOV-02**: step_callback 在 detector calls 区域添加新检测逻辑调用，将三种失败模式结果写入 `_failure_tracker` 对应 mode 字段
-- [x] **RECOV-03**: Section 9 追加 ERP 表格专用失败恢复规则——三种失败模式各自的检测→标注→切换操作流程
-
-### Prompt 层集成
-
-- [x] **PROMPT-01**: Section 9 追加行标识使用规则——Agent 看到行标识注释后如何锁定目标行并在行内操作
-- [x] **PROMPT-02**: Section 9 追加反重复规则——Agent 看到失败标注后应切换策略，不在同一元素重复尝试
-- [x] **PROMPT-03**: Section 9 追加策略优先级规则——Agent 遇到策略标注时优先使用策略 1，失败后按标注降级
-
-## v2 Requirements
-
-### Excel 模版设计 (v0.9.0)
-
-- [x] **TMPL-01**: 用户可以下载预格式化的 Excel 模版 (.xlsx)，包含列头 + 2 行示例数据 + README sheet 说明 — Phase 70
+- [x] **TMPL-01**: 用户可以下载预格式化的 Excel 模版 (.xlsx)，包含列头（任务名称、任务描述、目标URL、最大步数、前置条件、断言）+ 2 行示例数据 + README sheet 说明 — Phase 70
 - [x] **TMPL-02**: Excel 模版中对 max_steps 字段配置下拉验证（1-100），防止输入错误 — Phase 70
 
-Deferred to future release.
+### IMPT: 批量导入
+
+- [ ] **IMPT-01**: 用户可以上传 .xlsx 文件，系统逐行解析为 TaskCreate 格式并验证所有字段（必填检查、类型校验、前置条件可解析性、断言 JSON 格式）
+- [ ] **IMPT-02**: 用户可以在确认前预览解析结果，有效行显示绿色、无效行显示红色 + 具体错误信息（行号 + 字段 + 原因）
+- [ ] **IMPT-03**: 用户确认导入后，系统批量创建 Task（全部有效才提交，任一失败则全部回滚），导入的任务状态为 draft
+
+### BATCH: 批量执行
+
+- [ ] **BATCH-01**: 用户可以在 TaskTable 勾选多个 Task，点击「批量执行」按钮启动并行执行
+- [ ] **BATCH-02**: 批量执行使用 asyncio.Semaphore 控制并发数，默认 2，用户可配置（上限 4），防止单服务器 OOM
+- [ ] **BATCH-03**: 用户可以在批量进度页面查看每个任务的状态（等待/执行中/完成/失败），点击可跳转到该任务的执行监控详情
+
+## v2 Requirements (Deferred)
+
+### IMPT Enhancement
+
+- **IMPT-04**: 导入失败时，用户可以下载错误标注的 Excel 文件，便于离线修复后重新上传
+- **IMPT-05**: 支持简化断言格式（管道分隔 `method|headers|data|params`），替代 JSON 数组降低 QA 填写门槛
+
+### BATCH Enhancement
+
+- **BATCH-04**: 批量执行完成后显示汇总报告（通过/失败/错误数量），一键查看各任务报告
+- **BATCH-05**: 批量执行支持取消操作，一键停止所有等待和执行中的任务
+- **BATCH-06**: 批量执行失败任务一键重试
 
 ### 断言严格度分级
 
@@ -58,41 +48,32 @@ Deferred to future release.
 
 | Feature | Reason |
 |---------|--------|
-| 恢复 headed 模式 | 独立配置变更，不属于代码优化里程碑 |
-| browser-use 版本升级 | 0.12.2 API 稳定，升级到 0.13+ 风险高，需单独评估 |
-| 新增独立模块 | 设计决策：所有优化融入现有 dom_patch.py 和 prompts.py |
-| 多表格类型通用化 | 当前只针对 ERP 销售出库表格，验证通过后再推广 |
-| React 状态监听 | evaluate JS 绕过 React 状态管理是已知限制，v0.8.4 不解决 |
+| CSV 导入 | CSV 编码/换行/类型问题多，XLSX 原生支持 Unicode 和数据验证 |
+| 实时 SSE 批量进度 | 需 multiplexer 架构改造，轮询足够满足当前需求 |
+| Task 导出为 Excel | 往返导入/导出需要 ID 保留和合并语义，v0.9.0 仅做导入 |
+| Excel 公式支持 | openpyxl data_only 模式限制 + 公式跨单元格依赖脆弱 |
+| 多行断言分组 | 行归属判断易被排序/筛选破坏，单行 JSON 更稳定 |
+| 定时批量执行 | 需 cron 调度系统，超出当前里程碑范围 |
+| 浏览器实例复用 | 跨任务 session 污染风险，每次新建更安全 |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROW-01 | Phase 67 | Complete |
-| ROW-02 | Phase 68 | Complete |
-| ROW-03 | Phase 68 | Complete |
-| ANTI-01 | Phase 67 | Complete |
-| ANTI-02 | Phase 68 | Complete |
-| ANTI-03 | Phase 69 | Complete |
-| STRAT-01 | Phase 68 | Complete |
-| STRAT-02 | Phase 68 | Complete |
-| STRAT-03 | Phase 68 | Complete |
-| RECOV-01 | Phase 67 | Complete |
-| RECOV-02 | Phase 69 | Complete |
-| RECOV-03 | Phase 69 | Complete |
-| PROMPT-01 | Phase 69 | Complete |
-| PROMPT-02 | Phase 69 | Complete |
-| PROMPT-03 | Phase 69 | Complete |
 | TMPL-01 | Phase 70 | Complete |
 | TMPL-02 | Phase 70 | Complete |
+| IMPT-01 | Phase 71 | Pending |
+| IMPT-02 | Phase 71 | Pending |
+| IMPT-03 | Phase 71 | Pending |
+| BATCH-01 | Phase 72 | Pending |
+| BATCH-02 | Phase 72 | Pending |
+| BATCH-03 | Phase 73 | Pending |
 
 **Coverage:**
-- v1 requirements: 15 total
-- Mapped to phases: 15
+- v1 requirements: 8 total
+- Mapped to phases: 8
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-04-06*
-*Last updated: 2026-04-06 — traceability updated after roadmap creation*
+*Requirements defined: 2026-04-08*
+*Last updated: 2026-04-08 — Traceability updated after roadmap creation*
