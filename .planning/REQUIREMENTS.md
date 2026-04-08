@@ -39,6 +39,11 @@ Requirements for v0.8.4 milestone. Each maps to roadmap phases.
 
 ## v2 Requirements
 
+### Excel 模版设计 (v0.9.0)
+
+- [x] **TMPL-01**: 用户可以下载预格式化的 Excel 模版 (.xlsx)，包含列头 + 2 行示例数据 + README sheet 说明 — Phase 70
+- [x] **TMPL-02**: Excel 模版中对 max_steps 字段配置下拉验证（1-100），防止输入错误 — Phase 70
+
 Deferred to future release.
 
 ### 断言严格度分级
@@ -80,6 +85,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROMPT-01 | Phase 69 | Complete |
 | PROMPT-02 | Phase 69 | Complete |
 | PROMPT-03 | Phase 69 | Complete |
+| TMPL-01 | Phase 70 | Complete |
+| TMPL-02 | Phase 70 | Complete |
 
 **Coverage:**
 - v1 requirements: 15 total
