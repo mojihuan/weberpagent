@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: Excel 批量导入功能开发
-status: Ready to execute
-last_updated: "2026-04-08T21:13:56.698Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-08T22:08:26.155Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -69,6 +69,8 @@ Recent decisions affecting current work:
 - [Phase 72]: _active_batches module-level dict prevents GC of active batch services
 - [Phase 72]: asyncio.create_task for fire-and-forget batch execution (not FastAPI BackgroundTasks) for immediate status tracking
 - [Phase 72]: SQLite busy_timeout set to 30 seconds via connect_args={'timeout': 30}
+- [Phase 72]: 72-02: BatchExecuteDialog as standalone component (not ConfirmModal) because it needs interactive slider control
+- [Phase 72]: 72-02: Green-700 color for batch execute button (green=run, blue=ready, red=delete semantic grouping)
 
 ### Pending Todos
 
