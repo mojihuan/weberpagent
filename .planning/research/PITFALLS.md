@@ -1,347 +1,382 @@
-# Domain Pitfalls: DOM Patch Optimization for Table Interaction
+# Domain Pitfalls: Excel Batch Import and Parallel Execution
 
-**Domain:** Adding row identity injection, failure tracking, strategy prioritization, and failure recovery to an existing browser-use DOM serialization pipeline
-**Researched:** 2026-04-06
-**Context:** v0.8.4 milestone -- OPTIMIZE-01 through OPTIMIZE-04 (Phase 66 design, 16 code tasks)
+**Domain:** Adding Excel template design, batch import, and parallel browser execution to an existing AI-driven UI test automation platform (v0.9.0)
+**Researched:** 2026-04-08
+**Context:** v0.9.0 milestone -- TMPL-01, IMPT-01, BATCH-01
+**Confidence:** HIGH (based on direct code analysis, SQLite documentation, browser-use library knowledge, and established web security practices)
 
 ## Critical Pitfalls
 
 Mistakes that cause rewrites or major issues.
 
-### Pitfall 1: `_failure_tracker` Module-Level State Leaking Across Runs
+### Pitfall 1: Parallel Browser Instances Exhausting Server RAM
 
-**What goes wrong:** The design specifies `_failure_tracker` as a module-level `dict` in `dom_patch.py` (T07, T08). Because `dom_patch.py` is imported once and the `_PATCHED` flag prevents re-patching, `_failure_tracker` is initialized once at module load time. If `apply_dom_patch()` resets it but the module is already loaded, stale data from a previous test run pollutes the next run. Worse, in the production deployment (Gunicorn 2 workers), each worker process has its own `_failure_tracker`, but within one worker, sequential runs share state.
+**What goes wrong:**
+Launching multiple browser-use Agent instances in parallel causes the server to run out of memory. Each Chromium instance with a 1920x1080 viewport consumes 200-500MB RAM. The deployment server (121.40.191.49) is a 2-core machine with limited RAM. Running 3-4 agents simultaneously can consume 1-2GB+ and trigger OOM kills, crashing the entire service.
 
-**Why it happens:** Module-level mutable state (`_failure_tracker = {}`) survives across function calls within the same process. The design says "reset in `apply_dom_patch()`" but `apply_dom_patch()` is idempotent -- the `_PATCHED` guard means it returns immediately on the second call, so the reset never runs. The existing code at `agent_service.py:357` calls `apply_dom_patch()` once at the start of `run_with_streaming()`, but the `_PATCHED` check at line 234 means the reset code added inside `apply_dom_patch()` will only execute on the very first call in that worker's lifetime.
+**Why it happens:**
+The current `agent_service.py` creates a fresh `BrowserSession` per call to `run_with_streaming()` (line 164: `browser_session = create_browser_session()`). There is no concurrency control or resource semaphore. When batch execution launches N tasks in parallel via `asyncio.gather()`, each one spawns a full Chromium process independently.
 
-**Consequences:** Second run within same worker sees ghost failure annotations from first run. DOM dumps contain `<!-- 已尝试2次失败 -->` for elements that were never touched. Agent receives false failure signals and skips valid strategy-1 inputs, jumping straight to evaluate JS. Test isolation breaks.
+The Gunicorn deployment uses 2 workers (deployment-v0.5.0.md), meaning each worker could independently spawn browsers. The total browser count could be 2x the intended parallelism.
 
-**Prevention:**
-1. Do NOT put the `_failure_tracker` reset inside `apply_dom_patch()`. The idempotent guard prevents it from running more than once.
-2. Instead, expose a separate `reset_failure_tracker()` function that is called explicitly at the start of each run in `agent_service.py` (line 357 area), BEFORE the agent is created but AFTER the module is imported.
-3. Unit tests MUST reset `_failure_tracker` in `setUp()` or `autouse` fixtures, not rely on `apply_dom_patch()` to do it.
-4. Consider making `_failure_tracker` a dict that is passed in (dependency injection) rather than module-level global, so each `AgentService.run_with_streaming()` call creates a fresh instance.
+**Consequences:**
+- Server becomes unresponsive, all in-progress runs fail
+- OOM killer terminates the FastAPI worker process
+- Gunicorn restarts the worker but all running tasks lose their state
+- Database writes for in-progress runs never complete, leaving runs stuck in "running" status
 
-**Detection:**
-- Run two sequential E2E tests on same worker. Second test's DOM dump contains annotations from first test.
-- Unit test order dependence: tests pass individually but fail when run together.
-- `backend/tests/` already has known test isolation issues (PROJECT.md Backlog: "5 pre-existing test isolation issues").
+**How to avoid:**
+1. Implement a global `asyncio.Semaphore` that limits concurrent browser instances. Default to `max(1, (total_ram_mb - 1024) // 400)`. On the 2-core server, this should be 2 at most.
+2. Place the semaphore in a shared module (not per-request) so it is respected across all concurrent batch executions.
+3. Queue excess tasks rather than launching them immediately. Show queued status in the UI.
+4. Consider using Playwright's `browser.new_context()` from a shared browser instance instead of launching separate browsers per agent. However, browser-use's `BrowserSession` may not support this pattern -- verify before relying on it.
+5. Add a health check that refuses new batch executions if memory usage exceeds a threshold (e.g., 80%).
 
-**Confidence:** HIGH -- based on direct code analysis of `apply_dom_patch()` idempotent guard (dom_patch.py line 234-235) and Gunicorn 2-worker deployment (deployment-v0.5.0.md).
+**Warning signs:**
+- Server response time degrades during batch execution
+- `dmesg` shows OOM killer messages
+- Runs stuck in "running" status permanently
+- Gunicorn worker restart count increases in `journalctl`
 
----
+**Phase to address:**
+BATCH-01 (batch execution phase) -- must be designed into the execution scheduler from the start, not bolted on later.
 
-### Pitfall 2: DOM Dump Comment Injection Breaking the `serialize_tree` Parser
-
-**What goes wrong:** The design injects HTML comments (`<!-- 行: I01784004409597 -->`, `<!-- 策略1: 原生 input -->`) into the DOM dump output. The injection point is described as "序列化输出阶段" but the actual `serialize_tree()` method in browser-use's `serializer.py` (line 883) is a recursive text builder that concatenates lines. Injecting comments requires intercepting this method or post-processing the output string. If the comment is injected at the wrong point (e.g., inside a tag's attribute string, or breaking the indentation structure), the LLM receives malformed DOM dump text.
-
-**Why it happens:** The `serialize_tree()` method builds output line-by-line with depth-based tab indentation. Comments must be inserted at the correct depth level and must not break the tree structure the LLM relies on. The design's proposed injection point is ambiguous -- it says "intercept serialization output stage" but the actual code path is: `serialize_accessible_elements()` -> `_create_simplified_tree()` -> `_optimize_tree()` -> `_assign_interactive_indices_and_mark_new_nodes()` -> `llm_representation()` -> `serialize_tree()`. Comment injection can only happen either: (a) during `_assign_interactive_indices` by storing metadata on nodes, or (b) by wrapping `serialize_tree()` to post-process the string output.
-
-**Consequences:** DOM dump becomes garbled. LLM cannot parse element tree. Agent clicks wrong elements or fails entirely. Hard to debug because the issue is in the serialized text format, not in Python logic.
-
-**Prevention:**
-1. **Preferred approach:** Do NOT inject comments into the raw `serialize_tree()` output. Instead, store row-identity and strategy metadata as attributes on `SimplifiedNode` (e.g., `node._erp_row_identity = "I01784004409597"`, `node._erp_strategy = 1`). Then monkey-patch `serialize_tree()` to append these as comments at the correct depth level AFTER the element's own line is built, before processing children.
-2. If post-processing the string: use regex replacement on the final `serialize_tree()` output, targeting lines that contain known element identifiers (placeholder text, backend_node_id).
-3. Write explicit tests that verify the DOM dump output format is valid after comment injection. Test with a realistic mock tree structure.
-4. Never inject comments inside XML/HTML tag angle brackets -- only between sibling elements or after closing tags.
-
-**Detection:**
-- DOM dump contains `<<` or `>>` or broken indentation.
-- LLM output shows confusion about element hierarchy (e.g., treating a comment as a child element).
-- `llm_representation()` returns a string with syntax errors visible in step logs.
-
-**Confidence:** HIGH -- based on reading `serialize_tree()` implementation at serializer.py line 883-982 and understanding the recursive text builder pattern.
+**Confidence:** HIGH -- direct code analysis of `agent_service.py` line 164, server specs from deployment-v0.5.0.md, well-documented Chromium memory behavior.
 
 ---
 
-### Pitfall 3: Strategy Annotation Causing Agent to Always Choose Strategy 3 (evaluate JS)
+### Pitfall 2: SQLite Concurrent Write Locks Under Parallel Runs
 
-**What goes wrong:** When strategy annotations appear in the DOM dump (`<!-- 策略1: 原生 input -->`, `<!-- 策略3: evaluate JS 兜底 -->`), the LLM agent (Qwen 3.5 Plus) may exhibit recency bias or "complexity preference" -- gravitating toward the last-mentioned or most-detailed strategy option. If the prompt describes all three strategies and the DOM dump shows `<!-- 策略3: evaluate JS 兜底 -->` alongside working strategy-1 inputs, the agent may skip the simpler `input(index=N)` action and jump to `evaluate("...")`, which is less reliable (does not trigger React state updates).
+**What goes wrong:**
+When multiple browser agents execute in parallel, each one writes step data, status updates, and precondition results to SQLite. SQLite's WAL mode allows concurrent reads but still serializes writes. Under parallel load, writes from different agents queue up and eventually hit `SQLITE_BUSY` errors despite `busy_timeout=5000`.
 
-**Why it happens:** LLMs do not reliably follow priority ordering from annotations. The prompt says "优先使用策略1" but the DOM dump shows strategy annotations for every element, including the fallback. The agent sees strategy 3 as a viable option and may choose it because: (a) the evaluate JS path is more explicit (includes a full JS code snippet in the annotation), (b) the agent had previous failures with strategy 1 in its context window and generalizes those failures, or (c) the model's instruction-following for "prefer X" is weaker than its pattern-matching for "here is a concrete action you can take."
+**Why it happens:**
+The current codebase creates a new database session per background task (runs.py line 76: `async with async_session() as session`). When 3 agents run in parallel, each holds its own session. Their writes (step inserts, status updates) contend for the single SQLite write lock. Each write operation in `add_step()` (repository.py line 158-174) does `session.add()` + `session.commit()`, which acquires and releases the write lock per step. With 3 agents each writing a step every 2-5 seconds, that is 3-6 write lock acquisitions per 5 seconds. Under normal load this works, but under sustained parallel execution with precondition results, assertion results, and step data all writing simultaneously, contention spikes.
 
-**Consequences:** Agent uses evaluate JS for inputs that would work with native `input()` action. evaluate JS does not trigger React's onChange handlers, so the ERP system does not register the value change. Form submission fails because values appear set in DOM but are not in React state. Worse, the agent thinks it succeeded because `input.value` shows the correct value.
+The deployment has Gunicorn with 2 workers. Each worker has its own async engine (`create_async_engine` with `pool_size=5`). This means there are 2 independent connection pools, each with 5 connections. SQLite's WAL mode allows one writer at a time across ALL connections to the same file.
 
-**Prevention:**
-1. **Only annotate strategy 3 when strategy 1 and 2 have actually failed.** Do NOT annotate all elements with their theoretical strategy level. If an input is visible and has an index, do not add any strategy annotation -- let the agent use it naturally.
-2. For strategy annotations, ONLY show the strategy that applies to THIS element, not all three options. Use `<!-- 当前策略: 原生 input -->` rather than listing all three.
-3. In the prompt, emphasize: "Do NOT use evaluate JS unless you see a `<!-- 策略降级: evaluate JS -->` annotation on the element. If no strategy annotation is present, use the standard input() action."
-4. Include a worked example in the prompt showing the correct behavior: "If you see `<input placeholder='销售金额' /> [15]` with NO strategy annotation, use `input(index=15, value='150')`."
-5. Monitor in E2E: track evaluate JS usage count. If it exceeds 20% of table cell inputs, the annotations are biasing the agent.
+**Consequences:**
+- `sqlite3.OperationalError: database is locked` errors in logs
+- Steps fail to save, causing incomplete execution records
+- Runs may get stuck in "running" status if the final status update fails
+- Error recovery is complicated because the original write context is lost
 
-**Detection:**
-- Agent's first attempt on a new table cell uses evaluate JS instead of input().
-- Agent uses evaluate JS on elements that have valid strategy-1 annotations.
-- Evaluate JS usage rate is high in E2E logs despite most inputs being visible.
+**How to avoid:**
+1. Increase `busy_timeout` to 10000ms or higher for batch execution scenarios. The current 5000ms may not be enough under parallel load.
+2. Batch step writes: accumulate steps in memory and flush them in a single transaction rather than committing per step. The current `add_step()` commits individually (repository.py line 172: `await self.session.commit()`).
+3. Implement a write serializer: route all database writes through a single asyncio task with an internal queue. This eliminates write contention entirely.
+4. Consider separating the step write path from the status update path. Steps can be batched (acceptable to lose the last few if the server crashes), but status updates must be reliable.
+5. Add retry logic with exponential backoff for `OperationalError` exceptions on write operations during batch execution.
 
-**Confidence:** HIGH -- based on established LLM behavior patterns (instruction following weakness, recency bias) and the specific risk of providing explicit JS code in annotations.
+**Warning signs:**
+- `database is locked` errors in server logs
+- Steps missing from execution records (step_index gaps)
+- Runs completing but status remaining "running" in the database
+- `busy_timeout` exceeded warnings in SQLite logs
 
----
+**Phase to address:**
+BATCH-01 (batch execution phase) -- the write serialization pattern must be designed before implementing parallel execution. IMPT-01 should use simple sequential writes for batch import (less risk).
 
-### Pitfall 4: Row Identity Regex `I\d{15}` False Positives
-
-**What goes wrong:** The row identity detection uses regex `I\d{15}` to match IMEI-like product codes (e.g., `I01784004409597`). This pattern can match non-identity text in ERP table cells:
-- Order numbers containing 15+ digits preceded by 'I' (e.g., "Invoice ID: I202604060000123")
-- CSS class names or JavaScript variable references that happen to match
-- URLs or paths containing the pattern
-- The same product code appearing in header cells, footer totals, or adjacent table sections
-
-**Why it happens:** The regex is applied broadly to all `<td>` text content within `<tr>` rows. The ERP system may display the product code in summary rows, filter fields, or search results outside the main editable table. The design (R01-4) says "only take the first match" but does not specify what "first" means when scanning all `<td>` children -- left-to-right DOM order may not correspond to the identity column.
-
-**Consequences:** A non-data row (header, total, filter) gets assigned a row identity, causing the agent to target the wrong row. Multiple rows may get the same identity if the product code appears in a spanning header cell. The `<!-- 行: I... -->` comment appears on the wrong `<tr>`, and the agent fills values into the wrong product's row.
-
-**Prevention:**
-1. Restrict regex matching to `<td>` cells that are NOT in `<thead>`, `<tfoot>`, or rows with class "ant-table-header", "ant-table-footer", "ant-table-summary".
-2. Only match `<td>` cells whose index position corresponds to the known identity column position (if known from ERP DOM structure). The ERP likely places the product code in a consistent column.
-3. Use a stricter regex: `I\d{15}(?!\d)` (negative lookahead to prevent partial matches of longer numbers).
-4. After detecting a match, verify the parent `<tr>` has the expected number of `<td>` children (matching the table structure) before assigning row identity.
-5. Add a `max_row_identity_per_table` guard: if more than N rows in one table have row identities, the detection is likely too loose.
-
-**Detection:**
-- Row identity comment appears on `<thead>` or summary rows in DOM dump.
-- Agent targets wrong row despite correct product code in prompt.
-- Unit test with mock DOM containing header cells with I-prefix text.
-
-**Confidence:** MEDIUM -- based on analysis of regex pattern and ERP table structure assumptions. The actual ERP DOM may or may not have these edge cases. Needs validation against real ERP HTML.
+**Confidence:** HIGH -- direct code analysis of database.py (pool_size=5, busy_timeout=5000), repository.py (per-step commit pattern), and well-documented SQLite WAL single-writer constraint.
 
 ---
 
-### Pitfall 5: Race Condition Between `step_callback` and DOM Serialization
+### Pitfall 3: Excel Parsing Returns Wrong Data Types Due to Cell Formatting
 
-**What goes wrong:** The design creates a data flow: `step_callback` (runs after each agent step) updates `_failure_tracker` -> DOM serialization (runs at next step) reads `_failure_tracker`. However, `step_callback` is called by browser-use AFTER the agent has already received the DOM dump for that step. The actual sequence in browser-use is: (1) get DOM state -> (2) LLM decides action -> (3) execute action -> (4) call `step_callback` -> (5) get DOM state for next step. The `_failure_tracker` update in step_callback happens in step (4), and the next DOM serialization happens in step (5), so the timing is actually correct for the NEXT step.
+**What goes wrong:**
+openpyxl returns different Python types depending on how the cell was formatted in Excel. A cell that looks like "10" might be the integer `10`, the float `10.0`, or the string `"10"` depending on whether Excel stored it as a number, a formula result, or text. Date cells may return `datetime` objects or serial numbers. This causes silent data corruption when importing to Task fields.
 
-But there is a subtler issue: if `_failure_tracker` is updated in `step_callback` which runs in `agent_service.py`, and DOM serialization happens inside browser-use's internal `get_state()` call, the module-level `_failure_tracker` dict could be read while being written if any async interleaving occurs. Python's GIL protects dict operations, but the logical race is: the agent may trigger multiple DOM serializations in one step (e.g., `find_elements` action calls a separate DOM query).
+**Why it happens:**
+The Task model has strict field types: `name` is `String(200)`, `description` is `Text`, `max_steps` is `Integer`, `target_url` is `String(500)`. When openpyxl reads a cell:
+- A number like `10` in the `max_steps` column comes through as `int(10)` -- correct
+- But if the user formatted the cell as text, it comes as `str("10")` -- needs casting
+- If the user typed `=10` (formula), openpyxl without `data_only=True` returns the string `"=10"`, not the value
+- Dates in `preconditions` or `description` columns may become `datetime(2024, 1, 15)` objects that `json.dumps()` serializes differently than expected
+- Merged cells return `None` for all but the top-left cell, silently dropping data
+- Leading/trailing whitespace is invisible in Excel but causes validation failures (e.g., `" test name "` fails `min_length=1` after trimming but passes before)
 
-**Why it happens:** The `_failure_tracker` is shared mutable state accessed from two different call sites: written by `step_callback` (in `agent_service.py` / `monitored_agent.py`), read by `_patch_dynamic_annotation()` (called during `DOMTreeSerializer.serialize_accessible_elements()`). Both run on the same async event loop but at different points in the agent loop.
+**Consequences:**
+- Batch import silently creates tasks with wrong `max_steps` values
+- Task names with trailing spaces cause matching issues later
+- Formula cells cause cryptic import errors ("=10 is not a valid integer")
+- Merged cells in header rows cause entire columns to be skipped
+- Date objects cause JSON serialization failures when storing preconditions
 
-**Consequences:** Inconsistent failure annotations. Rarely, `_failure_tracker` may be read mid-update, showing partial data. More likely: `find_elements` or similar browser-use internal calls trigger DOM serialization without going through the patched path, producing un-annotated DOM dumps.
+**How to avoid:**
+1. Always load with `data_only=True` to get cached values instead of formula strings.
+2. Implement explicit type coercion per column: cast `max_steps` to `int()`, `target_url` to `str()`, etc. Do NOT rely on openpyxl's type inference.
+3. Strip whitespace from all string fields before validation.
+4. Check for `None` values from merged cells and provide clear error messages like "Row 5, column B: merged cell detected, please unmerge or fill value".
+5. Add a `preprocess_row()` function that normalizes types before passing to Pydantic validation.
+6. Reject or warn on formula cells by checking `cell.data_type == 'f'`.
 
-**Prevention:**
-1. Accept that `_failure_tracker` writes are eventually consistent -- the annotations apply to the NEXT step, not the current one. Document this explicitly.
-2. Use a `dict.copy()` when reading `_failure_tracker` in `_patch_dynamic_annotation()` to avoid reading partially-updated state.
-3. Verify that ALL DOM serialization paths go through `serialize_accessible_elements()` (the patched method), not just the main `llm_representation()` path. Check if `find_elements` or other browser-use actions use a separate code path.
-4. Add logging when `_failure_tracker` is read vs written, with step numbers, to verify ordering in E2E tests.
+**Warning signs:**
+- Import succeeds but tasks have `max_steps=0` or `max_steps=None`
+- Task names contain leading/trailing spaces
+- Import errors reference formula strings like `"=VLOOKUP(...)"` in error messages
+- `json.dumps()` fails on cell values that are `datetime` objects
 
-**Detection:**
-- Failure annotations appear one step late (expected, document it).
-- Failure annotations appear on wrong elements (index mismatch).
-- Intermittent test failures that correlate with fast agent steps.
+**Phase to address:**
+IMPT-01 (Excel import phase) -- type coercion must be built into the parsing layer from the start.
 
-**Confidence:** MEDIUM -- the GIL makes Python dict reads/writes atomic at the bytecode level, but the logical ordering of annotations vs steps requires careful verification. The actual risk depends on browser-use internals that may have changed since training.
-
----
-
-### Pitfall 6: Monkey-Patch Ordering When Multiple New Patches Modify `_assign_interactive_indices`
-
-**What goes wrong:** The design adds TWO enhancements to Patch 4 (`_patch_assign_interactive_indices`): row identity annotation (T04) and strategy level annotation (T05). Both wrap the same `original_method` from `DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes`. If implemented as separate monkey-patches that each save and wrap the "original" method, the second patch wraps the first patch's wrapper, creating a chain. If the order is wrong, row identity may not be available when strategy annotation runs.
-
-**Why it happens:** The current `_patch_assign_interactive_indices()` (dom_patch.py line 289-328) already wraps the original browser-use method. Adding T04 and T05 on top means there will be 3 layers of wrapping: original browser-use method -> current Patch 4 (force interactive for ERP inputs) -> T04 (row identity) -> T05 (strategy level). If T04 and T05 are registered as separate patches, they must be applied in the correct order. If T04 runs AFTER T05, the row identity is not yet set when strategy annotation checks it.
-
-**Consequences:** Strategy annotations always show "strategy 2" or "strategy 3" because the row identity context is missing, causing the agent to skip strategy 1. Or, row identity annotations appear but strategy annotations do not, because T05's wrapper was applied first and its `original_method` call skips T04's wrapper.
-
-**Prevention:**
-1. **Do NOT create separate patch functions for T04 and T05.** Instead, extend the EXISTING `_patch_assign_interactive_indices()` function to include both row identity and strategy logic in a single wrapper. This avoids multi-layer wrapping entirely.
-2. If separate functions are unavoidable, document the wrapping order explicitly and enforce it in `apply_dom_patch()`: T05 wraps T04 wraps original Patch 4 wraps browser-use original.
-3. Add an assertion in tests that `_assign_interactive_indices_and_mark_new_nodes` has the expected number of wrapper layers.
-4. Consider consolidating all "post-assignment" logic (row identity, strategy level, dynamic annotation) into a single `_post_assignment_enhancements()` function called from within the patched method.
-
-**Detection:**
-- DOM dump shows row identity comments but no strategy comments (or vice versa).
-- Strategy annotations reference wrong row identity.
-- Unit test specifically checking wrapper layer count fails.
-
-**Confidence:** HIGH -- based on direct analysis of existing `_patch_assign_interactive_indices()` pattern (dom_patch.py line 289-328) and the design's specification that both T04 and T05 enhance the same method.
+**Confidence:** HIGH -- well-documented openpyxl behavior, directly applicable to the Task model field types in models.py.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 4: Malicious Excel File Upload (ZIP Bomb / Macro Attack)
 
-### Pitfall 7: DOM Hash Unchanged Does Not Mean Click Failed
+**What goes wrong:**
+A maliciously crafted `.xlsx` file (which is actually a ZIP archive) can contain: (a) a ZIP bomb that expands to gigabytes when opened, exhausting disk and RAM; (b) embedded VBA macros in a renamed `.xlsm` file; (c) formula injection payloads (`=CMD|...`) that execute when the data is later exported; (d) XML entity expansion attacks (billion laughs) that exhaust memory during parsing.
 
-**What goes wrong:** OPTIMIZE-04 Rule 1 detects "click no effect" by checking `dom_hash_before == dom_hash_after`. But DOM hash staying the same is NORMAL in many scenarios: clicking a table cell that is already in edit mode, clicking an element that triggers a React state update without DOM change, clicking during an animation that hasn't completed, or clicking an element whose only effect is setting a JavaScript variable. The design triggers "click no effect" after just ONE occurrence (R02-3), which means false positives are likely.
+**Why it happens:**
+The current system has no file upload endpoints at all. When IMPT-01 adds the upload endpoint, it is tempting to accept any file with an `.xlsx` extension and pass it directly to openpyxl. FastAPI's `UploadFile` does not validate file content -- it trusts the `Content-Type` header and filename extension, both of which are client-controlled.
 
-**Why it happens:** The DOM hash is a SHA-256 truncation of `llm_representation()` output. If the click activates an input that was already in the DOM (but hidden), the serialized DOM may not change because the input was already indexed by Patch 4. Similarly, if the click scrolls the table slightly but the visible elements don't change, the hash stays the same.
+The system runs as `root` on the server (deployment-v0.5.0.md), meaning any file write or code execution vulnerability has maximum privilege.
 
-**Prevention:**
-1. Increase the threshold from 1 to 2 for "click no DOM change" detection, matching the 2-failure threshold for repeated failures.
-2. Only trigger "click no effect" if the action was `click` AND the evaluation contains a failure keyword. Require BOTH signals, not just DOM hash.
-3. Exclude "click no effect" detection for elements that are known click-to-edit cells (they may legitimately produce no DOM change if the input was already visible via Patch 4).
-4. Add a small delay (200-500ms) before computing the "after" DOM hash, to allow React state updates to render.
+**Consequences:**
+- ZIP bomb crashes the Python worker (OOM or disk full)
+- XML entity expansion crashes openpyxl during parse
+- Path traversal in filename writes files outside intended directory
+- Macro code execution (if file is opened in Excel later for review)
+- Formula injection if imported data is ever exported to CSV/Excel
 
-**Detection:**
-- Agent receives `<!-- 点击无效 -->` annotations on elements that were actually clicked successfully.
-- Agent switches to evaluate JS unnecessarily for click-to-edit cells.
-- "Click no effect" count is high in E2E logs but final test results are correct.
+**How to avoid:**
+1. **File size limit**: Enforce a hard limit (e.g., 5MB) at the FastAPI endpoint level BEFORE reading the file into memory. Use `file.size` or stream-read with a cap.
+2. **Magic bytes validation**: Check the file header. Valid `.xlsx` files start with `PK\x03\x04` (ZIP signature). Reject anything else.
+3. **Block macro extensions**: Reject `.xlsm`, `.xlsb`, `.xltm` files explicitly.
+4. **Load in read-only mode**: Use `openpyxl.load_workbook(..., read_only=True, data_only=True)`. This prevents formula evaluation and macro execution.
+5. **Sandbox parsing**: Parse in a subprocess or with resource limits (`resource.setrlimit`) so a crash does not take down the main worker.
+6. **Sanitize filename**: Use `os.path.basename()` and strip special characters. Never use the user-supplied filename directly.
+7. **Row/column limits**: Enforce a maximum number of rows (e.g., 500) and columns (e.g., 20) to prevent resource exhaustion from oversized files.
 
----
+**Warning signs:**
+- Upload endpoint takes longer than 5 seconds to respond (parsing huge file)
+- Worker process memory spikes after upload
+- `openpyxl` throws `ZipBadZipFile` or `xml.parsers.expat.ExpatError`
+- Uploaded file extension differs from actual content type
 
-### Pitfall 8: Section 9 Prompt Bloat Overwhelming the Agent
+**Phase to address:**
+IMPT-01 (Excel import phase) -- security validations must be in the first version of the upload endpoint. Do not defer security.
 
-**What goes wrong:** The design adds FOUR new rule blocks to Section 9 of `ENHANCED_SYSTEM_MESSAGE` (T13-T16): row identity usage, anti-repeat rules, strategy priority, failure recovery. Section 9 is already 31 lines (prompts.py line 52-83). Adding 4 more blocks could push it to 60+ lines. Combined with Sections 1-8 (83 lines total), the system prompt becomes very long. Qwen 3.5 Plus has limited context window, and long system prompts reduce instruction-following quality.
-
-**Why it happens:** Each optimization adds rules that the agent "needs to know." But the agent only encounters ERP table interactions in specific test scenarios. For non-table tasks (login, navigation, file upload), all the table-specific rules are noise that dilutes the agent's attention.
-
-**Prevention:**
-1. Keep each new Section 9 addition to 3-5 lines maximum. Use terse format, not explanatory prose.
-2. Consider conditionally including Section 9 table rules only when the task description mentions table operations (检测 "表格"/"出库"/"入库" keywords in task text).
-3. Remove existing redundant rules: Section 2 (line 16-21) "失败恢复强制规则" overlaps with the new OPTIMIZE-04 failure recovery rules. Consolidate.
-4. Prioritize rules by impact: row identity (most impactful) > failure recovery > strategy priority > anti-repeat. If prompt length is a concern, drop anti-repeat rules (the DOM annotations handle this).
-
-**Detection:**
-- Agent starts ignoring earlier system prompt rules (Sections 1-8) after Section 9 grows.
-- Agent takes more steps to complete tasks that do NOT involve table interactions.
-- Token usage per step increases significantly.
-
----
-
-### Pitfall 9: `_pending_interventions` Flooding the Agent's Context Window
-
-**What goes wrong:** Each detector can append messages to `_pending_interventions`. The existing code clears the list after injection (monitored_agent.py line 81: `self._pending_interventions = []`). But with 3 new failure mode detections added to StallDetector, plus the existing stall and progress trackers, a single step could generate 4-5 intervention messages. Each message is injected as a `UserMessage` into the LLM context via `_message_manager._add_context_message()`. These messages accumulate across steps if not properly cleared.
-
-**Why it happens:** The current code clears `_pending_interventions` in `_prepare_context()` (line 81), which runs at the START of each step. But if multiple detectors trigger in the same step_callback, all messages are injected at once. With failure recovery messages containing JS code snippets (`document.querySelector('...').value = '...'`), each message can be 200+ characters. Over 10 steps, this adds 2-3KB of intervention text to the context.
-
-**Prevention:**
-1. Cap `_pending_interventions` at 3 messages per step. If more detectors trigger, keep only the highest-priority ones.
-2. Implement priority ordering: failure recovery (OPTIMIZE-04) > anti-repeat (OPTIMIZE-02) > stall detection > progress warning.
-3. Merge related messages: if stall detection and failure recovery both trigger for the same element, send one combined message.
-4. Truncate long messages to 150 characters. JS code snippets should be shortened to just the selector, not the full evaluate expression.
-
-**Detection:**
-- Context window fills faster than expected.
-- Agent output quality degrades in later steps (step 15+).
-- `_pending_interventions` list has 4+ items in step logs.
+**Confidence:** HIGH -- standard web security practices, directly applicable to FastAPI + openpyxl stack.
 
 ---
 
-### Pitfall 10: `snapshot_node` Check is Unreliable for Strategy Level Determination
+### Pitfall 5: Batch Import Partial Failure Leaving Orphaned Tasks
 
-**What goes wrong:** OPTIMIZE-03 strategy level determination relies on `snapshot_node` presence to distinguish strategy 1 (visible input, `snapshot_node` exists) from strategy 2 (hidden input, `snapshot_node` missing). But `snapshot_node` availability depends on Chromium's accessibility tree, which is affected by: headless vs headed mode, React rendering timing, Ant Design's dynamic visibility toggling, and whether the element is within the viewport. The same input may have `snapshot_node` in one step and not in the next.
+**What goes wrong:**
+When importing 50 tasks from an Excel file, if task #37 fails validation (e.g., description too long), the system either: (a) creates tasks 1-36 and stops, leaving the user confused about which tasks were imported; or (b) creates all valid tasks and silently skips invalid ones, making it impossible for the user to know which rows failed.
 
-**Why it happens:** Chromium's `DOMSnapshot.captureSnapshot` is called once per step by browser-use. Between steps, React may re-render the component, Ant Design may toggle the input's visibility based on user interaction, and the element may scroll in/out of the viewport. The `snapshot_node` availability is not stable across steps.
+**Why it happens:**
+There is no transaction boundary for batch creation in the current TaskRepository. Each `create()` call commits independently (repository.py line 45: `await self.session.commit()`). If row 37 fails, rows 1-36 are already committed. There is no rollback mechanism and no tracking of which rows succeeded vs failed.
 
-**Consequences:** Strategy level oscillates between 1 and 2 for the same input across steps. The agent sees `<!-- 策略1: 原生 input -->` in step N, then `<!-- 策略2: click-to-edit -->` in step N+1 for the same element. This confuses the agent and may cause it to re-try the click-to-edit workflow on an already-visible input.
+The user expects either all-or-nothing (rollback on first error) or best-effort-with-report (import valid rows, report invalid rows). Neither is the default behavior -- the default is the worst of both worlds: partial import with no clear feedback.
 
-**Prevention:**
-1. Cache the strategy level per element (by backend_node_id or placeholder text) across steps. Once strategy 1 is detected for an element, do not downgrade to strategy 2 unless `_failure_tracker` records a failure.
-2. Use a more robust visibility check: combine `snapshot_node` with `is_visible` attribute AND bounding box dimensions. An input with `snapshot_node=None` but positive bounding box should still be strategy 1.
-3. Default to strategy 1 for inputs that already have interactive indices (assigned by Patch 4). Only assign strategy 2 to newly discovered inputs without indices.
+**Consequences:**
+- User cannot tell which tasks were imported without manually comparing
+- Re-importing the same file creates duplicate tasks for the rows that succeeded
+- User has to manually clean up partial imports before retrying
+- No way to fix just the failed rows and re-import only those
 
-**Detection:**
-- DOM dump shows different strategy annotations for the same input across consecutive steps.
-- Agent re-clicks a cell that is already in edit mode.
+**How to avoid:**
+1. **Validate all rows first**: Parse the entire Excel file, validate every row against Pydantic schemas, collect ALL errors, and only proceed to create tasks if all rows are valid. Show a preview with validation results before creating anything.
+2. **Dry-run / preview mode**: Add an import preview endpoint that returns parsed data and validation errors without creating tasks. The frontend shows the preview; user confirms or fixes errors; then the actual import runs.
+3. **If partial import is desired**: Track row numbers. Return a detailed response: `{ "created": [task_ids...], "failed": [{"row": 37, "error": "description exceeds max length"}] }`.
+4. **Idempotency key**: Allow the user to re-import without duplicates by tracking the import batch (e.g., a `batch_id` field on tasks, or checking for name+description duplicates).
+5. **Rollback on threshold**: If more than X% of rows fail, rollback everything. Only commit if the failure rate is below a threshold.
 
----
+**Warning signs:**
+- User reports "I imported 50 tasks but only 36 appeared"
+- Same task name appears multiple times (duplicate imports)
+- No error messages shown in the UI for failed rows
+- Import endpoint returns 200 but fewer tasks created than rows in the file
 
-### Pitfall 11: `update_failure_tracker()` Index Mismatch After DOM Re-serialization
+**Phase to address:**
+IMPT-01 (Excel import phase) -- the import flow must be designed as validate-all-then-create, not create-one-by-one.
 
-**What goes wrong:** `step_callback` captures `target_index` from the agent's action (e.g., `click(index=15)`). This index is from the PREVIOUS step's DOM serialization. The `_failure_tracker` stores `{15: {"count": 1, ...}}`. But in the NEXT step, DOM re-serialization may assign different indices (element count changes, page structure changes, or elements become visible/hidden). The annotation `_patch_dynamic_annotation()` applies to index 15 in the NEW serialization, which may now point to a completely different element.
-
-**Why it happens:** browser-use re-serializes the DOM at every step. Interactive indices are assigned sequentially starting from 1 based on the current tree structure. If the page changes between steps (new elements appear, elements are removed, scrolling reveals new elements), all indices shift. The failure tracker's `target_index` from step N is meaningless in step N+1's DOM.
-
-**Consequences:** Failure annotations appear on the wrong element. The agent sees `<!-- 已尝试2次失败 -->` on an element it has never interacted with. The real failed element gets no annotation and the agent repeats the same mistake.
-
-**Prevention:**
-1. **Do NOT use index as the key for `_failure_tracker`.** Instead, use a stable element identifier: a combination of `backend_node_id` (Chromium's stable node ID within a page load) and element characteristics (tag name + placeholder + row identity).
-2. When annotating in the next serialization, match tracker entries to elements by `backend_node_id`, not by interactive index.
-3. Add a "stale tracker" cleanup: if a tracker entry's `backend_node_id` no longer exists in the current DOM, remove it.
-4. Fallback: if `backend_node_id` is not available, use `(tag_name, placeholder, row_identity)` tuple as a composite key.
-
-**Detection:**
-- Failure annotation appears on element with different placeholder text than what the agent actually targeted.
-- `backend_node_id` in tracker does not match any element in current DOM.
-
-**Confidence:** HIGH -- this is a fundamental issue with using mutable indices as identifiers across re-serializations. browser-use indices are per-serialization, not stable.
+**Confidence:** HIGH -- directly follows from the current TaskRepository design (per-row commit), Pydantic validation patterns, and standard batch import UX requirements.
 
 ---
 
-## Minor Pitfalls
+### Pitfall 6: Browser Agent Cleanup Failure in Parallel Execution
 
-### Pitfall 12: IMEI Regex Missing Variants
+**What goes wrong:**
+When running multiple browser agents in parallel, if one agent crashes or times out, its browser process may not be cleaned up properly. Over time, zombie Chromium processes accumulate, consuming memory and file descriptors until the server becomes unusable.
 
-**What goes wrong:** The regex `I\d{15}` assumes all product codes are exactly "I" followed by 15 digits. Real IMEI codes can vary: 14 digits (check digit omitted), alphanumeric product codes (e.g., "SKU-12345"), or codes with hyphens/dots. The ERP system may display product codes in different formats across pages.
+**Why it happens:**
+The current `run_with_cleanup()` in agent_service.py (line 426-474) wraps `run_with_streaming()` with try/finally for logging, but the actual browser cleanup is handled by browser-use's `Agent` class internally. If the agent crashes during initialization (before browser launch) or during an unrecoverable Playwright error, the browser process may be orphaned.
 
-**Prevention:** Make the regex configurable. Start with `I\d{14,15}` to handle both 14 and 15 digit variants. Log unmatched `<td>` text in cells adjacent to known identity columns for analysis.
+In parallel execution, a single `asyncio.gather()` call manages multiple agents. If one agent raises an exception, `gather()` with default behavior cancels remaining tasks. If `gather(return_exceptions=True)` is used instead, the failed agent's browser may not be cleaned up because its finally block runs in an uncertain state.
 
----
+On the server (running as root), orphaned Chromium processes can accumulate indefinitely because no one is monitoring process counts.
 
-### Pitfall 13: `data-row-identity` HTML Attribute Not Reaching DOM Dump
+**Consequences:**
+- Server memory gradually increases as zombie Chrome processes accumulate
+- After several batch executions, no new browser instances can launch (file descriptor limit)
+- Eventually requires manual `pkill chromium` or server restart
+- Screenshot directories fill with orphaned files from incomplete runs
 
-**What goes wrong:** The design says to add `data-row-identity` attribute to `<tr>` elements. But browser-use's `serialize_tree()` only outputs attributes that are in the `include_attributes` list (serializer.py line 948). Custom `data-*` attributes are not in the default include list. The attribute will exist on the DOM element but will never appear in the LLM's DOM dump.
+**How to avoid:**
+1. Implement explicit browser process tracking: maintain a registry of launched browser PIDs. On cleanup, verify the process is actually dead.
+2. Add a startup health check that kills any orphaned Chromium processes before accepting new batch execution requests.
+3. Use `asyncio.timeout()` or `asyncio.wait_for()` with a hard limit per agent run (e.g., 5 minutes for a 10-step task).
+4. In the batch execution scheduler, always use `try/finally` per agent, not per batch. Each agent's browser must be cleaned up independently regardless of other agents' status.
+5. Add a periodic cleanup task (e.g., every 10 minutes) that scans for and kills orphaned Chromium processes older than a threshold.
 
-**Prevention:** Do not rely on `data-*` attributes for communication with the agent. Use the comment injection approach exclusively. If `data-row-identity` is needed for internal tracking, it should NOT be the primary mechanism for the agent to see row identity.
+**Warning signs:**
+- `ps aux | grep chromium` shows processes from completed runs
+- Server memory usage does not decrease after batch execution completes
+- New agent launches fail with "Failed to launch browser" (too many open files)
+- Screenshot directories contain files for runs that show "failed" status
 
----
+**Phase to address:**
+BATCH-01 (batch execution phase) -- browser lifecycle management must be explicit, not delegated to browser-use's implicit cleanup.
 
-### Pitfall 14: `_PATCHED` Flag Prevents Re-initialization of New Sub-patches
-
-**What goes wrong:** When new patches are added to `apply_dom_patch()` (T03), the existing `_PATCHED = True` guard means that after the first call, subsequent calls skip all patch registration -- including the new patches. If the code is deployed incrementally (e.g., first OPTIMIZE-01, then OPTIMIZE-02 in a later release), the new patches will not be applied if the worker process was started with the old code and hot-reloaded.
-
-**Prevention:** This is unlikely in practice because uvicorn/gunicorn restart workers on code changes. But if in doubt, change the guard to track which patches are applied individually (set of patch names) rather than a single boolean flag.
-
----
-
-### Pitfall 15: `evaluate` JS Not Triggering React State Updates
-
-**What goes wrong:** Strategy 3 uses `evaluate("document.querySelector('input[placeholder=\"销售金额\"]').value = '150'")`. Setting `input.value` via JavaScript does NOT trigger React's synthetic onChange event. The ERP's Ant Design form will not register the value change. When the form is submitted, the field appears empty from React's perspective.
-
-**Prevention:**
-1. In the evaluate JS fallback, dispatch input and change events after setting value:
-   ```javascript
-   const input = document.querySelector('input[placeholder="销售金额"]');
-   input.value = '150';
-   input.dispatchEvent(new Event('input', { bubbles: true }));
-   input.dispatchEvent(new Event('change', { bubbles: true }));
-   ```
-2. Document this in the prompt so the agent includes the event dispatch.
-3. Verify in E2E that evaluate JS strategy actually submits correctly by checking the API request payload.
+**Confidence:** HIGH -- based on direct code analysis of `run_with_cleanup()` (agent_service.py), browser-use Agent lifecycle patterns, and well-known Chromium zombie process issues.
 
 ---
+
+## Technical Debt Patterns
+
+Shortcuts that seem reasonable but create long-term problems.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Sequential batch import (create one by one, no transaction) | Simple implementation, matches current `TaskRepository.create()` pattern | Partial failures leave inconsistent state, hard to retry | Never for IMPT-01 -- must use validate-all-then-create |
+| No row limit on Excel import | Users can import as many tasks as they want | Large files crash the server, timeout the request | Never -- hard limit at 200-500 rows |
+| Reuse existing `create_task` endpoint for batch | No new backend code, frontend loops through rows | N+1 API calls, no transactional guarantees, slow for large batches | Never -- dedicated batch endpoint required |
+| Skip file type validation on upload | Faster to implement | Security vulnerability, server crashes on malformed files | Never -- must validate magic bytes |
+| Use `asyncio.gather()` without semaphore for parallel execution | Simple parallelism, no queue management code | Server crashes under load, no backpressure | Never -- must use semaphore or task queue |
+| Store import errors in frontend state only | No backend changes needed | Errors lost on page refresh, no audit trail | Only for preview phase; actual import must persist errors |
+| Use `data_only=False` in openpyxl | Sees formulas in error messages (helpful for debugging) | Returns formula strings instead of values, breaks data import | Never for production import; only for debug tooling |
+
+## Integration Gotchas
+
+Common mistakes when connecting to external services/libraries.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| openpyxl + Excel dates | Assuming `cell.value` returns string for date-formatted cells | Check `isinstance(cell.value, datetime)` and format explicitly with `.strftime()` |
+| openpyxl + merged cells | Reading merged cell range returns `None` for non-anchor cells | Check `ws.merged_cells.ranges`, resolve anchor cell, reject merged cells in data rows |
+| openpyxl + number formats | Trusting `cell.value` type matches the visual appearance | Use explicit type coercion per column, check `cell.number_format` for ambiguous cases |
+| browser-use + parallel agents | Creating N independent `BrowserSession` instances in `asyncio.gather()` | Use semaphore to limit concurrency, share browser instance across agents if possible |
+| aiosqlite + parallel writes | Each parallel task creates its own session and commits independently | Serialize writes through a single queue or use batch commits |
+| FastAPI `UploadFile` | Trusting `file.content_type` or `file.filename` for validation | Validate magic bytes, sanitize filename, enforce size limits independently |
+| Pydantic validation on imported data | Passing raw openpyxl cell values directly to Pydantic models | Preprocess: strip whitespace, coerce types, handle `None` from empty cells before validation |
+
+## Performance Traps
+
+Patterns that work at small scale but fail as usage grows.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Per-step SQLite commits during parallel execution | Step saves take 50-500ms, "database is locked" errors | Batch step writes or use write serializer | 2+ parallel agents with frequent step callbacks |
+| Loading entire Excel file into memory | Server memory spikes, OOM on large files | Use `read_only=True` in openpyxl, stream rows | Files over 5MB or 1000+ rows |
+| Creating browser instances per task in batch | RAM exhaustion, long startup time per task | Reuse browser contexts, limit concurrency with semaphore | 3+ parallel tasks on 2-core server |
+| No timeout on batch execution | Some runs hang forever, blocking the queue | Per-run timeout, overall batch timeout | Any scale -- single hanging run blocks the queue |
+| Returning all import errors as a single string | Frontend cannot display structured error feedback, user confused | Return structured error list with row numbers and field names | First time user encounters an error |
+| No pagination on import preview | 200-row preview payload is large, slow to render | Paginate preview results, show first 20 rows with "show more" | 100+ rows in a single import |
+
+## Security Mistakes
+
+Domain-specific security issues beyond general web security.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Accepting file upload without magic byte check | Attacker uploads executable renamed to `.xlsx`, server processes it | Check first 4 bytes are `PK\x03\x04` (ZIP signature for xlsx) |
+| No file size limit on upload endpoint | ZIP bomb or huge file crashes worker process | Enforce 5MB limit at endpoint level, check size before parsing |
+| Using user-supplied filename for disk storage | Path traversal attack writes files outside intended directory | Generate server-side filename (UUID-based), never use user input for path |
+| Loading Excel with `data_only=False` | Formula strings could contain injection payloads | Always use `data_only=True` to get cached values only |
+| Allowing any cell content without sanitization | Formula injection (`=CMD|...`) in cell values could execute later | Strip or prefix dangerous characters (`=`, `+`, `-`, `@`) in cell values |
+| No rate limiting on import endpoint | Repeated imports flood server with file processing | Rate limit to 5 imports per minute per client |
+| Running as root on server with file upload | Any vulnerability gives attacker full system access | Create dedicated user for the service, restrict file write permissions |
+
+## UX Pitfalls
+
+Common user experience mistakes in this domain.
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Template with no sample data row | QA users guess at format, get validation errors on first import | Include 2-3 example rows with realistic data (Chinese test case names, real ERP URLs) |
+| Template column headers in English/abbreviated | QA users (non-technical) do not understand "tc_name", "max_steps", "assertions" | Use Chinese headers with descriptions: "用例名称 (必填)", "最大步数 (默认10)" |
+| No data validation in the Excel template | Users enter invalid data, only discover on import | Use Excel data validation dropdowns for constrained fields (e.g., assertion type) |
+| Error messages reference row/column indices | "Row 5, Col 3 error" requires counting cells manually | Show the actual cell content in error: "Row 5, '最大步数' column: value 'abc' is not a valid number" |
+| All-or-nothing import with no error preview | User imports 50 tasks, one fails, all are lost | Preview mode: parse all rows, show errors, let user fix and retry |
+| No "download template" button | Users create their own Excel from scratch, format mismatch | Provide a pre-formatted `.xlsx` template with locked header row, data validation, and instructions sheet |
+| Template uses multiple sheets for different data | QA users get confused about which sheet to fill | Single sheet, flat table format. Put instructions in a separate "说明" tab, not mixed with data |
+| No progress indicator during import | User clicks import, nothing happens for 5 seconds, clicks again (duplicate) | Show upload progress bar, parsing progress, then results. Disable button during processing |
+| Batch execution shows no individual status | All tasks show "running" or "completed" as a group | Per-task status indicators: queued, running, success, failed, with individual error messages |
+
+## "Looks Done But Isn't" Checklist
+
+Things that appear complete but are missing critical pieces.
+
+- [ ] **Excel import**: Often missing merged cell handling -- verify by importing a file with merged header cells
+- [ ] **Excel import**: Often missing empty row handling -- verify by importing a file with blank rows between data rows
+- [ ] **Excel import**: Often missing Unicode handling -- verify by importing a file with Chinese characters, emoji, and special punctuation in all fields
+- [ ] **Excel import**: Often missing whitespace trimming -- verify by importing a file with leading/trailing spaces in task names
+- [ ] **Template download**: Often missing data validation rules -- verify by opening template in Excel and checking dropdowns and input restrictions
+- [ ] **Batch execution**: Often missing cleanup on server restart -- verify by killing the server mid-batch and checking for zombie processes on restart
+- [ ] **Batch execution**: Often missing per-task error isolation -- verify by running a batch where one task has invalid preconditions; confirm other tasks still execute
+- [ ] **Batch execution UI**: Often missing "stop all" functionality -- verify that stopping a batch execution cancels all queued/running tasks, not just the current one
+- [ ] **Import preview**: Often missing display of precondition code -- verify that multi-line Python code in a cell renders correctly in the preview
+- [ ] **Import error reporting**: Often missing the distinction between "row-level error" (bad data) and "system error" (server issue) -- verify error messages clearly differentiate
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Server OOM from parallel browsers | HIGH | 1. `pkill -f chromium` to free RAM. 2. Check `database.db` for runs stuck in "running" status. 3. Update stuck runs to "failed". 4. Reduce parallelism limit before restarting. |
+| SQLite database locked errors | MEDIUM | 1. Check if WAL file exists alongside database.db. 2. Stop all workers. 3. Run `sqlite3 database.db "PRAGMA wal_checkpoint(TRUNCATE)"`. 4. Restart with higher busy_timeout. |
+| Partial import with orphaned tasks | MEDIUM | 1. Query tasks by creation timestamp matching the import time. 2. Show user the list of imported tasks. 3. Provide "delete batch" option using the import batch_id. 4. User fixes Excel and re-imports. |
+| Zombie Chromium processes | LOW | 1. `ps aux | grep chromium` to identify PIDs. 2. `pkill -f chromium` or kill individual PIDs. 3. Add periodic cleanup cron job. |
+| Excel parsing returns wrong types | LOW | 1. Delete incorrectly imported tasks by batch_id. 2. Fix type coercion in parser. 3. Re-import the file. |
+| Import file contains formula injection | LOW | 1. Import with sanitization enabled. 2. Verify cell values in imported tasks do not start with `=`, `+`, `-`, `@`. 3. If already imported with raw values, sanitize through a database update. |
+
+## Pitfall-to-Phase Mapping
+
+How roadmap phases should address these pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Parallel browser RAM exhaustion | BATCH-01 design phase | Load test: launch max parallel agents, monitor `free -m` during execution, verify no OOM |
+| SQLite write lock contention | BATCH-01 design phase | Integration test: run 3 agents in parallel, verify no "database is locked" errors in logs |
+| Excel type coercion errors | IMPT-01 implementation | Unit test: import Excel file with mixed types (number as text, formula, date, merged cells) and verify correct coercion |
+| Malicious file upload | IMPT-01 implementation | Security test: upload `.xlsm`, oversized file, renamed `.zip`, verify rejection with clear error |
+| Batch partial failure | IMPT-01 design phase | Integration test: import file with 1 invalid row, verify all-or-nothing or clear partial results |
+| Browser zombie processes | BATCH-01 implementation | Stress test: kill agent mid-execution, verify browser process is cleaned up within 30 seconds |
+| Template usability | TMPL-01 design phase | User test: give template to a QA person, observe if they can fill it without instructions |
+| Import preview UX | IMPT-01 implementation | Manual test: import file with errors at rows 3, 7, 15, verify all errors are shown with row numbers |
+| Batch execution status UI | BATCH-01 implementation | E2E test: launch batch of 5 tasks, verify each shows independent status in UI |
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation | Priority |
-|-------------|---------------|------------|----------|
-| T01-T03: Row identity mechanism | IMEI regex false positives (Pitfall 4) | Restrict to data rows, use stricter regex, verify column position | HIGH |
-| T04: Patch 4 row identity enhancement | Patch ordering confusion (Pitfall 6) | Merge into single wrapper, do not create separate patches | HIGH |
-| T05: Patch 4 strategy level | `snapshot_node` unreliability (Pitfall 10) | Cache strategy level, use composite visibility check | MEDIUM |
-| T06: Strategy annotation injection | Comment breaking parser (Pitfall 2) | Patch `serialize_tree()`, test output format, never inject inside tags | HIGH |
-| T07-T08: Failure tracker state | State leaking across runs (Pitfall 1) | Separate reset function, call per-run, DI instead of module global | CRITICAL |
-| T09: Dynamic annotation patch | Index mismatch (Pitfall 11) | Use backend_node_id as key, not interactive index | HIGH |
-| T10: Strategy downgrade linkage | Agent bias toward strategy 3 (Pitfall 3) | Only annotate failed strategies, do not show all options | HIGH |
-| T11: StallDetector extension | DOM hash false positive (Pitfall 7) | Require both hash match AND failure keywords, increase threshold | MEDIUM |
-| T12: step_callback integration | Race condition (Pitfall 5) | dict.copy() on read, document eventual consistency | MEDIUM |
-| T13-T16: Prompt additions | Section 9 bloat (Pitfall 8) | Cap at 3-5 lines each, consider conditional inclusion | MEDIUM |
-| E2E validation | React state not updated by evaluate JS (Pitfall 15) | Include event dispatch in JS snippet, verify form submission | HIGH |
-
-## Implementation Phase Risk Assessment
-
-### Phase 1: Foundation (T01-T03, T07-T08) -- HIGH RISK
-The failure tracker state management (Pitfall 1) is the single highest-risk item. If implemented wrong, it poisons all subsequent optimizations. Must be correct before anything else is built on top of it.
-
-### Phase 2: Enhancement (T04-T06) -- MEDIUM-HIGH RISK
-Patch ordering (Pitfall 6) and comment injection (Pitfall 2) can cause silent failures that are hard to debug. Recommend writing the DOM dump output format test FIRST (TDD).
-
-### Phase 3: Dynamic (T09-T11) -- HIGH RISK
-Index mismatch (Pitfall 11) and DOM hash false positives (Pitfall 7) directly affect the agent's decision-making. Wrong annotations are worse than no annotations.
-
-### Phase 4: Integration (T12-T16) -- MEDIUM RISK
-Prompt additions and callback wiring are relatively straightforward but prompt bloat (Pitfall 8) and intervention flooding (Pitfall 9) can degrade overall agent performance.
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| TMPL-01: Template column design | Over-complex template confuses QA users | Start with minimal columns (name + description + steps), add optional columns iteratively |
+| TMPL-01: Template format | Using `.xls` instead of `.xlsx` or mixing formats | Enforce `.xlsx` only, document this clearly in the template download UI |
+| IMPT-01: File upload endpoint | No size limit, server crashes on large file | Set 5MB limit, validate before parsing |
+| IMPT-01: Excel parsing | Merged cells, formulas, empty rows cause silent data loss | Preprocess: detect and reject merged cells, use `data_only=True`, skip empty rows |
+| IMPT-01: Batch validation | Validating one row at a time instead of all rows first | Parse all rows, validate all, report all errors before any database writes |
+| IMPT-01: Import response | Returning only "success" without details of what was created | Return full list of created task IDs and names, plus any validation errors |
+| BATCH-01: Execution scheduler | No concurrency limit, server crashes | Implement semaphore, default to 2 concurrent agents |
+| BATCH-01: Browser lifecycle | Agents crash but browsers stay alive | Track browser PIDs, clean up in finally block, periodic cleanup cron |
+| BATCH-01: Status tracking | UI shows batch as "running" even when individual tasks are done | Per-task SSE events, batch-level summary event |
+| BATCH-01: Error isolation | One task failure crashes the entire batch | Per-task try/except, failed task marks itself as "failed", others continue |
 
 ## Sources
 
-### Primary (HIGH confidence)
-- Direct code analysis: `backend/agent/dom_patch.py` (329 lines, 5 existing patches)
-- Direct code analysis: `backend/agent/monitored_agent.py` (240 lines, step_callback + interventions)
-- Direct code analysis: `backend/agent/stall_detector.py` (138 lines, stall + stagnant DOM detection)
-- Direct code analysis: `backend/core/agent_service.py` (447 lines, step_callback with detector calls)
-- Direct code analysis: `backend/agent/prompts.py` (97 lines, Section 1-9 system message)
-- Direct code analysis: `browser_use/dom/serializer/serializer.py` (serializer pipeline, `serialize_tree()` method)
-- Design document: `.planning/milestones/v0.8.3-phases/66-优化方案设计/66-OPTIMIZE-DESIGN.md` (540 lines, T01-T16)
-
-### Secondary (MEDIUM confidence)
-- LLM instruction-following patterns for strategy annotation bias (training data, not verified with Qwen 3.5 Plus specifically)
-- React synthetic event behavior for evaluate JS pitfall (well-established React behavior)
+- Direct code analysis: `backend/db/models.py`, `backend/db/repository.py`, `backend/db/database.py`, `backend/core/agent_service.py`, `backend/api/routes/runs.py`, `backend/api/routes/tasks.py`
+- Deployment configuration: `.planning/PROJECT.md`, `memory/deployment-v0.5.0.md` (2-core server, 2 Gunicorn workers, SQLite WAL with busy_timeout=5000)
+- openpyxl documentation: cell data types, `data_only` parameter, `read_only` mode, merged cell behavior
+- SQLite documentation: WAL mode single-writer constraint, `busy_timeout`, `SQLITE_BUSY` error handling
+- FastAPI documentation: `UploadFile` security considerations, file size limits
+- Chromium/Playwright: memory usage patterns (~200-500MB per instance with headless mode)
+- browser-use library: `BrowserSession` lifecycle, `Agent` cleanup patterns
+- Playwright: `browser.new_context()` for context reuse, resource management patterns
 
 ---
-*Pitfalls research for: DOM Patch Optimization (v0.8.4, OPTIMIZE-01~04)*
-*Researched: 2026-04-06*
+*Pitfalls research for: v0.9.0 Excel batch import and parallel execution features*
+*Researched: 2026-04-08*

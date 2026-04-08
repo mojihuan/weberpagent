@@ -1,239 +1,456 @@
-# Technology Stack -- v0.8.4 DOM Patch Optimization
+# Technology Stack -- v0.9.0 Excel Batch Import and Parallel Execution
 
-**Project:** aiDriveUITest -- Agent Table Interaction Optimization
-**Researched:** 2026-04-06
-**Scope:** Stack additions/changes for OPTIMIZE-01 through OPTIMIZE-04 only
-**Confidence:** HIGH (verified against installed browser-use 0.12.2 source code)
+**Project:** aiDriveUITest -- Excel Template, Batch Import, Batch Execution
+**Researched:** 2026-04-08
+**Scope:** New dependencies and patterns for TMPL-01, IMPT-01, BATCH-01 only
+**Confidence:** HIGH (verified against installed packages and existing codebase)
 
 ## Executive Summary
 
-The four optimizations (row identity injection, dynamic annotation, strategy prioritization, failure recovery) are implemented entirely within the existing monkey-patch architecture. No new external dependencies are needed. The work uses browser-use 0.12.2's internal APIs (`DOMTreeSerializer`, `ClickableElementDetector`, `PaintOrderRemover`, `SimplifiedNode`, `EnhancedDOMTreeNode`) which were verified by reading the installed source code.
+The three v0.9.0 features (Excel template generation, batch import, parallel execution) require exactly **one new dependency** (`python-multipart` for FastAPI file upload), plus leveraging two packages already installed: `openpyxl` (3.1.5) for Excel read/write and `asyncio.Semaphore` from stdlib for concurrency control. The frontend file upload uses native HTML `<input type="file">` with Tailwind CSS styling -- no new npm packages needed.
 
-The key architectural decision: all new patches follow the existing pattern -- save original method, wrap with additional logic, replace. State flows through module-level variables in `dom_patch.py`, updated by `step_callback`, and consumed during DOM serialization.
+This is a low-dependency milestone. The stack is intentionally minimal: openpyxl handles both template generation and import parsing, FastAPI's built-in `UploadFile` covers file upload, and Python's stdlib `asyncio` provides parallel execution primitives. The critical constraint is browser resource consumption during parallel execution -- each Playwright Chromium instance uses ~150-300MB RAM, so the concurrency limit must be configurable and default conservative (2 concurrent browsers on the server).
 
-## Stack for v0.8.4
+## Required Stack Changes
 
-### Core (NO new dependencies)
+### Backend: New Dependencies
 
-| Technology | Version | Purpose | Why No Change Needed |
-|------------|---------|---------|---------------------|
-| **browser-use** | 0.12.2 | DOM serialization pipeline | All patch targets (`serialize_tree`, `_assign_interactive_indices`, `is_interactive`) are monkey-patchable static/instance methods. Verified in installed source at `.venv/lib/python3.11/site-packages/browser_use/dom/serializer/serializer.py` |
-| **Python re** | stdlib | Pattern matching for IMEI/product codes | `re.compile(r"I\d{15}")` for row identity detection. stdlib is sufficient -- no regex library needed |
-| **Python dataclasses** | stdlib | Frozen result types | Follows existing `StallResult(frozen=True)` pattern for new detection result types |
-| **Python hashlib** | stdlib | DOM fingerprinting for click-no-effect detection | Already used in `agent_service.py` line 196 for `dom_hash`. Extend to track `dom_hash_before` vs `dom_hash_after` per step |
+| Package | Version | Purpose | Why |
+|---------|---------|---------|-----|
+| **python-multipart** | 0.0.22 (installed) | FastAPI `UploadFile` support | Required by Starlette/FastAPI for `multipart/form-data` parsing. Already installed as a transitive dependency of FastAPI 0.135.1. No action needed -- just start using `UploadFile` in route handlers. |
 
-### Internal APIs Being Patched (browser-use 0.12.2)
+**No new packages to add to `pyproject.toml`.**
 
-These are the specific internal APIs that the new patches will monkey-patch. All verified against the installed source.
+### Backend: Already Installed (Leverage Existing)
 
-| API | Location | Current Use | New Use |
-|-----|----------|-------------|---------|
-| `DOMTreeSerializer.serialize_tree()` | `serializer.py` line 883 | Static method converting `SimplifiedNode` tree to string for LLM | **Post-process**: inject `<!-- row: ... -->` comments, strategy annotations, failure annotations after serialization |
-| `DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes()` | `serializer.py` line 617 | Assigns `backend_node_id` based indices to interactive elements | **Extend**: add row归属 annotation + strategy level判定 during index assignment |
-| `ClickableElementDetector.is_interactive()` | `clickable_elements.py` line 6 | Determines if a node is clickable | **No change** -- existing Patch 1 already wraps this correctly |
-| `SimplifiedNode` | `views.py` line 218 | Tree node with `is_interactive`, `should_display`, `is_new` flags | **Read-only**: check `is_interactive` flag for strategy level判定; no new fields needed on this class |
-| `EnhancedDOMTreeNode` | `views.py` line ~400 | Full DOM node with `attributes`, `tag_name`, `parent_node`, `snapshot_node` | **Read-only**: access `attributes.get("class")`, `tag_name`, walk `parent_node` chain, check `snapshot_node` existence for hidden state |
+| Package | Version | Purpose | Why This Choice |
+|---------|---------|---------|-----------------|
+| **openpyxl** | 3.1.5 (installed) | Excel template generation + import parsing | Already in the venv (used by `webseleniumerp/use_case/export.py`). Supports both reading and writing `.xlsx` files, cell styling (headers, validation hints), data validation rules, and streaming row iteration. Handles the full lifecycle: generate template with styled headers -> parse uploaded file -> validate row data -> create tasks. |
+| **asyncio.Semaphore** | stdlib (Python 3.11) | Concurrency limiter for parallel browser task execution | Stdlib primitive. No external dependency. Controls how many browser-use Agent instances run simultaneously to prevent RAM exhaustion. |
+| **asyncio.TaskGroup** | stdlib (Python 3.11) | Structured concurrent task execution | Python 3.11 feature. Cleaner than `asyncio.gather` for structured concurrency with proper exception propagation. Ensures all parallel runs complete (or fail) as a group. |
 
-### Serialization Pipeline Integration Points
+### Frontend: New Dependencies
 
-The browser-use serialization pipeline runs in this order (verified in `serializer.py` lines 100-148):
+**None.** The file upload UI is built with existing stack:
 
-```
-serialize_accessible_elements()
-  1. _create_simplified_tree(root_node)       -- Patch 1 (is_interactive) affects this step
-  2. PaintOrderRemover.calculate_paint_order() -- Patch 2 affects this step
-  3. _optimize_tree(simplified_tree)           -- No patch needed
-  4. _apply_bounding_box_filtering()           -- Patch 3 (_should_exclude_child) affects this step
-  5. _assign_interactive_indices()             -- Patch 4 affects this step; EXTEND here for strategy
-  --> Returns SerializedDOMState(_root, selector_map)
+| What | Approach | Why |
+|------|----------|-----|
+| **File upload input** | Native `<input type="file" accept=".xlsx">` + Tailwind CSS | No drag-and-drop library needed for QA users uploading one file at a time. Native file input is accessible, tested, and zero-dependency. |
+| **Upload progress** | XMLHttpRequest progress event or fetch with readable stream | FastAPI `UploadFile` streams to disk; for files under 10MB (Excel templates), progress indication is optional. Start with a simple loading spinner. |
+| **File validation** | Client-side check of `.xlsx` extension + size limit | Reject non-Excel files before upload. Check `file.size < 5MB` client-side. |
 
-Then later, when LLM needs DOM text:
-  llm_representation()
-    -> DOMTreeSerializer.serialize_tree(root, include_attributes)  -- NEW Patch 6: inject annotations here
-```
+## Detailed Technology Decisions
 
-**New Patch 6 (`_patch_inject_annotations`)** hooks into `serialize_tree()` as a post-processing step. This is the single injection point for all three annotation types:
-- Row identity comments: `<!-- row: I01784004409597 -->`
-- Strategy level comments: `<!-- strategy: native-input [index=15] -->`
-- Failure tracking comments: `<!-- failed 2x, switch strategy -->`
+### 1. Excel Handling: openpyxl (not xlsxwriter, not pandas)
 
-### State Management Architecture
+**Decision:** Use openpyxl 3.1.5 for both template generation and import parsing.
 
-| State Variable | Location | Type | Lifecycle | Consumer |
-|---------------|----------|------|-----------|----------|
-| `_failure_tracker` | `dom_patch.py` (module-level) | `dict[int, FailureRecord]` | Reset in `apply_dom_patch()`, updated by `step_callback` via `update_failure_tracker()` | `_patch_inject_annotations()` reads during serialization |
-| `_row_identity_map` | `dom_patch.py` (module-level) | `dict[int, str]` (backend_node_id -> row identity) | Built during `_assign_interactive_indices` patch, read during `serialize_tree` patch | `_patch_inject_annotations()` for row comments |
-| `_dom_hash_before` | `dom_patch.py` (module-level) | `str` | Updated at start of `step_callback`, compared with new hash for click-no-effect detection | `update_failure_tracker()` |
+**Why openpyxl:**
+- Already installed in the project venv
+- Read AND write support (xlsxwriter is write-only -- cannot parse uploaded files)
+- Cell-level styling for template headers (bold, colored backgrounds, borders)
+- Data validation rules (dropdown lists for status fields, input length limits)
+- Row iteration API is straightforward for parsing: `worksheet.iter_rows(min_row=2, values_only=True)`
+- No dependency on pandas (avoid pulling in numpy for a simple read/write use case)
 
-**Why module-level state (not a class):** Follows the existing `_PATCHED` pattern in `dom_patch.py`. The module is imported once and state persists across calls within a single run. Reset happens in `apply_dom_patch()` which is called per-run in `agent_service.py` line 357.
+**Why not xlsxwriter:**
+- Cannot read existing files -- would need a separate library for parsing uploads
+- No advantage for template generation since openpyxl already handles styling
 
-### Data Structures (New)
+**Why not pandas:**
+- Overkill for this use case -- we need cell-level control for styled templates, not DataFrame operations
+- `pd.read_excel()` would require openpyxl as the engine anyway (circular dependency argument)
+- Cannot write styled headers, merged cells, or data validation rules
 
+**Template generation pattern:**
 ```python
-# In dom_patch.py -- follows existing frozen dataclass pattern
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border
 
-@dataclass(frozen=True)
-class FailureRecord:
-    """Immutable record of failure for a specific element index."""
-    count: int
-    last_error: str
-    mode: str  # "repeated_fail" | "click_no_effect" | "wrong_column" | "edit_not_active"
+def generate_template() -> bytes:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Test Cases"
 
-@dataclass(frozen=True)
-class FailureDetectionResult:
-    """Immutable result from failure detection check."""
-    failure_mode: str | None  # None means no failure detected
-    target_index: int | None
-    message: str
+    headers = [
+        "用例名称", "任务描述", "目标URL",
+        "前置条件", "断言配置", "最大步数"
+    ]
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+
+    # Example row with placeholder data
+    ws.append(["示例用例", "点击销售出库菜单", "https://erp.example.com",
+               '["login_first()"]', '[{"name":"验证标题","type":"text_exists","expected":"销售出库"}]',
+               "15"])
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
 ```
 
-### Files Modified (NO new files)
+**Import parsing pattern:**
+```python
+from openpyxl import load_workbook
 
-| File | Changes | Lines of Impact |
-|------|---------|----------------|
-| `backend/agent/dom_patch.py` | Add `_failure_tracker`, `_row_identity_map`, `_dom_hash_before`; add `_detect_row_identity()`, `_patch_add_row_identity()`, `_patch_inject_annotations()`, `update_failure_tracker()`, `reset_tracker_state()`; enhance `_patch_assign_interactive_indices()` | ~200 new lines on top of existing 329 |
-| `backend/agent/stall_detector.py` | Add `_check_click_no_effect()`, `_check_wrong_column()`, `_check_edit_not_active()` methods; extend `StallResult` or return `FailureDetectionResult` separately | ~80 new lines |
-| `backend/agent/prompts.py` | Append 4 new rule blocks to Section 9: row identity usage, anti-repeat rules, strategy priority, failure recovery | ~40 new lines |
-| `backend/core/agent_service.py` | Add `update_failure_tracker()` call in `step_callback` detector area (lines 302-337); add `_dom_hash_before` tracking | ~15 new lines |
+async def parse_excel(file: UploadFile) -> list[dict]:
+    contents = await file.read()
+    wb = load_workbook(io.BytesIO(contents), read_only=True)
+    ws = wb.active
+
+    tasks = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if not row or not row[0]:  # skip empty rows
+            continue
+        tasks.append({
+            "name": str(row[0]),
+            "description": str(row[1]),
+            "target_url": str(row[2] or ""),
+            "preconditions": json.loads(str(row[3] or "[]")),
+            "assertions": json.loads(str(row[4] or "[]")),
+            "max_steps": int(row[5] or 10),
+        })
+    return tasks
+```
+
+### 2. File Upload: FastAPI UploadFile
+
+**Decision:** Use FastAPI's built-in `UploadFile` with `python-multipart` (already installed).
+
+**Pattern:**
+```python
+from fastapi import UploadFile, File, HTTPException
+
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+@router.post("/import")
+async def import_tasks(
+    file: UploadFile = File(..., description="Excel file (.xlsx)"),
+    repo: TaskRepository = Depends(get_task_repo),
+):
+    # Validate file type
+    if not file.filename or not file.filename.endswith(".xlsx"):
+        raise HTTPException(400, detail="Only .xlsx files are supported")
+
+    # Validate file size (read with limit)
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(413, detail="File too large (max 5MB)")
+
+    # Parse and validate
+    tasks = parse_excel_bytes(contents)
+
+    # Batch create
+    created = []
+    for task_data in tasks:
+        task = await repo.create(TaskCreate(**task_data))
+        created.append(task)
+
+    return {"imported": len(created), "tasks": created}
+```
+
+**Why UploadFile over `bytes` parameter:**
+- Spooled to disk for large files (memory-safe)
+- Provides `filename` and `content_type` metadata for validation
+- Standard FastAPI pattern with auto-generated OpenAPI docs
+
+**Why not streaming chunks:**
+- Excel files for QA test cases are small (under 5MB even with 500 rows)
+- Reading entire file into memory for openpyxl parsing is simpler and safe at this scale
+
+### 3. Parallel Execution: asyncio.Semaphore + TaskGroup
+
+**Decision:** Use `asyncio.Semaphore` for concurrency limiting with `asyncio.TaskGroup` for structured execution.
+
+**Critical constraint:** Each browser-use Agent creates a Playwright Chromium browser instance consuming 150-300MB RAM. The server (121.40.191.49) has limited resources. Default concurrency: 2. Maximum configurable: 4.
+
+**Pattern:**
+```python
+import asyncio
+
+class BatchExecutionService:
+    def __init__(self, max_concurrent: int = 2):
+        self._semaphore = asyncio.Semaphore(max_concurrent)
+        self._agent_service = AgentService()
+
+    async def execute_batch(
+        self,
+        task_ids: list[str],
+        on_task_complete: Callable[[str, str], Awaitable[None]],
+    ) -> list[BatchRunResult]:
+        results: list[BatchRunResult] = []
+
+        async def run_one(task_id: str) -> BatchRunResult:
+            async with self._semaphore:
+                try:
+                    result = await self._agent_service.run_with_cleanup(...)
+                    batch_result = BatchRunResult(
+                        task_id=task_id, status="success", ...
+                    )
+                except Exception as e:
+                    batch_result = BatchRunResult(
+                        task_id=task_id, status="failed", error=str(e)
+                    )
+                await on_task_complete(task_id, batch_result.status)
+                return batch_result
+
+        async with asyncio.TaskGroup() as tg:
+            task_futures = [
+                tg.create_task(run_one(tid)) for tid in task_ids
+            ]
+
+        return [f.result() for f in task_futures]
+```
+
+**Why Semaphore, not ThreadPoolExecutor or ProcessPoolExecutor:**
+- browser-use Agent is fully async (uses `async_playwright`)
+- No CPU-bound work that benefits from threads/processes
+- Semaphore is the idiomatic asyncio primitive for this exact pattern
+- No extra process overhead or inter-process communication complexity
+
+**Why TaskGroup, not asyncio.gather:**
+- Python 3.11+ feature (project uses 3.11.14)
+- Structured concurrency: if one task raises an unhandled exception, all others are cancelled cleanly
+- No "fire and forget" risk -- all tasks complete or fail as a group
+- Better error messages showing which specific task failed
+
+**Why NOT multiple pages in one browser:**
+- Each task runs an independent ERP workflow with login state
+- Browser contexts share cookies by default in browser-use's `BrowserSession`
+- Separate browser instances provide full isolation (login state, navigation, cookies)
+- Trade-off: higher RAM usage (2x 200MB = 400MB for 2 concurrent) vs correct isolation
+
+**Configurable concurrency approach:**
+- Store `max_concurrent` in a config or environment variable (default: 2)
+- Frontend exposes a "concurrency" dropdown when starting batch execution
+- Server validates: clamp between 1 and 4 to prevent resource exhaustion
+
+### 4. Frontend File Upload: Native Input + Tailwind
+
+**Decision:** Custom React component using native `<input type="file">` styled with Tailwind CSS.
+
+**Pattern:**
+```tsx
+// FileUpload.tsx
+function FileUpload({ onUpload, isUploading }: FileUploadProps) {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Client-side validation
+    if (!file.name.endsWith('.xlsx')) {
+      toast.error('Please select an .xlsx file')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be under 5MB')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('file', file)
+    await onUpload(formData)
+  }
+
+  return (
+    <label className="cursor-pointer inline-flex items-center gap-2 px-4 h-9
+                       rounded-lg bg-blue-500 text-white text-sm font-medium
+                       hover:bg-blue-600 transition-colors">
+      <Upload className="w-4 h-4" />
+      {isUploading ? 'Uploading...' : 'Import Excel'}
+      <input type="file" accept=".xlsx" onChange={handleFileChange}
+             className="hidden" disabled={isUploading} />
+    </label>
+  )
+}
+```
+
+**API client for FormData upload:**
+```typescript
+// In tasks.ts -- note: must NOT set Content-Type header (browser sets it with boundary)
+async importExcel(file: File): Promise<ImportResult> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
+  const response = await fetch(`${API_BASE}/tasks/import`, {
+    method: 'POST',
+    body: formData,
+    // DO NOT set Content-Type -- browser handles multipart boundary
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || 'Import failed')
+  }
+
+  return response.json()
+}
+```
+
+**Why native input, not a library (react-dropzone, uppy):**
+- Single file upload for QA users -- no drag-and-drop complexity needed
+- Zero new npm dependencies
+- Native `<input>` is fully accessible (keyboard navigation, screen readers)
+- Tailwind styling matches existing Button component pattern
+- react-dropzone adds ~15KB for a feature we don't need (multi-file drag)
+
+**Why not antd or shadcn upload component:**
+- Project uses custom Tailwind components (see `Button.tsx`), not a UI framework
+- Adding a component library for one file upload input is over-engineering
+
+### 5. Template Download: BytesIO Response
+
+**Decision:** Generate template in-memory with openpyxl, return as FastAPI `Response` with `Content-Disposition` header.
+
+**Pattern:**
+```python
+from fastapi.responses import Response
+
+@router.get("/template")
+async def download_template():
+    buffer = generate_template()  # Returns BytesIO bytes
+    return Response(
+        content=buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": "attachment; filename=test_case_template.xlsx"
+        },
+    )
+```
+
+**Why in-memory, not filesystem:**
+- Template is generated fresh each time (always latest format)
+- No file cleanup needed
+- Small file (under 50KB) -- no memory concern
+- Consistent with the project's SQLite-based architecture (no external file storage)
 
 ## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| **BeautifulSoup / lxml** | DOM parsing is done by browser-use's CDP-backed pipeline. Re-parsing serialized HTML would be slow and lossy | Walk `SimplifiedNode` tree and `EnhancedDOMTreeNode.parent_node` chains directly |
-| **New CSS selector libraries** | browser-use already provides `selector_map` with `backend_node_id` indexing | Use existing `selector_map` and `backend_node_id` for element targeting |
-| **State management framework (Redis, etc.)** | Failure tracking is per-run, ephemeral, single-process | Module-level `dict` in `dom_patch.py`, reset per run |
-| **New Agent subclass** | `MonitoredAgent` already provides `_pending_interventions` injection and `_execute_actions` override | Add failure detection to existing `StallDetector.check()` flow, inject via existing `_pending_interventions` |
-| **JavaScript injection frameworks** | browser-use `evaluate` action already handles JS execution for strategy 3 fallback | Direct `document.querySelector()` strings in prompt guidance |
-| **Separate annotation module** | Design doc (66-OPTIMIZE-DESIGN.md D-05) explicitly says: "融入现有 dom_patch.py" | Keep all patches in single `dom_patch.py` file |
-| **Schema validation library (marshmallow, etc.)** | `FailureRecord` is a simple 3-field dataclass | Python stdlib `dataclass(frozen=True)` following existing pattern |
+| **pandas** | Overkill for reading 50-200 rows of Excel data. Adds numpy as transitive dependency (~50MB). Cannot write styled templates. | openpyxl direct row iteration |
+| **xlsxwriter** | Cannot read files (write-only). Would need openpyxl anyway for import parsing. | openpyxl for both read and write |
+| **celery / dramatiq / task queue** | Parallel execution is async IO-bound (browser automation), not CPU-bound. Runs on single server. asyncio.Semaphore is sufficient. | asyncio.Semaphore + TaskGroup |
+| **Redis** | No need for distributed task coordination. Single-server deployment. Task status tracked in SQLite. | SQLite status updates |
+| **react-dropzone** | Single file upload. Adds ~15KB bundle for features we don't use (drag-and-drop, multi-file). | Native `<input type="file">` with Tailwind |
+| **File upload library (uppy, filepond)** | Heavyweight UI components for a simple one-file upload. | Custom component with native input |
+| **multer / formidable (Node.js)** | This is a Python backend. FastAPI handles multipart natively. | FastAPI UploadFile |
+| **Temporary file storage** | No need to persist uploaded files after parsing. Parse in-memory, create tasks, discard. | BytesIO + openpyxl load_workbook |
+| **WebSocket for batch progress** | Project already uses SSE for streaming. SSE is simpler for server-to-client progress updates. | SSE events for batch progress |
 
-## Integration Considerations
+## Integration Points with Existing Stack
 
-### serialize_tree() Patching Strategy
+### Database: SQLite + SQLAlchemy
 
-`DOMTreeSerializer.serialize_tree()` is a `@staticmethod` (serializer.py line 883). The new `_patch_inject_annotations()` will:
-
-1. Save reference to original `serialize_tree`
-2. Replace with wrapper that:
-   - Calls original to get DOM string
-   - Post-processes the string to inject annotations based on `_failure_tracker` and `_row_identity_map`
-   - Returns annotated string
-
-This approach avoids touching the tree-walking logic and works at the text level, which is simpler and less fragile than modifying the node tree.
-
-### Why Text-Level Annotation (Not Node-Level)
-
-Alternative considered: add annotation data to `SimplifiedNode` objects and modify `serialize_tree` to output them.
-
-Rejected because:
-1. `SimplifiedNode` is defined in browser-use's `views.py` -- adding fields would require monkey-patching the class definition
-2. `serialize_tree` is a static method with complex branching -- wrapping the full output is safer than modifying internal logic
-3. Text-level regex/substring injection on the final output is straightforward: find `[N]<tag` patterns and append `<!-- annotation -->`
-4. Failure annotations are dynamic (change per step) while the tree is rebuilt each step anyway -- text post-processing is the natural layer
-
-### Row Identity Detection Implementation
-
-The `_detect_row_identity(tr_node)` function walks `<tr>` children looking for `<td>` cells containing IMEI-format text (`I\d{15}`):
-
+**Batch task creation pattern:**
 ```python
-# Detection pattern (conceptual, not implementation)
-def _detect_row_identity(simplified_node) -> str | None:
-    """Walk <tr> children for <td> with IMEI text."""
-    original = simplified_node.original_node
-    if original.tag_name.lower() != "tr":
-        return None
-    for child in simplified_node.children:
-        child_original = child.original_node
-        if child_original.tag_name and child_original.tag_name.lower() == "td":
-            text = child_original.get_all_children_text()
-            match = IMEI_PATTERN.search(text or "")
-            if match:
-                return match.group(0)  # e.g. "I01784004409597"
-    return None
+# Batch insert within a single transaction
+async with db.begin():
+    for task_data in parsed_tasks:
+        task = Task(
+            name=task_data["name"],
+            description=task_data["description"],
+            target_url=task_data["target_url"],
+            max_steps=task_data["max_steps"],
+            preconditions=json.dumps(task_data["preconditions"]),
+            external_assertions=json.dumps(task_data["assertions"]),
+            status="draft",
+        )
+        db.add(task)
 ```
 
-This uses `get_all_children_text()` which is already used by `_is_textual_td_cell()` (dom_patch.py line 77). Consistent pattern.
+SQLite handles batch inserts well within a single transaction. The `aiosqlite` driver's async session wraps this correctly.
 
-### Failure Tracker State Flow
+**New model fields needed:** None. The existing `Task` model has all required fields: `name`, `description`, `target_url`, `max_steps`, `preconditions` (JSON string), `external_assertions` (JSON string), `status`.
+
+### API: FastAPI Routes
+
+New routes to add to `backend/api/routes/tasks.py`:
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/tasks/template` | GET | Download Excel template |
+| `/tasks/import` | POST | Upload and parse Excel, batch create tasks |
+| `/tasks/batch-execute` | POST | Start parallel execution of selected tasks |
+
+### Frontend: API Client
+
+New methods to add to `frontend/src/api/tasks.ts`:
+
+| Method | Purpose |
+|--------|---------|
+| `downloadTemplate()` | GET template file, trigger browser download |
+| `importExcel(file: File)` | POST multipart upload, return import results |
+| `batchExecute(ids: string[], concurrency: number)` | POST start parallel execution |
+
+**Important:** The `importExcel` method must NOT use the existing `apiClient` helper (which sets `Content-Type: application/json`). FormData uploads must let the browser set the Content-Type header with the multipart boundary.
+
+### SSE: Batch Execution Progress
+
+Reuse the existing SSE streaming pattern for individual runs. For batch execution, add a batch-level SSE channel:
 
 ```
-step_callback (agent_service.py)
-    |
-    v
-1. Save _dom_hash_before = current dom_hash
-2. ... agent executes action ...
-3. Compute dom_hash_after from new browser_state
-4. Call update_failure_tracker(index, evaluation, dom_hash_before, dom_hash_after)
-    |
-    v
-dom_patch.py:update_failure_tracker()
-    |
-    v
-5. Check failure conditions:
-   a. FAILURE_KEYWORDS in evaluation -> increment count for index
-   b. dom_hash_before == dom_hash_after + action_name == "click" -> mode="click_no_effect"
-   c. WRONG_COLUMN_KEYWORDS in evaluation -> mode="wrong_column"
-   d. NOT_EDITABLE_KEYWORDS in evaluation + action_name == "input" -> mode="edit_not_active"
-6. Update _failure_tracker[index] = FailureRecord(...)
-    |
-    v
-Next DOM serialization (agent's next step)
-    |
-    v
-_patch_inject_annotations() reads _failure_tracker
-    |
-    v
-DOM dump includes <!-- annotation --> for failed elements
+GET /runs/batch/{batch_id}/stream  -> SSE events per task completion
 ```
 
-### Strategy Level Determination Logic
-
-Strategy assignment happens during `_assign_interactive_indices` (Patch 4 enhanced):
-
-| Condition | Strategy | Annotation |
-|-----------|----------|------------|
-| `snapshot_node exists` + `is_visible=True` + no failure history | 1 (native input) | `<!-- strategy: native-input -->` |
-| `snapshot_node is None` OR `is_visible=False` (hidden by Ant Design) | 2 (click-to-edit) | `<!-- strategy: click-to-edit -->` |
-| `_failure_tracker[index].count >= 2` | 3 (evaluate JS) | `<!-- strategy: evaluate-js fallback -->` |
-
-The `snapshot_node` check is the key differentiator. In browser-use 0.12.2, `EnhancedDOMTreeNode.snapshot_node` is populated from CDP's `DOMSnapshot.captureSnapshot`. Ant Design's click-to-edit inputs that are `display:none` will have `snapshot_node=None` (or `is_visible=False`). This is how strategy 1 vs 2 is distinguished.
+Each event: `{ "task_id": "abc", "status": "running" | "success" | "failed" }`
 
 ## Version Compatibility
 
 | Package | Version | Compatibility Note |
 |---------|---------|-------------------|
-| browser-use | 0.12.2 | All internal APIs verified against installed source. Major version changes (0.13+) may restructure serializer pipeline |
-| Python | 3.11 | `dataclass(frozen=True)`, `re`, `hashlib` all stdlib -- no version sensitivity |
-| cdp-use | (bundled with browser-use) | CDP protocol is stable; `backend_node_id` indexing is fundamental to browser-use |
-
-**Risk:** browser-use 0.13+ may rename or restructure `DOMTreeSerializer` methods. Mitigation: pin `browser-use>=0.12.2,<0.13` in `pyproject.toml` if upgrading becomes necessary.
+| **openpyxl** | 3.1.5 | Current stable. Supports read_only mode, cell styling, data validation. No breaking changes expected. |
+| **python-multipart** | 0.0.22 | Already installed. Required by FastAPI for UploadFile. |
+| **FastAPI** | 0.135.1 | UploadFile API is stable since 0.65+. No changes needed. |
+| **SQLAlchemy** | 2.0.48 | Async session for batch inserts is stable in 2.0+. |
+| **Python** | 3.11.14 | `asyncio.TaskGroup` requires 3.11+. Confirmed available. |
 
 ## Performance Considerations
 
 | Concern | Impact | Mitigation |
 |---------|--------|------------|
-| `_failure_tracker` dict lookup during serialization | Negligible -- `dict[int, FailureRecord]` lookup is O(1) | None needed |
-| Text post-processing in `_patch_inject_annotations` | Low -- regex on serialized DOM string (~10-50KB typical) | Profile if DOM grows >100KB |
-| `_row_identity_map` building during `_assign_interactive_indices` | Low -- one regex scan per `<tr>` node, typically <50 rows | None needed |
-| `dom_hash_before` tracking | Already computed per step in `step_callback` | Reuse existing hash, just store before action |
+| Excel parsing (100 rows) | Negligible (~50ms) | openpyxl `read_only=True` for large files |
+| Browser RAM per parallel task | 150-300MB each | Semaphore limits concurrency; default 2 (400-600MB total) |
+| SQLite concurrent writes from parallel tasks | Low -- aiosqlite serializes writes | WAL mode (already configured) handles read/write concurrency |
+| File upload size | Small (Excel <5MB) | Validate size server-side, reject >5MB |
+| SSE events for batch progress | Low frequency (1 per task completion) | No throttling needed |
+
+## Installation
+
+**No new packages to install.** All required dependencies are already in the project:
+
+```bash
+# Verify existing dependencies
+python3 -c "import openpyxl; print(f'openpyxl {openpyxl.__version__}')"   # 3.1.5
+python3 -c "import multipart; print(f'python-multipart {multipart.__version__}')"  # 0.0.22
+python3 -c "import fastapi; print(f'fastapi {fastapi.__version__}')"  # 0.135.1
+```
 
 ## Sources
 
-### Verified Against Installed Source (HIGH confidence)
-- `.venv/lib/python3.11/site-packages/browser_use/dom/serializer/serializer.py` -- `DOMTreeSerializer.serialize_tree()` (line 883), `_assign_interactive_indices_and_mark_new_nodes()` (line 617), `serialize_accessible_elements()` (line 100)
-- `.venv/lib/python3.11/site-packages/browser_use/dom/serializer/clickable_elements.py` -- `ClickableElementDetector.is_interactive()` (line 6)
-- `.venv/lib/python3.11/site-packages/browser_use/dom/views.py` -- `SimplifiedNode` (line 218), `SerializedDOMState.llm_representation()` (line 937), `EnhancedDOMTreeNode.llm_representation()` (line 595)
-- `.venv/lib/python3.11/site-packages/browser_use/dom/service.py` -- `DomService.get_serialized_dom_tree()` (line 1004) -- confirmed `llm_representation` calls `DOMTreeSerializer.serialize_tree()`
+### Verified Against Installed Code (HIGH confidence)
+- `pyproject.toml` -- project dependencies, Python version requirement (3.11+)
+- `.venv/bin/python3` -- verified openpyxl 3.1.5, python-multipart 0.0.22, FastAPI 0.135.1 installed
+- `backend/db/models.py` -- Task model has all fields needed for batch import
+- `backend/api/routes/tasks.py` -- existing route patterns to follow
+- `backend/api/schemas/index.py` -- existing Pydantic schemas to extend
+- `backend/core/agent_service.py` -- run_with_cleanup pattern for parallel execution
+- `frontend/src/api/client.ts` -- existing API client (note: sets Content-Type:json, cannot use for FormData)
+- `frontend/src/api/tasks.ts` -- existing task API methods to extend
+- `frontend/src/components/Button.tsx` -- styling pattern to follow for upload button
+- `webseleniumerp/use_case/export.py` -- existing openpyxl usage in project (load_workbook pattern)
 
-### Verified Against Project Source (HIGH confidence)
-- `backend/agent/dom_patch.py` -- 5 existing patches, monkey-patch patterns, `_PATCHED` state management
-- `backend/agent/stall_detector.py` -- `StallDetector.check()`, `StallResult(frozen=True)`, `_StepRecord`
-- `backend/agent/monitored_agent.py` -- `_pending_interventions` injection, `_prepare_context()`, `_execute_actions()`
-- `backend/core/agent_service.py` -- `step_callback` (line 175), detector calls area (line 302), `apply_dom_patch()` call (line 357)
-- `backend/agent/prompts.py` -- `ENHANCED_SYSTEM_MESSAGE` Section 9 (line 52-83)
-- `.planning/milestones/v0.8.3-phases/66-优化方案设计/66-OPTIMIZE-DESIGN.md` -- 16 task definitions, dependency chain, design rules
+### API Documentation (HIGH confidence)
+- FastAPI UploadFile: built-in since FastAPI 0.65+, stable API in 0.135.1
+- openpyxl 3.1: stable release, Workbook/load_workbook/iter_rows API well-documented
+- asyncio.Semaphore + TaskGroup: Python 3.11 stdlib, no version concerns
 
 ---
-*Stack research for: aiDriveUITest v0.8.4 DOM Patch Optimization*
-*Researched: 2026-04-06*
+*Stack research for: aiDriveUITest v0.9.0 Excel Batch Import and Parallel Execution*
+*Researched: 2026-04-08*
