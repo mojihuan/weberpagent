@@ -26,6 +26,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 **最新版本:** v0.9.0 Excel 批量导入功能开发 (in progress)
 **上一里程碑:** v0.8.4 基于 v0.8.3 的研究优化 — Phase 67-69 complete
+**当前进度:** Phase 70 (Excel 模版设计) complete
 
 **Server online**: 121.40.191.49
 
@@ -98,6 +99,10 @@ v0.1-v0.4.2 核心功能:
 - ✓ RPT-01: 输出分析报告（完整技术版 + 精简摘要版）— Phase 64
 
 ### Active
+
+**v0.9.0 Excel 批量导入功能开发:**
+- TMPL-01: Excel 模版生成 (styled headers, DataValidation, README sheet) — Phase 70 ✓
+- TMPL-02: max_steps 列 1-100 下拉验证 — Phase 70 ✓
 
 - ROW-02: DOM dump tr 节点注入行标识注释 — Phase 68
 - ROW-03: _node_annotations 侧字典记录行归属 — Phase 68

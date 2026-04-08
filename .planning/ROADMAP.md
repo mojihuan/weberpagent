@@ -154,7 +154,7 @@ Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 70. Excel 模版设计 | v0.9.0 | 1/2 | In Progress|  |
+| 70. Excel 模版设计 | v0.9.0 | 1/2 | Complete    | 2026-04-08 |
 | 71. 批量导入工作流 | v0.9.0 | 0/? | Not started | - |
 | 72. 批量执行引擎 | v0.9.0 | 0/? | Not started | - |
 | 73. 批量进度 UI | v0.9.0 | 0/? | Not started | - |
