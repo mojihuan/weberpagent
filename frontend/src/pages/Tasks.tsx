@@ -7,6 +7,7 @@ import {
   BatchActions,
 } from '../components/TaskList'
 import { TaskFormModal } from '../components/TaskModal'
+import { ImportModal } from '../components/ImportModal'
 import { Pagination, EmptyState, LoadingSpinner, ConfirmModal } from '../components/shared'
 import { tasksApi } from '../api/tasks'
 import type { Task, CreateTaskDto } from '../types'
@@ -30,6 +31,7 @@ export function Tasks() {
   } = useTasks()
 
   const [modalOpen, setModalOpen] = useState(false)
+  const [importModalOpen, setImportModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
   const [editingTask, setEditingTask] = useState<Task | undefined>()
 
@@ -94,7 +96,7 @@ export function Tasks() {
 
   return (
     <div>
-      <TaskListHeader onCreateClick={handleCreate} />
+      <TaskListHeader onCreateClick={handleCreate} onImportClick={() => setImportModalOpen(true)} />
 
       <TaskFilters filters={filters} onFilterChange={updateFilter} />
 
@@ -158,6 +160,12 @@ export function Tasks() {
         onConfirm={handleBatchDelete}
         onCancel={() => setBatchDeleteConfirm(false)}
         loading={deleting}
+      />
+
+      <ImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImportComplete={fetchTasks}
       />
     </div>
   )

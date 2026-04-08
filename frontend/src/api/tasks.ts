@@ -1,6 +1,60 @@
 import type { Task, CreateTaskDto, UpdateTaskDto, Run } from '../types'
 import { apiClient } from './client'
 
+// === Import types ===
+
+export interface ImportPreviewRow {
+  row_number: number
+  data: Record<string, unknown>
+  errors: string[]
+  valid: boolean
+}
+
+export interface ImportPreviewResponse {
+  rows: ImportPreviewRow[]
+  total_rows: number
+  valid_count: number
+  error_count: number
+  has_errors: boolean
+}
+
+export interface ImportConfirmResponse {
+  status: string
+  created_count: number
+}
+
+// Use raw fetch for FormData upload -- bypass apiClient which sets Content-Type: application/json
+const IMPORT_API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
+
+export async function importPreview(file: File): Promise<ImportPreviewResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await fetch(`${IMPORT_API_BASE}/tasks/import/preview`, {
+    method: 'POST',
+    body: formData,
+    // Do NOT set Content-Type -- browser auto-sets multipart/form-data with boundary
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: '上传失败' }))
+    throw new Error(error.detail || `上传失败: ${response.status}`)
+  }
+  return response.json()
+}
+
+export async function importConfirm(file: File): Promise<ImportConfirmResponse> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await fetch(`${IMPORT_API_BASE}/tasks/import/confirm`, {
+    method: 'POST',
+    body: formData,
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: '导入失败' }))
+    throw new Error(error.detail || `导入失败: ${response.status}`)
+  }
+  return response.json()
+}
+
 export const tasksApi = {
   async list(params?: { status?: string; search?: string }): Promise<Task[]> {
     const searchParams = new URLSearchParams()
