@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: Excel 批量导入功能开发
-status: Ready to plan
-last_updated: "2026-04-08T07:51:20.880Z"
+status: Ready to execute
+last_updated: "2026-04-08T21:13:56.698Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 71 — 批量导入工作流
+**Current focus:** Phase 72 — 批量执行引擎
 
 ## Last Shipped
 
@@ -32,8 +32,8 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 
 ## Current Position
 
-Phase: 72
-Plan: Not started
+Phase: 72 (批量执行引擎) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -65,6 +65,10 @@ Recent decisions affecting current work:
 - [Phase 71]: assertions key popped and renamed to external_assertions in import confirm
 - [Phase 71]: 71-02: Raw fetch used for FormData upload instead of apiClient (Content-Type: application/json header conflict)
 - [Phase 71]: 71-02: UploadStep internally calls importPreview and passes file+data to parent via callback
+- [Phase 72]: BatchExecutionService uses asyncio.Semaphore with min(concurrency, MAX_CONCURRENCY=4) hard cap
+- [Phase 72]: _active_batches module-level dict prevents GC of active batch services
+- [Phase 72]: asyncio.create_task for fire-and-forget batch execution (not FastAPI BackgroundTasks) for immediate status tracking
+- [Phase 72]: SQLite busy_timeout set to 30 seconds via connect_args={'timeout': 30}
 
 ### Pending Todos
 

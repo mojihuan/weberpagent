@@ -137,7 +137,11 @@ Plans:
   2. 批量执行使用 asyncio.Semaphore 控制并发数，默认 2 个浏览器实例同时运行，用户可通过参数配置（硬上限 4）
   3. 每个任务在批量执行中有独立的状态追踪（等待/执行中/完成/失败），后端提供批量进度查询 API
   4. 单个任务执行失败不影响其他任务继续执行，失败任务的错误信息被完整记录
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 72-01-PLAN.md — Batch model + BatchRepository + BatchExecutionService + batches API routes + SQLite busy_timeout (BATCH-01, BATCH-02)
+- [ ] 72-02-PLAN.md — Frontend batch execute button + BatchExecuteDialog + API client + Tasks page wiring (BATCH-01, BATCH-02)
 
 ### Phase 73: 批量进度 UI
 **Goal**: QA 可以在前端查看批量执行的进度，看到每个任务的状态，点击可跳转到该任务的执行监控详情
@@ -159,8 +163,8 @@ Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 |-------|-----------|----------------|--------|-----------|
 | 70. Excel 模版设计 | v0.9.0 | 1/2 | Complete    | 2026-04-08 |
 | 71. 批量导入工作流 | v0.9.0 | 2/2 | Complete    | 2026-04-08 |
-| 72. 批量执行引擎 | v0.9.0 | 0/? | Not started | - |
+| 72. 批量执行引擎 | v0.9.0 | 1/2 | In Progress|  |
 | 73. 批量进度 UI | v0.9.0 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-08 — Phase 71 planned (2 plans)*
+*Roadmap updated: 2026-04-08 — Phase 72 planned (2 plans)*
