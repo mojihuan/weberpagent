@@ -136,10 +136,10 @@ class TestTemplateGeneration:
     def test_template_max_steps_validation_range(self, sheet):
         data_validations = sheet.data_validations.dataValidation
         dv = data_validations[0]
-        ranges = dv.sqref.ranges
-        range_str = str(ranges[0]) if ranges else str(dv.sqref)
+        # sqref is a MultiCellRange; str() gives "D2:D10000"
+        range_str = str(dv.sqref)
         assert "D2" in range_str
-        assert "D10000" in range_str or "10000" in range_str
+        assert "D10000" in range_str
 
     def test_template_freeze_panes(self, sheet):
         assert sheet.freeze_panes == "A2"
