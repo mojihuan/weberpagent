@@ -7,7 +7,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.db.models import Task, Run, Step, Report, AssertionResult, PreconditionResult
+from backend.db.models import Task, Run, Step, Report, AssertionResult, PreconditionResult, Batch
 from backend.db.schemas import TaskCreate, TaskUpdate
 
 
@@ -393,6 +393,52 @@ class PreconditionResultRepository:
             select(PreconditionResult)
             .where(PreconditionResult.run_id == run_id)
             .order_by(PreconditionResult.sequence_number)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
+
+
+class BatchRepository:
+    """批量执行批次仓库"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, concurrency: int = 2) -> Batch:
+        batch = Batch(concurrency=concurrency, status="pending")
+        self.session.add(batch)
+        await self.session.commit()
+        await self.session.refresh(batch)
+        return batch
+
+    async def get(self, batch_id: str) -> Optional[Batch]:
+        return await self.session.get(Batch, batch_id)
+
+    async def get_with_runs(self, batch_id: str) -> Optional[Batch]:
+        stmt = (
+            select(Batch)
+            .where(Batch.id == batch_id)
+            .options(selectinload(Batch.runs).selectinload(Run.task))
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def update_status(self, batch_id: str, status: str, finished_at: Optional[datetime] = None) -> Optional[Batch]:
+        batch = await self.get(batch_id)
+        if not batch:
+            return None
+        batch.status = status
+        if finished_at:
+            batch.finished_at = finished_at
+        await self.session.commit()
+        return batch
+
+    async def list_runs_by_batch(self, batch_id: str) -> List[Run]:
+        stmt = (
+            select(Run)
+            .where(Run.batch_id == batch_id)
+            .options(selectinload(Run.task))
+            .order_by(Run.created_at)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars())

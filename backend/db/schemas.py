@@ -275,3 +275,35 @@ class AssertionResultResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# === Batch Schemas ===
+
+class BatchCreateRequest(BaseModel):
+    """批量执行创建请求"""
+    task_ids: List[str] = Field(..., min_length=1, max_length=50)
+    concurrency: int = Field(default=2, ge=1, le=4)
+
+
+class BatchRunSummary(BaseModel):
+    """批量执行中的 Run 摘要"""
+    id: str
+    task_id: str
+    task_name: Optional[str] = None
+    status: str
+
+    class Config:
+        from_attributes = True
+
+
+class BatchResponse(BaseModel):
+    """批量执行响应"""
+    id: str
+    concurrency: int
+    status: str
+    created_at: datetime
+    finished_at: Optional[datetime] = None
+    runs: Optional[List[BatchRunSummary]] = None
+
+    class Config:
+        from_attributes = True

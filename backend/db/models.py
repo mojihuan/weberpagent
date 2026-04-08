@@ -38,12 +38,27 @@ class Task(Base):
     )
 
 
+class Batch(Base):
+    """批量执行批次模型"""
+    __tablename__ = "batches"
+
+    id: Mapped[str] = mapped_column(String(8), primary_key=True, default=generate_id)
+    concurrency: Mapped[int] = mapped_column(Integer, default=2)
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, running, completed
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    # 关系
+    runs: Mapped[List["Run"]] = relationship("Run", back_populates="batch")
+
+
 class Run(Base):
     """执行记录模型"""
     __tablename__ = "runs"
 
     id: Mapped[str] = mapped_column(String(8), primary_key=True, default=generate_id)
     task_id: Mapped[str] = mapped_column(String(8), ForeignKey("tasks.id"), nullable=False)
+    batch_id: Mapped[Optional[str]] = mapped_column(String(8), ForeignKey("batches.id"), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, running, success, failed, stopped
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -53,6 +68,7 @@ class Run(Base):
 
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")
+    batch: Mapped[Optional["Batch"]] = relationship("Batch", back_populates="runs")
     steps: Mapped[List["Step"]] = relationship("Step", back_populates="run", order_by="Step.step_index")
     assertion_results: Mapped[List["AssertionResult"]] = relationship(
         "AssertionResult", back_populates="run", cascade="all, delete-orphan"

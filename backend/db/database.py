@@ -23,6 +23,7 @@ engine = create_async_engine(
     max_overflow=0,     # No overflow connections for SQLite
     pool_pre_ping=True, # Validate connections before use
     pool_recycle=3600,  # Recycle connections after 1 hour
+    connect_args={"timeout": 30},  # SQLite busy_timeout: wait up to 30s for locks during batch execution
 )
 
 # 异步会话工厂
@@ -54,3 +55,9 @@ async def init_db():
         columns = [row[1] for row in result]
         if "sequence_number" not in columns:
             await conn.execute(text("ALTER TABLE assertion_results ADD COLUMN sequence_number INTEGER"))
+
+        # Phase 72: Add batch_id column to runs if missing
+        result = await conn.execute(text("PRAGMA table_info(runs)"))
+        columns = [row[1] for row in result]
+        if "batch_id" not in columns:
+            await conn.execute(text("ALTER TABLE runs ADD COLUMN batch_id VARCHAR(8)"))
