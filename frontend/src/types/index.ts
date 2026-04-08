@@ -423,3 +423,26 @@ export interface AssertionFieldsResponse {
   groups: AssertionFieldGroup[]
   total: number
 }
+
+// Batch 批量执行
+export interface Batch {
+  id: string
+  concurrency: number
+  status: 'pending' | 'running' | 'completed'
+  created_at: string
+  finished_at: string | null
+}
+
+export interface BatchCreateResponse {
+  id: string
+  concurrency: number
+  status: string
+  created_at: string
+}
+
+export interface BatchRunSummary {
+  id: string
+  task_id: string
+  task_name: string | null
+  status: string
+}
