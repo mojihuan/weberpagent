@@ -4,14 +4,48 @@ Tests POST /tasks/import/preview and POST /tasks/import/confirm
 for file validation, preview with errors, and atomic batch creation.
 """
 
+import asyncio
 import io
 
 import pytest
 from fastapi.testclient import TestClient
 from openpyxl import Workbook
+from sqlalchemy import delete
 
 from backend.api.main import app
+from backend.db.database import async_session, engine, Base
+from backend.db.models import Task
 from backend.utils.excel_template import TEMPLATE_COLUMNS
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+async def _ensure_tables():
+    """Create all tables if they don't exist."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def _clean_tasks():
+    """Delete all Task rows for test isolation."""
+    async with async_session() as session:
+        async with session.begin():
+            await session.execute(delete(Task))
+
+
+@pytest.fixture(autouse=True)
+def _setup_db():
+    """Ensure DB tables exist and clean Task rows around each test."""
+    loop = asyncio.new_event_loop()
+    try:
+        loop.run_until_complete(_ensure_tables())
+        loop.run_until_complete(_clean_tasks())
+        yield
+        loop.run_until_complete(_clean_tasks())
+    finally:
+        loop.close()
 
 
 # ---------------------------------------------------------------------------
@@ -187,29 +221,41 @@ class TestImportConfirm:
         assert len(after) == len(initial)
 
     def test_confirm_rollback_on_error(self):
-        """Verify atomicity (all-or-nothing) when any row fails at DB level.
+        """Verify atomicity (all-or-nothing) when DB commit fails mid-batch.
 
-        Creates a file with a row that has name > 200 chars, which should
-        cause a DB error (String(200) column). Verify 0 tasks exist after.
+        Uses a client with raise_server_exceptions=False to let the global
+        exception handler return a 500 response. Patches Task.__init__ to
+        raise on the second row, simulating a DB constraint violation.
         """
-        long_name = "A" * 201  # exceeds String(200)
-        buf = _make_workbook(rows=[
-            ["Valid Task", "Valid desc", "", 10, None, None],
-            [long_name, "Description", "", 10, None, None],
-        ])
-        client = TestClient(app)
-        initial = client.get("/api/tasks").json()
+        from unittest.mock import patch
 
-        response = client.post(
-            "/api/tasks/import/confirm",
-            files={"file": ("test.xlsx", buf, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-        )
-        # Should fail with 500 or 400 due to DB constraint
-        assert response.status_code in (400, 500)
+        buf = _valid_xlsx_bytes()
+        client = TestClient(app, raise_server_exceptions=False)
+        initial = client.get("/api/tasks").json()
+        initial_count = len(initial)
+
+        call_count = 0
+        original_task_init = Task.__init__
+
+        def patched_init(self_task, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 2:
+                raise ValueError("Simulated DB error on second row")
+            return original_task_init(self_task, **kwargs)
+
+        with patch.object(Task, "__init__", patched_init):
+            response = client.post(
+                "/api/tasks/import/confirm",
+                files={"file": ("test.xlsx", buf, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+            )
+
+        # Should fail with 500 due to the simulated error
+        assert response.status_code == 500
 
         # Verify no new tasks created (all rolled back)
         after = client.get("/api/tasks").json()
-        assert len(after) == len(initial)
+        assert len(after) == initial_count
 
     def test_confirm_rejects_non_xlsx(self):
         """Upload .txt file -> 400."""
