@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { useTasks } from '../hooks/useTasks'
 import {
   TaskListHeader,
@@ -7,9 +8,11 @@ import {
   BatchActions,
 } from '../components/TaskList'
 import { TaskFormModal } from '../components/TaskModal'
+import { BatchExecuteDialog } from '../components/TaskList/BatchExecuteDialog'
 import { ImportModal } from '../components/ImportModal'
 import { Pagination, EmptyState, LoadingSpinner, ConfirmModal } from '../components/shared'
 import { tasksApi } from '../api/tasks'
+import { batchesApi } from '../api/batches'
 import type { Task, CreateTaskDto } from '../types'
 
 export function Tasks() {
@@ -38,6 +41,8 @@ export function Tasks() {
   const [deleteConfirm, setDeleteConfirm] = useState<Task | null>(null)
   const [batchDeleteConfirm, setBatchDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [batchExecuteOpen, setBatchExecuteOpen] = useState(false)
+  const [batchExecuting, setBatchExecuting] = useState(false)
 
   const handleCreate = () => {
     setModalMode('create')
@@ -86,6 +91,20 @@ export function Tasks() {
     await batchUpdateStatus('ready')
   }
 
+  const handleBatchExecute = async (concurrency: number) => {
+    setBatchExecuting(true)
+    try {
+      await batchesApi.create(selectedIds, concurrency)
+      toast.success(`已启动 ${selectedIds.length} 个任务的批量执行`)
+      setBatchExecuteOpen(false)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '批量执行启动失败'
+      toast.error(message)
+    } finally {
+      setBatchExecuting(false)
+    }
+  }
+
   if (loading && tasks.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -104,6 +123,8 @@ export function Tasks() {
         selectedCount={selectedIds.length}
         onBatchDelete={() => setBatchDeleteConfirm(true)}
         onBatchSetReady={handleBatchSetReady}
+        onBatchExecute={() => setBatchExecuteOpen(true)}
+        batchExecuting={batchExecuting}
       />
 
       {tasks.length === 0 ? (
@@ -160,6 +181,14 @@ export function Tasks() {
         onConfirm={handleBatchDelete}
         onCancel={() => setBatchDeleteConfirm(false)}
         loading={deleting}
+      />
+
+      <BatchExecuteDialog
+        open={batchExecuteOpen}
+        taskCount={selectedIds.length}
+        onConfirm={handleBatchExecute}
+        onCancel={() => setBatchExecuteOpen(false)}
+        loading={batchExecuting}
       />
 
       <ImportModal
