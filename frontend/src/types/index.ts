@@ -431,6 +431,7 @@ export interface Batch {
   status: 'pending' | 'running' | 'completed'
   created_at: string
   finished_at: string | null
+  runs?: BatchRunSummary[]
 }
 
 export interface BatchCreateResponse {
