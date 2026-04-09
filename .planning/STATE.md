@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: Excel 批量导入功能开发
-status: Ready to execute
-last_updated: "2026-04-09T01:18:43.498Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-09T01:28:04.530Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -72,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase 72]: 72-02: BatchExecuteDialog as standalone component (not ConfirmModal) because it needs interactive slider control
 - [Phase 72]: 72-02: Green-700 color for batch execute button (green=run, blue=ready, red=delete semantic grouping)
 - [Phase 73]: Nullable Optional[datetime] for timing fields (None before task starts, populated after)
+- [Phase 73-ui]: Extended Batch type with optional runs field to match backend BatchResponse
+- [Phase 73-ui]: Removed toast from Tasks.tsx handleBatchExecute in favor of BatchProgress page completion toast
 
 ### Pending Todos
 

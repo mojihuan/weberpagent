@@ -156,7 +156,7 @@ Plans:
 
 Plans:
 - [x] 73-01-PLAN.md -- Backend BatchRunSummary timing fields + frontend type sync (BATCH-03)
-- [ ] 73-02-PLAN.md -- Frontend batch progress page with polling, cards, navigation, toast (BATCH-03)
+- [x] 73-02-PLAN.md -- Frontend batch progress page with polling, cards, navigation, toast (BATCH-03)
 
 ## Progress
 
@@ -168,7 +168,7 @@ Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 | 70. Excel 模版设计 | v0.9.0 | 1/2 | Complete    | 2026-04-08 |
 | 71. 批量导入工作流 | v0.9.0 | 2/2 | Complete    | 2026-04-08 |
 | 72. 批量执行引擎 | v0.9.0 | 2/2 | Complete    | 2026-04-09 |
-| 73. 批量进度 UI | v0.9.0 | 1/2 | In Progress|  |
+| 73. 批量进度 UI | v0.9.0 | 2/2 | Complete   | 2026-04-09 |
 
 ---
 *Roadmap updated: 2026-04-09 — Phase 73 planned (2 plans)*
