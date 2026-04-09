@@ -151,8 +151,12 @@ Plans:
   1. 用户启动批量执行后，跳转到批量进度页面，页面以列表/网格形式展示每个任务的状态标签（等待/执行中/完成/失败）
   2. 页面每 2 秒轮询后端 API 更新状态，任务从"等待"变为"执行中"再到"完成/失败"的转换实时可见
   3. 用户点击任意任务条目，跳转到该任务的执行监控详情页（复用现有 RunMonitor）
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+- [x] 73-01-PLAN.md -- Backend BatchRunSummary timing fields + frontend type sync (BATCH-03)
+- [ ] 73-02-PLAN.md -- Frontend batch progress page with polling, cards, navigation, toast (BATCH-03)
 
 ## Progress
 
@@ -164,7 +168,7 @@ Phases execute in numeric order: 70 -> 71 -> 72 -> 73
 | 70. Excel 模版设计 | v0.9.0 | 1/2 | Complete    | 2026-04-08 |
 | 71. 批量导入工作流 | v0.9.0 | 2/2 | Complete    | 2026-04-08 |
 | 72. 批量执行引擎 | v0.9.0 | 2/2 | Complete    | 2026-04-09 |
-| 73. 批量进度 UI | v0.9.0 | 0/? | Not started | - |
+| 73. 批量进度 UI | v0.9.0 | 1/2 | In Progress|  |
 
 ---
-*Roadmap updated: 2026-04-08 — Phase 72 planned (2 plans)*
+*Roadmap updated: 2026-04-09 — Phase 73 planned (2 plans)*

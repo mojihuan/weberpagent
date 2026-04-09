@@ -21,7 +21,7 @@
 
 - [x] **BATCH-01**: 用户可以在 TaskTable 勾选多个 Task，点击「批量执行」按钮启动并行执行
 - [x] **BATCH-02**: 批量执行使用 asyncio.Semaphore 控制并发数，默认 2，用户可配置（上限 4），防止单服务器 OOM
-- [ ] **BATCH-03**: 用户可以在批量进度页面查看每个任务的状态（等待/执行中/完成/失败），点击可跳转到该任务的执行监控详情
+- [x] **BATCH-03**: 用户可以在批量进度页面查看每个任务的状态（等待/执行中/完成/失败），点击可跳转到该任务的执行监控详情
 
 ## v2 Requirements (Deferred)
 
@@ -67,7 +67,7 @@
 | IMPT-03 | Phase 71 | Complete |
 | BATCH-01 | Phase 72 | Complete |
 | BATCH-02 | Phase 72 | Complete |
-| BATCH-03 | Phase 73 | Pending |
+| BATCH-03 | Phase 73 | Complete |
 
 **Coverage:**
 - v1 requirements: 8 total
