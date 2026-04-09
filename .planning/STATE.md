@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v0.9.0
 milestone_name: Excel 批量导入功能开发
-status: Milestone complete
-last_updated: "2026-04-09T01:40:55.680Z"
+status: Milestone shipped
+last_updated: "2026-04-09T10:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -15,65 +15,34 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-08)
+See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 73 — ui
+**Current focus:** Planning next milestone
 
 ## Last Shipped
 
-**v0.8.4 基于 v0.8.3 的研究优化** (2026-04-07)
+**v0.9.0 Excel 批量导入功能开发** (2026-04-09)
 
-- Phase 67: 基础层 — 行标识检测与失败追踪状态
-- Phase 68: DOM Patch 增强 — 行标识注入与策略标注
-- Phase 69: 服务集成与 Prompt 规则 — step_callback 集成 + Section 9 规则
+- Phase 70: Excel 模版设计 — TEMPLATE_COLUMNS + generate_template() + ExcelParser
+- Phase 71: 批量导入工作流 — ImportModal 三步状态机 + 原子批量创建
+- Phase 72: 批量执行引擎 — Semaphore 并发控制 + BatchExecutionService
+- Phase 73: 批量进度 UI — 2s 轮询 + 任务卡片 + 点击导航
 
 **Server online**: 121.40.191.49
 
 ## Current Position
 
-Phase: 73
-Plan: Not started
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 4 (in v0.9.0)
-- Previous milestone (v0.8.4): 6 plans across 3 phases
-- Phase 71-01: 15min, 3 tasks, 8 files
-- Phase 71-02: 8min, 2 tasks, 8 files
-
-*Updated after each plan completion*
+Phase: None (milestone shipped)
+Plan: None
+Next: /gsd:new-milestone
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [v0.9.0 planning]: 仅使用 openpyxl（已安装 3.1.5），零新依赖
-- [v0.9.0 planning]: 导入采用两阶段模式（preview + confirm），confirm 时重新解析而非缓存服务器状态
-- [v0.9.0 planning]: 批量进度使用轮询（每 2 秒），不做 SSE multiplexing
-- [v0.9.0 planning]: Semaphore 默认并发 2，硬上限 4，防止服务器 OOM
-- [Phase 70]: 70-01: TEMPLATE_COLUMNS as module-level list of dicts (key/header/width/required/default) shared between generator and parser
-- [Phase 70-excel]: 70-02: Empty row detection uses cell.value is None (not empty string) because openpyxl data_only=True normalizes empty strings to None
-- [Phase 70-excel]: 70-02: JSON parse errors store raw string in data[field] so Phase 71 UI can display original user input
-- [Phase 71]: confirm endpoint re-parses file (stateless) rather than caching server state per D-08
-- [Phase 71]: async with db.begin() wraps all inserts for atomic rollback on import confirm
-- [Phase 71]: assertions key popped and renamed to external_assertions in import confirm
-- [Phase 71]: 71-02: Raw fetch used for FormData upload instead of apiClient (Content-Type: application/json header conflict)
-- [Phase 71]: 71-02: UploadStep internally calls importPreview and passes file+data to parent via callback
-- [Phase 72]: BatchExecutionService uses asyncio.Semaphore with min(concurrency, MAX_CONCURRENCY=4) hard cap
-- [Phase 72]: _active_batches module-level dict prevents GC of active batch services
-- [Phase 72]: asyncio.create_task for fire-and-forget batch execution (not FastAPI BackgroundTasks) for immediate status tracking
-- [Phase 72]: SQLite busy_timeout set to 30 seconds via connect_args={'timeout': 30}
-- [Phase 72]: 72-02: BatchExecuteDialog as standalone component (not ConfirmModal) because it needs interactive slider control
-- [Phase 72]: 72-02: Green-700 color for batch execute button (green=run, blue=ready, red=delete semantic grouping)
-- [Phase 73]: Nullable Optional[datetime] for timing fields (None before task starts, populated after)
-- [Phase 73-ui]: Extended Batch type with optional runs field to match backend BatchResponse
-- [Phase 73-ui]: Removed toast from Tasks.tsx handleBatchExecute in favor of BatchProgress page completion toast
+Key decisions moved to PROJECT.md Key Decisions table.
+v0.9.0 decisions archived in milestones/v0.9.0-ROADMAP.md.
 
 ### Pending Todos
 
@@ -81,6 +50,5 @@ None.
 
 ### Blockers/Concerns
 
-- 并行浏览器实例可能耗尽服务器内存（每个 Chromium 200-500MB），Semaphore 上限 4 是基于部署服务器资源的安全边界
-- SQLite WAL 模式下并发写锁竞争 — busy_timeout 5000ms 可能不够，需在 Phase 72 实测
-- 前端 apiClient 默认 Content-Type: application/json，FormData 上传需绕过现有 client 使用原生 fetch
+- SQLite WAL 模式下并发写锁竞争 — busy_timeout 30s 需实测高并发
+- 前端 apiClient 默认 Content-Type: application/json，FormData 上传需绕过

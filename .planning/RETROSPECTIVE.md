@@ -1,5 +1,48 @@
 # Project Retrospective
 
+## Milestone: v0.9.0 — Excel 批量导入功能开发
+
+**Shipped:** 2026-04-09
+**Phases:** 4 | **Plans:** 8
+
+### What Was Built
+
+- Excel 模版系统: TEMPLATE_COLUMNS 合约 + generate_template() + DataValidation
+- ExcelParser: collect-all 错误策略 + 类型强制转换 + round-trip 验证
+- 两阶段导入工作流: preview → confirm 原子批量创建，ImportModal 三步状态机
+- 批量执行引擎: BatchExecutionService + Semaphore 并发控制 (default 2, cap 4)
+- 批量进度 UI: 2s 轮询 + 任务卡片 + elapsed time + 点击导航
+
+### What Worked
+
+- **两阶段导入设计**: preview + confirm 模式让 QA 在确认前预览，避免脏数据进入
+- **Semaphore 并发控制**: 简单有效的并发限制，默认 2 个浏览器实例
+- **轮询替代 SSE**: 避免了 multiplexer 架构改造，2s 轮询足够满足需求
+- **TEMPLATE_COLUMNS 合约**: 模版生成器和解析器共享列定义，减少不一致
+
+### What Was Inefficient
+
+- Phase 70-02 PLAN 标记未勾选但实际已完成（ROADMAP.md checkbox 不一致）
+- 批量执行后需手动跳转到进度页面（可在后续版本自动跳转）
+
+### Patterns Established
+
+- **collect-all error strategy**: 解析时不提前终止，收集所有错误一次性展示给用户
+- **stateless confirm**: confirm 端点重新解析文件而非缓存服务器状态
+- **fire-and-forget execution**: asyncio.create_task 启动批量执行，立即返回状态
+
+### Key Lessons
+
+1. Excel 导入的关键难点在数据校验（类型、格式、必填），collect-all 策略显著提升用户体验
+2. 并发控制需要考虑服务器资源限制，Semaphore 上限应基于实际硬件容量
+3. 两阶段操作（preview + confirm）是批量操作的最佳实践
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~4 (70, 71, 72, 73)
+- Notable: 2 天完成 4 个阶段 8 个计划，节奏稳定
+
 ## Milestone: v0.8.3 — 分析报告差距对表格填写影响
 
 **Shipped:** 2026-04-06
@@ -80,11 +123,11 @@
 
 ## Cross-Milestone Trends
 
-| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 |
-|--------|--------|--------|--------|--------|--------|
-| Phases | 4 | 5 | 5 | 1 | 2 |
-| Plans | 10 | 10 | 6 | 1 | 2 |
-| Duration (days) | 1 | 2 | 2 | 1 | <1 |
-| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 |
-| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 |
-| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 |
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 |
+|--------|--------|--------|--------|--------|--------|--------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 |
+| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 |

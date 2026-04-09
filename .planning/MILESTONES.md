@@ -1,5 +1,22 @@
 # Milestones
 
+## v0.9.0 Excel 批量导入功能开发 (Shipped: 2026-04-09)
+
+**Phases completed:** 4 phases, 8 plans, 15 tasks
+
+**Key accomplishments:**
+
+- TEMPLATE_COLUMNS column contract + generate_template() producing styled .xlsx with DataValidation + GET /tasks/template StreamingResponse endpoint
+- ExcelParser with collect-all error strategy, lenient type coercion (_coerce_string/_coerce_int/_coerce_json_list), ParsedRow/ParseResult frozen dataclasses, and template round-trip validation
+- Two-phase Excel import: POST /import/preview returns row-level validation, POST /import/confirm atomically creates Tasks in a single db.begin() transaction
+- ImportModal with 3-step state machine (upload/preview/result), raw fetch FormData upload, drag-and-drop with .xlsx validation
+- Batch ORM model, BatchExecutionService with Semaphore concurrency (default 2, cap 4), and POST/GET /batches API routes for parallel task execution
+- Batch execution UI with Play icon button, confirmation dialog with concurrency slider (1-4), and API client wired to POST /batches
+- Extended BatchRunSummary with started_at/finished_at nullable datetime fields across backend schema, API routes, and frontend TypeScript type
+- Batch progress page with 2s polling, task status cards with elapsed time, progress bar, click-to-navigate to run details, and completion toast notification
+
+---
+
 ## v0.8.3 分析报告差距对表格填写影响 (Shipped: 2026-04-06)
 
 **Phases completed:** 2 phases, 2 plans, 3 tasks
