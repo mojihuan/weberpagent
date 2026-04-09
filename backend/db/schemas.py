@@ -291,6 +291,8 @@ class BatchRunSummary(BaseModel):
     task_id: str
     task_name: Optional[str] = None
     status: str
+    started_at: Optional[datetime] = None
+    finished_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

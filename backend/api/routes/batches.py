@@ -110,6 +110,8 @@ async def get_batch(batch_id: str):
                     task_id=run.task_id,
                     task_name=run.task.name if run.task else None,
                     status=run.status,
+                    started_at=run.started_at,
+                    finished_at=run.finished_at,
                 ))
 
         return BatchResponse(
@@ -141,6 +143,8 @@ async def get_batch_runs(batch_id: str):
                 task_id=run.task_id,
                 task_name=run.task.name if run.task else None,
                 status=run.status,
+                started_at=run.started_at,
+                finished_at=run.finished_at,
             )
             for run in runs
         ]

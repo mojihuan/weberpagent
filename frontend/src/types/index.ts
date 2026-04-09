@@ -445,4 +445,6 @@ export interface BatchRunSummary {
   task_id: string
   task_name: string | null
   status: string
+  started_at: string | null
+  finished_at: string | null
 }
