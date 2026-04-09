@@ -6,6 +6,7 @@ import { Tasks } from './pages/Tasks'
 import { TaskDetail } from './pages/TaskDetail'
 import { RunList } from './pages/RunList'
 import { RunMonitor } from './pages/RunMonitor'
+import { BatchProgress } from './pages/BatchProgress'
 import { Reports } from './pages/Reports'
 import { ReportDetail } from './pages/ReportDetail'
 
@@ -28,6 +29,7 @@ function App() {
             <Route path="/tasks/:id" element={<TaskDetail />} />
             <Route path="/runs" element={<RunList />} />
             <Route path="/runs/:id" element={<RunMonitor />} />
+            <Route path="/batches/:id" element={<BatchProgress />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/reports/:id" element={<ReportDetail />} />
           </Route>

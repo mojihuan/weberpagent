@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useTasks } from '../hooks/useTasks'
 import {
@@ -16,6 +17,8 @@ import { batchesApi } from '../api/batches'
 import type { Task, CreateTaskDto } from '../types'
 
 export function Tasks() {
+  const navigate = useNavigate()
+
   const {
     tasks,
     total,
@@ -94,9 +97,9 @@ export function Tasks() {
   const handleBatchExecute = async (concurrency: number) => {
     setBatchExecuting(true)
     try {
-      await batchesApi.create(selectedIds, concurrency)
-      toast.success(`已启动 ${selectedIds.length} 个任务的批量执行`)
+      const response = await batchesApi.create(selectedIds, concurrency)
       setBatchExecuteOpen(false)
+      navigate(`/batches/${response.id}`)
     } catch (error) {
       const message = error instanceof Error ? error.message : '批量执行启动失败'
       toast.error(message)
