@@ -26,7 +26,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 **最新版本:** v0.9.0 Excel 批量导入功能开发 (in progress)
 **上一里程碑:** v0.8.4 基于 v0.8.3 的研究优化 — Phase 67-69 complete
-**当前进度:** Phase 71 (批量导入工作流) complete — 后端 preview/confirm API + 前端 ImportModal 三步状态机
+**当前进度:** Phase 72 (批量执行引擎) complete — 后端 BatchExecutionService + 前端批量执行 UI with 并发控制
 
 **Server online**: 121.40.191.49
 
