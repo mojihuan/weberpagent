@@ -52,8 +52,8 @@ class TestParseExcelBasic:
 
     def test_valid_two_rows_returns_two_parsed_rows(self):
         buf = _make_workbook(rows=[
-            ["Task A", "Description A", "https://a.com", 10, None, None],
-            ["Task B", "Description B", "https://b.com", 20, None, None],
+            ["Task A", None, "Description A", "https://a.com", 10, None, None],
+            ["Task B", None, "Description B", "https://b.com", 20, None, None],
         ])
         result = parse_excel(buf)
         assert len(result.rows) == 2
@@ -61,7 +61,7 @@ class TestParseExcelBasic:
 
     def test_parsed_row_data_keys_match_template_columns(self):
         buf = _make_workbook(rows=[
-            ["Task A", "Description A", "", 10, None, None],
+            ["Task A", None, "Description A", "", 10, None, None],
         ])
         result = parse_excel(buf)
         row = result.rows[0]
@@ -70,9 +70,9 @@ class TestParseExcelBasic:
 
     def test_empty_rows_skipped(self):
         buf = _make_workbook(rows=[
-            ["Task A", "Description A", "", 10, None, None],
-            [None, None, None, None, None, None],  # completely empty
-            ["Task C", "Description C", "", 15, None, None],
+            ["Task A", None, "Description A", "", 10, None, None],
+            [None, None, None, None, None, None, None],  # completely empty
+            ["Task C", None, "Description C", "", 15, None, None],
         ])
         result = parse_excel(buf)
         assert len(result.rows) == 2
@@ -86,7 +86,7 @@ class TestTypeCoercion:
     def test_string_columns_coerced_from_number(self):
         """String columns (name, description, target_url) return strings."""
         buf = _make_workbook(rows=[
-            [12345, "Description", "https://a.com", 10, None, None],
+            [12345, None, "Description", "https://a.com", 10, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["name"] == "12345"
@@ -94,7 +94,7 @@ class TestTypeCoercion:
 
     def test_max_steps_integer_cell_returns_int(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 15, None, None],
+            ["Task", None, "Desc", "", 15, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["max_steps"] == 15
@@ -102,14 +102,14 @@ class TestTypeCoercion:
 
     def test_max_steps_empty_returns_default_10(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", None, None, None],
+            ["Task", None, "Desc", "", None, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["max_steps"] == 10
 
     def test_max_steps_float_returns_int(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10.0, None, None],
+            ["Task", None, "Desc", "", 10.0, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["max_steps"] == 10
@@ -121,7 +121,7 @@ class TestJsonParsing:
 
     def test_preconditions_valid_json_array(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, '["code1", "code2"]', None],
+            ["Task", None, "Desc", "", 10, '["code1", "code2"]', None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["preconditions"] == ["code1", "code2"]
@@ -129,7 +129,7 @@ class TestJsonParsing:
 
     def test_preconditions_empty_returns_none(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, None, None],
+            ["Task", None, "Desc", "", 10, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["preconditions"] is None
@@ -137,7 +137,7 @@ class TestJsonParsing:
 
     def test_preconditions_invalid_json_reports_error(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, "not json at all", None],
+            ["Task", None, "Desc", "", 10, "not json at all", None],
         ])
         result = parse_excel(buf)
         assert len(result.rows[0].errors) == 1
@@ -145,7 +145,7 @@ class TestJsonParsing:
 
     def test_assertions_valid_json_array(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, None, '[{"methodName":"xxx","headers":"main"}]'],
+            ["Task", None, "Desc", "", 10, None, '[{"methodName":"xxx","headers":"main"}]'],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["assertions"] == [{"methodName": "xxx", "headers": "main"}]
@@ -153,7 +153,7 @@ class TestJsonParsing:
 
     def test_assertions_non_array_json_reports_error(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, None, '{"key": "val"}'],
+            ["Task", None, "Desc", "", 10, None, '{"key": "val"}'],
         ])
         result = parse_excel(buf)
         assert len(result.rows[0].errors) == 1
@@ -168,7 +168,7 @@ class TestErrorCollection:
         ws = wb.active
         ws.title = "测试用例"
         ws.append(_default_headers())
-        ws.append(["Task", "Desc", "", 10, None, None])
+        ws.append(["Task", None, "Desc", "", 10, None, None])
         # Row 3 has a merged cell
         ws.merge_cells("A3:B3")
         ws["A3"] = "Merged task"
@@ -176,6 +176,7 @@ class TestErrorCollection:
         ws["D3"] = 10
         ws["E3"] = None
         ws["F3"] = None
+        ws["G3"] = None
         buf = BytesIO()
         wb.save(buf)
         buf.seek(0)
@@ -187,7 +188,7 @@ class TestErrorCollection:
     def test_missing_required_field_reports_error(self):
         """Row with only target_url filled (no name/description) reports required field error."""
         buf = _make_workbook(rows=[
-            [None, None, "https://a.com", 10, None, None],  # name and description missing
+            [None, None, None, "https://a.com", 10, None, None],  # name and description missing
         ])
         result = parse_excel(buf)
         assert len(result.rows[0].errors) >= 1
@@ -196,7 +197,7 @@ class TestErrorCollection:
     def test_multiple_errors_collected_per_row(self):
         """Row with only target_url filled reports multiple required field errors."""
         buf = _make_workbook(rows=[
-            [None, None, "https://a.com", None, None, None],  # name and description empty, max_steps invalid
+            [None, None, None, "https://a.com", None, None, None],  # name and description empty, max_steps invalid
         ])
         result = parse_excel(buf)
         errors = result.rows[0].errors
@@ -217,11 +218,12 @@ class TestRoundTrip:
             assert row.errors == []
 
     def test_roundtrip_row1_data_matches_full_example(self):
-        """First example row: all 6 columns filled with valid data."""
+        """First example row: all 7 columns filled with valid data."""
         buf = generate_template()
         result = parse_excel(buf)
         row = result.rows[0]
         assert row.data["name"] == "登录功能测试"
+        assert row.data["login_role"] == "main"
         assert row.data["description"] == "打开登录页面，输入用户名和密码，点击登录按钮，验证是否跳转到首页"
         assert row.data["target_url"] == "https://erp.example.com/login"
         assert row.data["max_steps"] == 15
@@ -234,6 +236,7 @@ class TestRoundTrip:
         result = parse_excel(buf)
         row = result.rows[1]
         assert row.data["name"] == "创建订单测试"
+        assert row.data["login_role"] is None
         assert row.data["description"] == "登录后进入订单页面，填写订单信息并提交，验证订单创建成功"
         assert row.data["target_url"] == "https://erp.example.com/orders/new"
         assert row.data["max_steps"] == 20
@@ -250,7 +253,7 @@ class TestHeaderValidation:
     """Header mismatch detection."""
 
     def test_header_mismatch_reports_error(self):
-        buf = _make_workbook(headers=["A", "B", "C", "D", "E", "F"])
+        buf = _make_workbook(headers=["A", "B", "C", "D", "E", "F", "G"])
         result = parse_excel(buf)
         assert result.has_errors is True
         assert len(result.rows) == 1
@@ -271,7 +274,7 @@ class TestStringCoercion:
 
     def test_number_in_name_column_coerced_to_string(self):
         buf = _make_workbook(rows=[
-            [12345, "Description", "https://a.com", 10, None, None],
+            [12345, None, "Description", "https://a.com", 10, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["name"] == "12345"
@@ -280,7 +283,7 @@ class TestStringCoercion:
     def test_boolean_in_description_coerced_to_string(self):
         """Boolean True in description -> "true"."""
         buf = _make_workbook(rows=[
-            ["Task", True, "https://a.com", 10, None, None],
+            ["Task", None, True, "https://a.com", 10, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["description"] == "true"
@@ -293,7 +296,7 @@ class TestIntCoercion:
     def test_float_truncated_to_int(self):
         """15.7 -> 15 (truncation, not rounding)."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 15.7, None, None],
+            ["Task", None, "Desc", "", 15.7, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["max_steps"] == 15
@@ -301,7 +304,7 @@ class TestIntCoercion:
     def test_string_float_coerced_to_int(self):
         """String "10.0" in max_steps -> int 10."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", "10.0", None, None],
+            ["Task", None, "Desc", "", "10.0", None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["max_steps"] == 10
@@ -309,7 +312,7 @@ class TestIntCoercion:
     def test_invalid_string_in_max_steps_reports_error(self):
         """String "abc" in max_steps -> error."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", "abc", None, None],
+            ["Task", None, "Desc", "", "abc", None, None],
         ])
         result = parse_excel(buf)
         assert any("最大步数" in err for err in result.rows[0].errors)
@@ -317,7 +320,7 @@ class TestIntCoercion:
     def test_boolean_in_max_steps_reports_error(self):
         """Boolean True in max_steps -> error (boolean is not valid int)."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", True, None, None],
+            ["Task", None, "Desc", "", True, None, None],
         ])
         result = parse_excel(buf)
         assert any("最大步数" in err for err in result.rows[0].errors)
@@ -328,7 +331,7 @@ class TestJsonEdgeCases:
 
     def test_preconditions_valid_json_list(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, '["code1", "code2"]', None],
+            ["Task", None, "Desc", "", 10, '["code1", "code2"]', None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["preconditions"] == ["code1", "code2"]
@@ -337,7 +340,7 @@ class TestJsonEdgeCases:
     def test_preconditions_not_array(self):
         """Valid JSON but not an array -> error."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, '{"key": "val"}', None],
+            ["Task", None, "Desc", "", 10, '{"key": "val"}', None],
         ])
         result = parse_excel(buf)
         assert any("数组" in err for err in result.rows[0].errors)
@@ -345,14 +348,14 @@ class TestJsonEdgeCases:
     def test_preconditions_invalid_json(self):
         """Not valid JSON at all -> error."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, "not json at all", None],
+            ["Task", None, "Desc", "", 10, "not json at all", None],
         ])
         result = parse_excel(buf)
         assert any("JSON" in err for err in result.rows[0].errors)
 
     def test_assertions_valid_json_list(self):
         buf = _make_workbook(rows=[
-            ["Task", "Desc", "", 10, None, '[{"methodName":"xxx"}]'],
+            ["Task", None, "Desc", "", 10, None, '[{"methodName":"xxx"}]'],
         ])
         result = parse_excel(buf)
         assert result.rows[0].data["assertions"] == [{"methodName": "xxx"}]
@@ -365,9 +368,9 @@ class TestCollectAllErrors:
     def test_collect_all_errors_across_rows(self):
         """3 rows: row 2 valid, row 3 has 2 errors, row 4 has 1 error."""
         buf = _make_workbook(rows=[
-            ["Valid Task", "Valid desc", "", 10, None, None],
-            [None, None, "https://a.com", None, None, None],  # 2+ required errors
-            [None, "Has desc", "", 10, "bad json", None],  # 1 required + 1 json
+            ["Valid Task", None, "Valid desc", "", 10, None, None],
+            [None, None, None, "https://a.com", None, None, None],  # 2+ required errors
+            [None, None, "Has desc", "", 10, "bad json", None],  # 1 required + 1 json
         ])
         result = parse_excel(buf)
         assert result.total_rows == 3
@@ -379,9 +382,9 @@ class TestCollectAllErrors:
     def test_empty_row_between_data_rows(self):
         """Empty row between data rows is skipped."""
         buf = _make_workbook(rows=[
-            ["Task A", "Desc A", "", 10, None, None],
-            [None, None, None, None, None, None],
-            ["Task C", "Desc C", "", 15, None, None],
+            ["Task A", None, "Desc A", "", 10, None, None],
+            [None, None, None, None, None, None, None],
+            ["Task C", None, "Desc C", "", 15, None, None],
         ])
         result = parse_excel(buf)
         assert result.total_rows == 2
@@ -389,7 +392,7 @@ class TestCollectAllErrors:
     def test_optional_fields_empty_no_errors(self):
         """Row with only name + description, all optional fields empty."""
         buf = _make_workbook(rows=[
-            ["Task", "Desc", None, None, None, None],
+            ["Task", None, "Desc", None, None, None, None],
         ])
         result = parse_excel(buf)
         assert result.rows[0].errors == []
@@ -397,3 +400,57 @@ class TestCollectAllErrors:
         assert result.rows[0].data["max_steps"] == 10
         assert result.rows[0].data["preconditions"] is None
         assert result.rows[0].data["assertions"] is None
+
+
+class TestOldTemplateCompatibility:
+    """Old 6-column templates (no login_role) import with login_role=NULL."""
+
+    def test_old_6_column_template_imports_without_errors(self):
+        """Old template with 6 columns (no login_role) imports successfully."""
+        headers = ["任务名称", "任务描述", "目标URL", "最大步数", "前置条件", "断言"]
+        buf = _make_workbook(headers=headers, rows=[
+            ["Task", "Desc", "", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.has_errors is False
+        assert result.rows[0].data["login_role"] is None
+
+    def test_old_template_name_still_parsed(self):
+        headers = ["任务名称", "任务描述", "目标URL", "最大步数", "前置条件", "断言"]
+        buf = _make_workbook(headers=headers, rows=[
+            ["My Task", "My Desc", "", 15, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["name"] == "My Task"
+
+    def test_new_template_with_login_role(self):
+        buf = _make_workbook(rows=[
+            ["Task", "main", "Description", "", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["login_role"] == "main"
+
+
+class TestLoginRoleCoercion:
+    """login_role string coercion edge cases."""
+
+    def test_login_role_number_coerced_to_string(self):
+        buf = _make_workbook(rows=[
+            ["Task", 12345, "Desc", "", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["login_role"] == "12345"
+
+    def test_login_role_none_stays_none(self):
+        buf = _make_workbook(rows=[
+            ["Task", None, "Desc", "", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["login_role"] is None
+
+    def test_login_role_strips_whitespace(self):
+        buf = _make_workbook(rows=[
+            ["Task", "  main  ", "Desc", "", 10, None, None],
+        ])
+        result = parse_excel(buf)
+        assert result.rows[0].data["login_role"] == "main"

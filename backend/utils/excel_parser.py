@@ -101,24 +101,47 @@ def _has_merged_cells(cells: tuple) -> bool:
     return any(isinstance(cell, MergedCell) for cell in cells)
 
 
+def _detect_old_template(ws) -> bool:
+    """Detect if the workbook uses old 6-column format (no login_role).
+
+    Old template headers: 任务名称, 任务描述, 目标URL, 最大步数, 前置条件, 断言
+    New template headers: 任务名称, 登录角色, 任务描述, ...
+    The key difference: column 2 is 任务描述 (old) vs 登录角色 (new).
+    """
+    col2 = ws.cell(row=1, column=2).value
+    if col2 and str(col2).strip() == "任务描述":
+        return True
+    return False
+
+
 def _validate_headers(ws) -> list[str] | None:
     """Validate that row 1 headers match TEMPLATE_COLUMNS.
 
+    Lenient: allows FEWER columns than TEMPLATE_COLUMNS (old templates).
+    Also supports old 6-column templates (no login_role) via _detect_old_template.
     Returns list of error strings if mismatch, None if headers are valid.
     """
     expected_headers = [col["header"] for col in TEMPLATE_COLUMNS]
     errors = []
+    actual_col_count = ws.max_column or 0
 
-    for idx, expected in enumerate(expected_headers):
+    # Old template: skip login_role column in validation
+    if _detect_old_template(ws):
+        expected_headers = [h for h in expected_headers if h != "登录角色"]
+
+    check_count = min(actual_col_count, len(expected_headers))
+
+    for idx in range(check_count):
+        expected = expected_headers[idx]
         actual = ws.cell(row=1, column=idx + 1).value
         if actual is None or str(actual).strip() != expected:
             errors.append(
                 f"列 {idx + 1} 表头应为 '{expected}'，实际为 '{actual}'"
             )
 
-    extra_cols = ws.max_column - len(expected_headers)
+    extra_cols = actual_col_count - len(expected_headers)
     if extra_cols > 0:
-        errors.append(f"多余列: 发现 {ws.max_column} 列，预期 {len(expected_headers)} 列")
+        errors.append(f"多余列: 发现 {actual_col_count} 列，预期 {len(expected_headers)} 列")
 
     return errors if errors else None
 
@@ -155,6 +178,13 @@ def parse_excel(buffer: BytesIO) -> ParseResult:
         )
 
     parsed_rows: list[ParsedRow] = []
+    is_old_template = _detect_old_template(ws)
+
+    # Build column mapping for old template (skip login_role)
+    if is_old_template:
+        col_mapping = [(idx, col) for idx, col in enumerate(TEMPLATE_COLUMNS) if col["key"] != "login_role"]
+    else:
+        col_mapping = list(enumerate(TEMPLATE_COLUMNS))
 
     for row_tuple in ws.iter_rows(min_row=2):
         # Skip completely empty rows
@@ -171,16 +201,24 @@ def parse_excel(buffer: BytesIO) -> ParseResult:
         # Build data dict from columns
         data: dict[str, Any] = {}
 
-        for col_idx, col_def in enumerate(TEMPLATE_COLUMNS):
+        # For old templates, initialize login_role as None
+        if is_old_template:
+            data["login_role"] = None
+
+        for data_col_idx, (template_col_idx, col_def) in enumerate(col_mapping):
             key = col_def["key"]
             cell_value = None
 
-            if col_idx < len(row_tuple):
-                cell = row_tuple[col_idx]
+            if data_col_idx < len(row_tuple):
+                cell = row_tuple[data_col_idx]
                 if not isinstance(cell, MergedCell):
                     cell_value = cell.value
 
-            if key in ("name", "description", "target_url"):
+            if key == "login_role":
+                coerced = _coerce_string(cell_value)
+                data[key] = coerced  # None if empty, string if provided
+
+            elif key in ("name", "description", "target_url"):
                 coerced = _coerce_string(cell_value)
                 # target_url has empty string default, others None
                 if key == "target_url" and coerced is None:
