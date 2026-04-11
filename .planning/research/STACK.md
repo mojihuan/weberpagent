@@ -1,3 +1,133 @@
+# Technology Stack -- v0.9.1 ERP Integration
+
+**Project:** aiDriveUITest -- CacheService, AccountService, TestFlowService
+**Researched:** 2026-04-11
+**Scope:** New dependencies and patterns for CacheService (in-memory KV), AccountService (multi-role), TestFlowService (orchestration)
+**Confidence:** HIGH (verified against installed packages, existing codebase, and design documents)
+
+## Executive Summary
+
+The three v0.9.1 services require **zero new dependencies**. All capabilities are implementable with Python standard library and packages already in `pyproject.toml`. This follows the project's established philosophy (PROJECT.md: "openpyxl 唯一依赖，零新依赖").
+
+- **CacheService**: `dict[str, Any]` backing store. Run-scoped lifecycle. No Redis needed.
+- **AccountService**: reads `webseleniumerp/config/user_info.py` via existing `sys.path` mechanism. Returns `@dataclass(frozen=True)` DTO.
+- **TestFlowService**: orchestrates the pipeline. Uses `re.sub` for `{{cached:key}}` and existing Jinja2 for `{{variable}}` substitution.
+
+## New Dependencies
+
+**None.** No changes to `pyproject.toml` required.
+
+## Already Installed -- New Usage
+
+| Technology | Version | New Purpose | Why This Choice |
+|------------|---------|-------------|-----------------|
+| Python `dict` | stdlib 3.11 | CacheService backing store | Single-process, run-scoped, O(1) lookup, zero config, GC cleans up with run |
+| Python `dataclasses` | stdlib 3.11 | `AccountInfo(frozen=True)` | Immutability enforced at class level. No pydantic for internal DTOs |
+| Python `re` | stdlib 3.11 | `{{cached:key}}` pattern replacement | Jinja2 cannot handle flat dict access with colon syntax. 5-line regex pre-pass |
+| Jinja2 | 3.1.6 | `{{variable}}` substitution in descriptions | Already used by `PreconditionService.substitute_variables()` |
+| Pydantic | 2.12.5 | `login_role: Optional[str]` in Task schemas | Add field to existing TaskCreate/TaskUpdate/TaskResponse |
+| SQLAlchemy | 2.0.48 | `login_role` column on Task model | `mapped_column(String(20), nullable=True)`, SQLite ALTER TABLE |
+| FastAPI | 0.135.1 | Pass `login_role` through to background task | Modify `run_agent_background` signature, no new endpoints |
+| openpyxl | 3.1.5 | Add login_role column to Excel template | Add to TEMPLATE_COLUMNS, update example rows |
+| pydantic-settings | >=2.0.0 | `erp_login_url: str = ""` in Settings | One new field, reads from `.env` automatically |
+
+## NOT Adding
+
+| Library | Avoided Because | Use Instead |
+|---------|-----------------|-------------|
+| Redis / memcached | Single-process, run-scoped cache. No persistence, no TTL, no cross-process sharing | Python `dict` |
+| `cachetools` | General-purpose cache with TTL/eviction. CacheService is a named KV store | Custom 30-line class |
+| Pydantic BaseModel for AccountInfo | Internal DTO, no API validation needed | `@dataclass(frozen=True)` |
+| Alembic | One column addition to SQLite. No migration framework needed | `ALTER TABLE tasks ADD COLUMN` |
+| Custom Jinja2 extension | Over-engineering for one `{{cached:key}}` pattern | Regex pre-pass before Jinja2 |
+
+## Integration Points
+
+### CacheService -> ContextWrapper
+
+CacheService is injected into `ContextWrapper.__init__(cache=...)`. Precondition code calls `context.cache('i', value)` and `context.cached('i')`. The wrapper delegates to CacheService.
+
+### AccountService -> external_precondition_bridge pattern
+
+Follows the same lazy-loading pattern: check sys.path for webseleniumerp, import `config.user_info.INFO`, map role names to account/password field pairs.
+
+### TestFlowService -> runs.py execution pipeline
+
+Branch in `run_agent_background()`: if `task.login_role` is set, create CacheService, resolve account via AccountService, execute preconditions with cache, build description with login prefix + variable substitution, run agent, execute assertions with cache verification. If no `login_role`, use existing flow.
+
+### DB Migration
+
+```sql
+ALTER TABLE tasks ADD COLUMN login_role VARCHAR(20);
+```
+
+### Configuration
+
+```python
+# settings.py -- one new field
+erp_login_url: str = ""
+
+# .env -- one new variable
+ERP_LOGIN_URL=https://your-erp-url.com/login
+```
+
+## New Files
+
+| File | Est. Lines | Dependencies |
+|------|-----------|--------------|
+| `backend/core/cache_service.py` | ~30 | stdlib only |
+| `backend/core/account_service.py` | ~60 | stdlib, backend.config |
+| `backend/core/test_flow_service.py` | ~80 | stdlib, jinja2, cache_service, account_service |
+
+## Modified Files
+
+| File | Change | New Imports |
+|------|--------|-------------|
+| `backend/core/precondition_service.py` | Add cache param to ContextWrapper | `CacheService` |
+| `backend/db/models.py` | Add `login_role` column | None |
+| `backend/db/schemas.py` | Add `login_role` to 3 schemas | None |
+| `backend/config/settings.py` | Add `erp_login_url` field | None |
+| `backend/api/routes/runs.py` | Branch on login_role, wire TestFlowService | `TestFlowService`, `AccountService` |
+| `backend/utils/excel_template.py` | Add login_role column | None |
+| `backend/utils/excel_parser.py` | Parse login_role | None |
+| Frontend task form | Add login_role dropdown | None |
+
+## Alternatives Considered
+
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| Python dict | Redis | No persistence, no cross-process needed |
+| Python dict | SQLite table | Transient data, disk I/O unnecessary |
+| `@dataclass(frozen=True)` | Pydantic BaseModel | Internal DTO, not API boundary |
+| regex + Jinja2 | Custom Jinja2 extension | Over-engineering for one pattern |
+| manual ALTER TABLE | Alembic | One column, no framework needed |
+| import user_info.py | Hardcode in .env | Single source of truth from webseleniumerp |
+| import user_info.py | REST API | webseleniumerp is a library, not a service |
+
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| Python 3.11 | stdlib | `dict[str, Any]`, `dataclass(frozen=True)` require 3.9+ |
+| Jinja2 3.1.6 | with SQLAlchemy 2.0 | `StrictUndefined` works on all 3.x |
+| Pydantic 2.12.5 | with FastAPI 0.135.1 | `Field(max_length=20)` works in v2 |
+| SQLAlchemy 2.0.48 | with aiosqlite 0.20.0 | `mapped_column(String(20))` standard 2.0 |
+
+## Sources
+
+- `pyproject.toml` -- verified all dependency versions
+- `backend/core/external_precondition_bridge.py` -- lazy-loading pattern for AccountService
+- `backend/core/precondition_service.py` -- ContextWrapper integration point
+- `backend/api/routes/runs.py` -- execution pipeline integration point
+- `backend/db/models.py` -- Task model for login_role column
+- `docs/plans/2026-04-11-erp-integration-design.md` -- design specifications
+- `docs/plans/2026-04-11-erp-integration-impl.md` -- implementation plan
+- `PROJECT.md` -- "zero new dependencies" decision record
+
+Detailed version with code patterns and extended rationale: [STACK-v0.9.1.md](./STACK-v0.9.1.md)
+
+---
+
 # Technology Stack -- v0.9.0 Excel Batch Import and Parallel Execution
 
 **Project:** aiDriveUITest -- Excel Template, Batch Import, Batch Execution
@@ -367,7 +497,7 @@ async with db.begin():
 
 SQLite handles batch inserts well within a single transaction. The `aiosqlite` driver's async session wraps this correctly.
 
-**New model fields needed:** None. The existing `Task` model has all required fields: `name`, `description`, `target_url`, `max_steps`, `preconditions` (JSON string), `external_assertions` (JSON string), `status`.
+**New model fields needed:** None for v0.9.0. The existing `Task` model has all required fields. v0.9.1 adds `login_role`.
 
 ### API: FastAPI Routes
 
@@ -423,13 +553,16 @@ Each event: `{ "task_id": "abc", "status": "running" | "success" | "failed" }`
 
 ## Installation
 
-**No new packages to install.** All required dependencies are already in the project:
+**No new packages to install for v0.9.0 or v0.9.1.** All required dependencies are already in the project:
 
 ```bash
 # Verify existing dependencies
 python3 -c "import openpyxl; print(f'openpyxl {openpyxl.__version__}')"   # 3.1.5
 python3 -c "import multipart; print(f'python-multipart {multipart.__version__}')"  # 0.0.22
 python3 -c "import fastapi; print(f'fastapi {fastapi.__version__}')"  # 0.135.1
+python3 -c "import jinja2; print(f'jinja2 {jinja2.__version__}')"  # 3.1.6
+python3 -c "import pydantic; print(f'pydantic {pydantic.__version__}')"  # 2.12.5
+python3 -c "import sqlalchemy; print(f'sqlalchemy {sqlalchemy.__version__}')"  # 2.0.48
 ```
 
 ## Sources
@@ -437,20 +570,23 @@ python3 -c "import fastapi; print(f'fastapi {fastapi.__version__}')"  # 0.135.1
 ### Verified Against Installed Code (HIGH confidence)
 - `pyproject.toml` -- project dependencies, Python version requirement (3.11+)
 - `.venv/bin/python3` -- verified openpyxl 3.1.5, python-multipart 0.0.22, FastAPI 0.135.1 installed
-- `backend/db/models.py` -- Task model has all fields needed for batch import
+- `backend/db/models.py` -- Task model has all fields needed
 - `backend/api/routes/tasks.py` -- existing route patterns to follow
 - `backend/api/schemas/index.py` -- existing Pydantic schemas to extend
 - `backend/core/agent_service.py` -- run_with_cleanup pattern for parallel execution
-- `frontend/src/api/client.ts` -- existing API client (note: sets Content-Type:json, cannot use for FormData)
-- `frontend/src/api/tasks.ts` -- existing task API methods to extend
-- `frontend/src/components/Button.tsx` -- styling pattern to follow for upload button
-- `webseleniumerp/use_case/export.py` -- existing openpyxl usage in project (load_workbook pattern)
+- `backend/core/precondition_service.py` -- ContextWrapper integration point for cache
+- `backend/core/external_precondition_bridge.py` -- lazy-loading pattern for AccountService
+- `backend/api/routes/runs.py` -- execution pipeline integration point
+- `docs/plans/2026-04-11-erp-integration-design.md` -- v0.9.1 design specifications
+- `docs/plans/2026-04-11-erp-integration-impl.md` -- v0.9.1 implementation plan
+- `PROJECT.md` -- "zero new dependencies" decision record
 
 ### API Documentation (HIGH confidence)
 - FastAPI UploadFile: built-in since FastAPI 0.65+, stable API in 0.135.1
 - openpyxl 3.1: stable release, Workbook/load_workbook/iter_rows API well-documented
 - asyncio.Semaphore + TaskGroup: Python 3.11 stdlib, no version concerns
+- Jinja2 3.1.6: StrictUndefined pattern stable across all 3.x versions
 
 ---
-*Stack research for: aiDriveUITest v0.9.0 Excel Batch Import and Parallel Execution*
-*Researched: 2026-04-08*
+*Stack research for: aiDriveUITest v0.9.0 + v0.9.1*
+*Updated: 2026-04-11*

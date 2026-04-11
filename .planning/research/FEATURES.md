@@ -1,259 +1,220 @@
-# Feature Research: Excel Batch Import & Parallel Execution (v0.9.0)
+# Feature Research: ERP Integration -- Caching, Multi-Account, Test Flow Orchestration (v0.9.1)
 
-**Domain:** AI-driven UI test automation -- Excel template design, batch import, batch execution
-**Researched:** 2026-04-08
-**Confidence:** MEDIUM (web search limit exhausted; findings based on thorough codebase analysis + established patterns from test management tools and browser automation ecosystem)
+**Domain:** AI-driven UI test automation -- run-scoped caching, multi-role account management, test flow orchestration, Excel template extension
+**Researched:** 2026-04-11
+**Confidence:** HIGH (findings based on thorough codebase analysis + existing design docs + webseleniumerp integration patterns already validated in production)
 
 ## Executive Summary
 
-This document covers three feature areas for v0.9.0: (1) Excel template design for test case configuration, (2) batch import with parse/validate/preview workflow, and (3) batch execution with parallel browser automation. The existing system has a well-structured Task model with 7 fields (name, description, target_url, max_steps, preconditions, assertions, status) and a complete single-task execution pipeline. The challenge is representing complex fields -- preconditions as Python code blocks and assertions as structured JSON configs -- within the flat row/column constraints of a spreadsheet.
+This document covers the six feature areas for v0.9.1: (1) CacheService for run-scoped in-memory parameter caching, (2) AccountService for multi-role login credential resolution, (3) TestFlowService for orchestrating the full test lifecycle, (4) Excel template updates with login_role column, (5) DB migration for login_role field, and (6) frontend login_role dropdown. These features transform the platform from "AI executes what you type" to "AI executes a complete ERP test scenario with proper accounts, cached data references, and post-execution verification."
 
-The recommended approach: a flat Excel template where each row represents one Task, with preconditions as semicolon-delimited code snippets and assertions as a JSON array string in a single cell. This avoids the complexity of multi-row parsing while keeping the template usable for QA testers.
+The core insight: the existing platform already has all the building blocks (PreconditionService with context variables, external assertion bridge, AgentService, SSE streaming). The new features add a coordination layer (TestFlowService) and two missing data-handling primitives (CacheService for cross-step data passing, AccountService for role-based login). The design is backward compatible -- tasks without login_role continue using the existing execution path.
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Features QA testers assume exist in an "Excel import" workflow. Missing any of these = the import feature feels broken or unusable.
+Features QA testers assume exist in an "ERP test automation" platform. Missing any of these = the ERP integration feels incomplete.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Excel template download** | QA needs a reference format before filling. Every test management tool (TestRail, Zephyr, qTest) provides downloadable templates. | LOW | Generate a pre-filled `.xlsx` with header row + 2 example rows. Use `openpyxl` (Python) to create the file. No new dependency needed (add `openpyxl` to pyproject.toml). |
-| **Excel file upload** | Core interaction: click "import" button, select file, submit. Standard file upload UX. | LOW | FastAPI `UploadFile` + multipart form. Frontend: `<input type="file" accept=".xlsx" />` or drag-and-drop zone. Max 10 MB file size. |
-| **Header/column validation** | If headers don't match template, parsing fails silently or creates garbage data. QA expects immediate feedback on format errors. | LOW | Compare uploaded sheet headers against expected column names. Return row/col-level error messages. Fail-fast on header mismatch, per-cell validation on data. |
-| **Row-level data validation** | Each row must produce a valid TaskCreate payload. Missing required fields (name, description) or invalid values (negative max_steps) must be caught before database writes. | MEDIUM | Validate each row against TaskCreate schema. Required: `name` (non-empty, max 200 chars), `description` (non-empty). Optional: `target_url` (valid URL format if provided), `max_steps` (integer 1-100, default 10), `preconditions` (parseable code string), `assertions` (valid JSON array if provided). |
-| **Preview before import** | QA wants to see what tasks will be created before committing. Especially important for batch operations -- one wrong row should not force a redo. | MEDIUM | Parse Excel, validate all rows, return array of `ParsedTask` objects (valid rows) + `RowError` objects (invalid rows). Frontend shows a table preview with green/red row indicators. User clicks "confirm import" to proceed. |
-| **Batch task creation** | After preview confirmation, create all validated tasks in the database atomically. | LOW | Call `TaskRepository.create()` in a loop within a single DB transaction. If any insert fails, roll back all. Reuse existing `TaskCreate` schema and `TaskRepository` without modification. |
-| **Task list integration** | Imported tasks appear in the existing task list with status "draft". No special treatment. | LOW | Zero code change needed. Existing `TaskRepository.list()` returns all tasks. New tasks with `status="draft"` appear naturally. |
-| **Batch task selection** | QA needs to select multiple tasks for execution. Existing TaskTable already has checkbox selection. | LOW | `TaskTable.tsx` already has `selectedIds`, `onSelectAll`, `onToggleSelect` props. `BatchActions.tsx` already has batch action UI (currently "set ready" and "batch delete"). Add "batch execute" button here. |
-| **Batch execution launch** | Click "execute" on selected tasks, create a Run for each, start all. | MEDIUM | New endpoint `POST /runs/batch` accepting `{task_ids: string[]}`. Creates N Run records, launches N `run_agent_background` tasks. Returns array of Run IDs. |
+| **Run-scoped parameter cache** | ERP tests require cross-step data passing: query an item number in a precondition, then verify it appears in a sales list after execution. Without caching, QA must hardcode values or use fragile multi-step state sharing. webseleniumerp already uses `ParamCache` (JSON file-based); our platform must match this capability. | LOW | `CacheService` with `cache(key, value)`, `cached(key)`, `has(key)`, `all()`, `clear()`. In-memory dict scoped to a single Run. No disk I/O. Integrated into `ContextWrapper` so preconditions can call `context.cache('i', value)` and `context.cached('i')` directly. |
+| **Multi-role account login** | Real ERP testing requires different accounts for different scenarios (admin for setup, warehouse for inventory, buyer for purchases). Currently only one account is configured via `ERP_USERNAME`/`ERP_PASSWORD` environment variables. QA cannot test multi-role workflows without this. | MEDIUM | `AccountService` reads from `webseleniumerp/config/user_info.py` (already validated, contains 8 roles). Resolves role name (e.g., "main") to `AccountInfo(account, password, role)`. Login URL from `settings.erp_login_url`, NOT from Excel. AI Agent receives login steps as a prefix in the task description. |
+| **Login step injection** | When a task specifies a login role, the system must automatically add "open login URL, enter account, enter password, click login" steps before the user-defined steps. QA should not need to write login steps in every task. | MEDIUM | `TestFlowService.build_login_prefix()` generates login steps. Steps are injected as the first 5 lines of the task description. User step numbers are shifted by +5. The `{{cached:key}}` syntax and `{{variable}}` substitution happen after injection. |
+| **Cache reference syntax in descriptions** | QA needs a way to reference cached values in task descriptions. The pattern `{{cached:i}}` should be replaced with the actual cached value before the AI Agent sees the description. This is the bridge between "precondition fetched data" and "AI uses that data during execution." | LOW | Regex-based replacement of `{{cached:key}}` patterns before Jinja2 variable substitution. Implemented in `TestFlowService._build_description()`. Uses `re.sub()` for cache patterns, then Jinja2 for context variables. Two-phase replacement avoids conflicts with Jinja2's `{{var}}` syntax. |
+| **Cache-aware precondition execution** | Excel preconditions can now be JSON configs with `type: "cache"` instead of just Python code. A cache precondition calls a data method, extracts a field from the result, and stores it in the cache. Example: query inventory list, extract IMEI from first item, cache as key 'i'. | MEDIUM | New `execute_cache_precondition()` method on `PreconditionService`. Parses JSON config, calls `context.get_data()`, extracts `cache_field` from response, stores via `context.cache(cache_key, value)`. Falls back gracefully if external module is unavailable. |
+| **Cache verification in assertions** | After execution, QA needs to verify that cached values appear in results. Example: cached IMEI number should appear in the sales item list. Without this, the cache precondition is useless for verification. | MEDIUM | New assertion type `cache_verify` in the assertion JSON config. Checks that `cache.cached(cache_key)` is found in the assertion result's `match_field`. Implemented in `TestFlowService._execute_assertions()`. Uses the same assertion bridge (`execute_assertion_method()`) but adds post-execution cache matching. |
+| **Excel login_role column** | QA fills in a "login role" column in the Excel template. The template must support this new column with dropdown validation for valid roles. The parser must extract it and pass it through to Task creation. | LOW | Add `login_role` to `TEMPLATE_COLUMNS` as the second column (after task name). Add `DataValidation` dropdown with role names (main, special, vice, camera, platform, super, bot, idle). Parser maps it to `TaskCreate.login_role`. |
+| **Task model login_role field** | The Task database model must store the login role. Runs must be able to read it from the task and pass it to the execution pipeline. | LOW | Add `login_role VARCHAR(20) NULL` to Task model. Add to Pydantic schemas (`TaskBase`, `TaskCreate`, `TaskUpdate`, `TaskResponse`). SQLite migration via `ALTER TABLE`. Nullable for backward compatibility -- old tasks without login_role continue to work. |
+| **Frontend login_role dropdown** | The task creation/edit form must show a role selector dropdown. QA should see human-readable labels (not raw role IDs). | LOW | Add `<select>` dropdown to `TaskForm.tsx` with options mapped from role IDs to Chinese labels (main = "main account", special = "warehouse account", etc.). Update TypeScript types to include `login_role?: string | null`. |
+| **Backward compatibility** | Tasks created before v0.9.1 (no login_role) must continue to work exactly as before. The existing execution path in `run_agent_background()` must remain unchanged for these tasks. | LOW | Detection pattern: `if task.login_role: use TestFlowService; else: existing flow`. No changes to AgentService, AssertionService, or batch execution. The new code path is additive. |
 
 ### Differentiators (Competitive Advantage)
 
-Features that go beyond basic import/execute. Not expected by QA, but significantly improve usability.
+Features that go beyond basic ERP test automation. Not expected by QA, but significantly improve test reliability and coverage.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Per-task progress in batch execution** | When running 10 tasks in parallel, QA needs to see which are running/succeeded/failed at a glance, not just a global spinner. | HIGH | Requires a new "batch run" concept with a batch dashboard UI. Each task shows its own status badge. SSE aggregation from multiple run streams. This is the single highest-complexity feature in the milestone. |
-| **Import error report download** | When 8 out of 50 rows have errors, QA wants to download an error-highlighted Excel file to fix offline and re-upload. | MEDIUM | Parse results include error annotations per cell. Generate a new `.xlsx` with an "errors" column appended. Re-use openpyxl writer. |
-| **Template with dropdown validation** | Excel data validation dropdowns for fields like `max_steps` (1-100), `status` (draft/ready). Prevents data entry errors at the source. | LOW | openpyxl supports `DataValidation` type "list" for cell ranges. Add during template generation. Minimal code, high QA value. |
-| **Conditional assertions format** | Allow assertions in a simplified "methodName|headers|data|params" pipe-delimited format that is easier to type in Excel than JSON. Auto-convert to AssertionConfig on import. | MEDIUM | Custom parser: `"attachment_inventory_list_assert|main|main|i=1,j=2"` converts to `{className: "PcAssert", methodName: "...", headers: "main", data: "main", params: {i:1, j:2}}`. Requires knowing the className mapping (hardcode "PcAssert" as default, or add className column). |
-| **Concurrent execution limit control** | Let QA set max parallel tasks (e.g., "run 3 at a time" on a 4-core server). Prevents server OOM from launching 10 browser instances simultaneously. | MEDIUM | `asyncio.Semaphore(max_concurrent)` in the batch execution endpoint. Frontend provides a slider/input (default: 2). Server-side hard cap at 4 to protect single-server deployment. |
-| **Batch execution summary report** | After batch completes, show aggregate stats: X passed, Y failed, Z errors. One-click to view individual reports. | MEDIUM | New `BatchRun` model with aggregated status. Query all Runs in batch, compute summary. Link to individual Report pages. |
+| **Orchestration layer (TestFlowService)** | Coordinates the full lifecycle: resolve account -> create cache -> execute preconditions -> build description -> AI execute -> execute assertions -> cleanup. Without this, the `run_agent_background()` function in runs.py would become an unmaintainable 500-line monolith. | MEDIUM | `TestFlowService` is a pure coordinator. It does not implement any domain logic itself -- it delegates to AccountService, CacheService, PreconditionService, AgentService, and AssertionService. This keeps each service testable in isolation. |
+| **Step number renumbering after login injection** | When login steps are injected (5 steps), the user's step numbering (step 1, step 2, ...) must be shifted to (step 6, step 7, ...) so the AI Agent sees a coherent numbered sequence. This prevents the Agent from getting confused by duplicate step numbers. | LOW | Regex-based renumbering in `_build_description()`. Pattern: `^步骤(\d+)` shifted by +5. If the user does not number their steps, no renumbering occurs -- the login prefix is simply prepended. |
+| **Two-phase variable substitution** | Phase 1: replace `{{cached:key}}` patterns with cache values (regex). Phase 2: replace `{{variable}}` patterns with context variables (Jinja2). This ordering matters because cache values might contain Jinja2 syntax that should not be interpreted. | LOW | `re.sub()` for cache patterns, then Jinja2 `Environment(undefined=StrictUndefined)` for context variables. If a cache value contains `{{`, it will be treated as a literal string in phase 2 (since Jinja2 StrictUndefined would fail on unknown variables). This is the correct behavior. |
+| **Cache precondition JSON schema** | Instead of forcing QA to write Python code for every data-fetching precondition, the JSON config format (`type: "cache", method: "PcImport.inventory_list", params: {...}, cache_key: "i", cache_field: "imei"`) provides a structured, declarative alternative. This is more maintainable and less error-prone than raw Python. | MEDIUM | The `parse_cache_config()` function validates required fields. The `execute_cache_precondition()` method handles the entire lifecycle. Error messages are specific ("missing required field: cache_key" rather than a Python traceback). |
+| **Login URL separation from Excel** | The ERP login URL is a deployment detail, not a test parameter. It should come from `settings.py` (`ERP_LOGIN_URL`), not from the Excel template. This prevents QA from accidentally using the wrong URL (e.g., staging vs production). | LOW | Add `erp_login_url: str = ""` to `Settings`. AccountService reads it via `get_settings().erp_login_url`. Excel template removes the `target_url` column (replaced by login_role + settings-based URL). |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features (Features to Explicitly NOT Build)
 
-Features that seem good but create significant complexity or maintenance burden for this milestone.
+Features that seem related but would create significant complexity or violate the project's design principles.
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| **Multi-row assertions (one task = multiple assertion rows)** | "Assertions should be one per row for readability" -- seems cleaner in Excel. | Requires row-grouping logic: which assertion rows belong to which task? Merged cells? Indentation? This is the #1 source of Excel parsing bugs in test management tools. QA testers frequently break the grouping by sorting/filtering. | Single cell per assertion. Use pipe-delimited format (`method|headers|data|params`) or JSON array for multiple assertions. Less "Excel-native" but parseable and unambiguous. |
-| **Excel formula support (e.g., dynamic target_url)** | "Let me use `=CONCATENATE(A1, "/login")` to generate URLs dynamically." | openpyxl in `data_only=True` mode returns formula results only if the file was last saved by Excel (not LibreOffice, not programmatically). Formulas create fragile dependencies between cells. | Keep template flat with literal values. If QA needs URL generation, provide a "base URL" field on the import form and auto-prepend it to relative paths in each row. |
-| **CSV import in addition to XLSX** | "CSV is simpler, works everywhere." | CSV has no standard for encoding, line breaks within cells, or type information. Chinese characters in CSV require BOM handling. Edge cases dwarf the "simplicity" benefit. | Support only `.xlsx`. It handles Unicode natively, supports data validation, and is the standard format for every major test management tool's import. |
-| **Real-time SSE for batch execution progress** | "I want to watch all 10 tasks execute simultaneously." | Aggregating 10 SSE streams into one frontend connection requires a multiplexer. The current `event_manager` is per-run_id. Scaling to per-batch-id requires a pub/sub architecture change. | Polling-based progress: frontend polls `GET /runs/batch/{batch_id}/status` every 2 seconds. Simpler, works with existing infrastructure. Add SSE per-task later as a v2 enhancement. |
-| **Excel export of existing tasks** | "I should be able to export tasks to Excel, edit, and re-import." | Round-trip (export-edit-import) creates an expectation of ID preservation and merge semantics. "Did my edit create a new task or update the existing one?" is a UX trap. | Import-only for v0.9.0. Export can be added as a separate feature in a later milestone. |
-| **Parallel browser instance reuse** | "Keep browser instances warm between tasks to speed up batch execution." | Browser-use Agent manages its own browser lifecycle. Reusing browser contexts across different ERP tasks risks session contamination (cookies, localStorage, auth state). The existing `run_with_cleanup` pattern creates fresh sessions per run for good reason. | Create a new browser session per task (current pattern). The overhead is ~2-3 seconds per session launch, acceptable for a tool that runs tasks taking 30-120 seconds each. |
-| **Assertion auto-completion in Excel** | "When I type a method name, show me the available options." | This would require an Excel add-in or VBA macro, which is a completely different development surface from the web platform. Massive scope expansion. | Provide a "reference sheet" tab in the template with all available assertion methods and their parameters. QA copies from reference to data sheet. |
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Persistent cache across Runs** | "Cache should survive between runs so I don't need to re-query data." Persistent cache creates stale data risk (cached IMEI from yesterday's inventory query applied to today's sales test). The webseleniumerp `ParamCache` uses JSON files and has exactly this problem -- QA frequently forgets to clear cache and gets wrong verification results. | Keep cache Run-scoped (in-memory, destroyed when Run ends). Each Run starts fresh. If QA needs to share data between Runs, use the existing precondition system with explicit queries. |
+| **Account management UI** | "Let QA add/edit accounts in the frontend instead of editing user_info.py." Account management is a deployment concern, not a test authoring concern. Adding CRUD UI for accounts introduces authentication, authorization, and secret management requirements that are explicitly out of scope (single-user local tool, per PROJECT.md "Out of Scope: user authentication"). | Read accounts from `webseleniumerp/config/user_info.py` (the source of truth that the QA team already maintains). If accounts change, update the file and restart the server. |
+| **Dynamic role resolution from ERP API** | "Instead of hardcoding roles, query the ERP system for available roles at runtime." This requires authenticated API calls before the test starts, creating a chicken-and-egg problem (you need credentials to discover credentials). It also couples the platform to ERP API version changes. | Static `ROLE_MAP` in `AccountService` mapping role names to `user_info.py` field names. If new roles are needed, update the map and redeploy. The 8 current roles cover all documented ERP testing scenarios. |
+| **Multi-account concurrent login in a single Run** | "Test with main account AND warehouse account in the same Run." The AI Agent uses a single browser session with one logged-in user. Multi-account testing requires separate browser sessions or complex session-switching, which browser-use does not support natively. | One account per Run. Multi-account scenarios are tested as separate tasks in a batch (Task A with role=main, Task B with role=special, assert Task A's data appears in Task B's view). This is the pattern webseleniumerp already uses. |
+| **Excel template auto-migration** | "If I upload an old template (without login_role column), automatically add the column." Auto-migration of uploaded Excel files creates subtle data loss risks (column reordering, format stripping). It also couples the parser to template versioning, which is fragile. | Validate template headers strictly. If headers don't match the current `TEMPLATE_COLUMNS`, reject with a clear error message: "Please download the latest template." This is the same approach used by TestRail and qTest for template versioning. |
+| **Cache key validation against schema** | "Validate that cache keys match a predefined schema so QA doesn't typo key names." This would require a cache schema definition system (which keys are valid, what types they hold). Over-engineering for the current use case where QA writes both the precondition (which sets the key) and the assertion (which reads it). | Let QA use any string as a cache key. If they typo a key name, the `cached()` call raises `KeyError` with a clear message ("cache key 'typo' does not exist"). This is sufficient for debugging. |
+| **Login step customization** | "Let QA customize the login steps (e.g., add CAPTCHA handling, SSO redirect)." Customizable login steps require a template language or scriptable login flow. This is a separate feature entirely (not part of this milestone). The current login step injection is deliberately simple: open URL, type account, type password, click login. | Fixed login step template in `build_login_prefix()`. If the ERP login flow changes (e.g., adds CAPTCHA), update the template function and redeploy. The AI Agent is capable of handling minor variations (element positioning, label changes) without customization. |
 
 ## Feature Dependencies
 
 ```
-TMPL-01: Excel Template Design
-    └──generates──> Expected column format (contract for IMPT-01)
-                       │
-                       v
-IMPT-01: Excel Batch Import
-    ├──requires──> TMPL-01 (template defines column contract)
-    ├──requires──> TaskCreate schema (existing, no change needed)
-    ├──requires──> TaskRepository.create() (existing, no change needed)
-    └──produces──> N Task records in database
-                       │
-                       v
-BATCH-01: Batch Execution
-    ├──requires──> IMPT-01 (tasks must exist before execution)
-    ├──requires──> run_agent_background() (existing, no change needed)
-    ├──requires──> Concurrent execution limiter (new: asyncio.Semaphore)
-    └──produces──> N Run records + N Reports
-                       │
-                       v
-BATCH-UI: Batch Progress Dashboard
-    ├──requires──> BATCH-01 (need batch concept to display progress)
-    ├──requires──> Run status polling endpoint (new)
-    └──produces──> Per-task status grid in frontend
+CACHE-01: CacheService (in-memory KV cache)
+    |
+    +--integrates with--> CONTEXT-01: ContextWrapper cache methods
+    |                       (preconditions can cache/cached via context)
+    |
+    +--used by--> PRECOND-01: Cache-type precondition execution
+    |               (JSON config: fetch data -> extract field -> cache)
+    |
+    +--used by--> VERIFY-01: Cache verify in assertions
+                    (check cached value appears in assertion result)
+
+ACCOUNT-01: AccountService (multi-role account resolution)
+    |
+    +--reads from--> user_info.py (webseleniumerp/config/user_info.py)
+    |
+    +--provides--> LOGIN-01: Login step injection
+    |               (build_login_prefix with account + URL)
+    |
+    +--requires--> SETTINGS-01: erp_login_url config
+                    (new field in Settings)
+
+DB-01: Task model login_role field
+    |
+    +--required by--> EXCEL-01: Excel template login_role column
+    |                   (TEMPLATE_COLUMNS update + parser)
+    |
+    +--required by--> FRONTEND-01: login_role dropdown
+    |                   (TaskForm.tsx select element)
+    |
+    +--required by--> FLOW-01: TestFlowService branching
+                      (if login_role: new flow; else: existing flow)
+
+FLOW-01: TestFlowService (orchestration)
+    |
+    +--coordinates--> ACCOUNT-01, CACHE-01, CONTEXT-01,
+                      PRECOND-01, LOGIN-01, VERIFY-01
+    |
+    +--integrates with--> runs.py: run_agent_background()
+                          (branching point: login_role present?)
 ```
 
 ### Dependency Notes
 
-- **IMPT-01 requires TMPL-01**: The template defines the column names and order. The parser must match exactly. Design the template first, then build the parser against it. Changing the template later means changing the parser -- keep them versioned together.
-- **BATCH-01 requires IMPT-01 (but not strictly)**: Batch execution operates on task IDs, regardless of how tasks were created (manual form OR Excel import). However, the primary use case for batch execution is "import 20 tasks from Excel, then execute all 20." The milestone couples them.
-- **BATCH-UI requires BATCH-01**: The progress dashboard needs a "batch run" concept (a group of Runs started together). Without this grouping, the frontend cannot show "batch 1: 5/10 complete."
-- **TaskCreate schema is shared**: The Excel parser must produce data that validates against the existing `TaskCreate` Pydantic model. No schema changes needed -- the parser is a pure adapter layer.
+- **CACHE-01 is the foundation**: CacheService must be implemented first because both preconditions (cache-type) and assertions (cache_verify) depend on it. It is also the simplest component (pure in-memory dict with 5 methods).
+- **ACCOUNT-01 is independent of CACHE-01**: Account resolution and caching are orthogonal concerns. They only meet in TestFlowService. These can be developed in parallel.
+- **DB-01 is a prerequisite for EXCEL-01 and FRONTEND-01**: The Task model must have the `login_role` field before the Excel parser or frontend form can use it. This is a blocking dependency.
+- **FLOW-01 is the integration point**: TestFlowService depends on all other components. It must be implemented last. Its tests should mock the other services.
+- **EXCEL-01 and FRONTEND-01 are independent**: The Excel template update and frontend dropdown can be developed in parallel after DB-01 is complete.
 
-## MVP Definition
+## MVP Recommendation
 
-### Launch With (v0.9.0)
+### Build First (v0.9.1 Core)
 
-Minimum features to deliver the milestone goal: "QA imports test cases from Excel and batch-executes them."
+These features form the minimum viable "ERP test with caching and multi-account" flow.
 
-- [ ] **TMPL-01: Template generation endpoint** (`GET /templates/tasks.xlsx`) -- returns pre-formatted Excel with headers + example rows + data validation dropdowns
-- [ ] **TMPL-02: Template download button** in frontend TaskList page
-- [ ] **IMPT-01: Upload endpoint** (`POST /tasks/import`) -- accepts `.xlsx`, parses rows, validates, returns preview
-- [ ] **IMPT-02: Preview UI** -- modal/table showing parsed tasks with valid/invalid indicators per row
-- [ ] **IMPT-03: Confirm import** (`POST /tasks/import/confirm`) -- creates validated tasks in DB
-- [ ] **BATCH-01: Batch execute endpoint** (`POST /runs/batch`) -- accepts `{task_ids, max_concurrent}`, creates Runs, launches agents with semaphore
-- [ ] **BATCH-02: Batch execute button** in BatchActions component (alongside existing "set ready" and "batch delete")
-- [ ] **BATCH-03: Batch progress page** -- shows list of running Runs with per-task status (polling-based)
+1. **CacheService** -- Pure data primitive, no external dependencies, 5 methods. Everything else depends on it.
+2. **ContextWrapper integration** -- Wire cache into the existing precondition execution context. `context.cache('i', value)` and `context.cached('i')` become available in precondition code.
+3. **AccountService** -- Read from `user_info.py`, resolve role to credentials. Independent of caching, can be developed in parallel.
+4. **DB migration (login_role)** -- Add field to Task model. Fast SQLite ALTER TABLE. Required before Excel/frontend changes.
+5. **Excel template update** -- Add login_role column with dropdown. Update parser.
+6. **TestFlowService** -- Orchestration layer. Ties everything together. The `if login_role` branch in `run_agent_background()`.
+7. **Frontend login_role dropdown** -- Select element in TaskForm. Quick win after backend is done.
 
-### Add After Validation (v0.9.x)
+### Defer (v0.9.x)
 
-Features to add once core import/execute flow works end-to-end.
+- **Cache verify assertion type** -- Start with manual cache verification in precondition code. The structured `cache_verify` JSON config can be added once the basic flow works.
+- **Step renumbering logic** -- If AI Agent handles numbered steps well without renumbering, skip the regex complexity.
+- **Login step optimization** -- Current 5-step login injection is verbose. If Agent handles it reliably, leave as-is. If not, explore shorter prompts.
 
-- [ ] **Error report download** -- generate annotated Excel for failed import rows
-- [ ] **Pipe-delimited assertion format** -- simplified assertion syntax in Excel cells
-- [ ] **Batch execution summary** -- aggregate stats after all tasks complete
-- [ ] **Template versioning** -- track template version in header row, warn on mismatch
+### Explicitly Exclude
 
-### Future Consideration (v1.0+)
+- Persistent cache (stale data risk)
+- Account management UI (out of scope per PROJECT.md)
+- Multi-account per Run (browser session limitation)
+- Dynamic role resolution (unnecessary complexity)
 
-Features to defer until batch import/execute is validated with real QA usage.
+## Interaction with Existing Features
 
-- [ ] **Real-time SSE for batch progress** -- replace polling with multiplexed SSE stream
-- [ ] **Task export to Excel** -- reverse of import
-- [ ] **Scheduled batch execution** -- cron-like scheduling for nightly test runs
-- [ ] **Batch retry failed tasks** -- one-click re-run only the failed tasks from a batch
-
-## Feature Prioritization Matrix
-
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Template download | HIGH | LOW (30 lines backend + 10 lines frontend) | P1 |
-| Excel upload + parse | HIGH | MEDIUM (~150 lines parser + validation) | P1 |
-| Preview before import | HIGH | MEDIUM (~100 lines new frontend component) | P1 |
-| Confirm + batch create | HIGH | LOW (30 lines endpoint, reuse TaskRepository) | P1 |
-| Batch execute endpoint | HIGH | MEDIUM (~80 lines, asyncio.Semaphore pattern) | P1 |
-| Batch execute button | HIGH | LOW (10 lines in BatchActions.tsx) | P1 |
-| Batch progress page | HIGH | HIGH (~200 lines new page + polling logic) | P1 |
-| Import error report download | MEDIUM | MEDIUM (~80 lines openpyxl writer) | P2 |
-| Pipe-delimited assertions | MEDIUM | MEDIUM (~60 lines parser + documentation) | P2 |
-| Dropdown validation in template | LOW | LOW (20 lines in template generator) | P2 |
-| Concurrent limit slider | MEDIUM | LOW (10 lines endpoint param + 20 lines frontend) | P2 |
-| Batch execution summary | MEDIUM | MEDIUM (~60 lines aggregation query) | P3 |
-| Real-time SSE batch progress | LOW | HIGH (event_manager refactor) | P3 |
-| Excel export | LOW | MEDIUM (~100 lines writer) | P3 |
-
-## Excel Template Column Design
-
-This section specifies the recommended template columns, derived from the existing `TaskCreate` schema and `TaskForm` fields.
-
-### Recommended Columns
-
-| Column | Header | Type | Required | Default | Notes |
-|--------|--------|------|----------|---------|-------|
-| A | `任务名称` | text | YES | - | Max 200 chars. Maps to `TaskCreate.name`. |
-| B | `任务描述` | text | YES | - | Natural language steps. Maps to `TaskCreate.description`. This is what the AI Agent reads and executes. |
-| C | `目标URL` | text | NO | "" | Valid URL. Maps to `TaskCreate.target_url`. Leave blank if preconditions handle navigation. |
-| D | `最大步数` | integer | NO | 20 | Range 1-100. Maps to `TaskCreate.max_steps`. Default 20 (not 10 -- batch-imported tasks tend to be more complex). |
-| E | `前置条件` | text | NO | - | Semicolon-delimited Python code snippets. Each snippet is one precondition. Example: `context['token'] = login(); context['order_id'] = create_order(token)`. Maps to `TaskCreate.preconditions` as `List[str]`. |
-| F | `断言` | text | NO | - | JSON array of AssertionConfig objects. Example: `[{"className":"PcAssert","methodName":"check_total","headers":"main","data":"main","params":{"i":1}}]`. Maps to `TaskCreate.assertions`. |
-
-### Column Rationale
-
-**Why semicolons for preconditions, not separate rows?**
-The existing precondition system stores preconditions as a `List[str]` of Python code blocks. Each code block can be multi-line. Using separate rows for preconditions would require a grouping mechanism (e.g., a "task_id" column or merged cells), which is fragile. Instead, semicolons delimit separate precondition code snippets within a single cell. This is a deliberate tradeoff: slightly less readable in Excel, but unambiguous parsing.
-
-**Why JSON for assertions instead of separate columns?**
-AssertionConfig has 6 fields (`className`, `methodName`, `headers`, `data`, `params`, `field_params`). Spreading these across 6+ columns would make the template very wide and complex for the common case (most tasks have 0-2 assertions). A single JSON cell keeps the template compact. The v0.9.x pipe-delimited format (`method|headers|data|params`) is a future simplification for QA testers who struggle with JSON syntax.
-
-**Why no "status" column?**
-All imported tasks are created as `status="draft"`. The QA workflow is: import -> preview -> confirm -> tasks appear as "draft" -> QA selects and batch-executes. Adding a status column would create confusion about whether "ready" tasks should auto-execute on import.
-
-## Existing Infrastructure Dependencies
-
-| Existing Component | How Batch Features Use It | File | Risk |
-|--------------------|--------------------------|------|------|
-| `TaskCreate` schema | Parser output must validate against this. No changes needed. | `backend/db/schemas.py:21-23` | LOW -- well-tested Pydantic model |
-| `TaskRepository.create()` | Called N times in import confirm endpoint. Transaction wrapping needed. | `backend/db/repository.py:32-47` | LOW -- existing method, add transaction wrapper |
-| `run_agent_background()` | Called N times in batch execute. Each call is independent. | `backend/api/routes/runs.py:55-394` | MEDIUM -- each call creates its own browser session, DB session, and SSE event stream. Resource usage scales linearly with N. |
-| `event_manager` | Each run gets its own SSE channel via `run_id`. No conflicts. | `backend/core/event_manager.py` | LOW -- existing per-run isolation |
-| `AgentService.run_with_cleanup()` | Each batch task uses this independently. No shared state. | `backend/core/agent_service.py:426-474` | LOW -- fresh AgentService per invocation |
-| `create_browser_session()` | Called per task. Each creates a headless Chromium instance (~300-500 MB RAM). | `backend/core/agent_service.py:45-54` | HIGH -- memory is the primary constraint for parallel execution |
-| `ReportService.generate_report()` | Called per task after completion. Independent. | `backend/core/report_service.py` | LOW -- no shared state |
-| `BatchActions.tsx` | Add "batch execute" button alongside existing "set ready" and "batch delete". | `frontend/src/components/TaskList/BatchActions.tsx` | LOW -- additive change |
-| `TaskTable.tsx` | Already has checkbox selection. No changes needed. | `frontend/src/components/TaskList/TaskTable.tsx` | LOW -- existing selection mechanism |
-| `useTasks.ts` | May need a new `importTasks` function. | `frontend/src/hooks/useTasks.ts` | LOW -- additive hook |
-
-## Browser Resource Constraints for Parallel Execution
-
-The server (121.40.191.49) runs on a single machine. Each headless Chromium instance consumes approximately 300-500 MB RAM. The existing `create_browser_session()` launches a fresh browser per task with no reuse.
-
-| Concurrent Tasks | Estimated RAM (browser only) | Risk Level | Recommendation |
-|------------------|------------------------------|------------|----------------|
-| 1 | 300-500 MB | LOW | Current behavior, safe |
-| 2 | 600-1000 MB | LOW | Recommended default for batch execution |
-| 3 | 900-1500 MB | MEDIUM | Acceptable if server has 4+ GB available |
-| 4 | 1200-2000 MB | HIGH | Only if server has 8+ GB RAM |
-| 5+ | 1500+ MB | CRITICAL | Risk of OOM kill on single-server deployment |
-
-**Recommended hard cap: 2 concurrent tasks by default, 4 maximum.**
-
-The `asyncio.Semaphore` pattern for limiting concurrency:
-
-```python
-async def execute_batch(task_ids: list[str], max_concurrent: int = 2):
-    semaphore = asyncio.Semaphore(min(max_concurrent, 4))  # hard cap at 4
-
-    async def run_one(task_id: str):
-        async with semaphore:
-            return await run_agent_background(...)
-
-    results = await asyncio.gather(
-        *[run_one(tid) for tid in task_ids],
-        return_exceptions=True,
-    )
-```
+| Existing Feature | How New Features Affect It | Risk | Mitigation |
+|------------------|---------------------------|------|------------|
+| **PreconditionService** | ContextWrapper gains `cache()`/`cached()` methods. Optional `CacheService` parameter in constructor. | LOW | Backward compatible: `cache=None` defaults to fresh CacheService. Existing tests that don't use cache are unaffected. |
+| **run_agent_background()** | New `login_role` parameter. Branching logic: if login_role, use TestFlowService; else, existing code path. | MEDIUM | The branching must not break the existing path. Test with and without login_role. The function is already 340 lines -- adding a branch increases complexity. Consider extracting the new path to TestFlowService entirely. |
+| **Excel template** | `TEMPLATE_COLUMNS` gains `login_role` column. `target_url` column is replaced. | MEDIUM | Existing templates without login_role will fail header validation. Provide clear error message. Consider a one-time migration guide for QA. |
+| **TaskForm.tsx** | New dropdown field. `FormData` interface gains `login_role`. | LOW | Additive change. Existing form data without login_role continues to work (nullable field). |
+| **Batch execution** | Batch tasks with different login_roles execute independently. Each Run resolves its own account. | LOW | No changes to batch execution code. The branching in `run_agent_background()` handles it per-Run. |
+| **SSE streaming** | Login injection steps are visible in the step stream (steps 1-5 are login). | LOW | No SSE changes needed. Login steps appear as regular Agent steps. |
+| **External precondition bridge** | `execute_data_method()` is called by cache-type preconditions. Already supports timeout protection and error handling. | LOW | No changes to the bridge. Cache preconditions use the same `context.get_data()` path that existing preconditions use. |
 
 ## Complexity Assessment
 
-| Feature | Backend LOC (est.) | Frontend LOC (est.) | Files Modified/Created | Testing Difficulty |
-|---------|---------------------|----------------------|------------------------|--------------------|
-| Template download endpoint | 40-60 | 10 | 1 new route file, 1 new service file | LOW -- unit test generates file, checks headers |
-| Excel parser + validator | 120-180 | 0 | 1 new service file | MEDIUM -- need test fixtures with valid/invalid .xlsx files |
-| Upload + preview endpoint | 40-60 | 0 | 1 new route file | LOW -- FastAPI TestClient with file upload |
-| Preview confirm endpoint | 30-40 | 0 | same route file | LOW -- mock TaskRepository |
-| Import UI (upload + preview modal) | 0 | 150-200 | 2-3 new components | MEDIUM -- file upload + table preview interaction |
-| Batch execute endpoint | 60-80 | 0 | 1 new route (extend runs.py) | MEDIUM -- need to mock AgentService for parallel test |
-| Batch execute button | 0 | 20 | BatchActions.tsx | LOW -- button + API call |
-| Batch progress page | 0 | 200-300 | 2-3 new components + new page | HIGH -- polling logic, status aggregation, per-task display |
-| New dependency: openpyxl | 1 line | 0 | pyproject.toml | LOW -- well-established library |
+| Component | Backend LOC (est.) | Frontend LOC (est.) | Files Modified/Created | Testing Difficulty |
+|-----------|---------------------|----------------------|------------------------|--------------------|
+| CacheService | 30-40 | 0 | 1 new file (`cache_service.py`) | LOW -- pure data structure, deterministic |
+| ContextWrapper integration | 15-20 | 0 | 1 modified file (`precondition_service.py`) | LOW -- add cache/cached methods, test delegation |
+| AccountService | 50-70 | 0 | 1 new file (`account_service.py`) | LOW -- frozen dataclass + dict lookup |
+| Settings update | 3-5 | 0 | 1 modified file (`settings.py`) | LOW -- add one field |
+| DB migration | 10-15 | 0 | 2 modified files (models.py, schemas.py) + migration script | LOW -- nullable field, no data loss risk |
+| Excel template update | 20-30 | 0 | 2 modified files (template.py, parser.py) | LOW -- add column to shared TEMPLATE_COLUMNS |
+| TestFlowService | 80-120 | 0 | 1 new file (`test_flow_service.py`) | MEDIUM -- integration testing, mock dependencies |
+| runs.py integration | 30-40 | 0 | 1 modified file (`runs.py`) | MEDIUM -- branching logic, backward compatibility |
+| Frontend login_role | 0 | 30-50 | 3 modified files (types, form, types) | LOW -- select dropdown |
+| **Total** | **240-340** | **30-50** | **7 modified, 3 new** | |
 
-**Total estimated:** 290-420 lines backend, 380-530 lines frontend, 8-10 new files.
+## Key Design Decisions
 
-## Competitor Feature Analysis
+### 1. In-memory cache vs. JSON file cache
 
-| Feature | TestRail | Zephyr (Jira) | Our Approach |
-|---------|----------|---------------|--------------|
-| Template download | Pre-built XLSX with all fields | CSV template with Jira field mapping | Generated XLSX with Chinese headers matching our schema |
-| Complex field handling | Multi-row sections with "step" and "expected" columns | Flat CSV, no complex fields | Single-row-per-task with JSON cells for complex fields |
-| Validation feedback | "Errors found: row 3 missing title" | Generic Jira import errors | Row-level validation with cell-specific error messages |
-| Preview before import | Yes, shows parsed test cases | No (direct import) | Yes, mandatory preview step with valid/invalid indicators |
-| Batch execution | Test runs with multi-case selection | Zephyr Squad execution | Async parallel with configurable concurrency limit |
-| Progress tracking | Real-time per-case status in run | Basic pass/fail | Polling-based per-task status grid |
+The webseleniumerp project uses `ParamCache` which writes JSON files to disk. This creates:
+- Stale data between test runs (cache not cleared)
+- File I/O overhead
+- Concurrency issues (two tests writing same file)
+
+Our CacheService uses a plain Python dict, scoped to a single Run. Advantages:
+- Zero disk I/O
+- Automatic cleanup (Python GC when Run ends)
+- No concurrency issues (each Run has its own CacheService instance)
+- Simpler implementation (30 lines vs 140 lines)
+
+Tradeoff: cache does not survive server restart. This is acceptable because each Run should be self-contained.
+
+### 2. Login injection via description prefix vs. separate browser navigation
+
+Two approaches were considered:
+- (A) Inject login steps as text prefix in the task description
+- (B) Navigate to login URL and fill credentials via Playwright API before Agent starts
+
+Approach (A) was chosen because:
+- No changes to AgentService or browser session management
+- The AI Agent already handles form filling reliably (validated in v0.6.3-v0.8.4)
+- Login failures are visible as regular Agent steps (better debugging)
+- Approach (B) would require a new Playwright automation layer before Agent starts, adding complexity without benefit
+
+### 3. Cache variable syntax: `{{cached:key}}` vs `{{cache.key}}`
+
+The `{{cached:key}}` syntax was chosen over `{{cache.key}}` because:
+- Jinja2's `StrictUndefined` would fail on `cache.i` if `cache` is not in the context
+- The regex approach (`re.sub(r'\{\{cached:(\w+)\}\}', ...)`) is explicit and unambiguous
+- QA can distinguish cache references (`{{cached:i}}`) from precondition variables (`{{sf_no}}`) at a glance
+- No risk of namespace collision between cache keys and context variables
 
 ## Sources
 
-- Existing Task model and schemas: `backend/db/models.py`, `backend/db/schemas.py`
-- Existing TaskRepository: `backend/db/repository.py`
+- Existing PreconditionService with ContextWrapper: `backend/core/precondition_service.py`
+- Existing external_precondition_bridge with LoginApi integration: `backend/core/external_precondition_bridge.py`
 - Existing run execution pipeline: `backend/api/routes/runs.py`
-- Existing AgentService with browser session creation: `backend/core/agent_service.py`
-- Existing frontend TaskList with batch selection: `frontend/src/components/TaskList/TaskTable.tsx`, `BatchActions.tsx`
-- Existing TaskForm showing all editable fields: `frontend/src/components/TaskModal/TaskForm.tsx`
+- Existing Task model: `backend/db/models.py`
+- Existing Pydantic schemas: `backend/db/schemas.py`
+- Existing Excel template: `backend/utils/excel_template.py`
+- Existing TaskForm component: `frontend/src/components/TaskModal/TaskForm.tsx`
 - Existing TypeScript types: `frontend/src/types/index.ts`
+- webseleniumerp user_info.py (account configuration): `webseleniumerp/config/user_info.py`
+- webseleniumerp file_cache_manager.py (JSON file cache being replaced): `webseleniumerp/common/file_cache_manager.py`
+- webseleniumerp settings.py: `webseleniumerp/config/settings.py`
+- ERP integration design document: `docs/plans/2026-04-11-erp-integration-design.md`
+- ERP integration implementation plan: `docs/plans/2026-04-11-erp-integration-impl.md`
 - Project context: `.planning/PROJECT.md`
-- Test management tool patterns (TestRail, Zephyr, qTest): industry standard column structures for test case import (training data, MEDIUM confidence)
-- openpyxl FastAPI upload pattern: established Python ecosystem pattern (training data, HIGH confidence)
-- Browser resource consumption estimates: ~300-500 MB per headless Chromium instance (established benchmark, HIGH confidence)
-- asyncio.Semaphore for concurrency control: standard Python async pattern (training data, HIGH confidence)
 
 ---
-*Feature research for: Excel batch import and parallel execution (v0.9.0)*
-*Researched: 2026-04-08*
+*Feature research for: ERP integration -- caching, multi-account, test flow orchestration (v0.9.1)*
+*Researched: 2026-04-11*

@@ -1,169 +1,167 @@
 # Project Research Summary
 
-**Project:** aiDriveUITest v0.9.0 -- Excel Batch Import and Parallel Execution
-**Domain:** AI-driven UI test automation -- batch test case management and execution
-**Researched:** 2026-04-08
+**Project:** aiDriveUITest v0.9.1 -- ERP Integration (CacheService, AccountService, TestFlowService)
+**Domain:** AI-driven UI test automation -- run-scoped caching, multi-role login, test flow orchestration, Excel template extension
+**Researched:** 2026-04-11
 **Confidence:** HIGH
 
 ## Executive Summary
 
-aiDriveUITest is an existing AI-driven UI test automation platform where QA testers write test cases in natural language, an AI agent executes them in a browser, and reports are generated automatically. The v0.9.0 milestone adds three capabilities: Excel template design for test case configuration, batch import with a parse/validate/preview workflow, and batch parallel execution of selected tasks with concurrency control. This is a feature-rich extension of a working single-task pipeline, not a greenfield build.
+v0.9.1 adds a coordination layer to the existing aiDriveUITest platform, transforming it from "AI executes what you type" to "AI orchestrates a complete ERP test scenario with proper accounts, cached data references, and post-execution verification." The three new services (CacheService, AccountService, TestFlowService) are built entirely with Python stdlib and already-installed packages -- zero new dependencies. The implementation is an additive, backward-compatible branch: tasks without `login_role` continue using the existing execution path unchanged.
 
-The recommended approach is deliberately minimal on new dependencies. Only openpyxl (already installed at 3.1.5) is needed for Excel read/write, FastAPI's built-in UploadFile handles file uploads, and Python stdlib asyncio.Semaphore plus TaskGroup provide concurrency control. The architecture introduces two new database tables (batches, batch_task_entries) and splits the work into three tightly-scoped phases: template and import first, then batch execution, then polish. A two-phase import pattern (preview then confirm) prevents bad data from entering the system, and polling-based batch progress avoids the complexity of SSE multiplexing.
+The recommended approach is to build bottom-up by dependency order: CacheService first (pure data primitive, everything depends on it), then AccountService (independent of cache, can be parallelized), then DB migration and Excel template updates (prerequisites for the integration layer), and finally TestFlowService as the orchestration layer that ties everything together. The critical risk is the two execution paths diverging in `run_agent_background()` -- the codebase already has a 340-line function, and adding a parallel path increases maintenance burden. Plan to unify into TestFlowService for all tasks after validation.
 
-The dominant risk is server resource exhaustion. Each headless Chromium instance consumes 200-500MB RAM, and the deployment server (121.40.191.49) is resource-constrained. The semaphore must default to 2 concurrent browsers with a hard cap at 4. SQLite write lock contention under parallel agent execution is the second critical risk, mitigated by in-memory progress tracking during execution and retry logic with exponential backoff. Excel parsing type coercion (numbers-as-strings, formula cells, merged cells) is the third major pitfall and must be handled with explicit per-column type normalization from day one.
+The highest-impact pitfalls involve substitution ordering (Jinja2 StrictUndefined will crash on `{{cached:key}}` if regex replacement does not run first), ContextWrapper lifecycle (separate CacheService instances for preconditions vs assertions causes split-brain state), and step numbering confusion (the AI agent's internal counter starts at 1 regardless of injected login step text). These must be addressed in the TestFlowService wiring phase, not patched later.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Zero new packages need to be installed. All required dependencies already exist in the project venv. The stack is intentionally lean -- openpyxl for Excel, stdlib asyncio for concurrency, and FastAPI UploadFile for file handling.
+Zero new dependencies. All v0.9.1 capabilities use Python stdlib (dict for cache, dataclasses for DTOs, re for variable substitution, asyncio for concurrency) and already-installed packages (Jinja2 for template substitution, Pydantic for schema validation, SQLAlchemy for DB column addition, openpyxl for Excel template changes). This follows the project's explicit philosophy of minimal dependencies.
 
 **Core technologies:**
-- **openpyxl 3.1.5** (installed): Excel template generation and import parsing -- supports both read and write, cell styling, and data validation rules. Already used in the codebase (`webseleniumerp/use_case/export.py`).
-- **asyncio.Semaphore + TaskGroup** (stdlib): Concurrency control for parallel browser execution -- no external dependency, Python 3.11 provides structured concurrency via TaskGroup.
-- **FastAPI UploadFile** (installed): File upload handling -- `python-multipart 0.0.22` already installed as a transitive dependency of FastAPI 0.135.1.
-- **Native HTML file input + Tailwind CSS**: Frontend file upload -- zero npm dependencies, matches existing component patterns.
+- **Python `dict` (stdlib):** CacheService backing store -- single-process, run-scoped, O(1) lookup, GC cleanup, zero config
+- **Python `@dataclass(frozen=True)` (stdlib):** AccountInfo DTO -- immutability enforced at class level, no Pydantic needed for internal DTOs
+- **Python `re` + Jinja2 3.1.6:** Two-phase variable substitution -- regex replaces `{{cached:key}}` first, then Jinja2 handles `{{variable}}`, avoiding StrictUndefined crashes
+- **SQLAlchemy 2.0 `mapped_column(String(20), nullable=True)`:** login_role column on Task model -- backward compatible, existing tasks get NULL
+- **openpyxl 3.1.5:** Excel template update with login_role column and role dropdown validation
 
 ### Expected Features
 
 **Must have (table stakes):**
-- Excel template download with styled headers, example rows, and data validation dropdowns
-- Excel file upload with `.xlsx` validation and 5MB size limit
-- Row-level data validation against existing TaskCreate schema (name required, description required, max_steps 1-100)
-- Preview before import showing valid/invalid rows with per-row error messages
-- Atomic batch task creation in a single transaction
-- Batch task selection using existing TaskTable checkbox mechanism
-- Batch execution endpoint with semaphore-controlled parallelism (default 2 concurrent)
-- Per-task status tracking during batch execution (pending/running/success/failed)
+- Run-scoped parameter cache (CacheService) -- ERP tests require cross-step data passing; without caching QA must hardcode values
+- Multi-role account login (AccountService) -- real ERP testing requires different accounts for different scenarios (admin, warehouse, buyer)
+- Login step injection -- when a task specifies a role, automatically prepend login steps before user-defined steps
+- Cache reference syntax `{{cached:key}}` -- bridge between precondition-fetched data and AI execution
+- Task model login_role field (DB migration) -- nullable for backward compatibility, existing tasks continue to work
+- Excel template login_role column with dropdown -- parser extracts role, passes to Task creation
+- Frontend login_role dropdown -- human-readable Chinese labels for role names
 
 **Should have (competitive):**
-- Import error report download (annotated Excel for offline fixing)
-- Pipe-delimited assertion format as simpler alternative to JSON
-- Configurable concurrency limit with frontend slider
-- Batch execution summary with aggregate stats
+- TestFlowService orchestration layer -- coordinates the full lifecycle without turning `run_agent_background()` into a 500-line monolith
+- Cache precondition JSON schema -- declarative alternative to Python code for data-fetching preconditions
+- Two-phase variable substitution -- explicit ordering prevents subtle template conflicts
+- Cache verify assertion type -- verify cached values appear in post-execution results
 
-**Defer (v2+):**
-- Real-time SSE multiplexing for batch progress (use polling for now)
-- Excel export of existing tasks (import-only for v0.9.0)
-- Scheduled batch execution (cron-like nightly runs)
-- Browser instance reuse between tasks (session contamination risk)
+**Defer (v0.9.x):**
+- Step renumbering logic -- skip the regex complexity if AI Agent handles numbered steps well without it
+- Login step optimization -- current 5-step injection is verbose but reliable
+- Persistent cache across Runs -- stale data risk makes this a non-starter
+
+**Explicitly exclude:**
+- Account management UI (deployment concern, not test authoring)
+- Multi-account concurrent login in a single Run (browser session limitation)
+- Dynamic role resolution from ERP API (chicken-and-egg credential problem)
+- Excel template auto-migration (subtle data loss risks)
 
 ### Architecture Approach
 
-The architecture extends the existing Task -> Run -> Agent pipeline with two new service classes (ImportService, BatchExecutionManager) and two new database tables (batches, batch_task_entries). The design follows four key patterns: two-phase import (preview then confirm with re-parse on confirm), semaphore-based concurrency control, polling-based batch progress (not SSE), and in-memory progress tracking persisted to DB only on completion.
+The architecture is a coordinator pattern: TestFlowService orchestrates AccountService (resolve credentials), CacheService (manage cross-step data), PreconditionService (execute setup with cache), AgentService (run AI execution), and AssertionService (verify results including cache values). The key integration point is a branch in `run_agent_background()`: if `task.login_role` is set, delegate to TestFlowService; otherwise, use the existing code path. Each service remains independently testable in isolation.
 
 **Major components:**
-1. **ImportService** (new) -- Parses Excel via openpyxl, validates rows against TaskCreate schema, returns preview with per-row valid/error status. Re-parses on confirm to avoid server-side state.
-2. **BatchExecutionManager** (new) -- Manages parallel agent execution with asyncio.Semaphore, tracks in-memory progress per batch, wraps existing run_agent_background() per task.
-3. **Batch + BatchTaskEntry** (new DB models) -- Many-to-many relationship between batches and tasks. Batch holds aggregate status/counts. BatchTaskEntry holds per-task status within a batch.
-4. **ImportModal** (new frontend) -- Three-step wizard: upload file, preview parsed data with validation indicators, confirm import.
-5. **BatchDashboard** (new frontend) -- Per-task status grid with polling every 2 seconds, click-through to individual RunMonitor for real-time SSE.
+1. **CacheService** (~30 lines) -- pure in-memory KV store scoped to a single Run, with `cache()`, `cached()`, `has()`, `all()`, `clear()` methods
+2. **AccountService** (~60 lines) -- reads from `webseleniumerp/config/user_info.py`, maps role names to frozen AccountInfo dataclasses
+3. **TestFlowService** (~80 lines) -- pure coordinator that delegates to all other services; handles login prefix generation, two-phase variable substitution, and assertion orchestration
 
 ### Critical Pitfalls
 
-1. **Parallel browser instances exhausting server RAM** -- Each Chromium instance uses 200-500MB. Semaphore must default to 2, hard-cap at 4. Must be designed into BatchExecutionManager from the start.
-2. **SQLite concurrent write locks under parallel runs** -- WAL mode serializes writes. Increase busy_timeout, batch step writes, add retry with exponential backoff on SQLITE_BUSY errors.
-3. **Excel parsing type coercion errors** -- openpyxl returns varying Python types depending on cell formatting. Must use `data_only=True`, explicit per-column type coercion, whitespace stripping, and merged cell detection.
-4. **Malicious Excel file upload** -- ZIP bombs, macro attacks, formula injection. Must validate magic bytes (PK header), enforce size limit, use `read_only=True`, sanitize filenames.
-5. **Batch import partial failure leaving orphaned tasks** -- Validate ALL rows before any database writes. Return structured errors with row numbers. Do not create tasks one-by-one with per-row commits.
+1. **Jinja2 StrictUndefined crashes on `{{cached:key}}` syntax** -- The existing `substitute_variables()` uses StrictUndefined. If `{{cached:key}}` reaches Jinja2 before regex replacement, the run fails with UndefinedError. Prevention: the `login_role` branch must skip the existing substitution call entirely and delegate all substitution to TestFlowService, which runs regex replacement before Jinja2.
+
+2. **ContextWrapper split-brain (separate CacheService instances)** -- CacheService is created in multiple places: PreconditionService creates one, the assertion path may create another. Prevention: create ONE CacheService instance at the top of `run_agent_background()` and pass it to all services.
+
+3. **Excel template column change breaks old imports** -- Inserting `login_role` at column 2 shifts all subsequent columns. Old templates fail header validation with cryptic messages. Prevention: either keep `target_url` and add `login_role` as a new column (backward compatible), or provide version-specific error messages explaining what changed.
+
+4. **Precondition type crash (`dict.strip()`)** -- Cache-type preconditions are JSON dicts mixed with existing string preconditions. Calling `.strip()` on a dict raises AttributeError. Prevention: add isinstance dispatch before iterating preconditions.
+
+5. **Account credentials leak into agent logs and database** -- Login step injection puts plain text credentials in the task description, which propagates to step actions, reasoning, and database records. Prevention: post-process step data to redact known credentials before saving.
 
 ## Implications for Roadmap
 
-Based on research, the suggested phase structure follows the dependency chain: template defines the column contract, import depends on that contract, execution depends on imported tasks.
+Based on research, suggested phase structure:
 
-### Phase 1: Template Design + Excel Parser
+### Phase 1: CacheService + ContextWrapper Integration
+**Rationale:** CacheService is the foundation -- cache preconditions and cache assertions both depend on it. It is also the simplest component (pure data structure, ~30 lines, no external dependencies).
+**Delivers:** In-memory KV cache scoped to a single Run, wired into existing ContextWrapper for precondition access.
+**Addresses:** Table-stakes feature "run-scoped parameter cache"
+**Avoids:** Pitfall 4 (ContextWrapper split-brain) by establishing the shared CacheService pattern from the start
 
-**Rationale:** The template defines the column names, types, and order that both the parser and the import service depend on. Building this first establishes the contract that downstream phases consume.
-**Delivers:** Template download endpoint, ExcelParser utility with type coercion, unit-tested against edge cases.
-**Addresses:** TMPL-01, IMPT-01 (parsing foundation)
-**Avoids:** Pitfall 3 (type coercion errors) -- type normalization built into parser from day one. Pitfall 4 (malicious upload) -- file validation in upload handler.
+### Phase 2: AccountService + Settings Update
+**Rationale:** Account resolution is independent of caching -- it reads from `user_info.py` and returns frozen DTOs. Can be developed in parallel with Phase 1 results being validated.
+**Delivers:** Multi-role account resolution, erp_login_url configuration field
+**Addresses:** Table-stakes feature "multi-role account login"
+**Uses:** Python dataclasses (frozen=True), existing sys.path lazy-loading pattern from external_precondition_bridge
 
-### Phase 2: Import Workflow (Preview + Confirm)
+### Phase 3: DB Migration + Excel Template + Frontend Dropdown
+**Rationale:** The login_role field must exist in the database before the Excel parser or frontend form can use it. These three changes are tightly coupled and straightforward (LOW complexity each).
+**Delivers:** Task model login_role column, updated Excel template with role dropdown, frontend role selector
+**Addresses:** Table-stakes features "Task model login_role field", "Excel template login_role column", "Frontend login_role dropdown"
+**Avoids:** Pitfall 3 (old template breakage) by deciding backward-compatibility strategy; Pitfall 6 (SQLite migration race) by following existing init_db() pattern with try/except
 
-**Rationale:** With the parser validated, build the two-phase import flow. Requires database schema changes (Batch, BatchTaskEntry tables) and new API endpoints.
-**Delivers:** Upload endpoint, preview endpoint returning per-row validation, confirm endpoint with atomic task creation, frontend ImportModal with upload/preview/result steps.
-**Addresses:** IMPT-01, IMPT-02, IMPT-03
-**Uses:** ExcelParser from Phase 1, existing TaskRepository.create(), openpyxl, FastAPI UploadFile
-**Avoids:** Pitfall 5 (partial import) -- validate-all-then-create pattern. Anti-pattern 2 (server-side preview state) -- re-parse on confirm.
+### Phase 4: TestFlowService + runs.py Integration
+**Rationale:** The orchestration layer depends on all previous components. This is the highest-risk phase because it touches the existing execution pipeline and must handle substitution ordering, step numbering, credential masking, and backward compatibility.
+**Delivers:** Full test flow orchestration with login injection, two-phase substitution, and cache-aware assertion execution
+**Addresses:** Differentiator "TestFlowService orchestration layer", table-stakes "login step injection" and "cache reference syntax"
+**Avoids:** Pitfall 1 (Jinja2 crash) by controlling substitution order; Pitfall 2 (step numbering) by NOT shifting numbers; Pitfall 5 (credential leak) by adding masking to on_step callback
 
-### Phase 3: Batch Execution Engine
-
-**Rationale:** With tasks importable, build the parallel execution engine. This is the highest-risk phase due to browser resource consumption and SQLite write contention.
-**Delivers:** BatchExecutionManager with semaphore control, batch execution API endpoints, batch progress polling endpoint, frontend BatchDashboard with per-task status.
-**Addresses:** BATCH-01, BATCH-02, BATCH-03
-**Uses:** asyncio.Semaphore, asyncio.TaskGroup, existing run_agent_background(), existing EventManager for individual runs
-**Avoids:** Pitfall 1 (RAM exhaustion) -- semaphore limits concurrency. Pitfall 2 (SQLite lock contention) -- in-memory progress, retry logic. Pitfall 6 (zombie processes) -- explicit browser cleanup in finally blocks.
-
-### Phase 4: Polish and Edge Cases
-
-**Rationale:** With core import and execution working end-to-end, address remaining UX, error handling, and operational concerns.
-**Delivers:** Cancel batch execution, template data validation dropdowns, error report download, concurrency limit configuration, E2E tests for full flow.
-**Addresses:** Remaining P2 features, operational safety
-**Uses:** All components from previous phases
+### Phase 5: Cache Precondition Type + Cache Verify Assertions
+**Rationale:** Advanced precondition/assertion patterns depend on CacheService working correctly. Deferred until the basic flow is validated end-to-end.
+**Delivers:** JSON-config cache preconditions, cache_verify assertion type
+**Addresses:** Differentiator "cache precondition JSON schema", deferred feature "cache verify assertion type"
+**Avoids:** Pitfall 7 (precondition type crash) by implementing isinstance dispatch for mixed precondition arrays
 
 ### Phase Ordering Rationale
 
-- Phase 1 must come first because the template column contract governs everything downstream -- changing column names later requires updating parser, preview, and frontend simultaneously.
-- Phase 2 depends on Phase 1 but is independent of Phase 3. Import and execution are separate operations with different lifecycles.
-- Phase 3 depends on Phase 2 for database schema (batches table) and the import pipeline that creates tasks to execute.
-- Phase 4 is additive polish that does not change core architecture.
+- Dependency chain: CacheService -> ContextWrapper -> PreconditionService -> TestFlowService. Building bottom-up ensures each phase has its dependencies ready.
+- Phases 1 and 2 are independent (cache vs account) but Phase 4 needs both, so they must complete first.
+- Phase 3 (DB + Excel + frontend) is a prerequisite for Phase 4 because TestFlowService branches on `task.login_role`, which must exist in the model.
+- Phase 5 is deliberately last: it adds complexity (JSON precondition parsing, cache verify logic) that should only be built after the basic login_role flow works end-to-end.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 3 (Batch Execution):** Complex integration with browser-use Agent lifecycle under parallel load. Need to verify browser-use's cleanup behavior when agents crash concurrently. The current `run_with_cleanup()` pattern may need modification for per-agent isolation in a TaskGroup.
-- **Phase 3 (Batch Execution):** SQLite write contention under parallel agent step writes needs load testing. The retry-with-backoff pattern needs empirical tuning for the deployment server.
+- **Phase 4:** Complex integration with the existing execution pipeline. The substitution ordering and step numbering strategies need validation with actual agent runs. Consider running a spike to verify the AI Agent's behavior with injected login steps before committing to the implementation.
+- **Phase 5:** Cache precondition JSON schema design needs validation with real ERP API responses to confirm field extraction patterns work as expected.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Template + Parser):** openpyxl read/write patterns are well-documented and already used in the codebase.
-- **Phase 2 (Import Workflow):** FastAPI file upload + Pydantic validation is standard territory.
-- **Phase 4 (Polish):** Additive features with established implementation patterns.
+- **Phase 1:** Pure data structure, well-documented Python dict patterns, no external dependencies
+- **Phase 2:** Follows existing lazy-loading pattern from external_precondition_bridge.py
+- **Phase 3:** Follows existing migration pattern from database.py init_db(), standard Excel template and Pydantic schema updates
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified against installed packages and existing codebase. Zero new dependencies needed. All required packages confirmed in venv. |
-| Features | MEDIUM | Feature definitions are clear and grounded in codebase analysis, but competitor analysis relied on training data rather than live web research. QA user assumptions need validation during implementation. |
-| Architecture | HIGH | Based on comprehensive codebase analysis of existing Task/Run/Agent pipeline. Patterns (two-phase import, semaphore concurrency, polling progress) are well-established and fit the existing architecture cleanly. |
-| Pitfalls | HIGH | All 6 critical pitfalls derived from direct code analysis (agent_service.py, repository.py, database.py, runs.py). Resource constraints confirmed by deployment documentation. |
+| Stack | HIGH | Verified against pyproject.toml and installed packages. Zero new dependencies confirmed. All version compatibility checked. |
+| Features | HIGH | Based on thorough codebase analysis, existing design docs, and validated webseleniumerp integration patterns. Dependency graph is clear and well-documented. |
+| Architecture | HIGH | Component boundaries and responsibilities are well-defined. Integration points with existing code identified at specific line numbers. The coordinator pattern is straightforward. |
+| Pitfalls | HIGH | Based on direct code analysis of all affected files. Each pitfall references specific line numbers in the codebase. Recovery strategies are practical. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **browser-use parallel cleanup behavior:** Need to verify that browser-use Agent properly cleans up Chromium processes when exceptions propagate through asyncio.TaskGroup. May require explicit PID tracking as a safety net.
-- **SQLite busy_timeout tuning:** The current 5000ms may be insufficient under 2 concurrent agents writing steps. Needs empirical testing during Phase 3 implementation.
-- **Excel template QA usability:** The recommended column structure (semicolon-delimited preconditions, JSON assertions) is pragmatic but may confuse non-technical QA testers. Needs user validation before finalizing. Consider the pipe-delimited assertion format as a fallback.
-- **FormData upload with existing API client:** The existing `apiClient` sets `Content-Type: application/json` which breaks multipart uploads. The import API call must bypass this client and use raw fetch. This is noted but needs careful implementation to avoid confusion.
+- **Login step injection AI reliability:** The design assumes the AI Agent reliably executes the 5-step login sequence. This needs end-to-end validation during Phase 4. If the agent struggles with login, the injection approach may need adjustment (e.g., Playwright API pre-navigation).
+- **Batch execution + login_role interaction:** Batch execution with mixed login_role tasks (some with roles, some without) needs integration testing. The semaphore-based concurrency and per-task account resolution should work independently, but the combined path is untested.
+- **Template migration UX:** The decision between keeping `target_url` for backward compatibility vs. removing it needs a definitive call during Phase 3 planning. The research recommends keeping it, but the design doc removes it.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `pyproject.toml` -- project dependencies, Python 3.11+ requirement
-- `backend/db/models.py` -- Task model fields for import mapping
-- `backend/db/repository.py` -- per-row commit pattern (source of partial import pitfall)
-- `backend/db/database.py` -- pool_size=5, busy_timeout=5000, WAL mode
-- `backend/core/agent_service.py` -- run_with_cleanup(), create_browser_session(), browser lifecycle
-- `backend/api/routes/runs.py` -- run_agent_background() pattern for reuse
-- `backend/api/schemas/index.py` -- TaskCreate schema for validation
-- `frontend/src/api/client.ts` -- API client (Content-Type: json issue for FormData)
-- `frontend/src/components/TaskList/BatchActions.tsx` -- existing batch action UI
-- `webseleniumerp/use_case/export.py` -- existing openpyxl usage pattern
-- FastAPI UploadFile documentation -- stable since 0.65+
-- openpyxl 3.1 documentation -- Workbook, load_workbook, iter_rows API
-- asyncio.Semaphore + TaskGroup -- Python 3.11 stdlib
+- Codebase analysis of all affected files (runs.py, precondition_service.py, external_precondition_bridge.py, models.py, database.py, excel_template.py, excel_parser.py)
+- `pyproject.toml` -- verified dependency versions and zero-new-dependency confirmation
+- `docs/plans/2026-04-11-erp-integration-design.md` -- design specifications
+- `docs/plans/2026-04-11-erp-integration-impl.md` -- implementation plan
+- `webseleniumerp/config/user_info.py` -- validated account configuration source
 
 ### Secondary (MEDIUM confidence)
-- Test management tool patterns (TestRail, Zephyr, qTest) -- industry standard import workflows
-- Browser resource consumption estimates -- ~300-500MB per headless Chromium instance (established benchmark)
-- SQLite WAL single-writer constraint -- well-documented behavior
+- `webseleniumerp/common/file_cache_manager.py` -- JSON file cache being replaced by in-memory approach
+- SQLite WAL mode documentation -- concurrency patterns for parallel browser writes
+- Jinja2 StrictUndefined documentation -- variable substitution behavior under strict mode
 
-### Tertiary (LOW confidence)
-- browser-use Agent cleanup behavior under concurrent TaskGroup exceptions -- needs empirical verification
-- QA user preference for Excel template column format -- needs user testing
+### Tertiary (contextual)
+- Previous milestone pitfalls (v0.9.0) -- SQLite concurrent writes, browser cleanup patterns inform v0.9.1 risk assessment
+- PROJECT.md -- "zero new dependencies" decision record and scope boundaries
 
 ---
-*Research completed: 2026-04-08*
+*Research completed: 2026-04-11*
 *Ready for roadmap: yes*
