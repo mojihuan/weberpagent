@@ -102,7 +102,7 @@
 
 **Milestone Goal:** 跑通「Excel导入 → 前置API(含缓存) → AI执行UI → 断言(含缓存验证)」完整链路
 
-- [ ] **Phase 74: CacheService + ContextWrapper** — 内存KV缓存基础层，绑定 Run 生命周期
+- [x] **Phase 74: CacheService + ContextWrapper** — 内存KV缓存基础层，绑定 Run 生命周期 (completed 2026-04-11)
 - [ ] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置
 - [ ] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉
 - [ ] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言
@@ -119,11 +119,11 @@
   2. cached() 返回的数据是原始值的深拷贝，外部修改不影响缓存内部状态
   3. ContextWrapper.context.cache() 和 context.cached() 正确委托到 CacheService
   4. 同一个 CacheService 实例的所有缓存数据在 clear() 调用后全部清除
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 74-01-PLAN.md — CacheService class with bidirectional deepcopy + unit tests
-- [ ] 74-02-PLAN.md — ContextWrapper cache/cached delegation + integration tests
+- [x] 74-02-PLAN.md — ContextWrapper cache/cached delegation + integration tests
 
 ### Phase 75: AccountService + Settings
 **Goal**: 系统能根据角色名称解析出对应的 ERP 登录凭据和登录 URL，供后续自动登录使用
@@ -199,7 +199,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 74. CacheService + ContextWrapper | v0.9.1 | 1/2 | In Progress|  |
+| 74. CacheService + ContextWrapper | v0.9.1 | 2/2 | Complete   | 2026-04-11 |
 | 75. AccountService + Settings | v0.9.1 | 0/2 | Not started | - |
 | 76. DB Migration + Excel + Frontend | v0.9.1 | 0/2 | Not started | - |
 | 77. TestFlowService + runs.py | v0.9.1 | 0/3 | Not started | - |
