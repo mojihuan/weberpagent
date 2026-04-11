@@ -11,6 +11,7 @@ from typing import Any
 
 from jinja2 import Environment, StrictUndefined, UndefinedError
 
+from backend.core.cache_service import CacheService
 from backend.core.external_precondition_bridge import execute_data_method
 from backend.core.random_generators import (
     random_imei,
@@ -67,8 +68,9 @@ class ContextWrapper:
     data method calls (context.get_data('Class', 'method', i=2)).
     """
 
-    def __init__(self):
+    def __init__(self, *, cache: CacheService | None = None):
         self._data: dict[str, Any] = {}
+        self._cache = cache or CacheService()
         self._assertion_count = 0  # Track number of assertions stored
         self._assertion_summary = {
             "total": 0,
@@ -76,6 +78,20 @@ class ContextWrapper:
             "failed": 0,
             "errors": 0
         }
+
+    def cache(self, key: str, value: Any) -> Any:
+        """Store value in cache and return it for chaining.
+
+        Delegates to the internal CacheService instance.
+        """
+        return self._cache.cache(key, value)
+
+    def cached(self, key: str) -> Any:
+        """Retrieve a cached value. Returns None if missing.
+
+        Delegates to the internal CacheService instance.
+        """
+        return self._cache.cached(key)
 
     def get_data(self, class_name: str, method_name: str, **params) -> Any:
         """Execute a data method and return the result.
