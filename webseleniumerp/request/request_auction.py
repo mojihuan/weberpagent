@@ -1,16 +1,16 @@
 # coding: utf-8
-import json
 from common.base_api import BaseApi
 from common.base_params import InitializeParams
 from common.file_cache_manager import ParamCache
 from config.user_info import INFO
 from common.import_desc import *
 
-class AuctionIndexRequest(InitializeParams):
-    """首页"""
 
-    @doc(a_fast_submit_new_order)
-    def fast_submit_new_order(self, nocheck=False):
+class ZTIxIMcZz7(InitializeParams):
+    """保卖小程序|首页"""
+
+    @doc(BipQkv2GeGlQ96IF4MWs)
+    def BipQkv2GeGlQ96IF4MWs(self, nocheck=False):
         data = {
             "childBusinessType": "2",
             "deliverNum": 1,
@@ -18,11 +18,11 @@ class AuctionIndexRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "expectationTotalPrice": "5555"
         }
-        return self._make_request('post', 'submit_new_order', data, 'main', nocheck)
+        return self._make_request('post', 'BvpLVs5Te', data, 'main', nocheck)
 
-    @doc(a_large_quantity_fast_submit_new_order)
+    @doc(large_quantity_fast_submit_new_order)
     def large_quantity_fast_submit_new_order(self, nocheck=False):
-        res = self.pc.platform_inspection_center_manage_data()
+        self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "childBusinessType": "2",
             "deliverNum": 5,
@@ -30,11 +30,11 @@ class AuctionIndexRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "expectationTotalPrice": "4567"
         }
-        return self._make_request('post', 'submit_new_order', data, 'main', nocheck)
+        return self._make_request('post', 'BvpLVs5Te', data, 'main', nocheck)
 
-    @doc(a_max_quantity_fast_submit_new_order)
-    def max_quantity_fast_submit_new_order(self, nocheck=False):
-        res = self.pc.platform_inspection_center_manage_data()
+    @doc(Ggf9HFpxeJakOskwG6Fo)
+    def Ggf9HFpxeJakOskwG6Fo(self, nocheck=False):
+        self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "childBusinessType": "2",
             "deliverNum": 1000,
@@ -42,7 +42,7 @@ class AuctionIndexRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "expectationTotalPrice": "2734"
         }
-        return self._make_request('post', 'submit_new_order', data, 'main', nocheck)
+        return self._make_request('post', 'BvpLVs5Te', data, 'main', nocheck)
 
     # 精确发货估价
     @BaseApi.timing_decorator
@@ -71,12 +71,11 @@ class AuctionIndexRequest(InitializeParams):
             ],
             "tenantId": 888888
         }
-        return self._make_request('post', 'valuation', data, 'main', nocheck)
+        return self._make_request('post', 'wwzSduh7x', data, 'main', nocheck)
 
-
-    @doc(a_auto_submit_new_order)
+    @doc(Cb5TwEFeOGRjQqpsPYhX)
     @BaseApi.timing_decorator
-    def auto_submit_new_order(self, nocheck=False):
+    def Cb5TwEFeOGRjQqpsPYhX(self, nocheck=False):
         # res = self.precise_shipment_estimate()
         data = {
             "childBusinessType": 1,
@@ -234,26 +233,26 @@ class AuctionIndexRequest(InitializeParams):
             "expectationTotalPrice": 6240
             # "expectationTotalPrice": res['data']['price']
         }
-        return self._make_request('post', 'submit_new_order', data, 'main', nocheck)
+        return self._make_request('post', 'BvpLVs5Te', data, 'main', nocheck)
 
-    @doc(a_quality_inspection_service_create_an_order)
+    @doc(Sx6ZHoGa30GK1xH2QbdF)
     @BaseApi.timing_decorator
-    def quality_inspection_service_create_an_order(self, nocheck=False):
+    def Sx6ZHoGa30GK1xH2QbdF(self, nocheck=False):
         data = {
             "childBusinessType": "3",
             "deliverNum": 1,
             "inspectionCenterId": INFO['check_the_center_id'],
             "inspectionCenterCode": INFO['merchant_id']
         }
-        return self._make_request('post', 'submit_new_order', data, 'main', nocheck)
+        return self._make_request('post', 'BvpLVs5Te', data, 'main', nocheck)
 
 
-class AuctionMyRequest(InitializeParams):
-    """我的"""
+class FoIA7X707t(InitializeParams):
+    """保卖小程序|我的"""
 
-    @doc(a_sales_out_warehouse)
-    def sales_out_warehouse(self,nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(IXznmT0bw7FbeHeJCKo6)
+    def IXznmT0bw7FbeHeJCKo6(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = [
             {
                 "id": res[0]['id'],
@@ -261,12 +260,11 @@ class AuctionMyRequest(InitializeParams):
                 "salePricingType": 1
             }
         ]
-        return self._make_request('post', 'sales_out_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'K2GwqIXJR', data, 'main', nocheck)
 
-
-    @doc(a_self_pricing_selling_items)
-    def self_pricing_selling_items(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(fCa9uV4NiZ8jEqmYeUCb)
+    def fCa9uV4NiZ8jEqmYeUCb(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = [
             {
                 "id": res[0]['id'],
@@ -275,11 +273,11 @@ class AuctionMyRequest(InitializeParams):
                 "salePricingType": "2"
             }
         ]
-        return self._make_request('post', 'sales_out_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'K2GwqIXJR', data, 'main', nocheck)
 
-    @doc(a_together_xy_sell_items)
-    def together_xy_sell_items(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(yFYRFwLu0JNJimcMK5sd)
+    def yFYRFwLu0JNJimcMK5sd(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = [
             {
                 "id": res[0]['id'],
@@ -287,11 +285,11 @@ class AuctionMyRequest(InitializeParams):
                 "salePricingType": "3"
             }
         ]
-        return self._make_request('post', 'sales_out_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'K2GwqIXJR', data, 'main', nocheck)
 
-    @doc(a_express_easy_return)
-    def express_easy_return(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(vSYI2uUTSCpcmhYjD9PL)
+    def vSYI2uUTSCpcmhYjD9PL(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = {
             "returnReason": "1",
             "returnWay": "1",
@@ -305,11 +303,11 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'returnable', data, 'main', nocheck)
+        return self._make_request('post', 'S4kwZF2CW', data, 'main', nocheck)
 
-    @doc(a_sell_no_quality_check_return)
-    def sell_no_quality_check_return(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(iGivKV5TSvAIvnbdwJRr)
+    def iGivKV5TSvAIvnbdwJRr(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = {
             "returnReason": "1",
             "returnWay": "1",
@@ -323,11 +321,11 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'returnable', data, 'main', nocheck)
+        return self._make_request('post', 'S4kwZF2CW', data, 'main', nocheck)
 
-    @doc(a_self_pickup_returns)
-    def self_pickup_returns(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(opIdDf5eKi5IeleUQBrA)
+    def opIdDf5eKi5IeleUQBrA(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = {
             "returnReason": "1",
             "returnWay": "2",
@@ -341,21 +339,21 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'returnable', data, 'main', nocheck)
+        return self._make_request('post', 'S4kwZF2CW', data, 'main', nocheck)
 
-    @doc(a_cancel_the_sale)
-    def cancel_the_sale(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=3)
+    @doc(nFqNMqf4dIPEGjrwj8SB)
+    def nFqNMqf4dIPEGjrwj8SB(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=3)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'bm_cancel_the_sale', data, 'main', nocheck)
+        return self._make_request('post', 'S9ROIFFJh', data, 'main', nocheck)
 
-    @doc(a_price_change_during_sales)
-    def price_change_during_sales(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=3)
+    @doc(c6MpT8xfZmLs5uZMq385)
+    def c6MpT8xfZmLs5uZMq385(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=3)
         obj = res[0]['id']
         obj_2 = '5900'
         ParamCache.cache_object({"id": obj, "upbeatPrice": obj_2}, 'practical.json')
@@ -363,21 +361,21 @@ class AuctionMyRequest(InitializeParams):
             "id": obj,
             "upbeatPrice": obj_2
         }
-        return self._make_request('post', 'price_change', data, 'main', nocheck)
+        return self._make_request('post', 'yrXPibstn', data, 'main', nocheck)
 
-    @doc(a_platform_cancel_the_sale)
-    def platform_cancel_the_sale(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=5)
+    @doc(O9TSVizVMFbBHj4PSQi5)
+    def O9TSVizVMFbBHj4PSQi5(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=5)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'bm_cancel_the_sale', data, 'main', nocheck)
+        return self._make_request('post', 'S9ROIFFJh', data, 'main', nocheck)
 
-    @doc(a_sales_re_inspection)
-    def sales_re_inspection(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=2)
+    @doc(D1O3SOVl05gD2Lts19A9)
+    def D1O3SOVl05gD2Lts19A9(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=2)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "applyReason": "复检理由",
@@ -400,49 +398,49 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'reinspection', data, 'main', nocheck)
+        return self._make_request('post', 'fRmPOvphI', data, 'main', nocheck)
 
-    @doc(a_change_the_return_method)
-    def change_the_return_method(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=8)
+    @doc(zYQJNPRNzQr7xEmj3Xov)
+    def zYQJNPRNzQr7xEmj3Xov(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=8)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "addressId": INFO['main_user_address_yz_id'],
             "logisticsType": "1"
         }
-        return self._make_request('post', 'bm_change_the_return_method', data, 'main', nocheck)
+        return self._make_request('post', 'pd7yf7Nck', data, 'main', nocheck)
 
-    @doc(a_cancel_the_return)
-    def cancel_the_return(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=8)
+    @doc(Np66pyiMQJz6zbkMLvGH)
+    def Np66pyiMQJz6zbkMLvGH(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=8)
         data = {
             "articlesNo": res[0]['articlesNo'],
         }
-        return self._make_request('post', 'cancel_the_return', data, 'main', nocheck)
+        return self._make_request('post', 'm4CTVwFIs', data, 'main', nocheck)
 
-    @doc(a_confirm_receipt)
-    def confirm_receipt(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=9)
+    @doc(CPBlWzLFLVwb7oz15BxA)
+    def CPBlWzLFLVwb7oz15BxA(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=9)
         data = {
             "articlesNo": res[0]['articlesNo'],
         }
-        return self._make_request('post', 'bm_confirm_receipt', data, 'main', nocheck)
+        return self._make_request('post', 'fQDMwXL16', data, 'main', nocheck)
 
-    @doc(a_offer_confirms_sale)
-    def offer_confirms_sale(self, nocheck=False):
-        res = self.pc.auction_my_data(j=1, i=6)
+    @doc(ONNJvxBz8YiF5nJbXEx9)
+    def ONNJvxBz8YiF5nJbXEx9(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=1, i=6)
         data = [
             {
                 "id": res[0]['id'],
                 "saleType": 3
             }
         ]
-        return self._make_request('post', 'sales_out_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'K2GwqIXJR', data, 'main', nocheck)
 
-    @doc(a_shipped_immediately_sf)
-    def shipped_immediately_sf(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(cWki4FW4tSlwK63nwMDm)
+    def cWki4FW4tSlwK63nwMDm(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -470,12 +468,12 @@ class AuctionMyRequest(InitializeParams):
             "expressType": 1,
             "expectPostTimeStart": self.get_formatted_datetime(days=-1)
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_shipped_immediately_own)
-    def shipped_immediately_own(self, nocheck=False, headers_type='main'):
-        res = self.pc.auction_my_data(data='b', i=1, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(GWIqOqgj1k2cLGBWcfJP)
+    def GWIqOqgj1k2cLGBWcfJP(self, nocheck=False, headers_type='main'):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 2,
@@ -503,12 +501,43 @@ class AuctionMyRequest(InitializeParams):
             "expressNo": self.sf,
             "expressCompanyName": "顺丰快运"
         }
-        return self._make_request('post', 'delivery_goods', data, headers_type, nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, headers_type, nocheck)
 
-    @doc(a_deliver_it_yourself)
-    def deliver_it_yourself(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(fK0PREFRv2Msvl2flpXO)
+    def fK0PREFRv2Msvl2flpXO(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K(i=INFO['camera_merchant_id'])
+        data = {
+            "businessNo": res[0]['orderNo'],
+            "childType": 3,
+            "recipientPhone": res_2[0]['phone'],
+            "recipientName": res_2[0]['operationCenterName'],
+            "recipientProvinceId": res_2[0]['provinceId'],
+            "recipientProvinceName": res_2[0]['provinceName'],
+            "recipientCityId": res_2[0]['cityId'],
+            "recipientCityName": res_2[0]['cityName'],
+            "recipientCountyId": res_2[0]['countyId'],
+            "recipientCountyName": res_2[0]['countyName'],
+            "recipientAddress": res_2[0]['address'],
+            "senderPhone": INFO['receiving_phone'],
+            "senderName": INFO['customer_name'],
+            "senderProvinceId": INFO['province_id'],
+            "senderProvinceName": INFO['province_name'],
+            "senderCityId": INFO['city_id'],
+            "senderCityName": INFO['city_name'],
+            "senderCountyId": INFO['county_id'],
+            "senderCountyName": INFO['county_name'],
+            "senderAddress": INFO['detailed_address'],
+            "inspectionCenterId": INFO['camera_check_the_center_id'],
+            "inspectionCenterCode": INFO['camera_merchant_id'],
+            "inspectionCenterName": INFO['camera_check_the_center_name'],
+        }
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
+
+    @doc(JnMqTWMbAzexR3HQWbXB)
+    def JnMqTWMbAzexR3HQWbXB(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 3,
@@ -534,32 +563,32 @@ class AuctionMyRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "inspectionCenterName": INFO['check_the_center_name'],
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_pending_pickup_cancel_the_order)
-    def pending_pickup_cancel_the_order(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=2, j=1)
+    @doc(DE8blhh3n53JAyeZSU0m)
+    def DE8blhh3n53JAyeZSU0m(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=2, j=1)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'bm_cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'SQVuifMNd', data, 'main', nocheck)
 
-    @doc(a_pending_receipt_cancel_the_order)
-    def pending_receipt_cancel_the_order(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=1)
+    @doc(h6mvvkdQDZSeUdSoNi8W)
+    def h6mvvkdQDZSeUdSoNi8W(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=1)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'bm_cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'SQVuifMNd', data, 'main', nocheck)
 
-    @doc(a_pending_receipt_of_reshipment_by_sf_logistics)
-    def pending_receipt_of_reshipment_by_sf_logistics(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(dUwWvkoALcS9DZVO0Ldg)
+    def dUwWvkoALcS9DZVO0Ldg(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -587,12 +616,12 @@ class AuctionMyRequest(InitializeParams):
             "expressType": 1,
             "expectPostTimeStart": self.get_formatted_datetime(days=-1)
         }
-        return self._make_request('post', 'bm_reship', data, 'main', nocheck)
+        return self._make_request('post', 'BD4RR09HW', data, 'main', nocheck)
 
-    @doc(a_pending_receipt_reshipment_self_mailing)
-    def pending_receipt_reshipment_self_mailing(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(POJtV9lZxRzUvoZMBNQB)
+    def POJtV9lZxRzUvoZMBNQB(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 2,
@@ -620,12 +649,12 @@ class AuctionMyRequest(InitializeParams):
             "expressNo": self.sf,
             "expressCompanyName": "中通快递"
         }
-        return self._make_request('post', 'bm_reship', data, 'main', nocheck)
+        return self._make_request('post', 'BD4RR09HW', data, 'main', nocheck)
 
-    @doc(a_pending_receipt_reshipment_deliver_it_yourself)
-    def pending_receipt_reshipment_deliver_it_yourself(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(jHgDbDirasYNbKdklnIY)
+    def jHgDbDirasYNbKdklnIY(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 3,
@@ -651,12 +680,11 @@ class AuctionMyRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "inspectionCenterName": INFO['check_the_center_name'],
         }
-        return self._make_request('post', 'bm_reship', data, 'main', nocheck)
+        return self._make_request('post', 'BD4RR09HW', data, 'main', nocheck)
 
-    @doc(a_shipped_immediately_no_shipping_address)
-    def shipped_immediately_no_shipping_address(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(axbH6Gue6hxYBUT7LOr0)
+    def axbH6Gue6hxYBUT7LOr0(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -685,12 +713,12 @@ class AuctionMyRequest(InitializeParams):
             "expectPostTimeStart": self.get_formatted_datetime()
         }
 
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_shipped_immediately_sf_the_next_day)
-    def shipped_immediately_sf_the_next_day(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(jC7q178S4xk9JOlI2EUW)
+    def jC7q178S4xk9JOlI2EUW(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -718,19 +746,19 @@ class AuctionMyRequest(InitializeParams):
             "expressType": 1,
             "expectPostTimeStart": self.get_formatted_datetime(days=2)
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_cancel_the_order)
-    def cancel_the_order(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=1)
+    @doc(QVxsGMaLD5ww9O6KQQSe)
+    def QVxsGMaLD5ww9O6KQQSe(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=1)
         data = {
             "id": res[0]['id']
         }
-        return self._make_request('post', 'bm_cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'SQVuifMNd', data, 'main', nocheck)
 
-    @doc(a_quality_self_pickup_returns)
-    def quality_self_pickup_returns(self, nocheck=False):
-        res = self.pc.auction_my_data(j=2, i=7)
+    @doc(tLLsyo9wcWyBHK8e8y0v)
+    def tLLsyo9wcWyBHK8e8y0v(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=2, i=7)
         data = {
             "returnReason": "",
             "returnWay": "2",
@@ -744,12 +772,12 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'returnable', data, 'main', nocheck)
+        return self._make_request('post', 'S4kwZF2CW', data, 'main', nocheck)
 
-    @doc(a_quality_shipped_immediately_sf)
-    def quality_shipped_immediately_sf(self, nocheck=None):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(dkzE7aNehgS9qMzBIRzf)
+    def dkzE7aNehgS9qMzBIRzf(self, nocheck=None):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -777,12 +805,12 @@ class AuctionMyRequest(InitializeParams):
             "expressType": 1,
             "expectPostTimeStart": self.get_formatted_datetime(days=-1)
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_quality_shipped_immediately_own)
-    def quality_shipped_immediately_own(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(oOoG2Yvd9naVzPCCZOBU)
+    def oOoG2Yvd9naVzPCCZOBU(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 2,
@@ -810,12 +838,12 @@ class AuctionMyRequest(InitializeParams):
             "expressNo": self.sf,
             "expressCompanyName": "顺丰快运"
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_quality_deliver_it_yourself)
-    def quality_deliver_it_yourself(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(KDByBY1AXyw9jWoR1wVN)
+    def KDByBY1AXyw9jWoR1wVN(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 3,
@@ -841,12 +869,12 @@ class AuctionMyRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "inspectionCenterName": INFO['check_the_center_name'],
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_quality_shipped_immediately_sf_the_next_day)
-    def quality_shipped_immediately_sf_the_next_day(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(E0ZBM1bZ77yxxR0xKw5r)
+    def E0ZBM1bZ77yxxR0xKw5r(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -874,12 +902,12 @@ class AuctionMyRequest(InitializeParams):
             "expressType": 1,
             "expectPostTimeStart": self.get_formatted_datetime(days=2)
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_quality_shipped_immediately_no_address)
-    def quality_shipped_immediately_no_address(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(HU0PCydYlVIqdfWaGMjN)
+    def HU0PCydYlVIqdfWaGMjN(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 2,
@@ -907,12 +935,11 @@ class AuctionMyRequest(InitializeParams):
             "expressNo": self.sf,
             "expressCompanyName": "顺丰速递"
         }
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_quality_shipped_immediately_no_shipping_address)
-    def quality_shipped_immediately_no_shipping_address(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(PviYbAYqWAHOvqa557i4)
+    def PviYbAYqWAHOvqa557i4(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 1,
@@ -941,40 +968,40 @@ class AuctionMyRequest(InitializeParams):
             "expectPostTimeStart": self.get_formatted_datetime()
         }
 
-        return self._make_request('post', 'delivery_goods', data, 'main', nocheck)
+        return self._make_request('post', 'RPab3Ale0', data, 'main', nocheck)
 
-    @doc(a_quality_cancel_the_order)
-    def quality_cancel_the_order(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=1, j=2)
+    @doc(GG02SXVJvvxVfIaz5KPi)
+    def GG02SXVJvvxVfIaz5KPi(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=1, j=2)
         data = {
             "id": res[0]['id']
         }
-        return self._make_request('post', 'bm_cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'SQVuifMNd', data, 'main', nocheck)
 
-    @doc(a_quality_pending_pickup_cancel_the_order)
-    def quality_pending_pickup_cancel_the_order(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=2, j=2)
+    @doc(dnH26r9vPAzxPhrGlF4V)
+    def dnH26r9vPAzxPhrGlF4V(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=2, j=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'bm_cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'SQVuifMNd', data, 'main', nocheck)
 
-    @doc(a_quality_pending_receipt_cancel_the_order)
-    def quality_pending_receipt_cancel_the_order(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=2)
+    @doc(t944F3rbr3phQU1rks2g)
+    def t944F3rbr3phQU1rks2g(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'bm_cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'SQVuifMNd', data, 'main', nocheck)
 
-    @doc(a_quality_pending_receipt_of_reshipment_by_sf_logistics)
-    def quality_pending_receipt_of_reshipment_by_sf_logistics(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(N77Kx6zXsaGkusHouXhf)
+    def N77Kx6zXsaGkusHouXhf(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 3,
@@ -1002,12 +1029,12 @@ class AuctionMyRequest(InitializeParams):
             "expressType": 1,
             "expectPostTimeStart": self.get_formatted_datetime(days=-1)
         }
-        return self._make_request('post', 'bm_reship', data, 'main', nocheck)
+        return self._make_request('post', 'BD4RR09HW', data, 'main', nocheck)
 
-    @doc(a_quality_pending_receipt_reshipment_self_mailing)
-    def quality_pending_receipt_reshipment_self_mailing(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(P4olp9T5viFuNTxwILbU)
+    def P4olp9T5viFuNTxwILbU(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 2,
@@ -1035,12 +1062,12 @@ class AuctionMyRequest(InitializeParams):
             "expressNo": self.sf,
             "expressCompanyName": "中通快递"
         }
-        return self._make_request('post', 'bm_reship', data, 'main', nocheck)
+        return self._make_request('post', 'BD4RR09HW', data, 'main', nocheck)
 
-    @doc(a_quality_pending_receipt_reshipment_deliver_it_yourself)
-    def quality_pending_receipt_reshipment_deliver_it_yourself(self, nocheck=False):
-        res = self.pc.auction_my_data(data='b', i=3, j=2)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    @doc(RZQfpgsxpRx4JZVtCxnq)
+    def RZQfpgsxpRx4JZVtCxnq(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='b', i=3, j=2)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "childType": 3,
@@ -1066,11 +1093,11 @@ class AuctionMyRequest(InitializeParams):
             "inspectionCenterCode": INFO['merchant_id'],
             "inspectionCenterName": INFO['check_the_center_name'],
         }
-        return self._make_request('post', 'bm_reship', data, 'main', nocheck)
+        return self._make_request('post', 'BD4RR09HW', data, 'main', nocheck)
 
-    @doc(a_quality_inspection_completed_express_return)
-    def quality_inspection_completed_express_return(self, nocheck=False):
-        res = self.pc.auction_my_data(j=2, i=7)
+    @doc(GgObI3IHddbUmzzKy0Ur)
+    def GgObI3IHddbUmzzKy0Ur(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=2, i=7)
         data = {
             "returnReason": "",
             "returnWay": "1",
@@ -1084,11 +1111,11 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'returnable', data, 'main', nocheck)
+        return self._make_request('post', 'S4kwZF2CW', data, 'main', nocheck)
 
-    @doc(a_quality_sales_re_inspection)
-    def quality_sales_re_inspection(self, nocheck=False):
-        res = self.pc.auction_my_data(j=2, i=7)
+    @doc(bfGgREVaLQ1o2fmtJMrE)
+    def bfGgREVaLQ1o2fmtJMrE(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(j=2, i=7)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "applyReason": "",
@@ -1099,12 +1126,12 @@ class AuctionMyRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'reinspection', data, 'main', nocheck)
+        return self._make_request('post', 'fRmPOvphI', data, 'main', nocheck)
 
 
 if __name__ == '__main__':
-    api = AuctionIndexRequest()
-    result = api.auto_submit_new_order()
+    api = ()
+    result = api
     # print(result)
     # fast_submit_new_order
     # precise_shipment_estimate

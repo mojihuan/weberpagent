@@ -362,7 +362,7 @@ class PerformanceTestMixin:
 
         # 根据方法名称映射到对应的 URL（这需要根据你的实际实现来调整）
         url_mapping = {
-            'new_purchase_order_unpaid_journey': 'item_new_purchase_order',
+            'new_purchase_order_unpaid_journey': 'km9X0jSmr',
         }
 
         url_key = url_mapping.get(method_name.split('.')[-1], '')

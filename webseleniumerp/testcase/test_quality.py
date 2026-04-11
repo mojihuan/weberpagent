@@ -4,246 +4,244 @@ from common.base_case import BaseCase
 from common.import_case import *
 
 
-class TestQualityCentreItem(BaseCase, unittest.TestCase):
+class TestRBXuX2jX(BaseCase, unittest.TestCase):
     """质检管理|质检中物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return quality_r.QualityCentreItemRequest()
+            return quality_r.BN75aoC3Ic()
         else:
-            return quality_p.QualityCentreItemPages(self.driver)
+            return quality_p.QykEu6IoOjB(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0submit_quality_results(self):
+    def test_0TyClpwIrykofhqf4laif(self):
         """[提交质检结果]-默认检测项-移交库存"""
-        self.pre.operations(data=['FA1', 'HC3'])
+        self.pre.operations(data=['ekBx', 'oSUT'])
         case = self.common_operations(login='main')
-        case.submit_quality_results()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        case.TyClpwIrykofhqf4laif()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_submit_quality_results_by_no_transfer(self):
+    def test_RMOcTd2L2tS32gouvcPO(self):
         """[提交质检结果]-无移交"""
-        self.pre.operations(data=['FA1', 'HC3'])
+        self.pre.operations(data=['ekBx', 'oSUT'])
         case = self.common_operations()
-        case.submit_quality_results_by_no_transfer()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        case.RMOcTd2L2tS32gouvcPO()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_fast_submit_inspection_results(self):
+    def test_aKblpEyB7wculAa6At1D(self):
         """[快速质检]-添加物品-提交质检结果"""
-        self.pre.operations(data=['FA1', 'HC3'])
+        self.pre.operations(data=['ekBx', 'oSUT'])
         case = self.common_operations()
-        case.fast_submit_inspection_results()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        case.aKblpEyB7wculAa6At1D()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unverified_handover(self):
+    def test_DvC4kRy5eVWdWGN9cPXB(self):
         """[未验移交]-移交库存"""
-        self.pre.operations(data=['FA1', 'HC3'])
+        self.pre.operations(data=['ekBx', 'oSUT'])
         case = self.common_operations()
-        case.unverified_handover()
-        res = [lambda: self.pc.inventory_list_assert(data='b', typeStr='移交', time='now')]
+        case.DvC4kRy5eVWdWGN9cPXB()
+        res = [lambda: self.pc.XtWLz8(data='b', typeStr='移交', time='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_more_unverified_handover_purchase(self):
+    def test_BHQX5vbmOfBJ4z8CzdvG(self):
         """[扫码批量未验移交]-未验移交采购售后"""
-        self.pre.operations(data=['FA1', 'HC3'])
+        self.pre.operations(data=['ekBx', 'oSUT'])
         case = self.common_operations()
-        case.more_unverified_handover_purchase()
-        res = [lambda: self.pc.inventory_list_assert(data='b', typeStr='移交', time='now')]
+        case.BHQX5vbmOfBJ4z8CzdvG()
+        res = [lambda: self.pc.XtWLz8(data='b', typeStr='移交', time='now')]
         self.assert_all(*res)
 
 
-class TestQualityContentTemplate(BaseCase, unittest.TestCase):
+class TestKVInw0t5(BaseCase, unittest.TestCase):
     """质检管理|质检内容模版"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return quality_r.QualityContentTemplateRequest()
+            return quality_r.GEh4rKFYZs()
         else:
-            return quality_p.QualityContentTemplatePages(self.driver)
+            return quality_p.ZykOkDKuSN0(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0new_template_added(self):
+    def test_0GySsTzThuG7Y0qU4dr6w(self):
         """[新增]-默认选项"""
         case = self.common_operations(login='idle')
-        case.new_template_added()
-        res = [lambda: self.pc.quality_content_template_assert(headers='idle', createTime='now')]
+        case.GySsTzThuG7Y0qU4dr6w()
+        res = [lambda: self.pc.qjDA2x(headers='idle', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_editor_template(self):
+    def test_giRhsRX1en0Lx6jNhHwp(self):
         """[编辑]-默认选项"""
-        self.pre.operations(data=['LC1'])
+        self.pre.operations(data=['ZyCo'])
         case = self.common_operations()
-        case.editor_template()
-        res = [lambda: self.pc.quality_content_template_assert(headers='idle', updateTime='now')]
+        case.giRhsRX1en0Lx6jNhHwp()
+        res = [lambda: self.pc.qjDA2x(headers='idle', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_delete_template(self):
+    def test_fFy1TGBgZDGQp4384V92(self):
         """[删除]"""
-        self.pre.operations(data=['LC1'])
+        self.pre.operations(data=['ZyCo'])
         case = self.common_operations()
-        case.delete_template()
+        case.fFy1TGBgZDGQp4384V92()
 
 
-class TestQualityGoodsReceived(BaseCase, unittest.TestCase):
+class TestpPng8rjy(BaseCase, unittest.TestCase):
     """质检管理|待接收物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return quality_r.QualityGoodsReceivedRequest()
+            return quality_r.JPtRHdbeHo()
         else:
-            return quality_p.QualityGoodsReceivedPages(self.driver)
+            return quality_p.ImDO8pXuDcy(self.driver)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_goods_received(self):
+    def test_0I3DHz0up0R0FCJ93wYgX(self):
         """[接收]-单个物品接收"""
-        self.pre.operations(data=['FA1', 'HC2'])
+        self.pre.operations(data=['ekBx', 'aMWA'])
         case = self.common_operations(login='special')
-        case.goods_received()
+        case.I3DHz0up0R0FCJ93wYgX()
         res = [lambda: self.pc.handover_record(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_scan_goods_received(self):
+    def test_jWTmru3WQNlJkhaj32WL(self):
         """[扫码精确接收]-单个物品接收"""
-        self.pre.operations(data=['FA1', 'HC2'])
+        self.pre.operations(data=['ekBx', 'aMWA'])
         case = self.common_operations()
-        case.scan_goods_received()
+        case.jWTmru3WQNlJkhaj32WL()
         res = [lambda: self.pc.handover_record(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
 
-class TestQualityStore(BaseCase, unittest.TestCase):
+class Testh2j7wRb0(BaseCase, unittest.TestCase):
     """质检管理|先质检后入库"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return quality_r.QualityStoreRequest()
+            return quality_r.DItqmHbtYn()
         else:
-            return quality_p.QualityStorePages(self.driver)
+            return quality_p.Nr0ncfVwUUT(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0quality_artificial_add(self):
+    def test_0cKaXogneNjTTTmAdUTcW(self):
         """[非库存物品tab]-人工快速质检-选择苹果手机-提交质检报告"""
-        self.pre.operations(data=['FA1', 'HC3'])
+        self.pre.operations(data=['ekBx', 'oSUT'])
         case = self.common_operations(login='main')
-        case.quality_artificial_add()
-        res = [lambda: self.pc.quality_store_assert(updateTime='now', articlesStatusStr='非库内物品', createTime='now')]
+        case.cKaXogneNjTTTmAdUTcW()
+        res = [lambda: self.pc.J9mkzk(updateTime='now', articlesStatusStr='非库内物品', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_warehousing_handover_batch(self):
+    def test_m1SZEHq9GOLysyiwTJhR(self):
         """[非库内物品tab]-批量采购入库-采购入库成功"""
-        self.pre.operations(data=['KA1', 'HC3', 'LA1'])
+        self.pre.operations(data=['Ufaw', 'oSUT', 'XaUk'])
         case = self.common_operations()
-        case.purchase_warehousing_handover_batch()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已发货')]
+        case.m1SZEHq9GOLysyiwTJhR()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已发货')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_warehousing_handover(self):
+    def test_QkyLf7Jg3kvDyadrrVeA(self):
         """[非库内物品tab]-采购入库-采购入库成功"""
-        self.pre.operations(data=['KA1', 'HC3', 'LA1'])
+        self.pre.operations(data=['Ufaw', 'oSUT', 'XaUk'])
         case = self.common_operations()
-        case.purchase_warehousing_handover()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已发货')]
+        case.QkyLf7Jg3kvDyadrrVeA()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已发货')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_warehousing_put_on_the_mall(self):
+    def test_F89aoKW4uHkSuyvilmhi(self):
         """[非库内物品tab]-采购入库-采购入库上架商城"""
-        self.pre.operations(data=['KA1', 'HC3', 'LA1'])
+        self.pre.operations(data=['Ufaw', 'oSUT', 'XaUk'])
         case = self.common_operations()
-        case.purchase_warehousing_put_on_the_mall()
+        case.F89aoKW4uHkSuyvilmhi()
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_item_report_create_again(self):
+    def test_YXbGCNN4QmspmmrgyGE1(self):
         """[非库内物品tab]-编辑报告-重新生成质检报告"""
         case = self.common_operations()
-        case.item_report_create_again()
-        res = [lambda: self.pc.quality_store_assert(
-            updateTime='now', articlesStatusStr='非库内物品', createTime='now')]
+        case.YXbGCNN4QmspmmrgyGE1()
+        res = [lambda: self.pc.J9mkzk(updateTime='now', articlesStatusStr='非库内物品', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_item_report_edit(self):
+    def test_KlvURYJReV7HI5zUM2ZK(self):
         """[非库内物品tab]-编辑报告-修改当前报告"""
         case = self.common_operations()
-        case.item_report_edit()
-        res = [lambda: self.pc.quality_store_assert(
-            updateTime='now', articlesStatusStr='非库内物品', createTime='now')]
+        case.KlvURYJReV7HI5zUM2ZK()
+        res = [lambda: self.pc.J9mkzk(updateTime='now', articlesStatusStr='非库内物品', createTime='now')]
         self.assert_all(*res)
 
 
-class TestQualityWaitTurnOver(BaseCase, unittest.TestCase):
+class TestS1iMHraD(BaseCase, unittest.TestCase):
     """质检管理|待移交物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return quality_r.QualityWaitTurnOverRequest()
+            return quality_r.DItqmHbtYn()
         else:
-            return quality_p.QualityWaitTurnOverPages(self.driver)
+            return quality_p.Nr0ncfVwUUT(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0quality_inspection(self):
+    def test_0j8LwPxK1SoYZffAVSK0E(self):
         """[复检]-移交质检"""
-        self.pre.operations(data=['KA1', 'HC3', 'LB1'])
+        self.pre.operations(data=['Ufaw', 'oSUT', 'wOOy'])
         case = self.common_operations(login='main')
-        case.quality_inspection()
-        res = [lambda: self.pc.quality_record_list_assert(qualityTypeStr='人工选择', qualityFinishTime='now')]
+        case.j8LwPxK1SoYZffAVSK0E()
+        res = [lambda: self.pc.RWfXxd(qualityTypeStr='人工选择', qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_handover_inventory(self):
+    def test_cnBfO0w1V0T7Puy4uF3I(self):
         """[移交]-移交库存"""
-        self.pre.operations(data=['KA1', 'HC3', 'LB1'])
+        self.pre.operations(data=['Ufaw', 'oSUT', 'wOOy'])
         case = self.common_operations()
-        case.handover_inventory()
-        res = [lambda: self.pc.quality_record_list_assert(qualityTypeStr='人工选择', qualityFinishTime='now')]
+        case.cnBfO0w1V0T7Puy4uF3I()
+        res = [lambda: self.pc.RWfXxd(qualityTypeStr='人工选择', qualityFinishTime='now')]
         self.assert_all(*res)
 
 

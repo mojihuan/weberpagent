@@ -39,8 +39,8 @@ class AutoGenerateElementPositioning:
         with open(self.element_positioning_file, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # 使用正则表达式提取所有已存在的 key
-        pattern = r'"([^"]+)":\s*\['
+        # 使用正则表达式提取所有已存在的 key（适配新格式）
+        pattern = r'"([^"]+)":\s*"'
         matches = re.findall(pattern, content)
         self.existing_keys = set(matches)
         print(f"已从 element_positioning.py 中读取 {len(self.existing_keys)} 个已存在的 key")
@@ -173,11 +173,31 @@ class AutoGenerateElementPositioning:
                 index_match = re.search(r"index\s*=\s*(\d+)", args_str)
                 index = int(index_match.group(1)) if index_match else 1
 
+                # 提取 p_tag 参数（父元素标签）
+                p_tag_match = re.search(r"p_tag\s*=\s*['\"]([^'\"]+)['\"]", args_str)
+                p_tag = p_tag_match.group(1) if p_tag_match else None
+
+                # 提取 p_name 参数（父元素类名）
+                p_name_match = re.search(r"p_name\s*=\s*['\"]([^'\"]+)['\"]", args_str)
+                p_name = p_name_match.group(1) if p_name_match else None
+
+                # 提取 o_tag 参数（祖父元素标签）
+                o_tag_match = re.search(r"o_tag\s*=\s*['\"]([^'\"]+)['\"]", args_str)
+                o_tag = o_tag_match.group(1) if o_tag_match else None
+
+                # 提取 o_name 参数（祖父元素属性）
+                o_name_match = re.search(r"o_name\s*=\s*['\"]([^'\"]+)['\"]", args_str)
+                o_name = o_name_match.group(1) if o_name_match else None
+
                 keys_info.append({
                     'key': key,
                     'desc': desc,
                     'tag': tag,
                     'index': index,
+                    'p_tag': p_tag,
+                    'p_name': p_name,
+                    'o_tag': o_tag,
+                    'o_name': o_name,
                     'file': os.path.basename(file_path)
                 })
 
@@ -185,25 +205,76 @@ class AutoGenerateElementPositioning:
 
         return keys_info
 
-    def generate_xpath(self, tag, desc, index):
+    def generate_xpath(self, tag, desc, index, p_tag=None, p_name=None, o_tag=None, o_name=None):
         """
         根据 tag 类型生成 XPath
         :param tag: HTML 标签类型
         :param desc: description 参数值
         :param index: index 参数值
+        :param p_tag: 父元素标签类型（可选）
+        :param p_name: 父元素类名（可选）
+        :param o_tag: 祖父元素标签类型（可选）
+        :param o_name: 祖父元素属性（可选）
         :return: XPath 字符串
         """
-        if tag == 'span':
-            xpath = f"(//span[normalize-space()='{desc}'])[{index}]"
-        elif tag == 'input':
-            xpath = f"(//input[@placeholder='{desc}'])[{index}]"
-        elif tag == 'textarea':
-            xpath = f"(//textarea[@placeholder='{desc}'])[{index}]"
+        # 生成子元素的定位部分
+        if '@' in desc:
+            # desc 包含@符号，只使用 tag
+            child_xpath = f"//{tag}"
         else:
-            # 默认使用 span
-            xpath = f"(//span[normalize-space()='{desc}'])[{index}]"
+            # desc 不包含@符号，根据 tag 类型生成不同的定位
+            if tag == 'span':
+                child_xpath = f"//span[normalize-space()='{desc}']"
+            elif tag == 'div':
+                child_xpath = f"//div[normalize-space()='{desc}']"
+            elif tag == 'input':
+                child_xpath = f"//input[@placeholder='{desc}']"
+            elif tag == 'textarea':
+                child_xpath = f"//textarea[@placeholder='{desc}']"
+            else:
+                # 默认使用 span
+                child_xpath = f"//span[normalize-space()='{desc}']"
 
-        return xpath
+        # 如果同时有祖父元素和父元素，构建三层嵌套
+        if o_tag and o_name and p_tag and p_name:
+            # 判断 o_name 是否为中文
+            is_chinese = bool(re.search(r'[\u4e00-\u9fa5]', o_name))
+
+            if is_chinese:
+                # 第一种场景：o_name 是中文，使用@aria-label 属性匹配
+                grandparent_xpath = f"//{o_tag}[@aria-label='{o_name}']"
+            else:
+                # 第二种场景：o_name 是非中文，使用@class 属性匹配
+                grandparent_xpath = f"//{o_tag}[@class='{o_name}']"
+
+            parent_xpath = f"//{p_tag}[@class='{p_name}']"
+            # 构建：祖父 -> 父 -> 子 的三层嵌套结构
+            full_xpath = f"({grandparent_xpath}{parent_xpath}{child_xpath})[{index}]"
+        # 如果只有祖父元素，使用祖父元素定位
+        elif o_tag and o_name:
+            # 判断 o_name 是否为中文
+            is_chinese = bool(re.search(r'[\u4e00-\u9fa5]', o_name))
+
+            if is_chinese:
+                # 第一种场景：o_name 是中文，使用@aria-label 属性匹配
+                grandparent_xpath = f"//{o_tag}[@aria-label='{o_name}']"
+            else:
+                # 第二种场景：o_name 是非中文，使用@class 属性匹配
+                grandparent_xpath = f"//{o_tag}[@class='{o_name}']"
+
+            full_xpath = f"({grandparent_xpath}{child_xpath})[{index}]"
+        # 如果只有父元素，使用父元素定位
+        elif p_tag and p_name:
+            parent_xpath = f"//{p_tag}[@class='{p_name}']"
+            full_xpath = f"({parent_xpath}{child_xpath})[{index}]"
+        else:
+            # 没有父元素，使用原来的格式
+            if '@' in desc:
+                full_xpath = f"({child_xpath})[{index}]"
+            else:
+                full_xpath = f"({child_xpath})[{index}]"
+
+        return full_xpath
 
     def collect_all_missing_keys(self):
         """收集所有缺失的 key"""
@@ -223,9 +294,9 @@ class AutoGenerateElementPositioning:
         positioning_lines = []
 
         for info in self.missing_keys:
-            xpath = self.generate_xpath(info['tag'], info['desc'], info['index'])
-            # 格式："key 名": ["XPath", "", "", "", ""],
-            line = f'        "{info["key"]}": ["{xpath}", "", "", "", ""],'
+            xpath = self.generate_xpath(info['tag'], info['desc'], info['index'], info.get('p_tag'), info.get('p_name'), info.get('o_tag'), info.get('o_name'))
+            # 格式："key 名": "XPath",
+            line = f'        "{info["key"]}": "{xpath}",'
             positioning_lines.append(line)
 
         return '\n'.join(positioning_lines)
@@ -245,7 +316,7 @@ class AutoGenerateElementPositioning:
 
         # 找到 positioning 字典的结尾位置
         # 策略：在最后一个已有的 key 后面添加
-        last_key_pattern = r'(\s+"[^"]+":\s*\[[^\]]*\],\s*)\n(\s*}\s*)'
+        last_key_pattern = r'(\s+"[^"]+":\s*"[^"]*",\s*)\n(\s*}\s*)'
         match = re.search(last_key_pattern, content, re.MULTILINE)
 
         if match:
@@ -287,7 +358,11 @@ class AutoGenerateElementPositioning:
                 f.write(f"  Tag: {info['tag']}\n")
                 f.write(f"  Desc: {info['desc']}\n")
                 f.write(f"  Index: {info['index']}\n")
-                xpath = self.generate_xpath(info['tag'], info['desc'], info['index'])
+                f.write(f"  P_Tag: {info.get('p_tag', 'None')}\n")
+                f.write(f"  P_Name: {info.get('p_name', 'None')}\n")
+                f.write(f"  O_Tag: {info.get('o_tag', 'None')}\n")
+                f.write(f"  O_Name: {info.get('o_name', 'None')}\n")
+                xpath = self.generate_xpath(info['tag'], info['desc'], info['index'], info.get('p_tag'), info.get('p_name'), info.get('o_tag'), info.get('o_name'))
                 f.write(f"  生成的 XPath: {xpath}\n")
                 f.write("\n")
 
@@ -316,7 +391,7 @@ class AutoGenerateElementPositioning:
         # 3. 显示缺失的 key 信息
         print(f"\n发现以下 {len(self.missing_keys)} 个缺失的 key:")
         for i, info in enumerate(self.missing_keys[:10], 1):  # 只显示前 10 个
-            xpath = self.generate_xpath(info['tag'], info['desc'], info['index'])
+            xpath = self.generate_xpath(info['tag'], info['desc'], info['index'], info.get('p_tag'), info.get('p_name'), info.get('o_tag'), info.get('o_name'))
             print(f"{i}. {info['key']} (来自 {info['file']})")
             print(f"   生成：{xpath}")
 
@@ -327,6 +402,111 @@ class AutoGenerateElementPositioning:
         self.update_element_positioning_file()
 
         print("=" * 60)
+
+
+def auto_generate_element_positioning(pages_dir=None, element_positioning_file=None,
+                                      specific_files=None, verbose=True,
+                                      export_file=None):
+    """
+    自动生成元素定位的统一接口方法
+
+    该方法整合了 AutoGenerateElementPositioning 类的完整流程，
+    可供其他文件直接调用。
+
+    Args:
+        pages_dir (str, optional): pages 目录路径。
+                                  如果为 None，则默认使用项目根目录下的 pages 目录
+        element_positioning_file (str, optional): element_positioning.py 文件路径。
+                                                  如果为 None，则默认生成到 common/element_positioning.py
+        specific_files (list, optional): 指定要处理的文件列表（可选）。
+                                        可以是文件名、相对路径或绝对路径。
+                                        如果为 None，则扫描整个 pages 目录
+        verbose (bool, optional): 是否打印详细信息，默认为 True
+        export_file (str, optional): 导出缺失 key 的文件路径（可选）。
+                                   如果指定，会将缺失的 key 导出到该文件
+
+    Returns:
+        dict: 包含处理结果信息的字典：
+              - 'missing_keys': 缺失的 key 列表
+              - 'existing_keys_count': 已存在的 key 数量
+              - 'processed_files_count': 处理的文件数量
+              - 'success': 是否成功完成
+
+    Examples:
+        from common.create_elem_auto_positioning import auto_generate_element_positioning
+
+        # 简单使用，使用默认参数
+        result = auto_generate_element_positioning()
+
+        # 自定义 pages 目录
+        result = auto_generate_element_positioning(
+        ...     pages_dir='D:/project/pages'
+        ... )
+
+        # 指定特定文件和输出文件
+        result = auto_generate_element_positioning(
+        ...     pages_dir='D:/project/pages',
+        ...     element_positioning_file='D:/project/common/element_positioning.py',
+        ...     specific_files=['pages_attachment.py', 'pages_login.py'],
+        ...     export_file='missing_keys.txt'
+        ... )
+
+        # 静默模式，不打印详细信息
+        result = auto_generate_element_positioning(verbose=False)
+    """
+    try:
+        # 如果没有指定 pages 目录，使用默认的项目结构
+        if pages_dir is None:
+            base_dir = Path(__file__).parent.parent
+            pages_dir = base_dir / 'pages'
+
+        # 如果没有指定 element_positioning_file，使用默认路径
+        if element_positioning_file is None:
+            base_dir = Path(__file__).parent.parent
+            element_positioning_file = base_dir / 'common' / 'element_positioning.py'
+
+        # 转换为字符串路径
+        pages_dir = str(pages_dir)
+        element_positioning_file = str(element_positioning_file)
+
+        if verbose:
+            print(f"Pages 目录：{pages_dir}")
+            print(f"Element positioning 文件：{element_positioning_file}")
+            if specific_files:
+                print(f"指定文件：{specific_files}")
+
+        # 创建实例
+        generator = AutoGenerateElementPositioning(
+            pages_dir=pages_dir,
+            element_positioning_file=element_positioning_file,
+            specific_files=specific_files if specific_files else []
+        )
+
+        # 执行完整流程
+        generator.run()
+
+        # 如果指定了导出文件，导出缺失的 key
+        if export_file and generator.missing_keys:
+            generator.export_to_file(export_file)
+
+        # 返回结果字典
+        return {
+            'missing_keys': generator.missing_keys,
+            'existing_keys_count': len(generator.existing_keys),
+            'processed_files_count': len(specific_files) if specific_files else len(generator.find_all_py_files()),
+            'success': True
+        }
+
+    except Exception as e:
+        if verbose:
+            print(f"执行过程中出错：{e}")
+        return {
+            'missing_keys': [],
+            'existing_keys_count': 0,
+            'processed_files_count': 0,
+            'success': False,
+            'error': str(e)
+        }
 
 
 def main():
@@ -365,4 +545,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

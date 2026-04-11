@@ -28,27 +28,27 @@ class CommonPages(BasePage, InitializeParams):
             raise ValueError(f"menu not found: {menu_type}")
 
 
-class HelpGenerateOrderPages(CommonPages):
+class Qofwr8xFsgu(CommonPages):
     """帮卖管理|帮卖上架列表"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='help_sell_manage_menu', desc='帮卖管理')
-         .step(key='help_sell_manage_menu', desc='帮卖管理')
-         .step(key='help_sell_the_listing_list_menu', desc='帮卖上架列表')
+        (self.scroll(key='t3OMQNdItKEv0', desc='帮卖管理')
+         .step(key='IZ5eSwaqVCY8S', desc='帮卖管理')
+         .step(key='Xle4YOX86JRBK', desc='帮卖上架列表')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_add_item)
-    def add_item(self):
+    @doc(x2Ue8YzUHAdfE5e1ah2B)
+    def x2Ue8YzUHAdfE5e1ah2B(self):
         self.menu_manage()
-        (self.step(key='bulk_shakedown', desc='发起帮卖')
-         .step(key='inventory_add', desc='从库存列表添加')
-         .step(key='search', desc='搜索')
-         .custom(lambda: self.tab_return(3))
+        (self.step(key='k4rKOd9vNxQNW', desc='发起帮卖')
+         .step(key='fBr8bVEElCDqD', desc='从库存列表添加')
+         .step(key='OcBWfE8YCNAwK', desc='搜索')
+         .custom(lambda: self.tab_space(3))
          .scroll('confirm_select', desc='确认选择')
-         .step(key='confirm_select', desc='确认选择')
+         .step(key='M8CpyOVVxSOp8', desc='确认选择')
          .custom(lambda: self.wait_time(2))
          .wait())
         return self
@@ -56,287 +56,287 @@ class HelpGenerateOrderPages(CommonPages):
     @reset_after_execution
     def place_a_help_order(self):
         self.menu_manage()
-        (self.step(key='bulk_shakedown', desc='发起帮卖')
-         .step(key='inventory_add', desc='从库存列表添加')
-         .step(key='search', desc='搜索')
-         .custom(lambda: self.tab_return(3))
+        (self.step(key='qa2WnN5MiNOld', desc='发起帮卖')
+         .step(key='LrwKVtNDwWpZc', desc='从库存列表添加')
+         .step(key='gcuonClSlnq3X', desc='搜索')
+         .custom(lambda: self.tab_space(3))
          .scroll('confirm_select', desc='确认选择')
-         .step(key='confirm_select', desc='确认选择')
-         .step(key='expected_price', value=self.number, action='input', desc='期望价格')
-         .step(key='add_item_btn', desc='添加')
-         .custom(lambda: self.tab_return(3))
-         .step(key='batch_note', value=self.serial, action='input', desc='批次备注')
-         .step(key='generate_help_orders', desc='生成帮卖订单')
-         .step(key='delete_address_ok', desc='确认')
+         .step(key='Jri4N0kr9PWmf', desc='确认选择')
+         .step(key='E1B5o5oepMd50', value=self.number, action='input', desc='期望价格')
+         .step(key='Td0CraLnKGhuN', desc='添加')
+         .custom(lambda: self.tab_space(3))
+         .step(key='bs88EjffGXXCP', value=self.serial, action='input', desc='批次备注')
+         .step(key='AAeQlG06m4XeI', desc='生成帮卖订单')
+         .step(key='tCCJhESypdAZW', desc='确认')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_new_help_order)
-    def new_help_order(self):
+    @doc(gHXYe9nXDQKo8k2pCpHF)
+    def gHXYe9nXDQKo8k2pCpHF(self):
         self.menu_manage()
-        self.copy(self.pc.inventory_list_data(i=2)[0]['imei'])
-        (self.step(key='bulk_shakedown', desc='发起帮卖')
-         .step(key='item_imei_input', desc='物品编号')
-         .custom(lambda: self.affix())
-         .step(key='add_item_btn', desc='添加')
-         .step(key='expected_price', value=self.number, action='input', desc='期望价格')
-         .step(key='add_item_btn', desc='添加')
-         .custom(lambda: self.tab_return(3))
-         .step(key='batch_note', value=self.serial, action='input', desc='批次备注')
-         .step(key='generate_help_orders', desc='生成帮卖订单')
-         .step(key='delete_address_ok', desc='确认')
+        self.copy(self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2)[0]['imei'])
+        (self.step(key='I6Pbo2kwzCUQv', desc='发起帮卖')
+         .step(key='ob9JJiCrFZ6rn', desc='物品编号')
+         .custom(lambda: self.ctrl_v())
+         .step(key='cynkyGlBm2lVT', desc='添加')
+         .step(key='fYJkT6vOXXusr', value=self.number, action='input', desc='期望价格')
+         .step(key='ZmYE9juoSg3Hx', desc='添加')
+         .custom(lambda: self.tab_space(3))
+         .step(key='SKnYfMkIxwEsD', value=self.serial, action='input', desc='批次备注')
+         .step(key='AswWtwVTTMMIx', desc='生成帮卖订单')
+         .step(key='ybZ3sOSfyPaGL', desc='确认')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_sf_express_delivery_is_easy)
+    @doc(sf_express_delivery_is_easy)
     def sf_express_delivery_is_easy(self):
         self.menu_manage()
-        (self.step(key='to_deliver_goods', desc='去发货')
-         .step(key='help_calculate_freight', desc='计算运费')
-         .step(key='shipment_confirmed', desc='确定')
+        (self.step(key='kInu3eV3j7Fc5', desc='去发货')
+         .step(key='D4XT9rSHm6eGW', desc='计算运费')
+         .step(key='iOyin5Pq9t6Ri', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_self_dispatch)
-    def self_dispatch(self):
+    @doc(CtZUckEy9Xr7Q9rhDgM9)
+    def CtZUckEy9Xr7Q9rhDgM9(self):
         self.menu_manage()
-        (self.step(key='to_deliver_goods', desc='去发货')
-         .step(key='self_post', desc='自行邮寄')
-         .step(key='tracking_number', value=self.jd, action='input', desc='快递单号')
-         .step(key='express_company_ipt', value='京东快递', action='input', desc='快递公司')
-         .step(key='phone_number', value=self.phone, action='input', desc='手机号码')
-         .step(key='shipment_confirmed', desc='确定')
+        (self.step(key='wfOk7EdBu1SEp', desc='去发货')
+         .step(key='qEWFpy7Qc19Va', desc='自行邮寄')
+         .step(key='w59IBOCm0mWIj', value=self.jd, action='input', desc='快递单号')
+         .step(key='hGUeaizKrG6cd', value='京东快递', action='input', desc='快递公司')
+         .step(key='bLqJg2Qi8tIXp', value=self.phone, action='input', desc='手机号码')
+         .step(key='DxA8byKLE69Yg', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_send_it_yourself)
-    def send_it_yourself(self):
+    @doc(lUGAPOtEUoXAYtTaa2Jb)
+    def lUGAPOtEUoXAYtTaa2Jb(self):
         self.menu_manage()
-        (self.step(key='to_deliver_goods', desc='去发货')
-         .step(key='self_delivery', desc='自己送')
-         .step(key='shipment_confirmed', desc='确定')
+        (self.step(key='I5oL0kjoLDOhm', desc='去发货')
+         .step(key='vZYMQUpYAVYrd', desc='自己送')
+         .step(key='Xo0qai9UEWhWc', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_cancel_order)
-    def cancel_order(self):
+    @doc(qWL5r2tvJ34XBHF8SvNA)
+    def qWL5r2tvJ34XBHF8SvNA(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='cancel_order', desc='取消订单')
-         .step(key='quality_items_receive_ok', desc='确定')
+        (self.step(key='ZoVGSdrfG2Fa3', desc='订单列表')
+         .step(key='Y6rud4auDIjjX', desc='取消订单')
+         .step(key='GgmYH9OXycvLF', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_apply_for_cancellation)
-    def apply_for_cancellation(self):
+    @doc(fBkRLU5PnvGYpBfZdMYx)
+    def fBkRLU5PnvGYpBfZdMYx(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='manual_signature', desc='申请退机')
-         .step(key='quality_items_receive_ok', desc='确认申请退机')
+        (self.step(key='xqXPWAdTACIos', desc='订单列表')
+         .step(key='Vh3La7Wps8o1H', desc='申请退机')
+         .step(key='axAHm58CtLjog', desc='确认申请退机')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_manual_signature)
-    def manual_signature(self):
+    @doc(xzJ4vjMEgys2mrV0XE7B)
+    def xzJ4vjMEgys2mrV0XE7B(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='manual_signature', desc='手动签收')
-         .step(key='delete_address_ok', desc='确定')
+        (self.step(key='OYwlP40la25Gs', desc='订单列表')
+         .step(key='H90zANN7qZvzz', desc='手动签收')
+         .step(key='GCnl3Rl4istp6', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_logistics_signature)
-    def logistics_signature(self):
+    @doc(KWGxLZFsVSdw6Fh5ZbAA)
+    def KWGxLZFsVSdw6Fh5ZbAA(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='logistics_signature', desc='物流签收')
-         .step(key='inbound_search', desc='搜索')
-         .custom(lambda: self.tab_return(6))
-         .step(key='be_put_in_storage', desc='签收入库')
-         .step(key='circulation_warehouse', desc='流转仓库')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='submit_into_the_warehouse', desc='确定')
+        (self.step(key='xOkVOWHgQcxpg', desc='订单列表')
+         .step(key='yUETQcqDh7WSh', desc='物流签收')
+         .step(key='BNbNyZq8xoCpU', desc='搜索')
+         .custom(lambda: self.tab_space(6))
+         .step(key='YqkhM91NU1ZXR', desc='签收入库')
+         .step(key='FK1CyJ2AE1v2x', desc='流转仓库')
+         .custom(lambda: self.up_enter())
+         .step(key='JrbaWBGI1gv6o', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_confirmation_bond)
-    def confirmation_bond(self):
+    @doc(fNG49PWF3oUJGnsMAIuf)
+    def fNG49PWF3oUJGnsMAIuf(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='confirmation_bond', desc='确认保卖')
-         .step(key='platform_review_ok', desc='确定')
+        (self.step(key='gRkxUlOKXriQL', desc='订单列表')
+         .step(key='EIAidGr5BBqQp', desc='确认保卖')
+         .step(key='SSky1RaypmKBi', desc='确定')
          .custom(lambda: self.wait_time(5))
          .custom(lambda: self.refresh_page())
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_apply_for_bargaining)
-    def apply_for_bargaining(self):
+    @doc(EjR5pz1y2L10GHnV2z4v)
+    def EjR5pz1y2L10GHnV2z4v(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='apply_for_bargaining', desc='申请议价')
-         .step(key='application_instructions', value=self.serial, action='input', desc='申请说明')
-         .step(key='platform_review_ok', desc='确定')
+        (self.step(key='wODQcZrEqTrdW', desc='订单列表')
+         .step(key='WOv2TNiY4yMil', desc='申请议价')
+         .step(key='mEbWPVKALAErD', value=self.serial, action='input', desc='申请说明')
+         .step(key='wgjBFAlrxEyTi', desc='确定')
          .wait())
         return self
 
 
-class HelpSellTheListOfGoodsPages(CommonPages):
+class Q1DeeKQy46a(CommonPages):
     """帮卖管理|帮卖来货列表"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='help_sell_manage_menu', desc='帮卖管理')
-         .step(key='help_sell_manage_menu', desc='帮卖管理')
-         .step(key='help_sell_the_list_of_goods_menu', desc='帮卖来货列表')
+        (self.scroll(key='EC0mSdFuRMZXH', desc='帮卖管理')
+         .step(key='cUwiTehH4IZ5H', desc='帮卖管理')
+         .step(key='SXIm7Ks3enFaC', desc='帮卖来货列表')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_the_flow_of_goods_is_signed)
-    def the_flow_of_goods_is_signed(self):
+    @doc(rE4s2MubKTarhv1LX8Ps)
+    def rE4s2MubKTarhv1LX8Ps(self):
         self.menu_manage()
-        (self.step(key='logistics_sign_off', desc='物流签收')
+        (self.step(key='h8f2WLpasFvYz', desc='物流签收')
          .custom(lambda: self.wait_time())
-         .step(key='inbound_search', desc='搜索')
-         .custom(lambda: self.tab_return(6))
-         .step(key='be_put_in_storage', desc='签收入库')
-         .step(key='circulation_warehouse', desc='流转仓库')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='submit_into_the_warehouse', desc='确定')
+         .step(key='SWFqtzalyLs02', desc='搜索')
+         .custom(lambda: self.tab_space(6))
+         .step(key='H3OLRoy68lXRZ', desc='签收入库')
+         .step(key='XdaqtHb83IFPJ', desc='流转仓库')
+         .custom(lambda: self.up_enter())
+         .step(key='MGo5LzOrVUHCl', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_manual_signature)
+    @doc(manual_signature)
     def manual_signature(self):
         self.menu_manage()
-        (self.step(key='manual_signature', desc='手动签收')
-         .step(key='manual_sign_off_is_confirmed', desc='确定')
+        (self.step(key='UMNOCBOEXLETZ', desc='手动签收')
+         .step(key='cyUxrYFKZ57TT', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_go_to_quality)
-    def go_to_quality(self):
+    @doc(UEgbcBjQGEn3BLntI6lb)
+    def UEgbcBjQGEn3BLntI6lb(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='return_machine', desc='去质检')
-         .step(key='fineness_color', desc='成色')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='remarks', value='质检备注', action='input', desc='备注')
-         .step(key='labor_costs', value=self.number, action='input', desc='预售保卖价')
-         .step(key='go_to_quality_inspection_to_determine', desc='确定')
+        (self.step(key='VbZmXZa2ZI5Ys', desc='订单列表')
+         .step(key='MuVMaHbSjZ5Ap', desc='去质检')
+         .step(key='Q5VeLX6Es4L43', desc='成色')
+         .custom(lambda: self.up_enter())
+         .step(key='ng1ELqSDeT7HQ', value='质检备注', action='input', desc='备注')
+         .step(key='xZFz957C5Kstt', value=self.number, action='input', desc='预售保卖价')
+         .step(key='lNed7hEvyN4or', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_de_check)
-    def de_check(self):
+    @doc(LB9ycxycPTRF4K0JdDw7)
+    def LB9ycxycPTRF4K0JdDw7(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='return_machine', desc='去复检')
+        (self.step(key='SxJghFJFphUQy', desc='订单列表')
+         .step(key='OsJSAYaM1gdTs', desc='去复检')
          .scroll('guaranteed_price', desc='预售保卖价')
-         .step(key='labor_costs', value=self.number, action='input', desc='预售保卖价')
-         .step(key='go_to_the_re_inspection_to_confirm', desc='确定')
+         .step(key='a2pLV6O2G6Mwv', value=self.number, action='input', desc='预售保卖价')
+         .step(key='XxzehwmrD2hUV', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_audit_rejection)
-    def audit_rejection(self):
+    @doc(zHbBDAztWlR3wrimNxlj)
+    def zHbBDAztWlR3wrimNxlj(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='audit_rejection', desc='审核拒绝')
-         .step(key='reason_for_refusal', value=self.serial, action='input', desc='拒绝原因')
-         .step(key='help_review_confirmation', desc='确认')
+        (self.step(key='Z9yBCY8FUkoJw', desc='订单列表')
+         .step(key='DOmhZ4KvFHJYk', desc='审核拒绝')
+         .step(key='ruTtOXgAPAreU', value=self.serial, action='input', desc='拒绝原因')
+         .step(key='HTDnWK6wkvjD0', desc='确认')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_go_to_sale)
-    def go_to_sale(self):
+    @doc(OKe7y8uCYv26BcVNtvU6)
+    def OKe7y8uCYv26BcVNtvU6(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='go_to_sell', desc='去销售')
-         .step(key='definite_jump', desc='确认跳转')
+        (self.step(key='PwmrZXDtzGeRS', desc='订单列表')
+         .step(key='SowMMg1UhLlBc', desc='去销售')
+         .step(key='KkSQoa11Gp4NM', desc='确认跳转')
          .custom(lambda: self.wait_time())
-         .step(key='single_choice', desc='单选')
-         .step(key='out_storage', desc='出库')
-         .step(key='sale_client', desc='销售客户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='tracking_number', value=self.jd, action='input', desc='物流单号')
-         .step(key='express_amount', value=self.number, action='input', desc='物流费用')
+         .step(key='AZw04WazFRpj5', desc='单选')
+         .step(key='RuZQRoU7BEHR2', desc='出库')
+         .step(key='j9yqtNakQCNIy', desc='销售客户')
+         .custom(lambda: self.up_enter())
+         .step(key='MYU5cg0ViOTDD', value=self.jd, action='input', desc='物流单号')
+         .step(key='ctQhBb45Eh2tG', value=self.number, action='input', desc='物流费用')
          .scroll('sell_sales_order_number', desc='销售金额')
-         .step(key='sell_sales_amount', value='5', action='input', desc='销售金额')
-         .step(key='platform_number', value=self.serial, action='input', desc='平台物品编号')
-         .step(key='sell_sales_order_number', value=self.serial, action='input', desc='平台销售订单号')
+         .step(key='KBJ1Xyvo3auih', value='5', action='input', desc='销售金额')
+         .step(key='bGaE3NOkKqlFS', value=self.serial, action='input', desc='平台物品编号')
+         .step(key='SuIAIy3C5JNkL', value=self.serial, action='input', desc='平台销售订单号')
          .scroll('the_amount_of_the_payout', desc='收款金额')
-         .step(key='money_received', desc='已收款')
-         .step(key='collection_account', desc='收款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='the_amount_of_the_payout', value='5', action='input', desc='收款金额')
-         .step(key='verify', desc='确认')
+         .step(key='oGBiIke2beqqQ', desc='已收款')
+         .step(key='MlNvjmNUv1vaZ', desc='收款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='x0yO9eWODdARZ', value='5', action='input', desc='收款金额')
+         .step(key='lwXOdyVl5MAeR', desc='确认')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_manual_settlement)
-    def manual_settlement(self):
+    @doc(yhsanR53oCT3E0y79Pkt)
+    def yhsanR53oCT3E0y79Pkt(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='return_machine', desc='手动结算')
-         .step(key='inventory_count_determined', desc='确定')
-         .step(key='return_machine', desc='手动结算')
-         .step(key='inventory_count_determined', desc='确定')
+        (self.step(key='fJL9lKiFRe0M2', desc='订单列表')
+         .step(key='zkrkYhwQmwpLS', desc='手动结算')
+         .step(key='H6SEo1AvXhYja', desc='确定')
+         .step(key='atu7UYLBkh3Ax', desc='手动结算')
+         .step(key='HpUsf9pvNsfJU', desc='确定')
          .custom(lambda: self.wait_time())
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_express_delivery_unit_set_return_machine)
-    def express_delivery_unit_set_return_machine(self):
+    @doc(vCZ8TzDFnPROV6Oo072B)
+    def vCZ8TzDFnPROV6Oo072B(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='订单列表')
-         .step(key='return_machine', desc='去退机')
+        (self.step(key='Upsje1vrLtFdW', desc='订单列表')
+         .step(key='kJioWIlOM3Yd5', desc='去退机')
          .scroll('go_to_the_retirement_machine_ok', desc='确定')
-         .step(key='calculate_freight', desc='计算运费')
+         .step(key='BJgGDEMiLHesN', desc='计算运费')
          .custom(lambda: self.wait_time())
-         .step(key='go_to_the_retirement_machine_ok', desc='确定')
+         .step(key='gnrQYKIGHtERo', desc='确定')
          .wait())
         return self
 
 
-class HelpServiceConfigurationPages(CommonPages):
+class ZXokM9zOq0v(CommonPages):
     """帮卖管理|帮卖业务配置"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='help_sell_manage_menu', desc='帮卖管理')
-         .step(key='help_sell_manage_menu', desc='帮卖管理')
-         .step(key='help_sell_business_config_menu', desc='帮卖业务配置')
+        (self.scroll(key='TxaOO5Msl4Kyf', desc='帮卖管理')
+         .step(key='Rlj8CDIF72jX1', desc='帮卖管理')
+         .step(key='r26CO5Iyd2VcV', desc='帮卖业务配置')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(h_edit_configuration_information)
-    def edit_configuration_information(self):
+    @doc(lnEVAUkilhXnv8b0GZtm)
+    def lnEVAUkilhXnv8b0GZtm(self):
         self.menu_manage()
-        (self.step(key='modify_the_business_configuration', desc='编辑')
+        (self.step(key='f8CmzNqvL5Gin', desc='编辑')
          .scroll('selling_days', desc='销售天数')
-         .step(key='selling_days', value='30', action='input', desc='销售天数')
-         .step(key='return_flight', value='10', action='input', desc='退机回寄天数')
-         .step(key='auto_settlement', value='10', action='input', desc='自动结算天数')
-         .step(key='service_configuration_confirmation', desc='确认')
+         .step(key='WSLM803GP0T4F', value='30', action='input', desc='销售天数')
+         .step(key='UBUXotAQvPsiF', value='10', action='input', desc='退机回寄天数')
+         .step(key='gE5PNImtUQ90O', value='10', action='input', desc='自动结算天数')
+         .step(key='aF2kLuRwZD1AR', desc='确认')
          .wait())
         return self

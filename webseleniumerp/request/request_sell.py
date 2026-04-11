@@ -7,13 +7,13 @@ from common.import_desc import *
 from config.user_info import INFO
 
 
-class SellAfterSalesHandlingRequest(InitializeParams):
+class EPSnRVHPCS(InitializeParams):
     """商品销售|销售售后管理|销售售后处理"""
 
-    @doc(s_sales_after_sales_returns)
+    @doc(DjkghfK5et2Z3KvN6d3n)
     @BaseApi.timing_decorator
-    def sales_after_sales_returns(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
+    def DjkghfK5et2Z3KvN6d3n(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
         data = {
             "saleType": "1",
             "remark": "备注",
@@ -34,12 +34,12 @@ class SellAfterSalesHandlingRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(s_sell_returned_spare_parts_after_sale_journey_warehouse)
+    @doc(w2XcfZ42REixTHsF0D6w)
     @BaseApi.timing_decorator
-    def sell_returned_spare_parts_after_sale_journey_warehouse(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def w2XcfZ42REixTHsF0D6w(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "2",
             "remark": "备注",
@@ -74,12 +74,12 @@ class SellAfterSalesHandlingRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(s_sell_returned_spare_parts_after_sale_journey)
+    @doc(kveY9vSZiCveNHGRKZ5u)
     @BaseApi.timing_decorator
-    def sell_returned_spare_parts_after_sale_journey(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def kveY9vSZiCveNHGRKZ5u(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "2",
             "remark": "备注",
@@ -114,17 +114,17 @@ class SellAfterSalesHandlingRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
 
-class SellGoodsListingRequest(InitializeParams):
+class JhWPhXjKbY(InitializeParams):
     """商品销售|销售管理|销售上架"""
 
-    @doc(s_sell_goods_listing)
+    @doc(kiSivAHj3Vab5m78JpuW)
     @BaseApi.timing_decorator
-    def sell_goods_listing(self, nocheck=False):
+    def kiSivAHj3Vab5m78JpuW(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(i='2', j='13')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": 2,
@@ -150,28 +150,28 @@ class SellGoodsListingRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sale_goods_listing', data, 'main', nocheck)
+        return self._make_request('post', 'XmMhypsCX', data, 'main', nocheck)
 
 
-class SellMiddleItemListRequest(InitializeParams):
+class G4HwM9EjFQ(InitializeParams):
     """商品销售|销售管理|销售中物品列表"""
 
     @BaseApi.timing_decorator
     def item_number(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='15')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'set_articles_no', data, 'main', nocheck)
+        return self._make_request('post', 'QBZVuqz0S', data, 'main', nocheck)
 
-    @doc(s_edit_status_info_pay)
+    @doc(htCvd4xY1c0JleADicMq)
     @BaseApi.timing_decorator
-    def edit_status_info_pay(self, nocheck=False):
+    def htCvd4xY1c0JleADicMq(self, nocheck=False):
         self.item_number()
-        res = self.pc.sell_list_of_items_for_sale_data()
-        res_2 = self.pc.sell_list_of_items_for_sale_data(data='a')
+        res = self.pc.Ez77PXDybIrSTaH32RHsz()
+        res_2 = self.pc.Ez77PXDybIrSTaH32RHsz(data='a')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -205,14 +205,14 @@ class SellMiddleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(s_edit_status_info_not_received)
+    @doc(rrBrdjBX494MEDd1GeWh)
     @BaseApi.timing_decorator
-    def edit_status_info_not_received(self, nocheck=False):
+    def rrBrdjBX494MEDd1GeWh(self, nocheck=False):
         self.item_number()
-        res = self.pc.sell_list_of_items_for_sale_data()
-        res_2 = self.pc.sell_list_of_items_for_sale_data(data='a')
+        res = self.pc.Ez77PXDybIrSTaH32RHsz()
+        res_2 = self.pc.Ez77PXDybIrSTaH32RHsz(data='a')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -243,12 +243,12 @@ class SellMiddleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(s_on_and_off_shelves)
+    @doc(zGRElY85yjm7F6rhrCx3)
     @BaseApi.timing_decorator
-    def on_and_off_shelves(self, nocheck=False):
-        res = self.pc.sell_list_of_items_for_sale_data(data='b')
+    def zGRElY85yjm7F6rhrCx3(self, nocheck=False):
+        res = self.pc.Ez77PXDybIrSTaH32RHsz(data='b')
         data = {
             "articlesList": [
                 {
@@ -260,13 +260,13 @@ class SellMiddleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'take_down', data, 'main', nocheck)
+        return self._make_request('post', 'dyEwhLq1w', data, 'main', nocheck)
 
-    @doc(s_presale_confirm_the_sale)
+    @doc(ooNlz00UWyMoRIn0Nq8E)
     @BaseApi.timing_decorator
-    def presale_confirm_the_sale(self, nocheck=False):
-        res = self.pc.sell_list_of_items_for_sale_data(i='1', j='5')
-        res_2 = self.pc.inventory_list_data(i='3', j='19')
+    def ooNlz00UWyMoRIn0Nq8E(self, nocheck=False):
+        res = self.pc.Ez77PXDybIrSTaH32RHsz(i='1', j='5')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='19')
         data = [
             {
                 "id": res[0]['id'],
@@ -283,13 +283,13 @@ class SellMiddleItemListRequest(InitializeParams):
                 "saleType": 5
             }
         ]
-        return self._make_request('put', 'confirm_the_sale', data, 'main', nocheck)
+        return self._make_request('put', 'bRNJDSKP5', data, 'main', nocheck)
 
-    @doc(s_sales_and_delivery_of_goods)
+    @doc(bLvgAVe5W8UHtELDxMfB)
     @BaseApi.timing_decorator
-    def sales_and_delivery_of_goods(self, nocheck=False):
-        res = self.pc.sell_list_of_items_for_sale_data(i='1', j='5')
-        res_2 = self.pc.inventory_list_data(i='3', j='19')
+    def bLvgAVe5W8UHtELDxMfB(self, nocheck=False):
+        res = self.pc.Ez77PXDybIrSTaH32RHsz(i='1', j='5')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='19')
         data = {
             "articlesList": [
                 {
@@ -305,13 +305,13 @@ class SellMiddleItemListRequest(InitializeParams):
             "logisticsNo": self.sf,
             "warehouseId": INFO['main_item_warehouse_id']
         }
-        return self._make_request('put', 'return_of_the_goods', data, 'main', nocheck)
+        return self._make_request('put', 'ARuPJm52s', data, 'main', nocheck)
 
-    @doc(s_sell_goods_out_of_the_warehouse)
+    @doc(asfN7GBuig1lB2JTFGbz)
     @BaseApi.timing_decorator
-    def sell_goods_out_of_the_warehouse(self, nocheck=False):
-        res = self.pc.sell_list_of_items_for_sale_data(i='1', j='5')
-        res_2 = self.pc.inventory_list_data(i='3', j='19')
+    def asfN7GBuig1lB2JTFGbz(self, nocheck=False):
+        res = self.pc.Ez77PXDybIrSTaH32RHsz(i='1', j='5')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='19')
         data = [
             {
                 "id": res[0]['id'],
@@ -328,103 +328,27 @@ class SellMiddleItemListRequest(InitializeParams):
                 "saleType": 3
             }
         ]
-        return self._make_request('put', 'confirm_the_sale', data, 'main', nocheck)
-
-    @doc(s_sell_search_in_sale_type)
-    @BaseApi.timing_decorator
-    def sell_search_in_sale_type(self):
-        saleType = 5
-        ParamCache.cache_object({"saleType": saleType}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleType": saleType,
-        }
-        return self._make_request('post', 'goods_list_for_sale', data, 'main')
-
-    @doc(s_sell_search_in_imei)
-    @BaseApi.timing_decorator
-    def sell_search_in_imei(self):
-        res = self.pc.sell_list_of_items_for_sale_data()
-        imei = res[0]['imei']
-        ParamCache.cache_object({"imei": imei}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "queryNo": res[0]['imei']
-        }
-        return self._make_request('post', 'goods_list_for_sale', data, 'main')
-
-    @doc(s_sell_search_in_supplier_id)
-    @BaseApi.timing_decorator
-    def sell_search_in_supplier_id(self):
-        supplierId = INFO['main_sale_supplier_id']
-        ParamCache.cache_object({"saleSupplierId": supplierId}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "supplierId": supplierId
-        }
-        return self._make_request('post', 'goods_list_for_sale', data, 'main')
-
-    @doc(s_sell_search_in_belong_type)
-    @BaseApi.timing_decorator
-    def sell_search_in_belong_type(self):
-        belongType = 1
-        ParamCache.cache_object({"belongType": belongType}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "belongType": belongType
-        }
-        return self._make_request('post', 'goods_list_for_sale', data, 'main')
-
-    @doc(s_sell_search_in_user_id)
-    @BaseApi.timing_decorator
-    def sell_search_in_user_id(self):
-        user_id = INFO['main_user_id']
-        ParamCache.cache_object({"userId": user_id}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "userId": user_id
-        }
-        return self._make_request('post', 'goods_list_for_sale', data, 'main')
-
-    @doc(s_sell_search_in_date)
-    @BaseApi.timing_decorator
-    def sell_search_in_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "time": [
-                self.get_the_date(-1),
-                self.get_the_date()
-            ],
-            "startTime": self.get_the_date(-1),
-            "endTime": self.get_the_date()
-        }
-        return self._make_request('post', 'goods_list_for_sale', data, 'main')
+        return self._make_request('put', 'bRNJDSKP5', data, 'main', nocheck)
 
 
-class SellSaleItemRequest(InitializeParams):
+class K840BKXUBB(InitializeParams):
     """商品销售|销售管理|待销售物品"""
 
     @BaseApi.timing_decorator
     def item_number(self, nocheck=False):
-        res = self.pc.sell_goods_received_data()
+        res = self.pc.Mb5NtymgNZq58BhIE7Umz()
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'set_articles_no', data, 'main', nocheck)
+        return self._make_request('post', 'QBZVuqz0S', data, 'main', nocheck)
 
-    @doc(s_sell_listing)
+    @doc(iqOJswY1Y3kNWO1jXmAc)
     @BaseApi.timing_decorator
-    def sell_listing(self, nocheck=False):
-        res = self.pc.sell_items_for_sale_data()
-        res_2 = self.pc.sell_items_for_sale_data(data='a')
+    def iqOJswY1Y3kNWO1jXmAc(self, nocheck=False):
+        res = self.pc.XTk41pUDr28xCf1YL17uR()
+        res_2 = self.pc.XTk41pUDr28xCf1YL17uR(data='a')
         data = {
             "clientId": INFO['main_sale_supplier_id'],
             "clientName": INFO['vice_sales_customer_name'],
@@ -450,26 +374,13 @@ class SellSaleItemRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sale_goods_listing', data, 'main', nocheck)
+        return self._make_request('post', 'XmMhypsCX', data, 'main', nocheck)
 
-    @doc(s_wait_sell_articles_search_by_imei)
+    @doc(psGTQePHRPXOVLvXlZU5)
     @BaseApi.timing_decorator
-    def wait_sell_articles_search_by_imei(self):
-        res = self.pc.sell_items_for_sale_data()
-        imei = res[0]['imei']
-        ParamCache.cache_object({"imei": imei}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesNoOrImei": imei
-        }
-        return self._make_request('post', 'items_for_sale', data, 'main')
-
-    @doc(s_sell_get_out)
-    @BaseApi.timing_decorator
-    def sell_get_out(self, nocheck=False):
-        res = self.pc.sell_items_for_sale_data()
-        res_2 = self.pc.sell_items_for_sale_data(data='a')
+    def psGTQePHRPXOVLvXlZU5(self, nocheck=False):
+        res = self.pc.XTk41pUDr28xCf1YL17uR()
+        res_2 = self.pc.XTk41pUDr28xCf1YL17uR(data='a')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -505,14 +416,14 @@ class SellSaleItemRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(s_sell_advance_sale)
+    @doc(BjtCW4zAlmHFf4hnEsyK)
     @BaseApi.timing_decorator
-    def sell_advance_sale(self, nocheck=False):
+    def BjtCW4zAlmHFf4hnEsyK(self, nocheck=False):
         self.item_number()
-        res = self.pc.sell_items_for_sale_data()
-        res_2 = self.pc.sell_items_for_sale_data(data='a')
+        res = self.pc.XTk41pUDr28xCf1YL17uR()
+        res_2 = self.pc.XTk41pUDr28xCf1YL17uR(data='a')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "5",
@@ -548,14 +459,14 @@ class SellSaleItemRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(s_sell_distribution)
+    @doc(aMAnXMswO97RRUy2WDp5)
     @BaseApi.timing_decorator
-    def sell_distribution(self, nocheck=False):
+    def aMAnXMswO97RRUy2WDp5(self, nocheck=False):
         self.item_number()
-        res = self.pc.sell_items_for_sale_data()
-        res_2 = self.pc.sell_items_for_sale_data(data='a')
+        res = self.pc.XTk41pUDr28xCf1YL17uR()
+        res_2 = self.pc.XTk41pUDr28xCf1YL17uR(data='a')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "3",
@@ -591,103 +502,20 @@ class SellSaleItemRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
 
-class SellSaleOrderListRequest(InitializeParams):
+class A87tiuwVRI(InitializeParams):
     """商品销售|销售管理|已销售订单列表"""
 
-    @doc(s_search_by_order_no)
-    @BaseApi.timing_decorator
-    def search_by_order_no(self):
-        res = self.pc.sell_sale_order_list_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
 
-    @doc(s_search_by_state)
-    @BaseApi.timing_decorator
-    def search_by_state(self):
-        status = 1
-        ParamCache.cache_object({"status": status}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "status": status,
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
-
-    @doc(s_search_by_sale_supplier_id)
-    @BaseApi.timing_decorator
-    def search_by_sale_supplier_id(self):
-        sid = INFO['main_sale_supplier_id']
-        ParamCache.cache_object({"saleSupplierId": sid}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleSupplierId": sid,
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
-
-    @doc(s_search_by_sale_user_id)
-    @BaseApi.timing_decorator
-    def search_by_sale_user_id(self):
-        sid = INFO['main_user_id']
-        ParamCache.cache_object({"saleUserId": sid}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleUserId": sid,
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
-
-    @doc(s_order_search_by_date)
-    @BaseApi.timing_decorator
-    def order_search_by_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "total": 0,
-            "startSaleTime": self.get_the_date(-1),
-            "endSaleTime": self.get_the_date()
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
-
-    @doc(s_order_search_by_out_date)
-    @BaseApi.timing_decorator
-    def order_search_by_out_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "startSaleTime": self.get_the_date(-1),
-            "endSaleTime": self.get_the_date()
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
-
-    @doc(s_order_search_by_logistics_no)
-    @BaseApi.timing_decorator
-    def order_search_by_logistics_no(self):
-        res = self.pc.sell_sale_order_list_data()
-        ParamCache.cache_object({"logisticsNo": res[0]['logisticsNo']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "logisticsNo": res[0]['logisticsNo'],
-        }
-        return self._make_request('post', 'list_of_sold_orders', data, 'main')
-
-
-class SellSaleItemListRequest(InitializeParams):
+class H48MfRLnYT(InitializeParams):
     """商品销售|销售管理|已销售物品列表"""
 
-    @doc(s_sell_refund_difference)
+    @doc(J6LQWn0szGuyNJ0UuFq8)
     @BaseApi.timing_decorator
-    def sell_refund_difference(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def J6LQWn0szGuyNJ0UuFq8(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "5",
             "status": 1,
@@ -705,12 +533,12 @@ class SellSaleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(s_sell_return_goods_route)
+    @doc(mZBEQDHNTjeSAXBWx11z)
     @BaseApi.timing_decorator
-    def sell_return_goods_route(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def mZBEQDHNTjeSAXBWx11z(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "1",
             "remark": "test",
@@ -731,12 +559,12 @@ class SellSaleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(s_sell_return_only_parts_route)
+    @doc(JjVcGp9jSl8TI9nj2xVw)
     @BaseApi.timing_decorator
-    def sell_return_only_parts_route(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def JjVcGp9jSl8TI9nj2xVw(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "2",
             "status": 1,
@@ -771,12 +599,12 @@ class SellSaleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(s_sell_return_only_parts_warehousing)
+    @doc(XfB5KTH8vn0wDw6a9KJQ)
     @BaseApi.timing_decorator
-    def sell_return_only_parts_warehousing(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def XfB5KTH8vn0wDw6a9KJQ(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "2",
             "remark": "123",
@@ -812,12 +640,12 @@ class SellSaleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(s_sales_are_refunded_only)
+    @doc(gVnbM599DimecmAZ6Xlg)
     @BaseApi.timing_decorator
-    def sales_are_refunded_only(self, nocheck=False):
-        res = self.pc.sell_sale_item_list_data()
+    def gVnbM599DimecmAZ6Xlg(self, nocheck=False):
+        res = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "saleType": "8",
             "remark": "test",
@@ -834,207 +662,35 @@ class SellSaleItemListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
-
-    @doc(s_search_by_sale_no)
-    @BaseApi.timing_decorator
-    def search_by_sale_no(self):
-        res = self.pc.sell_sale_item_list_data()
-        obj = res[0]['salesOrder']
-        ParamCache.cache_object({"salesOrder": obj}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_imei)
-    @BaseApi.timing_decorator
-    def search_by_imei(self):
-        res = self.pc.sell_sale_item_list_data()
-        obj = res[0]['imei']
-        ParamCache.cache_object({"imei": obj}, 'practical.json')
-        data = {
-            "articlesNoOrImei": obj,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_category_id)
-    @BaseApi.timing_decorator
-    def search_by_category_id(self):
-        obj = 1
-        ParamCache.cache_object({"categoryId": obj}, 'practical.json')
-        data = {
-            "categoryId": obj,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_brand)
-    @BaseApi.timing_decorator
-    def search_by_brand(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "categoryId": 1,
-            "brandId": 1
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_model)
-    @BaseApi.timing_decorator
-    def search_by_model(self):
-        model_id = 17569
-        ParamCache.cache_object({"modelId": model_id}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "categoryId": "1",
-            "brandId": 1,
-            "modelId": model_id
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_supplier_id)
-    @BaseApi.timing_decorator
-    def search_by_supplier_id(self):
-        supplier_id = INFO['main_supplier_id']
-        ParamCache.cache_object({"supplierId": supplier_id}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "supplierId": supplier_id
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_sale_supplier_id)
-    @BaseApi.timing_decorator
-    def search_by_sale_supplier_id(self):
-        client_id = INFO['main_sale_supplier_id']
-        ParamCache.cache_object({"clientId": client_id}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleSupplierId": client_id
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_status)
-    @BaseApi.timing_decorator
-    def search_by_status(self):
-        status = 2
-        ParamCache.cache_object({"status": status}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "status": status
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_platform_no)
-    @BaseApi.timing_decorator
-    def search_by_platform_no(self):
-        res = self.pc.sell_sale_item_list_data()
-        obj = res[0]['platformNo']
-        ParamCache.cache_object({"platformNo": obj}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "sellPlatformArticlesNo": obj
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_sell_platform_no)
-    @BaseApi.timing_decorator
-    def search_by_sell_platform_no(self):
-        res = self.pc.sell_sale_item_list_data()
-        obj = res[0]['sellPlatformOrderNo']
-        ParamCache.cache_object({"sellPlatformOrderNo": obj}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "sellPlatformOrderNo": obj
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_sell_date)
-    @BaseApi.timing_decorator
-    def search_by_sell_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "time": [
-                self.get_the_date(-1),
-                self.get_the_date()
-            ],
-            "startSaleTime": self.get_the_date(-1),
-            "endSaleTime": self.get_the_date()
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
-
-    @doc(s_search_by_user_id)
-    @BaseApi.timing_decorator
-    def search_by_user_id(self):
-        ParamCache.cache_object({"userId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleUserId": INFO['main_user_id']
-        }
-        return self._make_request('post', 'sell_sale_item_list', data, 'main')
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
 
-class SellCustomManageRequest(InitializeParams):
+
+class UkltE3HM8G(InitializeParams):
     """商品销售|客户管理"""
 
-    @doc(s_sell_after_sale_by_articles_no)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_articles_no(self):
-        res = self.pc.sell_after_sales_list_data(data='a')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesNoOrImei": res[0]['articlesNo'],
-            "saleStatus": "4"
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
 
-
-class SellStaticsRequest(InitializeParams):
+class LwtGu0p14m(InitializeParams):
     """商品销售|数据统计"""
 
-    @doc(s_sell_statics_search_by_sale_custom)
-    @BaseApi.timing_decorator
-    def sell_statics_search_by_sale_custom(self):
-        ParamCache.cache_object({"saleSupplierId": INFO['main_sale_supplier_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleSupplierId": [INFO['main_sale_supplier_id']],
-        }
-        return self._make_request('post', 'sell_statics', data, 'main')
 
-
-class SellSalesListRequest(InitializeParams):
+class AHdZ4hW3TP(InitializeParams):
     """商品销售|销售售后管理|销售售后列表"""
 
     @BaseApi.timing_decorator
     def item_number(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='15')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'set_articles_no', data, 'main', nocheck)
+        return self._make_request('post', 'QBZVuqz0S', data, 'main', nocheck)
 
-    @doc(s_sell_after_sale_attachment)
+    @doc(GDdc1h1eADXbjk8ujR60)
     @BaseApi.timing_decorator
-    def sell_after_sale_attachment(self, nocheck=False):
-        res = self.pc.sell_after_sales_list_data(data='a')
+    def GDdc1h1eADXbjk8ujR60(self, nocheck=False):
+        res = self.pc.Kw5nIo3WQBrH2BPScRj1B(data='a')
         data = {
             "saleType": 2,
             "orderNo": res[0]['orderNo'],
@@ -1052,12 +708,12 @@ class SellSalesListRequest(InitializeParams):
             "logisticsNo": res[0]['logisticsNo'],
             "warehouseId": INFO['main_in_warehouse_id']
         }
-        return self._make_request('post', 'update_sale_status', data, 'main', nocheck)
+        return self._make_request('post', 'NvlOrpxv0', data, 'main', nocheck)
 
-    @doc(s_sell_after_sale_refund)
+    @doc(xSQE9e6LbvvilOg9OMsy)
     @BaseApi.timing_decorator
-    def sell_after_sale_refund(self, nocheck=False):
-        res = self.pc.sell_after_sales_list_data(data='a')
+    def xSQE9e6LbvvilOg9OMsy(self, nocheck=False):
+        res = self.pc.Kw5nIo3WQBrH2BPScRj1B(data='a')
         data = {
             "fineSalePrice": 100,
             "saleType": 4,
@@ -1075,13 +731,13 @@ class SellSalesListRequest(InitializeParams):
             ],
             "articlesNoOrImei": res[0]['articlesNo']
         }
-        return self._make_request('post', 'update_sale_status', data, 'main', nocheck)
+        return self._make_request('post', 'NvlOrpxv0', data, 'main', nocheck)
 
-    @doc(s_sell_after_sale_barter)
+    @doc(ebhsQ41HitCvjEsvMz0G)
     @BaseApi.timing_decorator
-    def sell_after_sale_barter(self, nocheck=False):
-        res = self.pc.sell_after_sales_list_data(data='a')
-        res_2 = self.pc.inventory_list_data(i='2', j='3')
+    def ebhsQ41HitCvjEsvMz0G(self, nocheck=False):
+        res = self.pc.Kw5nIo3WQBrH2BPScRj1B(data='a')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -1107,12 +763,12 @@ class SellSalesListRequest(InitializeParams):
             },
             "isSaleType": True
         }
-        return self._make_request('post', 'sell_after_sale_out_stock', data, 'main', nocheck)
+        return self._make_request('post', 'zuYSO5V1e', data, 'main', nocheck)
 
-    @doc(s_sell_after_sale_refusal_return)
+    @doc(GdXpXPawmTeBaOha9VUo)
     @BaseApi.timing_decorator
-    def sell_after_sale_refusal_return(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='15')
+    def GdXpXPawmTeBaOha9VUo(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -1140,108 +796,13 @@ class SellSalesListRequest(InitializeParams):
             },
             "isSaleType": True
         }
-        return self._make_request('post', 'sell_after_sale_out_stock', data, 'main', nocheck)
+        return self._make_request('post', 'zuYSO5V1e', data, 'main', nocheck)
 
-    @doc(s_sell_after_sale_by_articles_no)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_articles_no(self):
-        res = self.pc.sell_after_sales_list_data(data='a')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesNoOrImei": res[0]['articlesNo'],
-            "saleStatus": "4"
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
 
-    @doc(s_sell_after_sale_by_platform_articles_no)
+    @doc(pt4gIHCRgdVZv3FGKFVq)
     @BaseApi.timing_decorator
-    def sell_after_sale_by_platform_articles_no(self):
-        res = self.pc.sell_after_sales_list_data(data='a')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "platformArticlesNo": res[0]['purchasePlatformArticlesNo'],
-            "saleStatus": "4"
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_by_sale_order_no)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_sale_order_no(self):
-        res = self.pc.sell_after_sales_list_data(data='a')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "orderNo": res[0]['orderNo'],
-            "saleStatus": "4"
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_by_sale_user_id)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_sale_user_id(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleUserId": INFO['main_sale_supplier_id'],
-            "saleStatus": "4"
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_by_sale_type)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_sale_type(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleTypes": [1],
-            "saleStatus": "4"
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_by_create_time)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_create_time(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleStatus": "4",
-            "time": [
-                self.get_the_date(),
-                self.get_the_date()
-            ],
-            "startSaleTime": self.get_the_date(),
-            "endSaleTime": self.get_the_date()
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_by_return_type)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_return_type(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleStatus": "4",
-            "returnType": 1,
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_by_is_sale_channel)
-    @BaseApi.timing_decorator
-    def sell_after_sale_by_is_sale_channel(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleStatus": "4",
-            "isSaleChannel": 0,
-        }
-        return self._make_request('post', 'sales_aftermarket_list', data, 'main')
-
-    @doc(s_sell_after_sale_repair)
-    @BaseApi.timing_decorator
-    def sell_after_sale_repair(self, nocheck=False):
-        res = self.pc.sell_after_sales_list_data(data='a')
+    def pt4gIHCRgdVZv3FGKFVq(self, nocheck=False):
+        res = self.pc.Kw5nIo3WQBrH2BPScRj1B(data='a')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo'],
@@ -1269,22 +830,24 @@ class SellSalesListRequest(InitializeParams):
             },
             "isSaleType": True
         }
-        return self._make_request('post', 'sell_after_sale_out_stock', data, 'main', nocheck)
+        return self._make_request('post', 'zuYSO5V1e', data, 'main', nocheck)
 
 
-class SellWaitReceivedRequest(InitializeParams):
+class BLHu01CRzs(InitializeParams):
     """商品销售|销售管理|待接收物品"""
 
+    @doc(TjFLeMzswpHGeziySvFD)
     @BaseApi.timing_decorator
-    def wait_received_one_search_by_imei(self):
-        res = self.pc.sell_goods_received_data()
+    def TjFLeMzswpHGeziySvFD(self):
+        res = self.pc.Mb5NtymgNZq58BhIE7Umz()
         obj = res[0]['imei']
         ParamCache.cache_object({"imei": obj}, 'practical.json')
         data = {"pageNum": 1, "pageSize": 10, "articlesState": 13, "articlesType": "1", "articlesNo": obj}
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
+        return self._make_request('post', 'RbZZfqC2S', data, 'main')
 
+    @doc(gRGlwNpXR7APhkJ0lUaA)
     @BaseApi.timing_decorator
-    def wait_received_one_search_by_date(self):
+    def gRGlwNpXR7APhkJ0lUaA(self):
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1293,90 +856,11 @@ class SellWaitReceivedRequest(InitializeParams):
             "erpStartTime": self.get_the_date(-1),
             "erpEndTime": self.get_the_date()
         }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
+        return self._make_request('post', 'RbZZfqC2S', data, 'main')
 
 
-class SellingOrderListRequest(InitializeParams):
+class WS1s1EqRY2(InitializeParams):
     """商品销售|销售管理|销售中订单列表"""
-
-    @BaseApi.timing_decorator
-    def selling_order_search_by_batch_no(self):
-        res = self.pc.selling_order_list_data()
-        obj = res[0]['batchNo']
-        ParamCache.cache_object({"batchNo": obj}, 'practical.json')
-        data = {
-            "batchNo": obj,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'order_list_for_sale', data, 'main')
-
-    @BaseApi.timing_decorator
-    def selling_order_search_by_type(self):
-        type = 2
-        ParamCache.cache_object({"type": type}, 'practical.json')
-        data = {
-            "type": type,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'order_list_for_sale', data, 'main')
-
-    @BaseApi.timing_decorator
-    def selling_order_search_by_sale_supplier_id(self):
-        sale_supplier_id = INFO['main_sale_supplier_id']
-        ParamCache.cache_object({"saleSupplierId": sale_supplier_id}, 'practical.json')
-        data = {
-            "saleSupplierId": sale_supplier_id,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'order_list_for_sale', data, 'main')
-
-    @BaseApi.timing_decorator
-    def selling_order_search_by_sale_user_id(self):
-        sale_user_id = INFO['main_user_id']
-        ParamCache.cache_object({"saleUserId": sale_user_id}, 'practical.json')
-        data = {
-            "saleUserId": sale_user_id,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'order_list_for_sale', data, 'main')
-
-    @BaseApi.timing_decorator
-    def selling_order_search_by_logistics_no(self):
-        res = self.pc.selling_order_list_data()
-        obj = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": obj}, 'practical.json')
-        data = {
-            "logisticsNo": obj,
-            "pageNum": 1,
-            "pageSize": 10
-        }
-        return self._make_request('post', 'order_list_for_sale', data, 'main')
-
-    @BaseApi.timing_decorator
-    def selling_order_search_by_sale_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "startTime": self.get_the_date(-1),
-            "endTime": self.get_the_date()
-        }
-        return self._make_request('post', 'order_list_for_sale', data, 'main')
-
-    @BaseApi.timing_decorator
-    def wait_received_one_search_by_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesState": 13,
-            "articlesType": "1",
-            "erpStartTime": self.get_the_date(-1),
-            "erpEndTime": self.get_the_date()
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
 
 
 if __name__ == '__main__':

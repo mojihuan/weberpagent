@@ -1,7 +1,7 @@
 # coding: utf-8
 import json
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.import_desc import *
 from config.user_info import INFO
 
@@ -10,15 +10,15 @@ parameterList = BaseApi.load_json_file('request_help.json')['parameterList']
 templateVOS = BaseApi.load_json_file('request_help.json')['templateVOS']
 
 
-class HelpGenerateOrderRequest(InitializeParams):
+class N1bdBTU6wm(InitializeParams):
     """帮卖管理|帮卖上架列表"""
 
-    @doc(h_new_help_order)
+    @doc(gHXYe9nXDQKo8k2pCpHF)
     @BaseApi.timing_decorator
-    def new_help_order(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
-        self.add_item()
-        self.save_the_desired_price()
+    def gHXYe9nXDQKo8k2pCpHF(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
+        self.x2Ue8YzUHAdfE5e1ah2B()
+        self.vsKRonFDNGzytQja2jna()
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -27,14 +27,14 @@ class HelpGenerateOrderRequest(InitializeParams):
             "batchRemark": "备注",
             "settlementType": 1
         }
-        return self._make_request('post', 'one_click_submit', data, 'main', nocheck)
+        return self._make_request('post', 'NE7Tz9kCF', data, 'main', nocheck)
 
-    @doc(h_new_guaranteed_purchase_order)
+    @doc(iCbN7kUssvEHLZtMSh1V)
     @BaseApi.timing_decorator
-    def new_guaranteed_purchase_order(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
-        self.add_item()
-        self.save_the_desired_price()
+    def iCbN7kUssvEHLZtMSh1V(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
+        self.x2Ue8YzUHAdfE5e1ah2B()
+        self.vsKRonFDNGzytQja2jna()
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -45,12 +45,12 @@ class HelpGenerateOrderRequest(InitializeParams):
         }
         return self._make_request('post', 'place_an_order', data, 'main', nocheck)
 
-    @doc(h_new_profit_sharing_order)
+    @doc(iPBfiMFiHxZjY3ZEwdIp)
     @BaseApi.timing_decorator
-    def new_profit_sharing_order(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
-        self.add_item()
-        self.save_the_desired_price()
+    def iPBfiMFiHxZjY3ZEwdIp(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
+        self.x2Ue8YzUHAdfE5e1ah2B()
+        self.vsKRonFDNGzytQja2jna()
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -61,10 +61,10 @@ class HelpGenerateOrderRequest(InitializeParams):
         }
         return self._make_request('post', 'place_an_order', data, 'main', nocheck)
 
-    @doc(h_sf_express_delivery_is_easy)
+    @doc(PatKHW4ZM1AOnRz4wYCa)
     @BaseApi.timing_decorator
-    def sf_express_delivery_is_easy(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def PatKHW4ZM1AOnRz4wYCa(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "batchId": res[0]['helpSellBatchId'],
             "orderIdList": [
@@ -98,12 +98,12 @@ class HelpGenerateOrderRequest(InitializeParams):
             "walletAccountNo": INFO['main_wallet_account_no'],
             "expectPostTimeEnd": self.get_formatted_datetime(hours=2)
         }
-        return self._make_request('post', 'shipment', data, 'main', nocheck)
+        return self._make_request('post', 'bDNwCAp4n', data, 'main', nocheck)
 
-    @doc(h_add_item)
+    @doc(x2Ue8YzUHAdfE5e1ah2B)
     @BaseApi.timing_decorator
-    def add_item(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def x2Ue8YzUHAdfE5e1ah2B(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -111,24 +111,24 @@ class HelpGenerateOrderRequest(InitializeParams):
             "helpSellTenantId": INFO['main_help_sell_tenant_id']
         }
 
-        return self._make_request('post', 'add_item', data, 'main', nocheck)
+        return self._make_request('post', 'QUZxLk9kS', data, 'main', nocheck)
 
-    @doc(h_place_an_order_to_add_items_delete_the_item)
+    @doc(YehoAEPuerEeCRCU2qEI)
     @BaseApi.timing_decorator
-    def place_an_order_to_add_items_delete_the_item(self, nocheck=False):
-        res = self.pc.help_generate_order_data(data='a')
+    def YehoAEPuerEeCRCU2qEI(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF(data='a')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ],
             "helpSellTenantId": INFO['main_help_sell_tenant_id']
         }
-        return self._make_request('post', 'delete_the_item', data, 'main', nocheck)
+        return self._make_request('post', 'vDTNyb76a', data, 'main', nocheck)
 
     # 帮卖下单保存期望价格
     @BaseApi.timing_decorator
-    def save_the_desired_price(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def vsKRonFDNGzytQja2jna(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
@@ -136,42 +136,42 @@ class HelpGenerateOrderRequest(InitializeParams):
             "expectPrice": "100",
             "helpSellTenantId": INFO['main_help_sell_tenant_id']
         }
-        return self._make_request('post', 'save_the_desired_price', data, 'main', nocheck)
+        return self._make_request('post', 'IkgcduhSe', data, 'main', nocheck)
 
-    @doc(h_apply_for_cancellation)
+    @doc(fBkRLU5PnvGYpBfZdMYx)
     @BaseApi.timing_decorator
-    def apply_for_cancellation(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def fBkRLU5PnvGYpBfZdMYx(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "orderNoList": [
                 res[0]['orderNo']
             ]
         }
-        return self._make_request('post', 'apply_for_cancellation', data, 'main', nocheck)
+        return self._make_request('post', 'VjS268Bbk', data, 'main', nocheck)
 
-    @doc(h_confirmation_bond)
+    @doc(fNG49PWF3oUJGnsMAIuf)
     @BaseApi.timing_decorator
-    def confirmation_bond(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def fNG49PWF3oUJGnsMAIuf(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "orderNo": res[0]['orderNo']
         }
-        return self._make_request('post', 'confirm_guaranteed_sale', data, 'main', nocheck)
+        return self._make_request('post', 't2W0RXX0y', data, 'main', nocheck)
 
-    @doc(h_apply_for_bargaining)
+    @doc(EjR5pz1y2L10GHnV2z4v)
     @BaseApi.timing_decorator
-    def apply_for_bargaining(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def EjR5pz1y2L10GHnV2z4v(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "orderNo": res[0]['orderNo'],
             "description": "备注"
         }
-        return self._make_request('post', 'apply_for_bargaining', data, 'main', nocheck)
+        return self._make_request('post', 'Upm9s0CAF', data, 'main', nocheck)
 
-    @doc(h_self_dispatch)
+    @doc(CtZUckEy9Xr7Q9rhDgM9)
     @BaseApi.timing_decorator
-    def self_dispatch(self, nocheck=False):
-        res = self.pc.help_generate_order_data(i='wsg')
+    def CtZUckEy9Xr7Q9rhDgM9(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF(i='wsg')
         data = {
             "type": "2",
             "expressNo": self.sf,
@@ -192,12 +192,12 @@ class HelpGenerateOrderRequest(InitializeParams):
             "recipientCountyName": INFO['county_name'],
             "recipientAddress": INFO['detailed_address']
         }
-        return self._make_request('post', 'shipment', data, 'main', nocheck)
+        return self._make_request('post', 'bDNwCAp4n', data, 'main', nocheck)
 
-    @doc(h_send_it_yourself)
+    @doc(lUGAPOtEUoXAYtTaa2Jb)
     @BaseApi.timing_decorator
-    def send_it_yourself(self, nocheck=False):
-        res = self.pc.help_generate_order_data(i='wsg')
+    def lUGAPOtEUoXAYtTaa2Jb(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF(i='wsg')
         data = {
             "batchId": res[0]['helpSellBatchId'],
             "orderIdList": [
@@ -215,35 +215,35 @@ class HelpGenerateOrderRequest(InitializeParams):
             "recipientCountyName": INFO['county_name'],
             "recipientAddress": INFO['detailed_address']
         }
-        return self._make_request('post', 'shipment', data, 'main', nocheck)
+        return self._make_request('post', 'bDNwCAp4n', data, 'main', nocheck)
 
-    @doc(h_cancel_order)
+    @doc(qWL5r2tvJ34XBHF8SvNA)
     @BaseApi.timing_decorator
-    def cancel_order(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def qWL5r2tvJ34XBHF8SvNA(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "orderNoList": [
                 res[0]['orderNo']
             ]
         }
-        return self._make_request('post', 'cancel_order', data, 'main', nocheck)
+        return self._make_request('post', 'fRgdJJtuV', data, 'main', nocheck)
 
-    @doc(h_manual_signature)
+    @doc(xzJ4vjMEgys2mrV0XE7B)
     @BaseApi.timing_decorator
-    def manual_signature(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def xzJ4vjMEgys2mrV0XE7B(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "orderIdList": [
                 res[0]['orderNo']
             ]
         }
-        return self._make_request('post', 'return_express', data, 'main', nocheck)
+        return self._make_request('post', 'vsZZTwr4z', data, 'main', nocheck)
 
-    @doc(h_logistics_signature)
+    @doc(KWGxLZFsVSdw6Fh5ZbAA)
     @BaseApi.timing_decorator
-    def logistics_signature(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
-        res_2 = self.pc.help_sell_the_list_of_goods_data()
+    def KWGxLZFsVSdw6Fh5ZbAA(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
+        res_2 = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "warehouseId": INFO['main_item_warehouse_id'],
             "articlesList": [
@@ -264,25 +264,25 @@ class HelpGenerateOrderRequest(InitializeParams):
                 "remark": ""
             }
         }
-        return self._make_request('post', 'sign_receipt_store', data, 'main', nocheck)
+        return self._make_request('post', 'DYbHAZqxU', data, 'main', nocheck)
 
-    @doc(h_profit_sharing_was_successful)
+    @doc(giHmrq7UpbJoAn7MEMOJ)
     @BaseApi.timing_decorator
-    def profit_sharing_was_successful(self, nocheck=False):
-        res = self.pc.help_generate_order_data()
+    def giHmrq7UpbJoAn7MEMOJ(self, nocheck=False):
+        res = self.pc.PurkQXBjQXG3tz8hUb1SF()
         data = {
             "orderNo": res[0]['orderNo']
         }
-        return self._make_request('post', 'confirm_guaranteed_sale', data, 'main', nocheck)
+        return self._make_request('post', 't2W0RXX0y', data, 'main', nocheck)
 
 
-class HelpSellTheListOfGoodsRequest(InitializeParams):
+class KtEAxo6C4B(InitializeParams):
     """帮卖管理|帮卖来货列表"""
 
-    @doc(h_mail_by_yourself)
+    @doc(puhf4ZwCo9hIo0rzm7zd)
     @BaseApi.timing_decorator
-    def mail_by_yourself(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def puhf4ZwCo9hIo0rzm7zd(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "type": "2",
             "expressNo": self.sf,
@@ -303,12 +303,12 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
             "recipientCountyName": INFO['county_name'],
             "recipientAddress": INFO['detailed_address']
         }
-        return self._make_request('post', 'help_shipment', data, 'vice', nocheck)
+        return self._make_request('post', 'B2Y1BK8tu', data, 'vice', nocheck)
 
-    @doc(h_go_to_quality)
+    @doc(UEgbcBjQGEn3BLntI6lb)
     @BaseApi.timing_decorator
-    def go_to_quality(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def UEgbcBjQGEn3BLntI6lb(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "guaranteeSalePrice": 234,
             "orderNo": res[0]['orderNo'],
@@ -782,12 +782,12 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
             "templateVOS": templateVOS,
             "orderId": res[0]['orderNo']
         }
-        return self._make_request('post', 'go_to_quality', data, 'vice', nocheck)
+        return self._make_request('post', 'IB3gn1xZs', data, 'vice', nocheck)
 
-    @doc(h_the_flow_of_goods_is_signed)
+    @doc(rE4s2MubKTarhv1LX8Ps)
     @BaseApi.timing_decorator
-    def the_flow_of_goods_is_signed(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def rE4s2MubKTarhv1LX8Ps(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "warehouseId": INFO['vice_warehouse_id'],
             "articlesList": [
@@ -806,12 +806,12 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
                 "remark": ""
             }
         }
-        return self._make_request('post', 'sign_receipt_store', data, 'vice', nocheck)
+        return self._make_request('post', 'DYbHAZqxU', data, 'vice', nocheck)
 
-    @doc(h_order_logistics_signature)
+    @doc(s8ZT0XEbPTqi9X6O3C4D)
     @BaseApi.timing_decorator
-    def order_logistics_signature(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def s8ZT0XEbPTqi9X6O3C4D(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "warehouseId": INFO['vice_warehouse_id'],
             "articlesList": [
@@ -830,23 +830,23 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
                 "remark": ""
             }
         }
-        return self._make_request('post', 'sign_receipt_store', data, 'vice', nocheck)
+        return self._make_request('post', 'DYbHAZqxU', data, 'vice', nocheck)
 
-    @doc(h_order_manual_signature)
+    @doc(bpeTVApfqf4ysIlGh0d1)
     @BaseApi.timing_decorator
-    def order_manual_signature(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def bpeTVApfqf4ysIlGh0d1(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "orderIdList": [
                 res[0]['orderNo']
             ]
         }
-        return self._make_request('post', 'sign', data, 'vice', nocheck)
+        return self._make_request('post', 'gKmp1GEat', data, 'vice', nocheck)
 
-    @doc(h_de_check)
+    @doc(LB9ycxycPTRF4K0JdDw7)
     @BaseApi.timing_decorator
-    def de_check(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def LB9ycxycPTRF4K0JdDw7(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "guaranteeSalePrice": self.number,
             "orderNo": res[0]['orderIdList'],
@@ -1305,35 +1305,35 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
             "templateVOS": templateVOS,
             "orderId": res[0]['orderNo']
         }
-        return self._make_request('post', 'go_to_quality', data, 'vice', nocheck)
+        return self._make_request('post', 'IB3gn1xZs', data, 'vice', nocheck)
 
-    @doc(h_audit_rejection)
+    @doc(zHbBDAztWlR3wrimNxlj)
     @BaseApi.timing_decorator
-    def audit_rejection(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def zHbBDAztWlR3wrimNxlj(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "orderNo": res[0]['orderNo'],
             "rejectReason": "屏幕内爆"
         }
-        return self._make_request('post', 'reject', data, 'vice', nocheck)
+        return self._make_request('post', 'F39h78grn', data, 'vice', nocheck)
 
     @BaseApi.timing_decorator
     def item_number(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'set_articles_no', data, 'vice', nocheck)
+        return self._make_request('post', 'QBZVuqz0S', data, 'vice', nocheck)
 
-    @doc(h_go_to_sale)
+    @doc(OKe7y8uCYv26BcVNtvU6)
     @BaseApi.timing_decorator
-    def go_to_sale(self, nocheck=False):
+    def OKe7y8uCYv26BcVNtvU6(self, nocheck=False):
         self.item_number()
         time = self.get_current_timestamp_ms()
-        res = self.pc.help_sell_the_list_of_goods_data()
-        res_2 = self.pc.inventory_list_data(i=2, j=13, data='a')
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2, j=13, data='a')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -1377,22 +1377,22 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'vice', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'vice', nocheck)
 
-    @doc(h_manual_settlement)
+    @doc(yhsanR53oCT3E0y79Pkt)
     @BaseApi.timing_decorator
-    def manual_settlement(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def yhsanR53oCT3E0y79Pkt(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "finalSellPrice": res[0]['finalSellPrice'],
             "orderNo": res[0]['orderNo']
         }
-        return self._make_request('post', 'go_to_settlement', data, 'vice', nocheck)
+        return self._make_request('post', 'lkGutWbef', data, 'vice', nocheck)
 
-    @doc(h_express_delivery_unit_set_return_machine)
+    @doc(vCZ8TzDFnPROV6Oo072B)
     @BaseApi.timing_decorator
-    def express_delivery_unit_set_return_machine(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def vCZ8TzDFnPROV6Oo072B(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "batchId": res[0]['helpSellBatchId'],
             "orderIdList": [
@@ -1425,12 +1425,12 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
             "estimateFreight": 10,
             "walletAccountNo": INFO['vice_wallet_account_no']
         }
-        return self._make_request('post', 'help_shipment', data, 'vice', nocheck)
+        return self._make_request('post', 'B2Y1BK8tu', data, 'vice', nocheck)
 
-    @doc(h_express_delivery_same_batch_return_machine)
+    @doc(v7U6luxQobBYtqeXdMG0)
     @BaseApi.timing_decorator
-    def express_delivery_same_batch_return_machine(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def v7U6luxQobBYtqeXdMG0(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "batchId": res[0]['helpSellBatchId'],
             "orderIdList": [
@@ -1463,12 +1463,12 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
             "estimateFreight": 10,
             "walletAccountNo": INFO['vice_wallet_account_no']
         }
-        return self._make_request('post', 'help_shipment', data, 'vice', nocheck)
+        return self._make_request('post', 'B2Y1BK8tu', data, 'vice', nocheck)
 
-    @doc(h_send_it_yourself_vice)
+    @doc(aR4vvS8nfanSGlBbfKzT)
     @BaseApi.timing_decorator
-    def send_it_yourself_vice(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def aR4vvS8nfanSGlBbfKzT(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "batchId": res[0]['helpSellBatchId'],
             "orderIdList": [
@@ -1486,16 +1486,16 @@ class HelpSellTheListOfGoodsRequest(InitializeParams):
             "recipientCountyName": INFO['county_name'],
             "recipientAddress": INFO['detailed_address']
         }
-        return self._make_request('post', 'help_shipment', data, 'vice', nocheck)
+        return self._make_request('post', 'B2Y1BK8tu', data, 'vice', nocheck)
 
 
-class HelpServiceConfigurationRequest(InitializeParams):
+class Z2DMQfvumu(InitializeParams):
     """帮卖管理|帮卖业务配置"""
 
-    @doc(h_edit_configuration_information)
+    @doc(lnEVAUkilhXnv8b0GZtm)
     @BaseApi.timing_decorator
-    def edit_configuration_information(self, nocheck=False):
-        res = self.pc.help_service_configuration_data()
+    def lnEVAUkilhXnv8b0GZtm(self, nocheck=False):
+        res = self.pc.Ea7Wjr4ctTv69frbEUPZJ()
         data = {
             "id": 91,
             "createTime": res[0]['createTime'],
@@ -1540,10 +1540,10 @@ class HelpServiceConfigurationRequest(InitializeParams):
             "automaticSettlementDays": 10,
             "transactionVolume": 4
         }
-        return self._make_request('post', 'sell_setting_edit', data, 'vice', nocheck)
+        return self._make_request('post', 'SGU6BnplE', data, 'vice', nocheck)
 
 
 if __name__ == '__main__':
-    api = HelpGenerateOrderRequest()
-    result = api.save_the_desired_price()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))

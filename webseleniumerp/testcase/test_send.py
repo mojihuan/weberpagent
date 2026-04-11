@@ -4,87 +4,87 @@ from common.base_case import BaseCase
 from common.import_case import *
 
 
-class TestSendBeenSentRepair(BaseCase, unittest.TestCase):
+class TestPiFfXpg1(BaseCase, unittest.TestCase):
     """送修管理|已送修物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return send_r.SendBeenSentRepairRequest()
+            return send_r.FU9FBZt4ek()
         else:
-            return send_p.SendBeenSentRepairPages(self.driver)
+            return send_p.HxV90Wh2Jkw(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0repair_completed_route(self):
+    def test_0oaxztsMnbnAXzAxWj6JK(self):
         """[送修完成]"""
-        self.pre.operations(data=['FA1', 'HC9', 'HI1'])
+        self.pre.operations(data=['ekBx', 'Y1eX', 'yhRO'])
         case = self.common_operations(login='main')
-        case.repair_completed_route()
+        case.oaxztsMnbnAXzAxWj6JK()
         res = [lambda: self.pc.send_been_sent_repair(repairStatusName='确认入库', repairSuccessTime='now')]
         self.assert_all(*res)
 
 
-class TestSendRepairList(BaseCase, unittest.TestCase):
+class TestteMDNclX(BaseCase, unittest.TestCase):
     """送修管理|送修单列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return send_r.SendRepairListRequest()
+            return send_r.KNGJBF1SxK()
         else:
-            return send_p.SendRepairListPages(self.driver)
+            return send_p.B0rX5iYQN6L(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0repair_fee_settlement_paid(self):
+    def test_0woND08hYZ9lwms8Lse0i(self):
         """[送修工费结算]-已付款"""
-        self.pre.operations(data=['FA1', 'HC9', 'HI1', 'NA1'])
+        self.pre.operations(data=['ekBx', 'Y1eX', 'yhRO', 'pqYJ'])
         case = self.common_operations(login='main')
-        case.repair_fee_settlement_paid()
-        res = [lambda: self.pc.send_list_of_repair_orders_assert(statusStr='已完成', createTime='now')]
+        case.woND08hYZ9lwms8Lse0i()
+        res = [lambda: self.pc.WqPUcl(statusStr='已完成', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_repair_fee_settlement_non_payment(self):
+    def test_k42ezJisaBTjBTBWBoXd(self):
         """[送修工费结算]-未付款"""
-        self.pre.operations(data=['FA1', 'HC9', 'HI1', 'NA1'])
+        self.pre.operations(data=['ekBx', 'Y1eX', 'yhRO', 'pqYJ'])
         case = self.common_operations()
-        case.repair_fee_settlement_non_payment()
-        res = [lambda: self.pc.send_list_of_repair_orders_assert(statusStr='已完成', createTime='now')]
+        case.k42ezJisaBTjBTBWBoXd()
+        res = [lambda: self.pc.WqPUcl(statusStr='已完成', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_derived_data(self):
+    def test_MKKvPqQBfeXIBJT3V5Jl(self):
         """[导出]"""
         case = self.common_operations()
-        case.derived_data()
-        res = [lambda: self.pc.system_export_list_assert(state=2, name='送修单列表导出', createTime='now')]
+        case.MKKvPqQBfeXIBJT3V5Jl()
+        res = [lambda: self.pc.T241Se(state=2, name='送修单列表导出', createTime='now')]
         self.assert_all(*res)
 
 
-class TestSendStayRepair(BaseCase, unittest.TestCase):
+class TestS0cpMD5e(BaseCase, unittest.TestCase):
     """送修管理|待送修物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return send_r.SendStayRepairRequest()
+            return send_r.DImzEKD7BR()
         else:
-            return send_p.SendStayRepairPages(self.driver)
+            return send_p.Xt1lLWcjOv9(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0send_out_for_repair(self):
+    def test_0FDe96kyUKHRoCJ6I7nfE(self):
         """[送修出库]"""
-        self.pre.operations(data=['FA1', 'HC9'])
+        self.pre.operations(data=['ekBx', 'Y1eX'])
         case = self.common_operations(login='main')
-        case.send_out_for_repair()
-        res = [lambda: self.pc.send_list_of_repair_orders_assert(statusStr='未完成', createTime='now')]
+        case.FDe96kyUKHRoCJ6I7nfE()
+        res = [lambda: self.pc.WqPUcl(statusStr='未完成', createTime='now')]
         self.assert_all(*res)
 
 

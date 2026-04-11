@@ -31,7 +31,8 @@ import request.request_send as send_r
 import pages.pages_send as send_p
 import request.request_camera as camera_r
 
-import request.request_auction as mg_r
-import pages.pages_auction as mg_p
-import request.request_trafficker as me_r
-import request.request_bidding as mc_r
+import request.request_auction as auction_r
+import pages.pages_auction as auction_p
+import request.request_trafficker as trafficker_r
+import request.request_bidding as bidding_r
+import request.request_collection as collection_r

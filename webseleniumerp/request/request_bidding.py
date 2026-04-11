@@ -6,16 +6,16 @@ from common.import_desc import *
 from config.user_info import INFO
 
 
-class BiddingCameraRequest(InitializeParams):
-    """竞拍"""
+class DuLudPwrAY(InitializeParams):
+    """拍机小程序|竞拍"""
 
-    @doc(b_bidding_offer)
+    @doc(ooh8smtEbSrtOuUNqjJa)
     @BaseApi.timing_decorator
-    def bidding_offer(self, nocheck=False):
+    def ooh8smtEbSrtOuUNqjJa(self, nocheck=False):
         self.wait_default()
-        res = self.pc.platform_auction_product_manage_data(i=2)
-        res_2 = self.pc.platform_list_of_dark_auction_houses_data(i=1)
-        res_3 = self.pc.platform_list_of_dark_auction_houses_data(data='b')
+        res = self.pc.HnlUtAPz07JtZRXny3Ogs(i=2)
+        res_2 = self.pc.YVqIQus8roZWysBseaMP0(i=1)
+        res_3 = self.pc.YVqIQus8roZWysBseaMP0(data='b')
         obj = res[0]['articlesNo']
         obj_2 = '8888'
         ParamCache.cache_object({"articlesNo": obj}, {"bidPrice": obj_2}, 'practical.json')
@@ -26,15 +26,15 @@ class BiddingCameraRequest(InitializeParams):
             "bidPrice": obj_2,
             "marketCategory": "1"
         }
-        return self._make_request('post', 'bidding_manual_bidding', data, 'camera', nocheck)
+        return self._make_request('post', 'Uv26Jy6GJ', data, 'camera', nocheck)
 
-    @doc(b_direct_auction_bidding)
+    @doc(SAnRSrq1160pZali4yIf)
     @BaseApi.timing_decorator
-    def direct_auction_bidding(self, nocheck=False):
+    def SAnRSrq1160pZali4yIf(self, nocheck=False):
         self.wait_default()
-        res = self.pc.platform_auction_product_manage_data(i=2)
-        res_2 = self.pc.platform_list_of_direct_auction_houses_data()
-        res_3 = self.pc.platform_list_of_direct_auction_houses_data(data='b')
+        res = self.pc.HnlUtAPz07JtZRXny3Ogs(i=2)
+        res_2 = self.pc.BaxRsHzRpoNsTb8fnSa9e()
+        res_3 = self.pc.BaxRsHzRpoNsTb8fnSa9e(data='b')
         obj = res[0]['articlesNo']
         obj_2 = '9999'
         ParamCache.cache_object({"articlesNo": obj}, {"bidPrice": obj_2}, 'practical.json')
@@ -45,15 +45,15 @@ class BiddingCameraRequest(InitializeParams):
             "bidPrice": obj_2,
             "marketCategory": "2"
         }
-        return self._make_request('post', 'bidding_manual_bidding', data, 'camera', nocheck)
+        return self._make_request('post', 'Uv26Jy6GJ', data, 'camera', nocheck)
 
-    @doc(b_modify_the_price)
+    @doc(YvnI8JFogJKDJyevymIw)
     @BaseApi.timing_decorator
-    def modify_the_price(self, nocheck=False):
-        res = self.pc.platform_auction_product_manage_data(i=2)
-        res_2 = self.pc.platform_list_of_dark_auction_houses_data()
-        res_3 = self.pc.platform_list_of_dark_auction_houses_data(data='b')
-        res_4 = self.pc.bidding_camera_data(data='a')
+    def YvnI8JFogJKDJyevymIw(self, nocheck=False):
+        res = self.pc.HnlUtAPz07JtZRXny3Ogs(i=2)
+        res_2 = self.pc.YVqIQus8roZWysBseaMP0()
+        res_3 = self.pc.YVqIQus8roZWysBseaMP0(data='b')
+        res_4 = self.pc.B1VzuYLyr5G9mdeT7BDwW(data='a')
         obj = res[0]['articlesNo']
         obj_2 = '5555'
         ParamCache.cache_object({"articlesNo": obj}, {"bidPrice": obj_2}, 'practical.json')
@@ -64,15 +64,15 @@ class BiddingCameraRequest(InitializeParams):
             "bidPrice": obj_2,
             "id": res_4[0]['bidPriceId']
         }
-        return self._make_request('post', 'modify_the_price', data, 'camera', nocheck)
+        return self._make_request('post', 'S8PjmEPm5', data, 'camera', nocheck)
 
-    @doc(b_direct_auction_price_change)
+    @doc(MdM1073dpYo2D4xRtbN4)
     @BaseApi.timing_decorator
-    def direct_auction_price_change(self, nocheck=False):
-        res = self.pc.platform_auction_product_manage_data(i=2)
-        res_2 = self.pc.platform_list_of_dark_auction_houses_data()
-        res_3 = self.pc.platform_list_of_dark_auction_houses_data(data='b')
-        res_4 = self.pc.bidding_camera_data()
+    def MdM1073dpYo2D4xRtbN4(self, nocheck=False):
+        res = self.pc.HnlUtAPz07JtZRXny3Ogs(i=2)
+        res_2 = self.pc.YVqIQus8roZWysBseaMP0()
+        res_3 = self.pc.YVqIQus8roZWysBseaMP0(data='b')
+        res_4 = self.pc.B1VzuYLyr5G9mdeT7BDwW()
         obj = res[0]['articlesNo']
         obj_2 = '5555'
         ParamCache.cache_object({"articlesNo": obj}, {"bidPrice": obj_2}, 'practical.json')
@@ -83,51 +83,52 @@ class BiddingCameraRequest(InitializeParams):
             "bidPrice": obj_2,
             "id": res_4[0]['bidPriceId']
         }
-        return self._make_request('post', 'modify_the_price', data, 'camera', nocheck)
+        return self._make_request('post', 'S8PjmEPm5', data, 'camera', nocheck)
 
 
-class BiddingMyRequest(InitializeParams):
+class RQTYlCj2X9(InitializeParams):
+    """拍机小程序|我的"""
 
-    @doc(b_straight_shot_change_to_self_pickup)
+    @doc(Ly41cUm9R4N75FqquckG)
     @BaseApi.timing_decorator
-    def straight_shot_change_to_self_pickup(self, nocheck=False):
-        res = self.pc.bidding_my_data(i=2)
+    def Ly41cUm9R4N75FqquckG(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(i=2)
         obj = res[0]['articlesNo']
         ParamCache.cache_object({"articlesNo": obj}, 'practical.json')
         data = {
             "orderNo": res[0]['saleOrderNo'],
             "articlesNo": obj
         }
-        return self._make_request('post', 'pending_shipment_to_pick_up', data, 'camera', nocheck)
+        return self._make_request('post', 'dgzXMTa7e', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_change_to_mailing)
+    @doc(wOMYzQailIlwneqp3YqQ)
     @BaseApi.timing_decorator
-    def direct_shot_change_to_mailing(self, nocheck=False):
-        res = self.pc.fulfillment_sales_and_shipment_manage_data(data='b')
+    def wOMYzQailIlwneqp3YqQ(self, nocheck=False):
+        res = self.pc.KmxOWBECeMnMqtP1qACyx(data='b')
         obj = res[0]['articlesNo']
         ParamCache.cache_object({"articlesNo": obj}, 'practical.json')
         data = {
             "orderNo": res[0]['saleOrderNo'],
             "articlesNo": obj
         }
-        return self._make_request('post', 'pending_shipment_to_pick_up', data, 'camera', nocheck)
+        return self._make_request('post', 'dgzXMTa7e', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_confirm_receipt)
+    @doc(c71cLTyRLuY4tAw5OBlV)
     @BaseApi.timing_decorator
-    def direct_shot_confirm_receipt(self, nocheck=False):
-        res = self.pc.bidding_my_data(i=3)
+    def c71cLTyRLuY4tAw5OBlV(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(i=3)
         obj = res[0]['articlesNo']
         ParamCache.cache_object({"articlesNo": obj}, 'practical.json')
         data = {
             "orderNo": res[0]['saleOrderNo'],
             "articlesNo": obj
         }
-        return self._make_request('post', 'bidding_confirm_receipt', data, 'camera', nocheck)
+        return self._make_request('post', 'U3aqRLh23', data, 'camera', nocheck)
 
-    @doc(b_direct_shooting_apply_for_after_sales)
+    @doc(aVXdmJVbK9wjjXJCBjst)
     @BaseApi.timing_decorator
-    def direct_shooting_apply_for_after_sales(self, nocheck=False):
-        res = self.pc.bidding_my_data(i=4)
+    def aVXdmJVbK9wjjXJCBjst(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(i=4)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "auctionAfterSalesOrderReason": {
@@ -140,101 +141,101 @@ class BiddingMyRequest(InitializeParams):
                 ]
             }
         }
-        return self._make_request('post', 'apply_for_after_sales', data, 'camera', nocheck)
+        return self._make_request('post', 'lT1CRJl4T', data, 'camera', nocheck)
 
-    @doc(b_direct_auction_receives_the_difference)
+    @doc(BPBCQmGYcAgtwQuFgbaO)
     @BaseApi.timing_decorator
-    def direct_auction_receives_the_difference(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def BPBCQmGYcAgtwQuFgbaO(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'receive_the_difference', data, 'camera', nocheck)
+        return self._make_request('post', 'sO1Sva4AY', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_re_inspection_receive_the_spread)
+    @doc(J62o1YNEgyQUVrUfzEs3)
     @BaseApi.timing_decorator
-    def direct_shot_re_inspection_receive_the_spread(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def J62o1YNEgyQUVrUfzEs3(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'receive_the_difference', data, 'camera', nocheck)
+        return self._make_request('post', 'sO1Sva4AY', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_re_inspection_rejection_price)
+    @doc(zd1jfkpdiIAy1G9RVrIq)
     @BaseApi.timing_decorator
-    def direct_shot_re_inspection_rejection_price(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def zd1jfkpdiIAy1G9RVrIq(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'refuse_to_pay_the_price_difference', data, 'camera', nocheck)
+        return self._make_request('post', 'EDIy8SBwR', data, 'camera', nocheck)
 
-    @doc(b_direct_platform_review_no_rejection_price)
+    @doc(HOPKwhJtyDRx8zxTdh7S)
     @BaseApi.timing_decorator
-    def direct_platform_review_no_rejection_price(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def HOPKwhJtyDRx8zxTdh7S(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'refuse_to_pay_the_price_difference', data, 'camera', nocheck)
+        return self._make_request('post', 'EDIy8SBwR', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_refuses_to_make_up_for_the_difference)
+    @doc(XFuplSfvhfY3pPN3q60t)
     @BaseApi.timing_decorator
-    def direct_shot_refuses_to_make_up_for_the_difference(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def XFuplSfvhfY3pPN3q60t(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'refuse_to_pay_the_price_difference', data, 'camera', nocheck)
+        return self._make_request('post', 'EDIy8SBwR', data, 'camera', nocheck)
 
-    @doc(b_direct_shooting_ends_after_sales)
+    @doc(jw92LPqmCSgtAgFxlGVO)
     @BaseApi.timing_decorator
-    def direct_shooting_ends_after_sales(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def jw92LPqmCSgtAgFxlGVO(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'end_after_sales', data, 'camera', nocheck)
+        return self._make_request('post', 'pd3YAYXZg', data, 'camera', nocheck)
 
-    @doc(b_direct_shooting_re_inspection_ends_after_sales)
+    @doc(G8mzJPJPK9gNaeIm9U7P)
     @BaseApi.timing_decorator
-    def direct_shooting_re_inspection_ends_after_sales(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[2])
+    def G8mzJPJPK9gNaeIm9U7P(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[2])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'end_after_sales', data, 'camera', nocheck)
+        return self._make_request('post', 'pd3YAYXZg', data, 'camera', nocheck)
 
-    @doc(b_direct_platform_review_ends_after_sales)
+    @doc(SXKFMEeSoPN01IP9Lwlp)
     @BaseApi.timing_decorator
-    def direct_platform_review_ends_after_sales(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def SXKFMEeSoPN01IP9Lwlp(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'end_after_sales', data, 'camera', nocheck)
+        return self._make_request('post', 'pd3YAYXZg', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_go_shipping)
+    @doc(UfKqlNZ2jFR6rFZUiH8v)
     @BaseApi.timing_decorator
-    def direct_shot_go_shipping(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[7])
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def UfKqlNZ2jFR6rFZUiH8v(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[7])
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -257,13 +258,13 @@ class BiddingMyRequest(InitializeParams):
             "id": obj,
             "centerId": res_2[0]['id']
         }
-        return self._make_request('post', 'to_be_sent_back_for_shipment', data, 'camera', nocheck)
+        return self._make_request('post', 'Q2KtOpnyw', data, 'camera', nocheck)
 
-    @doc(b_direct_shooting_to_ship_logistics)
+    @doc(fujEfOlXIMCY3oXrDNVd)
     @BaseApi.timing_decorator
-    def direct_shooting_to_ship_logistics(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[7])
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def fujEfOlXIMCY3oXrDNVd(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[7])
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -274,13 +275,13 @@ class BiddingMyRequest(InitializeParams):
             "centerId": res_2[0]['id'],
             "sendType": 2
         }
-        return self._make_request('post', 'to_be_sent_back_for_shipment', data, 'camera', nocheck)
+        return self._make_request('post', 'Q2KtOpnyw', data, 'camera', nocheck)
 
-    @doc(b_direct_platform_review_self_proclaimed_logistics)
+    @doc(nKqLT6q8XX9QYiJ26jms)
     @BaseApi.timing_decorator
-    def direct_platform_review_self_proclaimed_logistics(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[7])
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def nKqLT6q8XX9QYiJ26jms(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[7])
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -291,13 +292,13 @@ class BiddingMyRequest(InitializeParams):
             "centerId": res_2[0]['id'],
             "sendType": 2
         }
-        return self._make_request('post', 'to_be_sent_back_for_shipment', data, 'camera', nocheck)
+        return self._make_request('post', 'Q2KtOpnyw', data, 'camera', nocheck)
 
-    @doc(b_direct_shot_to_ship_by_yourself)
+    @doc(ZLMjQKplgxx6Krvopxg7)
     @BaseApi.timing_decorator
-    def direct_shot_to_ship_by_yourself(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[7])
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def ZLMjQKplgxx6Krvopxg7(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[7])
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -305,13 +306,13 @@ class BiddingMyRequest(InitializeParams):
             "centerId": res_2[0]['id'],
             "sendType": 3
         }
-        return self._make_request('post', 'to_be_sent_back_for_shipment', data, 'camera', nocheck)
+        return self._make_request('post', 'Q2KtOpnyw', data, 'camera', nocheck)
 
-    @doc(b_direct_platform_review_mail_it_yourself)
+    @doc(FFK90vpcso9aPNnQyAWS)
     @BaseApi.timing_decorator
-    def direct_platform_review_mail_it_yourself(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[7])
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def FFK90vpcso9aPNnQyAWS(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[7])
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -319,12 +320,12 @@ class BiddingMyRequest(InitializeParams):
             "centerId": res_2[0]['id'],
             "sendType": 3
         }
-        return self._make_request('post', 'to_be_sent_back_for_shipment', data, 'camera', nocheck)
+        return self._make_request('post', 'Q2KtOpnyw', data, 'camera', nocheck)
 
-    @doc(b_straight_shot_i_want_to_appeal)
+    @doc(xYF6VMP7gVBubHHeRksW)
     @BaseApi.timing_decorator
-    def straight_shot_i_want_to_appeal(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[2])
+    def xYF6VMP7gVBubHHeRksW(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[2])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -336,12 +337,12 @@ class BiddingMyRequest(InitializeParams):
                 "appealType": "0"
             }
         }
-        return self._make_request('post', 'pending_appeal_i_want_to_appeal', data, 'camera', nocheck)
+        return self._make_request('post', 'JOdnj8tkF', data, 'camera', nocheck)
 
-    @doc(b_pending_appeal_and_end_after_sales)
+    @doc(qy2BOyYcjRZCMRxmI1HJ)
     @BaseApi.timing_decorator
-    def pending_appeal_and_end_after_sales(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[2])
+    def qy2BOyYcjRZCMRxmI1HJ(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[2])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -353,24 +354,24 @@ class BiddingMyRequest(InitializeParams):
                 "appealType": "0"
             }
         }
-        return self._make_request('post', 'pending_appeal_i_want_to_appeal', data, 'camera', nocheck)
+        return self._make_request('post', 'JOdnj8tkF', data, 'camera', nocheck)
 
-    @doc(b_direct_platform_review_receive_the_spread)
+    @doc(GUCbnylR1i5xvkHG84Lq)
     @BaseApi.timing_decorator
-    def direct_platform_review_receive_the_spread(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[6])
+    def GUCbnylR1i5xvkHG84Lq(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[6])
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'receive_the_difference', data, 'camera', nocheck)
+        return self._make_request('post', 'sO1Sva4AY', data, 'camera', nocheck)
 
-    @doc(b_direct_platform_review_go_shipping)
+    @doc(aSUFM1IQg6Qn99K4na0b)
     @BaseApi.timing_decorator
-    def direct_platform_review_go_shipping(self, nocheck=False):
-        res = self.pc.bidding_my_data(data='a', i=[7])
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def aSUFM1IQg6Qn99K4na0b(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(data='a', i=[7])
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
@@ -393,10 +394,10 @@ class BiddingMyRequest(InitializeParams):
             "id": obj,
             "centerId": res_2[0]['id']
         }
-        return self._make_request('post', 'to_be_sent_back_for_shipment', data, 'camera', nocheck)
+        return self._make_request('post', 'Q2KtOpnyw', data, 'camera', nocheck)
 
 
 if __name__ == '__main__':
-    api = BiddingMyRequest()
-    result = api.direct_shot_to_ship_by_yourself()
+    api = ()
+    result = api
     print(result)

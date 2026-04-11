@@ -2,7 +2,7 @@
 import json
 import time
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.file_cache_manager import ParamCache
 from common.import_desc import *
 from config.user_info import INFO
@@ -12,83 +12,94 @@ optionIdList = BaseApi.load_json_file('request_fulfillment.json')['optionIdList'
 backfillList = BaseApi.load_json_file('request_fulfillment.json')['backfillList']
 
 
-class FulfillmentItemItemToBeQuotedRequest(InitializeParams):
+class Qc3N4qmsX7(InitializeParams):
     """运营中心|待报价物品"""
 
-    @doc(f_commodity_quotes)
+    @doc(h86Q9EJJuji9EAcwmnZd)
     @BaseApi.timing_decorator
-    def commodity_quotes(self, nocheck=False):
-        res = self.pc.fulfillment_items_to_be_quoted_data()
+    def h86Q9EJJuji9EAcwmnZd(self, nocheck=False):
+        res = self.pc.RjVgo4LDzg4voonKUBXr1()
         data = {
             "reportAmount": self.number,
             "id": res[-1]['id']
         }
-        return self._make_request('post', 'quoted_items', data, 'main', nocheck)
+        return self._make_request('post', 'uJOhpQMHc', data, 'main', nocheck)
 
-    @doc(f_requote)
+    @doc(HdVZdnVgjfeOetZQxl9C)
     @BaseApi.timing_decorator
-    def requote(self, nocheck=False):
-        res = self.pc.fulfillment_items_to_be_quoted_data()
+    def HdVZdnVgjfeOetZQxl9C(self, nocheck=False):
+        res = self.pc.RjVgo4LDzg4voonKUBXr1()
         data = {
             "reportAmount": self.number,
             "id": res[0]['id']
         }
-        return self._make_request('post', 'quoted_items', data, 'main', nocheck)
+        return self._make_request('post', 'uJOhpQMHc', data, 'main', nocheck)
 
 
-class FulfillmentQualityManageRequest(InitializeParams):
+class LCfJXeE7Mf(InitializeParams):
     """运营中心|质检管理"""
 
-    @doc(f_receive_items_in_bulk)
+    @doc(EqKnTwPFi7SMTAPIanzC)
     @BaseApi.timing_decorator
-    def receive_items_in_bulk(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data()
+    def EqKnTwPFi7SMTAPIanzC(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='f')
         data = {
             "distributorIds": [
                 res[0]['id']
             ]
         }
-        return self._make_request('post', 'receive_in_batches', data, 'main', nocheck)
+        return self._make_request('post', 'SniiRehD4', data, 'camera', nocheck)
 
-    @doc(f_direct_platform_review_receive_in_batches)
+    @doc(jN6h3HHrblYl6XRDrjRp)
     @BaseApi.timing_decorator
-    def direct_platform_review_receive_in_batches(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data()
+    def jN6h3HHrblYl6XRDrjRp(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z()
         data = {
             "distributorIds": [
                 res[0]['id']
             ]
         }
-        return self._make_request('post', 'receive_in_batches', data, 'main', nocheck)
+        return self._make_request('post', 'SniiRehD4', data, 'main', nocheck)
 
-    @doc(f_direct_shot_physical_re_inspection_received)
+    @doc(CLRwZ9FXvcE5gCYCPdSF)
     @BaseApi.timing_decorator
-    def direct_shot_physical_re_inspection_received(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data()
+    def CLRwZ9FXvcE5gCYCPdSF(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z()
         data = {
             "distributorIds": [
                 res[0]['id']
             ]
         }
-        return self._make_request('post', 'receive_in_batches', data, 'main', nocheck)
+        return self._make_request('post', 'SniiRehD4', data, 'main', nocheck)
 
-    @doc(f_quality_receive_items_in_bulk)
+    @doc(eoidlhlWuLRCRQL3uNIN)
     @BaseApi.timing_decorator
-    def quality_receive_items_in_bulk(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data()
+    def eoidlhlWuLRCRQL3uNIN(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z()
         data = {
             "distributorIds": [
                 res[0]['id']
             ]
         }
-        return self._make_request('post', 'receive_in_batches', data, 'main', nocheck)
+        return self._make_request('post', 'SniiRehD4', data, 'main', nocheck)
 
-    @doc(f_submit_the_quality_inspection_results)
+    @doc(knHZe0CfAp1HXSNNW4nG)
     @BaseApi.timing_decorator
-    def submit_the_quality_inspection_results(self, nocheck=False):
+    def knHZe0CfAp1HXSNNW4nG(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z()
+        data = {
+            "distributorIds": [
+                res[0]['id']
+            ]
+        }
+        return self._make_request('post', 'SniiRehD4', data, 'main', nocheck)
+
+    @doc(oKZEC3OeI0tWc8WLWpY3)
+    @BaseApi.timing_decorator
+    def oKZEC3OeI0tWc8WLWpY3(self, nocheck=False):
         self.wait_default()
-        res = self.pc.fulfillment_quality_manage_data(data='a')
-        res_2 = self.pc.fulfillment_quality_manage_data(data='e')
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='g')
+        res_2 = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='h')
         data = {
             "qualityCategoryList": qualityCategoryList,
             "articlesInfo": {
@@ -129,14 +140,62 @@ class FulfillmentQualityManageRequest(InitializeParams):
             "finenessSort": 1,
             "qualityCentreId": res[0]['id']
         }
-        return self._make_request('post', 'yy_submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'yqBmQRl4A', data, 'camera', nocheck)
 
-    @doc(f_direct_shot_of_the_real_thing_submit_quality)
+    @doc(rqPmiTtsuecNOe8Qa0FW)
     @BaseApi.timing_decorator
-    def direct_shot_of_the_real_thing_submit_quality(self, nocheck=False):
+    def rqPmiTtsuecNOe8Qa0FW(self, nocheck=False):
         self.wait_default()
-        res = self.pc.fulfillment_quality_manage_data(data='a')
-        res_2 = self.pc.fulfillment_quality_manage_data(data='e')
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
+        res_2 = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='e')
+        data = {
+            "qualityCategoryList": qualityCategoryList,
+            "articlesInfo": {
+                "imei": res[0]['imei'],
+                "brandName": res[0]['brandName'],
+                "modelName": res[0]['modelName'],
+                "modelId": res[0]['modelId'],
+                "brandId": res[0]['brandId'],
+                "colorId": 1712,
+                "colorName": "黑色钛金属",
+                "warrantyDurationId": 600,
+                "warrantyDurationName": "保修≥331天",
+                "buyChannelId": 16,
+                "buyChannelName": "国行",
+                "romId": 41,
+                "romName": "256G",
+                "smallModelId": 72,
+                "smallModelName": "其他型号",
+                "regionInfoId": "CH/A",
+                "regionInfoName": "国行",
+                "articlesTypeId": 1,
+                "articlesTypeName": "手机"
+            },
+            "articlesNo": res[0]['articlesNo'],
+            "optionIdList": optionIdList,
+            "articlesImageVideoList": [
+                {
+                    "imageVideoUrl": "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com/erp-video/1770362981772.jpeg",
+                    "id": ""
+                }
+            ],
+            "templateId": res_2[0]['id'],
+            "isOther": 1,
+            "finenessId": 130,
+            "finenessName": "靓机",
+            "functionGradeId": 114,
+            "functionGrade": "A",
+            "finenessSort": 1,
+            "qualityCentreId": res[0]['id']
+        }
+        return self._make_request('post', 'yqBmQRl4A', data, 'main', nocheck)
+
+    @doc(NGkklZ12l2IiB7qVbQxE)
+    @BaseApi.timing_decorator
+    def NGkklZ12l2IiB7qVbQxE(self, nocheck=False):
+        self.wait_default()
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
+        res_2 = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='e')
         data = {
             "qualityCategoryList": qualityCategoryList,
             "articlesInfo": {
@@ -177,14 +236,14 @@ class FulfillmentQualityManageRequest(InitializeParams):
             "finenessSort": 1,
             "qualityCentreId": res[0]['id'],
         }
-        return self._make_request('post', 'yy_submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'yqBmQRl4A', data, 'main', nocheck)
 
-    @doc(f_direct_platform_review_submit_quality)
+    @doc(JO1O4Cu3NqUy2eHg71Sb)
     @BaseApi.timing_decorator
-    def direct_platform_review_submit_quality(self, nocheck=False):
+    def JO1O4Cu3NqUy2eHg71Sb(self, nocheck=False):
         self.wait_default()
-        res = self.pc.fulfillment_quality_manage_data(data='a')
-        res_2 = self.pc.fulfillment_quality_manage_data(data='e')
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
+        res_2 = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='e')
         data = {
             "qualityCategoryList": qualityCategoryList,
             "articlesInfo": {
@@ -225,13 +284,13 @@ class FulfillmentQualityManageRequest(InitializeParams):
             "finenessSort": 1,
             "qualityCentreId": res[0]['id'],
         }
-        return self._make_request('post', 'yy_submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'yqBmQRl4A', data, 'main', nocheck)
 
-    @doc(f_quality_submit_the_quality_inspection_results)
+    @doc(TJXWHGYpzVeCuC3cZjrH)
     @BaseApi.timing_decorator
-    def quality_submit_the_quality_inspection_results(self, nocheck=False):
+    def TJXWHGYpzVeCuC3cZjrH(self, nocheck=False):
         self.wait_default()
-        res = self.pc.fulfillment_quality_manage_data(data='a')
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
         data = {
             "articlesNo": res[0]['articlesNo'],
             "qualityCategoryList": qualityCategoryList,
@@ -272,13 +331,13 @@ class FulfillmentQualityManageRequest(InitializeParams):
             "finenessSort": 1,
             "qualityCentreId": res[0]['id']
         }
-        return self._make_request('post', 'yy_submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'yqBmQRl4A', data, 'main', nocheck)
 
-    @doc(f_submit_the_quality_inspection_results_no)
+    @doc(zBKyvA1lFKeRAKK0WXqg)
     @BaseApi.timing_decorator
-    def submit_the_quality_inspection_results_no(self, nocheck=False):
+    def zBKyvA1lFKeRAKK0WXqg(self, nocheck=False):
         self.wait_default()
-        res = self.pc.fulfillment_quality_manage_data(data='a')
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
         data = {
             "articlesNo": res[0]['articlesNo'],
             "qualityCategoryList": qualityCategoryList,
@@ -319,35 +378,35 @@ class FulfillmentQualityManageRequest(InitializeParams):
             "finenessSort": 1,
             "qualityCentreId": res[0]['id']
         }
-        return self._make_request('post', 'yy_submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'yqBmQRl4A', data, 'main', nocheck)
 
-    @doc(f_passed_the_re_inspection)
+    @doc(eL32NtimAkRJKwnmSauo)
     @BaseApi.timing_decorator
-    def passed_the_re_inspection(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data(data='c')
+    def eL32NtimAkRJKwnmSauo(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='c')
         data = {
             "recheckId": res[0]['id'],
             "recheckStatus": "2",
             "reviewReason": "审核说明"
         }
-        return self._make_request('post', 'approved_by_the_review', data, 'main', nocheck)
+        return self._make_request('post', 'djxv8tLOX', data, 'main', nocheck)
 
-    @doc(f_rereview_rejected)
+    @doc(d6dbbDv54duJQhN6VKNl)
     @BaseApi.timing_decorator
-    def rereview_rejected(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data(data='c')
+    def d6dbbDv54duJQhN6VKNl(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='c')
         data = {
             "recheckId": res[0]['id'],
             "recheckStatus": "3",
             "reviewReason": "审核说明"
         }
-        return self._make_request('post', 'approved_by_the_review', data, 'main', nocheck)
+        return self._make_request('post', 'djxv8tLOX', data, 'main', nocheck)
 
-    @doc(f_modify_the_report)
+    @doc(CLHIAAqc0GcsqVloSnnm)
     @BaseApi.timing_decorator
-    def modify_the_report(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data(data='b')
-        res_2 = self.pc.fulfillment_quality_manage_data(data='e')
+    def CLHIAAqc0GcsqVloSnnm(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='b')
+        res_2 = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='e')
         data = {
             "articlesNo": res[0]['articlesNo'],
             "qualityCategoryList": qualityCategoryList,
@@ -392,12 +451,12 @@ class FulfillmentQualityManageRequest(InitializeParams):
             "finenessSort": 1,
             "qualityRecordId": res[0]['id']
         }
-        return self._make_request('post', 'modify_the_report', data, 'main', nocheck)
+        return self._make_request('post', 'o9r97kThA', data, 'main', nocheck)
 
-    @doc(f_unverified_handover)
+    @doc(M6cvV0SyzVBbb2kyvAYl)
     @BaseApi.timing_decorator
-    def unverified_handover(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data(data='a')
+    def M6cvV0SyzVBbb2kyvAYl(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
         data = {
             "reasonType": 1,
             "userId": INFO['main_user_id'],
@@ -405,12 +464,12 @@ class FulfillmentQualityManageRequest(InitializeParams):
                 res[0]['id']
             ]
         }
-        return self._make_request('post', 'unverified_handover', data, 'main', nocheck)
+        return self._make_request('post', 'EExTYvo1M', data, 'main', nocheck)
 
-    @doc(f_not_quality)
+    @doc(RXoB3Agr98ilYZlNb5FZ)
     @BaseApi.timing_decorator
-    def not_quality(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data(data='a')
+    def RXoB3Agr98ilYZlNb5FZ(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='a')
         data = {
             "qualityId": res[0]['id'],
             "reasonTypeList": [
@@ -418,12 +477,12 @@ class FulfillmentQualityManageRequest(InitializeParams):
                 2
             ]
         }
-        return self._make_request('post', 'not_quality', data, 'main', nocheck)
+        return self._make_request('post', 'wDhxYplw5', data, 'main', nocheck)
 
-    @doc(f_product_image_shooting_and_uploading)
+    @doc(y203S2h47mnZp3O3L8J9)
     @BaseApi.timing_decorator
-    def product_image_shooting_and_uploading(self, nocheck=False):
-        res = self.pc.fulfillment_quality_manage_data(data='d', i=1)
+    def y203S2h47mnZp3O3L8J9(self, nocheck=False):
+        res = self.pc.FYXRA4IxF49PvhUCLpp5Z(data='d', i=1)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "type": 1,
@@ -431,16 +490,16 @@ class FulfillmentQualityManageRequest(InitializeParams):
                 "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com/erp-video/1767608255124.jpeg"
             ]
         }
-        return self._make_request('post', 'yy_product_image_shooting', data, 'main', nocheck)
+        return self._make_request('post', 'biZihRUEH', data, 'main', nocheck)
 
 
-class FulfillmentReturnsManageRequest(InitializeParams):
+class PrpdxJpu3k(InitializeParams):
     """运营中心|退货管理"""
 
-    @doc(f_return_to_the_warehouse)
+    @doc(BBIpXJ7xM3RSMC8Gh7uI)
     @BaseApi.timing_decorator
-    def return_to_the_warehouse(self, nocheck=False):
-        res = self.pc.fulfillment_returns_manage_data(data='a', i=1)
+    def BBIpXJ7xM3RSMC8Gh7uI(self, nocheck=False):
+        res = self.pc.M4Xsay25almyg0RzXz4ui(data='a', i=1)
         data = {
             "type": "1",
             "expressCompanyId": "shunfengkuaiyun",
@@ -456,34 +515,34 @@ class FulfillmentReturnsManageRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'return_to_the_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'Pdcg1Tx6w', data, 'main', nocheck)
 
-    @doc(f_self_submitted_library)
+    @doc(zdM1FoDt6AVwrkGz7nPX)
     @BaseApi.timing_decorator
-    def self_submitted_library(self, nocheck=False):
-        res = self.pc.auction_my_data(data='a')
+    def zdM1FoDt6AVwrkGz7nPX(self, nocheck=False):
+        res = self.pc.D7NTmTMqMuHicClYboqMC(data='a')
         data = [
             res['pickupCode']
         ]
-        return self._make_request('post', 'self_submitted_library', data, 'main', nocheck)
+        return self._make_request('post', 'M90t3nNxs', data, 'main', nocheck)
 
 
-class FulfillmentSignIntoTheLibraryRequest(InitializeParams):
+class NDafRJuz1F(InitializeParams):
     """运营中心|收货入库"""
 
     # 搜索订单号
     @BaseApi.timing_decorator
     def search_tracking_numbers(self, nocheck=False):
-        res = self.pc.fulfillment_order_manage_data(i=3)
+        res = self.pc.VzruD2bzEUPV1JJY9d6vF(i=3)
         data = {
             "consignmentOrderNo": res[0]['orderNo']
         }
-        return self._make_request('post', 'search_tracking_numbers', data, 'main', nocheck)
+        return self._make_request('post', 'cy2zWx61q', data, 'main', nocheck)
 
-    @doc(f_unpacking_and_receiving_goods_into_storage)
+    @doc(JdFjESShYyLExa0NBUR4)
     @BaseApi.timing_decorator
-    def unpacking_and_receiving_goods_into_storage(self, nocheck=False):
-        res = self.pc.fulfillment_sign_into_the_library_data()
+    def JdFjESShYyLExa0NBUR4(self, nocheck=False):
+        res = self.pc.KgbSrz63njmC8XfrU1jty()
         data = {
             "reasonType": 1,
             "userId": INFO['main_user_id'],
@@ -524,12 +583,58 @@ class FulfillmentSignIntoTheLibraryRequest(InitializeParams):
             ],
             "auctionAfterSales": False
         }
-        return self._make_request('post', 'warehousing', data, 'main', nocheck)
+        return self._make_request('post', 'q6kIpVZXv', data, 'main', nocheck)
 
-    @doc(f_quality_inspection_upload_videos_for_storage)
+    @doc(zd9DnAScYux2tHzIRjJT)
     @BaseApi.timing_decorator
-    def quality_inspection_upload_videos_for_storage(self, nocheck=False):
-        res = self.pc.fulfillment_sign_into_the_library_data()
+    def zd9DnAScYux2tHzIRjJT(self, nocheck=False):
+        res = self.pc.KgbSrz63njmC8XfrU1jty(data='c')
+        data = {
+            "reasonType": 1,
+            "userId": INFO['camera_user_id'],
+            "consignmentReceiptStoreVOList": [
+                {
+                    "id": None,
+                    "articlesNo": res[0]['articlesNo'],
+                    "imei": self.imei,
+                    "erpArticlesNo": None,
+                    "erpImei": None,
+                    "articlesTypeId": res[0]['articlesTypeId'],
+                    "articlesTypeName": res[0]['articlesTypeName'],
+                    "brandId": res[0]['brandId'],
+                    "brandName": res[0]['brandName'],
+                    "modelId": res[0]['modelId'],
+                    "modelName": res[0]['modelName'],
+                    "finenessId": None,
+                    "finenessName": None,
+                    "skuInfo": None,
+                    "businessType": res[0]['businessType'],
+                    "businessTypeStr": res[0]['businessTypeStr'],
+                    "consignmentOrderNo": res[0]['consignmentOrderNo'],
+                    "tenantId": res[0]['tenantId'],
+                    "tenantStr": INFO['camera_username'],
+                    "userId": INFO['camera_user_id'],
+                    "inspectionCenterId": INFO['camera_check_the_center_id'],
+                    "inspectionCenterCode": INFO['camera_merchant_id'],
+                    "expressNo": None,
+                    "auctionAfterSales": None
+                }
+            ],
+            "orderVideoItemDTOList": [
+                {
+                    "videoUrl": "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com/erp-video/1767147017529.mp4",
+                    "orderNo": res[0]['consignmentOrderNo'],
+                    "videoName": "收货视频01"
+                }
+            ],
+            "auctionAfterSales": False
+        }
+        return self._make_request('post', 'q6kIpVZXv', data, 'camera', nocheck)
+
+    @doc(IYU1aVy8aH3qWm62ZtJp)
+    @BaseApi.timing_decorator
+    def IYU1aVy8aH3qWm62ZtJp(self, nocheck=False):
+        res = self.pc.KgbSrz63njmC8XfrU1jty()
         data = {
             "reasonType": 1,
             "userId": INFO['main_user_id'],
@@ -570,17 +675,17 @@ class FulfillmentSignIntoTheLibraryRequest(InitializeParams):
             ],
             "auctionAfterSales": False
         }
-        return self._make_request('post', 'warehousing', data, 'main', nocheck)
+        return self._make_request('post', 'q6kIpVZXv', data, 'main', nocheck)
 
 
-class FulfillmentOrderManageRequest(InitializeParams):
+class I7YRIi2RnR(InitializeParams):
     """运营中心|订单管理"""
 
-    @doc(f_fast_guaranteed_items)
+    @doc(zHywULjwAZbQYE4tEyui)
     @BaseApi.timing_decorator
-    def fast_guaranteed_items(self, nocheck=False):
-        res = self.pc.inventory_list_data(i=2, j=3)
-        res_2 = self.pc.fulfillment_order_manage_data(data='a')
+    def zHywULjwAZbQYE4tEyui(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2, j=3)
+        res_2 = self.pc.VzruD2bzEUPV1JJY9d6vF(data='a')
         data = {
             "quickList": [
                 {
@@ -677,19 +782,19 @@ class FulfillmentOrderManageRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'quick_guarantee_order', data, 'main', nocheck)
+        return self._make_request('post', 'TWvSffqwL', data, 'main', nocheck)
 
 
-class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
+class Pzx3xU1ulY(InitializeParams):
     """运营中心|物品出库"""
 
-    @doc(f_direct_shot_express_sales_out_of_the_warehouse)
+    @doc(YtFzTr37KoEb6ObJhKgF)
     @BaseApi.timing_decorator
-    def direct_shot_express_sales_out_of_the_warehouse(self, nocheck=False):
+    def YtFzTr37KoEb6ObJhKgF(self, nocheck=False):
         for _ in range(2):
             time.sleep(1.5)
-            self.pc.fulfillment_sales_and_shipment_manage_data(data='a')
-        res = self.pc.fulfillment_sales_and_shipment_manage_data(data='a')
+            self.pc.KmxOWBECeMnMqtP1qACyx(data='a')
+        res = self.pc.KmxOWBECeMnMqtP1qACyx(data='a')
         data = {
             "sendType": 1,
             "buyTenantId": INFO['camera_merchant_id'],
@@ -702,12 +807,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
             "expressCompanyName": "顺丰",
             "expressNo": self.sf
         }
-        return self._make_request('post', 'auction_sales_outbound', data, 'main', nocheck)
+        return self._make_request('post', 'Z6QzyEre9', data, 'main', nocheck)
 
-    @doc(f_direct_shot_jd_express_sales_out_of_the_warehouse)
+    @doc(zGpyxwdonEj5rUxkbGDz)
     @BaseApi.timing_decorator
-    def direct_shot_jd_express_sales_out_of_the_warehouse(self, nocheck=False):
-        res = self.pc.fulfillment_sales_and_shipment_manage_data(data='a')
+    def zGpyxwdonEj5rUxkbGDz(self, nocheck=False):
+        res = self.pc.KmxOWBECeMnMqtP1qACyx(data='a')
         data = {
             "sendType": 1,
             "buyTenantId": INFO['camera_merchant_id'],
@@ -720,12 +825,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
             "expressCompanyName": "京东",
             "expressNo": self.jd
         }
-        return self._make_request('post', 'auction_sales_outbound', data, 'main', nocheck)
+        return self._make_request('post', 'Z6QzyEre9', data, 'main', nocheck)
 
-    @doc(f_direct_shooting_order_sales_out_of_the_warehouse)
+    @doc(hVymbb8xmLoC1GpxmlSy)
     @BaseApi.timing_decorator
-    def direct_shooting_order_sales_out_of_the_warehouse(self, nocheck=False):
-        res = self.pc.fulfillment_sales_and_shipment_manage_data(data='a')
+    def hVymbb8xmLoC1GpxmlSy(self, nocheck=False):
+        res = self.pc.KmxOWBECeMnMqtP1qACyx(data='a')
         data = {
             "sendType": 1,
             "buyTenantId": INFO['camera_merchant_id'],
@@ -738,12 +843,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
             "expressCompanyName": "顺丰",
             "expectPostTimeStart": self.get_formatted_datetime()
         }
-        return self._make_request('post', 'auction_sales_outbound', data, 'main', nocheck)
+        return self._make_request('post', 'Z6QzyEre9', data, 'main', nocheck)
 
-    @doc(f_direct_shooting_order_sales_out_of_the_warehouse_jd)
+    @doc(yTdtu0H22ya7KmgU59hG)
     @BaseApi.timing_decorator
-    def direct_shooting_order_sales_out_of_the_warehouse_jd(self, nocheck=False):
-        res = self.pc.fulfillment_sales_and_shipment_manage_data(data='a')
+    def yTdtu0H22ya7KmgU59hG(self, nocheck=False):
+        res = self.pc.KmxOWBECeMnMqtP1qACyx(data='a')
         data = {
             "sendType": 1,
             "buyTenantId": INFO['camera_merchant_id'],
@@ -756,12 +861,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
             "expressCompanyName": "京东",
             "expectPostTimeStart": self.get_formatted_datetime()
         }
-        return self._make_request('post', 'auction_sales_outbound', data, 'main', nocheck)
+        return self._make_request('post', 'Z6QzyEre9', data, 'main', nocheck)
 
-    @doc(f_direct_shooting_self_pick_up_and_sales)
+    @doc(g4RyFUrC2BkjMHRKinuq)
     @BaseApi.timing_decorator
-    def direct_shooting_self_pick_up_and_sales(self, nocheck=False):
-        res = self.pc.bidding_my_data(i=3)
+    def g4RyFUrC2BkjMHRKinuq(self, nocheck=False):
+        res = self.pc.UAPqxpSx1qiMwyQEcIPXb(i=3)
         data = {
             "sendType": "2",
             "buyTenantId": INFO['camera_merchant_id'],
@@ -769,12 +874,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'auction_sales_outbound', data, 'main', nocheck)
+        return self._make_request('post', 'Z6QzyEre9', data, 'main', nocheck)
 
-    @doc(f_direct_sf_after_sales_delivery)
+    @doc(OP7wFFxaC2oDvVTeezXi)
     @BaseApi.timing_decorator
-    def direct_sf_after_sales_delivery(self, nocheck=False):
-        res = self.pc.fulfillment_after_sales_return_manage_data(i=1)
+    def OP7wFFxaC2oDvVTeezXi(self, nocheck=False):
+        res = self.pc.YBoIFlRaGyVtfzeObzsmf(i=1)
         obj = res[0]['articlesNo']
         ParamCache.cache_object({"articlesNo": obj}, 'practical.json')
         data = {
@@ -810,12 +915,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'after_sales_delivery', data, 'main', nocheck)
+        return self._make_request('post', 'ML8Yeu3JI', data, 'main', nocheck)
 
-    @doc(f_direct_jd_after_sales_delivery)
+    @doc(q4HsL6oaiZ29NvrH0p4P)
     @BaseApi.timing_decorator
-    def direct_jd_after_sales_delivery(self, nocheck=False):
-        res = self.pc.fulfillment_after_sales_return_manage_data(i=1)
+    def q4HsL6oaiZ29NvrH0p4P(self, nocheck=False):
+        res = self.pc.YBoIFlRaGyVtfzeObzsmf(i=1)
         obj = res[0]['articlesNo']
         ParamCache.cache_object({"articlesNo": obj}, 'practical.json')
         data = {
@@ -851,12 +956,12 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'after_sales_delivery', data, 'main', nocheck)
+        return self._make_request('post', 'ML8Yeu3JI', data, 'main', nocheck)
 
-    @doc(f_direct_zt_after_sales_delivery)
+    @doc(TNLKcCWf408wxkwt8y53)
     @BaseApi.timing_decorator
-    def direct_zt_after_sales_delivery(self, nocheck=False):
-        res = self.pc.fulfillment_after_sales_return_manage_data(i=1)
+    def TNLKcCWf408wxkwt8y53(self, nocheck=False):
+        res = self.pc.YBoIFlRaGyVtfzeObzsmf(i=1)
         obj = res[0]['articlesNo']
         ParamCache.cache_object({"articlesNo": obj}, 'practical.json')
         data = {
@@ -872,16 +977,16 @@ class FulfillmentItemsAreOutOfStorageRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'after_sales_delivery', data, 'main', nocheck)
+        return self._make_request('post', 'ML8Yeu3JI', data, 'main', nocheck)
 
 
-class FulfillmentAQuasiCameraRequest(InitializeParams):
+class ADixIQYwld(InitializeParams):
     """运营中心|壹准拍机|售后管理|售后订单"""
 
-    @doc(f_online_review_direct_shooting_passed)
+    @doc(nAYT9Iv7RAHKUiNICWDZ)
     @BaseApi.timing_decorator
-    def online_review_direct_shooting_passed(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['1'])
+    def nAYT9Iv7RAHKUiNICWDZ(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['1'])
         data = {
             "id": res[0]['id'],
             "refundAmount": 1,
@@ -891,12 +996,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 1
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_direct_auction_review_refund_price_difference)
+    @doc(nt1WLIYZKQBXObcXSO3i)
     @BaseApi.timing_decorator
-    def direct_auction_review_refund_price_difference(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['11'])
+    def nt1WLIYZKQBXObcXSO3i(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['11'])
         data = {
             "id": res[0]['id'],
             "refundAmount": 1,
@@ -909,12 +1014,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 2
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_direct_platform_review_only_the_difference)
+    @doc(ZZ2zZAyUsP0T3BsHmyIR)
     @BaseApi.timing_decorator
-    def direct_platform_review_only_the_difference(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['11'])
+    def ZZ2zZAyUsP0T3BsHmyIR(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['11'])
         data = {
             "id": res[0]['id'],
             "refundAmount": 1,
@@ -927,12 +1032,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 2
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_the_direct_auction_price_difference_was_approved)
+    @doc(yCDOX9xAevVaoqLEO8Xh)
     @BaseApi.timing_decorator
-    def the_direct_auction_price_difference_was_approved(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['1'])
+    def yCDOX9xAevVaoqLEO8Xh(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['1'])
         data = {
             "id": res[0]['id'],
             "refundAmount": 1,
@@ -942,12 +1047,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 1
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_direct_shot_review_priority_spread)
+    @doc(Om4GtulmnevZNOlqppff)
     @BaseApi.timing_decorator
-    def direct_shot_review_priority_spread(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['11'])
+    def Om4GtulmnevZNOlqppff(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['11'])
         data = {
             "id": res[0]['id'],
             "refundAmount": 1,
@@ -960,12 +1065,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 2
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_direct_platform_review_priority_difference)
+    @doc(o8uJrB3BoBE3UlDBpUhK)
     @BaseApi.timing_decorator
-    def direct_platform_review_priority_difference(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['11'])
+    def o8uJrB3BoBE3UlDBpUhK(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['11'])
         data = {
             "id": res[0]['id'],
             "refundAmount": 1,
@@ -978,15 +1083,15 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 2
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_direct_shot_return_refund_approved)
+    @doc(SLVYtmn8n4nMwNGpeuK5)
     @BaseApi.timing_decorator
-    def direct_shot_return_refund_approved(self, nocheck=False):
+    def SLVYtmn8n4nMwNGpeuK5(self, nocheck=False):
         for _ in range(2):
             time.sleep(1.5)
-            self.pc.fulfillment_camera_after_sales_order_data(i=['1'])
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['1'])
+            self.pc.CO4AXsbHeeFE7zOfrBooq(i=['1'])
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['1'])
         data = {
             "id": res[0]['id'],
             "auditInfo": {
@@ -995,12 +1100,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 1
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_direct_shot_review_rejection)
+    @doc(oUd1bU9wcVj8ujL9j9cI)
     @BaseApi.timing_decorator
-    def direct_shot_review_rejection(self, nocheck=False):
-        res = self.pc.fulfillment_camera_after_sales_order_data(i=['1'])
+    def oUd1bU9wcVj8ujL9j9cI(self, nocheck=False):
+        res = self.pc.CO4AXsbHeeFE7zOfrBooq(i=['1'])
         data = {
             "id": res[0]['id'],
             "auditInfo": {
@@ -1010,12 +1115,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             },
             "auditType": 1
         }
-        return self._make_request('post', 'camera_online_review', data, 'main', nocheck)
+        return self._make_request('post', 'Ka0Hquwaf', data, 'main', nocheck)
 
-    @doc(f_to_be_received_signature_into_the_library)
+    @doc(m2P7xHJlv31GMBi1Qzjb)
     @BaseApi.timing_decorator
-    def to_be_received_signature_into_the_library(self, nocheck=False):
-        res = self.pc.fulfillment_sign_into_the_library_data(data='b')
+    def m2P7xHJlv31GMBi1Qzjb(self, nocheck=False):
+        res = self.pc.KgbSrz63njmC8XfrU1jty(data='b')
         obj = res[0]['consignmentOrderNo']
         ParamCache.cache_object({"order_no": obj}, 'practical.json')
         data = {
@@ -1058,12 +1163,12 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             ],
             "auctionAfterSales": True
         }
-        return self._make_request('post', 'warehousing', data, 'main', nocheck)
+        return self._make_request('post', 'q6kIpVZXv', data, 'main', nocheck)
 
-    @doc(f_direct_platform_review_sign_into_the_library)
+    @doc(hjEKlIzRRSYkSa8yshVM)
     @BaseApi.timing_decorator
-    def direct_platform_review_sign_into_the_library(self, nocheck=False):
-        res = self.pc.fulfillment_sign_into_the_library_data(data='b')
+    def hjEKlIzRRSYkSa8yshVM(self, nocheck=False):
+        res = self.pc.KgbSrz63njmC8XfrU1jty(data='b')
         obj = res[0]['consignmentOrderNo']
         ParamCache.cache_object({"order_no": obj}, 'practical.json')
         data = {
@@ -1106,14 +1211,14 @@ class FulfillmentAQuasiCameraRequest(InitializeParams):
             ],
             "auctionAfterSales": True
         }
-        return self._make_request('post', 'warehousing', data, 'main', nocheck)
+        return self._make_request('post', 'q6kIpVZXv', data, 'main', nocheck)
 
 
-class FulfillmentAfterSalesReturnManageRequest(InitializeParams):
+class BCCqGPByjj(InitializeParams):
     """运营中心|壹准拍机|售后管理|售后退货管理"""
 
 
 if __name__ == '__main__':
-    api = FulfillmentQualityManageRequest()
-    result = api.quality_submit_the_quality_inspection_results()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))

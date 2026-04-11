@@ -3,118 +3,116 @@ import json
 from common.base_api import BaseApi
 
 
-class TraffickerIndexApi(BaseApi):
-    """首页"""
+class VfTkevwpodNhL42zHU3dx(BaseApi):
+    """二手通小程序|首页"""
 
-    def help_sell_listings_list(self, headers=None):
+    def D2k1drVu2N1e(self, headers=None):
         """帮卖列表 帮卖上架列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(), "listType": 0, "entryType": 1}
-        response = self.request_handle('post', self.urls['help_sell_listings_list'], data=json.dumps(data),
-                                       headers=headers)
+        response = self.request_handle('post', self.urls['R9KURc37p'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def help_sell_list(self, headers=None):
+    def uPKv8yuxu7KE(self, headers=None):
         """一键帮卖 帮卖清单"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params()}
-        response = self.request_handle('post', self.urls['help_sell_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['Ol7sHS12i'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def inventory_count_list(self, headers=None):
+    def SMw7DJm83xsG(self, headers=None):
         """库存盘点 库存盘点列表"""
         headers = headers or self.headers['main']
         data = {"stockNo": "", "maxBehotTime": "", "startTime": "", "endTime": ""}
-        response = self.request_handle('post', self.urls['mg_inventory_count'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['eIaBtZRsg'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def logistics_list_list(self, headers=None):
+    def lYg2j57m1KBq(self, headers=None):
         """物流列表 物流列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params()}
-        response = self.request_handle('post', self.urls['logistics_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['VRAiYmFWf'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def purchase_order_list(self, headers=None):
+    def FOKJDIottLep(self, headers=None):
         """采购订单 采购订单列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params()}
-        response = self.request_handle('post', self.urls['purchase_order'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['ES1m5P2yR'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def quality_inspection_list(self, headers=None):
+    def cc9d3eoQODGd(self, headers=None):
         """物品质检 物品质检列表"""
         headers = headers or self.headers['main']
         data = {"imeiOrNo": ""}
-        response = self.request_handle('post', self.urls['quality_inspection'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['mtwBAziua'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def item_repair_list(self, headers=None):
+    def t6NP6wsidTkw(self, headers=None):
         """物品维修 物品维修列表"""
         headers = headers or self.headers['main']
         data = {"imeiOrNo": ""}
-        response = self.request_handle('post', self.urls['item_repair'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['ftMaom67y'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'data', list)
         self.make_pkl_file(res)
         return res
 
-    def repair_record_list(self, headers=None):
+    def afgFyCfi7BYQ(self, headers=None):
         """维修记录 维修记录列表"""
         headers = headers or self.headers['main']
         data = {"imeiOrNo": ""}
-        response = self.request_handle('post', self.urls['mg_repair_record'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['FyUjIjfix'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'data', list)
         self.make_pkl_file(res)
         return res
 
-    def sell_order_list(self, headers=None):
+    def xAQc5dlPVSjv(self, headers=None):
         """销售订单 销售订单列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params()}
-        response = self.request_handle('post', self.urls['sell_order'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['oMg0yCVbP'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class TraffickerStaticsApi(BaseApi):
-    """首页|统计"""
+class SMuBZZVIBpz3FpTfyxc5X(BaseApi):
+    """二手通小程序|统计"""
 
-    def business_statics(self, headers=None):
+    def xCTpclrHollM(self, headers=None):
         """业务统计"""
         headers = headers or self.headers['main']
-        response = self.request_handle('get', self.urls['business_statistics'], headers=headers)
+        response = self.request_handle('get', self.urls['BT72VcbCF'], headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def purchase_statistics(self, headers=None):
+    def TVCgbuZkcjep(self, headers=None):
         """采购统计"""
         headers = headers or self.headers['main']
         today = self.get_the_date()
         data = {"startTime": today, "endTime": today}
-        response = self.request_handle('post', self.urls['purchase_statistics'], data=json.dumps(data),
-                                       headers=headers)
+        response = self.request_handle('post', self.urls['yR6YDXTh8'], data=json.dumps(data),       headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def sell_statistics(self, headers=None):
+    def FqssvItwBC9O(self, headers=None):
         """销售统计"""
         headers = headers or self.headers['main']
         today = self.get_the_date()
         data = {"startTime": today, "endTime": today}
-        response = self.request_handle('post', self.urls['sell_statistics'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['tkkORJo11'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
 
 if __name__ == '__main__':
-    api = TraffickerStaticsApi()
-    res = api.business_statics()
+    api = ()
+    res = api
     print(res)

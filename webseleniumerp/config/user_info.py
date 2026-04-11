@@ -15,6 +15,17 @@ INFO = {
     "camera_account": "Y98290083",
     "camera_username": "奥特曼20admin",
 
+    # bot速收专用账号
+    "bot_phone":"15315031405",
+    "bot_wechatId":"o7RlI02lcVttUXE1ww55DPf485dw",
+    "bot_miniOpenid":"oU8h71zX44XlPofFwuMfEoOI8ohk",
+    "bot_loginPlatform":2,
+    "bot_type":6,
+    "bot_loginType":1,
+    "bot_latitude":"23.172437",
+    "bot_longitude":"113.475481",
+    "bot_deviceInfo":"iPhone 15 Pro Max",
+
     # -----------------------------------------------------不用改--------------------------------------------------------
     # 配置数据 专用账号
     "idle_account": "Y19130067",  # 账号
@@ -35,34 +46,35 @@ INFO = {
     "super_admin_id": 1,  # 超级管理员id
     # 帮卖 专用账号
     "vice_help_sale_supplier_name": "商城",  # 销售客户名称
-    # 发货收货信息
-    "shipping_province_name": "北京",  # 发货地址-省名称
-    "shipping_province_id": 1100,  # 发货地址-省id
-    "shipping_city_name": "北京市",  # 发货地址-市名称
-    "shipping_city_id": 11010,  # 发货地址-市id
-    "shipping_county_name": "东城区",  # 发货地址-区名称
-    "shipping_county_id": 1104,  # 发货地址-区id
-    "shipping_detailed_address": "和平路1号",  # 发货地址-详细地址
-    "shipping_address_creator": "admin",  # 发货地址-创建人
-    "address_creator": "莫济焕",  # 收货地址-创建人
-    "province_name": "广西",  # 收货地址-省名称
-    "province_id": 3000,  # 收货地址-省id
-    "city_name": "梧州市",  # 收货地址-市名称
-    "city_id": 3004,  # 收货地址-市id
-    "county_name": "藤县",  # 收货地址-区名称
-    "county_id": 54766,  # 收货地址-区id
-    "detailed_address": "藤县教育城",  # 收货地址-详细地址
+    # 地址信息
+    "shipping_address_creator": "admin",  # 创建人
     "customer_name": "杰克",  # 客户名称
     "vice_customer_name": "路西",  # 客户名称
     "camera_name": "卢卡斯",  # 客户名称
-    "coordinate": "23.371021,110.97392",
     "sf_express_logo": "2433",
-
+    "address_creator": "莫济焕",  # 收货地址-创建人
+    # "province_name": "广西",  # 收货地址-省名称
+    # "province_id": 3000,  # 收货地址-省id
+    # "city_name": "梧州市",  # 收货地址-市名称
+    # "city_id": 3004,  # 收货地址-市id
+    # "county_name": "藤县",  # 收货地址-区名称
+    # "county_id": 54766,  # 收货地址-区id
+    # "detailed_address": "藤县教育城",  # 收货地址-详细地址
+    # "coordinate": "23.371021,110.97392",
+    "province_name": "广东",  # 收货地址-省名称
+    "province_id": 2900,  # 收货地址-省id
+    "city_name": "广州市",  # 收货地址-市名称
+    "city_id": 29020,  # 收货地址-市id
+    "county_name": "黄埔区",  # 收货地址-区名称
+    "county_id": 54386,  # 收货地址-区id
+    "detailed_address": "开创大道2565号生生广场",  # 收货地址-详细地址
+    "coordinate": "23.171635,113.474785",
     # ----------------------------------------通过inquiry.py文件运行查询替换-----------------------------------------------------
     "main_user_id": 990,  # 奥特曼用户id
     "special_user_id": 992,  # 奥特曼库管用户id
     "vice_user_id": 991,  # 蝙蝠侠用户id
     "idle_user_id": 953,  # 专用账号用户id
+    "camera_user_id": 1016,  # 拍机账号用户id
     "merchant_id": 560981,  # 商户id
     "camera_merchant_id": 497604,  # 拍机商户id
     "main_account_no": "5609816372",  # 奥特曼财务账户id
@@ -89,4 +101,6 @@ INFO = {
     "camera_phone": "17461741724",  # 卢卡斯电话
     "check_the_center_id": 13,  # 验机中心id
     "check_the_center_name": "理查德米勒验机中心",  # 验机中心名称
+    "camera_check_the_center_id": 104,  # 拍机验机中心id
+    "camera_check_the_center_name": "劳力士验机中心",  # 拍机验机中心名称
 }

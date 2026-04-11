@@ -1,16 +1,16 @@
 # coding: utf-8
 import json
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.import_desc import *
 
 
-class MessageReleaseListRequest(InitializeParams):
+class QRSsWbYWV1(InitializeParams):
     """消息管理|消息发布列表"""
 
-    @doc(m_publish_the_message)
+    @doc(p2KvndGL0zVJEDKHGIPU)
     @BaseApi.timing_decorator
-    def publish_the_message(self, nocheck=False):
+    def p2KvndGL0zVJEDKHGIPU(self, nocheck=False):
         data = {
             "messageType": "1",
             "title": "消息标题",
@@ -21,11 +21,11 @@ class MessageReleaseListRequest(InitializeParams):
             "selectType": "2",
             "addType": 2
         }
-        return self._make_request('post', 'publish_the_message', data, 'main', nocheck)
+        return self._make_request('post', 'CTDGoffF5', data, 'main', nocheck)
 
-    @doc(m_release_the_review_message)
+    @doc(qJP3yR1nymSHmVoKgKFz)
     @BaseApi.timing_decorator
-    def release_the_review_message(self, nocheck=False):
+    def qJP3yR1nymSHmVoKgKFz(self, nocheck=False):
         data = {
             "messageType": "2",
             "title": "消息标题",
@@ -37,11 +37,11 @@ class MessageReleaseListRequest(InitializeParams):
             "addType": 3
         }
 
-        return self._make_request('post', 'release_the_review_message', data, 'main', nocheck)
+        return self._make_request('post', 'g9QGSsci5', data, 'main', nocheck)
 
-    @doc(m_release_new_news_timed_release_time)
+    @doc(fNGpyQ3gggozz0uW4Ko0)
     @BaseApi.timing_decorator
-    def release_new_news_timed_release_time(self, nocheck=False):
+    def fNGpyQ3gggozz0uW4Ko0(self, nocheck=False):
         data = {
             "messageType": "15",
             "title": "消息标题1",
@@ -54,11 +54,11 @@ class MessageReleaseListRequest(InitializeParams):
             "addType": 2
         }
 
-        return self._make_request('post', 'publish_the_message', data, 'main', nocheck)
+        return self._make_request('post', 'CTDGoffF5', data, 'main', nocheck)
 
-    @doc(m_release_new_news_save_the_draft)
+    @doc(ELqbuERMQsawGlkE9Ala)
     @BaseApi.timing_decorator
-    def release_new_news_save_the_draft(self, nocheck=False):
+    def ELqbuERMQsawGlkE9Ala(self, nocheck=False):
         data = {
             "messageType": "6",
             "title": "消息标题1",
@@ -69,12 +69,12 @@ class MessageReleaseListRequest(InitializeParams):
             "selectType": "2",
             "addType": 1
         }
-        return self._make_request('post', 'add_or_update', data, 'main', nocheck)
+        return self._make_request('post', 'fBQcHW1U6', data, 'main', nocheck)
 
-    @doc(m_approved)
+    @doc(FAEFTmKmDM49LcbTv3tL)
     @BaseApi.timing_decorator
-    def approved(self, nocheck=False):
-        res = self.pc.message_release_list_data()
+    def FAEFTmKmDM49LcbTv3tL(self, nocheck=False):
+        res = self.pc.KxO3PKRgVuNDVjQUSHVcl()
         data = {
             "auditResult": "1",
             "ids": [
@@ -83,12 +83,12 @@ class MessageReleaseListRequest(InitializeParams):
             "selectType": "2",
             "operationType": 7
         }
-        return self._make_request('post', 'message_audit', data, 'main', nocheck)
+        return self._make_request('post', 'KXoQfjXQR', data, 'main', nocheck)
 
-    @doc(m_refuse)
+    @doc(yNFy3et5XdWwF0gE1VJQ)
     @BaseApi.timing_decorator
-    def refuse(self, nocheck=False):
-        res = self.pc.message_release_list_data()
+    def yNFy3et5XdWwF0gE1VJQ(self, nocheck=False):
+        res = self.pc.KxO3PKRgVuNDVjQUSHVcl()
         data = {
             "auditResult": "2",
             "reason": "test1",
@@ -99,10 +99,10 @@ class MessageReleaseListRequest(InitializeParams):
             "selectType": "2",
             "operationType": 7
         }
-        return self._make_request('post', 'message_audit', data, 'main', nocheck)
+        return self._make_request('post', 'KXoQfjXQR', data, 'main', nocheck)
 
 
 if __name__ == '__main__':
-    api = MessageReleaseListRequest()
-    result = api.refuse()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))

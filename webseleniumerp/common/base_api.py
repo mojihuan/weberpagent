@@ -178,9 +178,9 @@ class BaseApi(BaseRandomMixin):
 
     def _get_nested_field(self, data, field_path):
         """
-        从嵌套字典结构中根据路径提取字段值
+        从嵌套字典结构中根据路径提取字段值，支持数组索引
         :param data: 字典数据源
-        :param field_path: 字段路径，用 '.' 分隔层级
+        :param field_path: 字段路径，用 '.' 分隔层级，支持数组索引如 'taskProgressList.0.id'
         :return: 提取到的值 或 None
         """
         fields = field_path.split('.')
@@ -188,6 +188,20 @@ class BaseApi(BaseRandomMixin):
         for field in fields:
             if isinstance(current, dict) and field in current:
                 current = current[field]
+            elif isinstance(current, list):
+                # 尝试将 field 转换为整数索引
+                try:
+                    index = int(field)
+                    if 0 <= index < len(current):
+                        current = current[index]
+                    else:
+                        return None
+                except (ValueError, IndexError):
+                    # 如果不是数字，则尝试从列表第一个元素中获取该字段
+                    if len(current) > 0 and isinstance(current[0], dict):
+                        current = current[0].get(field)
+                    else:
+                        return None
             else:
                 return None
         return current
@@ -270,18 +284,19 @@ class BaseApi(BaseRandomMixin):
             print(f"❌ {api_info}处理响应时发生异常: {e}")
             return None
 
-    def _get_field_copy_value(self, method_name, header_key, field_name, index=0, copy_to_clipboard=True,
-                              **method_kwargs):
+    def _get_field_copy_value(self, method_name, header_key, field_name, index=0, copy_to_clipboard=True, **method_kwargs):
         """
         通过指定方法获取数据，并从中提取字段值，可选复制到剪贴板
         :param method_name: 方法名称（字符串）
         :param header_key: 请求头中的键
-        :param field_name: 字段路径（支持多级嵌套）
-        :param index: 数据索引，默认为0（第一条数据）
+        :param field_name: 字段路径（支持多级嵌套和数组索引，如 'taskProgressList.[1].id'）
+        :param index: 数据索引，默认为 0（第一条数据）
         :param copy_to_clipboard: 是否复制到剪贴板
         :param method_kwargs: 传递给目标方法的额外参数
         :return: 提取到的字段值
         """
+        import re
+
         method = getattr(self, method_name)
 
         # 特殊处理 headers 参数，避免冲突
@@ -314,9 +329,23 @@ class BaseApi(BaseRandomMixin):
         for field in fields:
             if isinstance(value, dict):
                 value = value.get(field)
-            elif isinstance(value, list) and value and isinstance(value[0], (dict, list)):
-                value = value[0]
-                value = value.get(field) if isinstance(value, dict) else None
+            elif isinstance(value, list):
+                # 检查字段是否为数组索引格式，如 [1]
+                match = re.match(r'\[(\d+)\]', field)
+                if match:
+                    array_index = int(match.group(1))
+                    if array_index < len(value):
+                        value = value[array_index]
+                    else:
+                        value = None
+                        break
+                elif value and isinstance(value[0], (dict, list)):
+                    # 默认取第一个元素（保持向后兼容）
+                    value = value[0]
+                    value = value.get(field) if isinstance(value, dict) else None
+                else:
+                    value = None
+                    break
             else:
                 value = None
                 break
@@ -328,7 +357,7 @@ class BaseApi(BaseRandomMixin):
             try:
                 pyperclip.copy(str(value))
             except Exception as e:
-                print(f"复制到剪贴板失败: {e}")
+                print(f"复制到剪贴板失败：{e}")
 
         return value
 
@@ -517,17 +546,21 @@ class BaseApi(BaseRandomMixin):
                     else:
                         value = value_processor
                 # 检查是否为嵌套字段（包含点号）
-                if '.' in external_key and isinstance(value, list) and len(value) > 0:
-                    print('--', external_key)
-                    processed_values = []
-                    for item in value:
-                        if isinstance(item, dict):
-                            nested_value = self._get_nested_field(item, external_key)
-                            if nested_value is not None:
-                                processed_values.append(nested_value)
-                        else:
-                            processed_values.append(item)
-                    data[external_key] = processed_values
+                if '.' in external_key:
+                    # 直接使用外部字段名作为 key，值保存为列表
+                    if isinstance(value, list) and len(value) > 0:
+                        processed_values = []
+                        for item in value:
+                            if isinstance(item, dict):
+                                nested_value = self._get_nested_field(item, external_key)
+                                if nested_value is not None:
+                                    processed_values.append(nested_value)
+                            else:
+                                processed_values.append(item)
+                        data[external_key] = processed_values
+                    else:
+                        # 单个值的嵌套字段处理
+                        data[external_key] = value
                 else:
                     data[external_key] = value
         return data, supported_params
@@ -658,12 +691,13 @@ class BaseApi(BaseRandomMixin):
             start_time = f"{self.get_the_date()} {hour:02d}:00:00"
             end_time = f"{self.get_the_date()} {hour:02d}:59:59"
             show_time = f"{self.get_the_date()} {hour:02d}:30:00"
-
             sessions.append({
                 "name": "场次" + self.serial,
                 "showTime": show_time,
                 "startTime": start_time,
-                "endTime": end_time
+                "endTime": end_time,
+                "isFranchiseeLocalPrice": 1,
+                "localPriceTime": 1
             })
         return sessions
 

@@ -6,433 +6,427 @@ from common.decorators import test_mode_handler
 from common.import_case import *
 
 
-@test_mode_handler(me_r.HelpOneClickHelpRequest, None)
-class TestTraffickerHelp(MiniBaseCase):
-    """首页|帮卖"""
+@test_mode_handler(trafficker_r.ZG6fRe5zTB, None)
+class TestEMQEUtBN(MiniBaseCase):
+    """二手通小程序|首页|帮卖"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0execute_one_click_help(self):
+    def test_0gSy4Vk4VOP22wEagmKtu(self):
         """[一键帮卖]-从库存添加-我要帮卖"""
-        self.pre.operations(data=['FA1', 'GA1'])
-        self.case.execute_one_click_help()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待发货', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy'])
+        self.case.gSy4Vk4VOP22wEagmKtu()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待发货', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_guaranteed_sale_buyout(self):
+    def test_T7vjIsc0mkOJLNIOlGHR(self):
         """[一键帮卖]-从库存添加-我要保卖买断"""
-        self.pre.operations(data=['FA1', 'GA1'])
-        self.case.guaranteed_sale_buyout()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待发货', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy'])
+        self.case.T7vjIsc0mkOJLNIOlGHR()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待发货', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_guaranteed_sales_and_profit_sharing(self):
+    def test_Q2CD7BU5QG3ce40zfWJ6(self):
         """[一键帮卖]-从库存添加-我要保卖分润"""
-        self.pre.operations(data=['FA1', 'GA1'])
-        self.case.guaranteed_sales_and_profit_sharing()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待发货', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy'])
+        self.case.Q2CD7BU5QG3ce40zfWJ6()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待发货', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0express_delivery_is_easy_to_ship(self):
+    def test_Th8rhqqbFWasw2m5ca09(self):
         """[发货]快递易发货"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4'])
-        self.case.express_delivery_is_easy_to_ship()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待收货', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7'])
+        self.case.Th8rhqqbFWasw2m5ca09()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待收货', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_self_mailing(self):
+    def test_KcQ8VA99jSgpYr00tyLM(self):
         """[发货]自行邮寄发货"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4'])
-        self.case.self_mailing()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待收货', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7'])
+        self.case.KcQ8VA99jSgpYr00tyLM()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待收货', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_deliver_it_yourself(self):
+    def test_Zng3AfJbx2o0lS97ypXT(self):
         """[发货]自己送发货"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4'])
-        self.case.deliver_it_yourself()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待收货', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7'])
+        self.case.Zng3AfJbx2o0lS97ypXT()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待收货', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_quality_inspection_retirement(self):
+    def test_wiM0WjiOzoeKyaTG2PrC(self):
         """[待质检]-申请退机"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4', 'GA7', 'HA1'])
-        self.case.quality_inspection_retirement()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待退机', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7', 'ZA5N', 'WZaL'])
+        self.case.wiM0WjiOzoeKyaTG2PrC()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待退机', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_pending_confirmation_request_to_withdraw(self):
+    def test_ABD3XVRJTfP5w1yu4jHp(self):
         """[待确认]-申请退机"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA9', 'GA6', 'HA1', 'GB1'])
-        self.case.pending_confirmation_request_to_withdraw()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待退机', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'ZyMU', 'BDSs', 'WZaL', 'Sh3x'])
+        self.case.ABD3XVRJTfP5w1yu4jHp()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待退机', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_negotiate_a_refund_request(self):
+    def test_q8V7X7imCb99t9ZvMfo8(self):
         """[待议价]-申请退机"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA9', 'GA6', 'HA1', 'GB1', 'GA12'])
-        self.case.negotiate_a_refund_request()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待退机', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'ZyMU', 'BDSs', 'WZaL', 'Sh3x', 'UWBK'])
+        self.case.q8V7X7imCb99t9ZvMfo8()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待退机', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_for_sale_request_to_withdraw(self):
+    def test_LMDMfMzEmvr5s6wtfKmX(self):
         """[待议价]-申请退机"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4', 'GA7', 'HA1', 'GB1'])
-        self.case.for_sale_request_to_withdraw()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待退机', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7', 'ZA5N', 'WZaL', 'Sh3x'])
+        self.case.LMDMfMzEmvr5s6wtfKmX()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待退机', updateTime='now')]
         self.assert_all(*res)
 
-    def test_pending_negotiation_confirm_the_guaranteed_sale(self):
+    def test_vGclYeJDVchXH8anjkpV(self):
         """[待议价]-确认保卖"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_negotiation_confirm_the_guarantee_of_sale(self):
+    def test_X6ssuFYCjqGxvThVflOf(self):
         """[待确认]-申请议价"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA9', 'GA6', 'HA1', 'GB1'])
-        self.case.negotiation_confirm_the_guarantee_of_sale()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待议价', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'ZyMU', 'BDSs', 'WZaL', 'Sh3x'])
+        self.case.X6ssuFYCjqGxvThVflOf()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待议价', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_pending_departure_cancel_the_departure(self):
+    def test_bFv5K1H1hfIreNfxq0N7(self):
         """[待退机]-取消退机"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA9', 'GA6', 'HA1', 'GB1'])
-        self.case.pending_departure_cancel_the_departure()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='待确认', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'ZyMU', 'BDSs', 'WZaL', 'Sh3x'])
+        self.case.bFv5K1H1hfIreNfxq0N7()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='待确认', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_manual_sign_in_during_exit(self):
+    def test_YmNQXNyn0cgOev94cyUn(self):
         """[退机中]-手动签收"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4', 'GA7', 'HA1', 'GA8', 'GB2'])
-        self.case.manual_sign_in_during_exit()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='已退机', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7', 'ZA5N', 'WZaL', 'Ez0X', 'RGCO'])
+        self.case.YmNQXNyn0cgOev94cyUn()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='已退机', updateTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_logistics_signing_during_retirement(self):
+    def test_pEdX4tcJCCi2ANETDgLh(self):
         """[退机中]-物流签收入库"""
-        self.pre.operations(data=['FA1', 'GA1', 'GA3', 'GA4', 'GA7', 'HA1', 'GA8', 'GB3'])
-        self.case.logistics_signing_during_retirement()
-        res = [lambda: self.pc.help_generate_order_assert(orderStateStr='退机中', updateTime='now')]
+        self.pre.operations(data=['ekBx', 'x1dy', 'SbHY', 'AWj7', 'ZA5N', 'WZaL', 'Ez0X', 'weY4'])
+        self.case.pEdX4tcJCCi2ANETDgLh()
+        res = [lambda: self.pc.jOTfI6(orderStateStr='退机中', updateTime='now')]
         self.assert_all(*res)
 
 
-@test_mode_handler(me_r.InventoryCountRequest, None)
-class TestTraffickerInventory(MiniBaseCase):
-    """首页|库存"""
+@test_mode_handler(trafficker_r.KUHmqHA6mE, None)
+class Testu7WDm1zP(MiniBaseCase):
+    """二手通小程序|首页|库存"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0individual_item_counting(self):
+    def test_0FpdSwapLHorzSgUTXzO3(self):
         """[流程]新建盘点-提交盘点-完成盘点"""
-        self.case.individual_item_counting()
-        res = [lambda: self.pc.inventory_count_assert(updateTime='now', stockNo='PD')]
+        self.case.FpdSwapLHorzSgUTXzO3()
+        res = [lambda: self.pc.qOAsRC(updateTime='now', stockNo='PD')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0handover_for_quality_inspection(self):
+    def test_NolDGk9PEn4XYz8LrUgH(self):
         """[流程]移交物品-移交质检"""
-        self.pre.operations(data=['FA1'])
-
-        self.case.handover_for_quality_inspection()
+        self.pre.operations(data=['ekBx'])
+        self.case.NolDGk9PEn4XYz8LrUgH()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_handover_for_maintenance(self):
+    def test_AHeVie0Oup6y9tNMelfQ(self):
         """[流程]移交物品-移交维修"""
-        self.pre.operations(data=['FA1'])
-
-        self.case.handover_for_maintenance()
+        self.pre.operations(data=['ekBx'])
+        self.case.AHeVie0Oup6y9tNMelfQ()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_transfer_for_repair(self):
+    def test_cj8y7BldKp6aX4lbkB29(self):
         """[流程]移交物品-移交送修"""
-        self.pre.operations(data=['FA1'])
-
-        self.case.transfer_for_repair()
+        self.pre.operations(data=['ekBx'])
+        self.case.cj8y7BldKp6aX4lbkB29()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_transfer_for_sales(self):
+    def test_B0dbkcikzi0su2qFAEqM(self):
         """[流程]移交物品-移交销售"""
-        self.pre.operations(data=['FA1'])
-
-        self.case.transfer_for_sales()
+        self.pre.operations(data=['ekBx'])
+        self.case.B0dbkcikzi0su2qFAEqM()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_transfer_for_purchasing_after_sales(self):
+    def test_djAbq91arWjnM274GmSY(self):
         """[流程]移交物品-移交采购售后"""
-        self.pre.operations(data=['FA1'])
-
-        self.case.transfer_for_purchasing_after_sales()
+        self.pre.operations(data=['ekBx'])
+        self.case.djAbq91arWjnM274GmSY()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_transfer_for_stock(self):
+    def test_wEfefFG7nEo3Kan0I3cY(self):
         """[流程]移交物品-移交库存"""
-        self.pre.operations(data=['FA1'])
-
-        self.case.transfer_for_stock()
+        self.pre.operations(data=['ekBx'])
+        self.case.wEfefFG7nEo3Kan0I3cY()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0sign_in_warehouse(self):
+    def test_rOtk4WU5CRaxiuoJLvh6(self):
         """[流程]签收入库"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.rOtk4WU5CRaxiuoJLvh6()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sign_in_warehouse_in_quality(self):
+    def test_VDDb6S8keIp4qBsOIcxz(self):
         """[流程]签收入库-移交质检"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse_in_quality()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.VDDb6S8keIp4qBsOIcxz()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sign_in_warehouse_in_repair(self):
+    def test_PylpYfWMSCO7tb8yWDov(self):
         """[流程]签收入库-移交维修"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse_in_repair()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.PylpYfWMSCO7tb8yWDov()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sign_in_warehouse_in_send(self):
+    def test_Bb6rtOhNILeRK1H3CswE(self):
         """[流程]签收入库-移交送修"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse_in_send()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.Bb6rtOhNILeRK1H3CswE()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sign_in_warehouse_in_sell(self):
+    def test_gwkXCubQ6Kh0UhJCOUp6(self):
         """[流程]签收入库-移交销售"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse_in_sell()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.gwkXCubQ6Kh0UhJCOUp6()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sign_in_warehouse_in_purchase(self):
+    def test_K9U0fcTlznz9x5lbCPxH(self):
         """[流程]签收入库-移交采购"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse_in_purchase()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.K9U0fcTlznz9x5lbCPxH()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sign_in_warehouse_in_inventory(self):
+    def test_wrfq9qJlYzprjxoG4WmO(self):
         """[流程]签收入库-移交库存"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_in_warehouse_in_inventory()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', sortationTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.wrfq9qJlYzprjxoG4WmO()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', sortationTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0receive_items_in_sell(self):
+    def test_AXJg2IWq4WbiLzdWv6RK(self):
         """[流程]销售-接收物品"""
-        self.pre.operations(data=['FA1', 'HC8'])
-        self.case.receive_items_in_sell()
+        self.pre.operations(data=['ekBx', 'DT6i'])
+        self.case.AXJg2IWq4WbiLzdWv6RK()
         res = [lambda: self.pc.handover_record(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0sign_into_the_library(self):
+    def test_gUlS03xcTzSc6opuoZXv(self):
         """[流程]签收入库"""
-        self.pre.operations(data=['FA2'])
-        self.case.sign_into_the_library()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', businessTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.gUlS03xcTzSc6opuoZXv()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', businessTime='now')]
         self.assert_all(*res)
 
 
-@test_mode_handler(me_r.PurchaseItemRequest, None)
-class TestTraffickerPurchase(MiniBaseCase):
-    """首页|采购"""
+@test_mode_handler(trafficker_r.Htxslq7CN1, None)
+class TestuLHUc7zc(MiniBaseCase):
+    """二手通小程序|首页|采购"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_add_smartwatch_arrived_unpaid(self):
+    def test_0N8ZYbEQ5wRbTFaYhk54m(self):
         """[流程]新增采购单-智能手表-已到货-未付款"""
-        self.case.add_smartwatch_arrived_unpaid()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
+        self.case.N8ZYbEQ5wRbTFaYhk54m()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_add_mobile_handover_repair(self):
+    def test_KKVgCekmpYe0dXD1TQoP(self):
         """[流程]新增采购单-手机-已到货-未付款-入库移交维修"""
-        self.case.add_mobile_handover_repair()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
+        self.case.KKVgCekmpYe0dXD1TQoP()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0purchase_orders(self):
+    def test_iuU1ZpZnIF2nfnGtBxhK(self):
         """[流程]采购入库"""
-        self.pre.operations(data=['FA2'])
-        self.case.purchase_orders()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', businessTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.iuU1ZpZnIF2nfnGtBxhK()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', businessTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_purchase_orders_in_quality(self):
+    def test_LiiO1y6jvNGLbSiTWHmU(self):
         """[流程]采购入库-移交质检"""
-        self.pre.operations(data=['FA2'])
-        self.case.purchase_orders_in_quality()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', businessTime='now')]
+        self.pre.operations(data=['XLBD'])
+        self.case.LiiO1y6jvNGLbSiTWHmU()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', businessTime='now')]
         self.assert_all(*res)
 
 
-@test_mode_handler(me_r.QualityItemRequest, None)
-class TestTraffickerQuality(MiniBaseCase):
-    """首页|质检"""
+@test_mode_handler(trafficker_r.JeJHxqrd7e, None)
+class TestXS46W68s(MiniBaseCase):
+    """二手通小程序|首页|质检"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0submit_the_quality_inspection_results(self):
+    def test_0GCcaGfhZIx5dmNXOGPoG(self):
         """[流程]提交质检结果"""
-        self.pre.operations(data=['FA1', 'HC1', 'HB2'])
-        self.case.submit_the_quality_inspection_results()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u', 'HRTZ'])
+        self.case.GCcaGfhZIx5dmNXOGPoG()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_fast_quality_inspection(self):
+    def test_TIdR7zy3q7gsA97wufMG(self):
         """[流程]快速质检-提交质检结果"""
-        self.pre.operations(data=['FA1', 'HC1', 'HB2'])
-        self.case.fast_quality_inspection()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u', 'HRTZ'])
+        self.case.TIdR7zy3q7gsA97wufMG()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_new_quality_inspection_form(self):
+    def test_fRpQsQhibllGcUnGvL4b(self):
         """[流程]新增质检单"""
-        self.pre.operations(data=['FA1', 'HC1', 'HB2'])
-        self.case.new_quality_inspection_form()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u', 'HRTZ'])
+        self.case.fRpQsQhibllGcUnGvL4b()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_quality_complete_purchase_warehousing(self):
+    def test_frFIFPmzY5aUapx40XDq(self):
         """[流程]先质检后入库"""
-        self.pre.operations(data=['KA1', 'HC3', 'LA1'])
-        self.case.quality_complete_purchase_warehousing()
-        res = [lambda: self.pc.quality_record_list_assert(qualityFinishTime='now')]
+        self.pre.operations(data=['Ufaw', 'oSUT', 'XaUk'])
+        self.case.frFIFPmzY5aUapx40XDq()
+        res = [lambda: self.pc.RWfXxd(qualityFinishTime='now')]
         self.assert_all(*res)
 
 
-@test_mode_handler(me_r.RepairItemRequest, None)
-class TestTraffickerRepair(MiniBaseCase):
-    """首页|维修"""
+@test_mode_handler(trafficker_r.BGV1dswh7k, None)
+class TesteTskpyLV(MiniBaseCase):
+    """二手通小程序|首页|维修"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0repair_items_in_repair(self):
+    def test_0qS2uDNdC7LfquknU8HMF(self):
         """[流程]物品维修-移交维修"""
-        self.pre.operations(data=['FA1', 'HC5'])
-        self.case.repair_items_in_repair()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        self.pre.operations(data=['ekBx', 'LrYx'])
+        self.case.qS2uDNdC7LfquknU8HMF()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
 
 
-@test_mode_handler(me_r.SellItemRequest, None)
-class TestTraffickerSell(MiniBaseCase):
-    """首页|销售"""
+@test_mode_handler(trafficker_r.UGpw1VZJZZ, None)
+class TesteJzaIqlr(MiniBaseCase):
+    """二手通小程序|首页|销售"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0partial_receipt_of_sales_outbound(self):
+    def test_0WyGu6Pcc1zlfEZUHYROZ(self):
         """[流程]销售出库-部分收款"""
-        self.pre.operations(data=['FA1', 'HC1'])
-        self.case.partial_receipt_of_sales_outbound()
-        res = [lambda: self.pc.sell_sale_item_list_assert(articlesStateStr='已销售', saleTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u'])
+        self.case.WyGu6Pcc1zlfEZUHYROZ()
+        res = [lambda: self.pc.bfCKxO(articlesStateStr='已销售', saleTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sales_out_of_the_warehouse_in_full(self):
+    def test_I1mqk82QVzJNQKaTV6mz(self):
         """[流程]销售出库-全款收款"""
-        self.pre.operations(data=['FA1', 'HC1'])
-        self.case.sales_out_of_the_warehouse_in_full()
-        res = [lambda: self.pc.sell_sale_item_list_assert(articlesStateStr='已销售', saleTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u'])
+        self.case.I1mqk82QVzJNQKaTV6mz()
+        res = [lambda: self.pc.bfCKxO(articlesStateStr='已销售', saleTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sales_outbound_add_accessories(self):
+    def test_cjzeWBYzVIvAQsaSE5Uv(self):
         """[流程]销售出库-全款收款-赠送配件"""
-        self.pre.operations(data=['FA1', 'HC1'])
-        self.case.sales_outbound_add_accessories()
-        res = [lambda: self.pc.sell_sale_item_list_assert(articlesStateStr='已销售', saleTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u'])
+        self.case.cjzeWBYzVIvAQsaSE5Uv()
+        res = [lambda: self.pc.bfCKxO(articlesStateStr='已销售', saleTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sales_outbound_new_customer(self):
+    def test_ZuRvUQFLB6nCYNOzrUSt(self):
         """[流程]销售出库-未收款-新增销售客户"""
-        self.pre.operations(data=['FA1', 'HC1'])
-        self.case.sales_outbound_new_customer()
-        res = [lambda: self.pc.sell_sale_item_list_assert(articlesStateStr='已销售', saleTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u'])
+        self.case.ZuRvUQFLB6nCYNOzrUSt()
+        res = [lambda: self.pc.bfCKxO(articlesStateStr='已销售', saleTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_sales_outbound_express_easy(self):
+    def test_D7cyIB59qNYvDxKX9oXF(self):
         """[流程]销售出库-未收款-快递易"""
-        self.pre.operations(data=['FA1', 'HC1'])
-        self.case.sales_outbound_express_easy()
-        res = [lambda: self.pc.sell_sale_item_list_assert(articlesStateStr='已销售', saleTime='now')]
+        self.pre.operations(data=['ekBx', 'wQ7u'])
+        self.case.D7cyIB59qNYvDxKX9oXF()
+        res = [lambda: self.pc.bfCKxO(articlesStateStr='已销售', saleTime='now')]
         self.assert_all(*res)

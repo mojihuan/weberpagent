@@ -116,7 +116,6 @@ class DynamicAttrMixin:
             - 每个失败的断言都会记录其序号和具体的错误信息
             - 所有错误信息会按行连接成一个字符串后抛出
         """
-        time.sleep(1.5)
         errors = []
         for i, assertion in enumerate(res):
             try:

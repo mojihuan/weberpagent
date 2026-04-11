@@ -8,273 +8,273 @@ from common.decorators import test_mode_handler
 from common.import_case import *
 
 
-@test_mode_handler(mc_r.BiddingCameraRequest, None)
-class TestBiddingCamera(MiniBaseCase):
-    """竞拍"""
+@test_mode_handler(bidding_r.DuLudPwrAY, None)
+class TestehTofQ2A(MiniBaseCase):
+    """拍机小程序|竞拍"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_0bidding_offer(self):
+    def test_0ooh8smtEbSrtOuUNqjJa(self):
         """[竞拍]暗拍-出价"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DD2', 'DD4'])
-        self.wait_until_next_five_minute()
-        self.case.bidding_offer()
+        # self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'naBM','xNAC'])
+        self.pre.operations(data=['spKR', '@AB11', 'cCQZ', 'LLx3', 'CqTl', 'HfWO'])
+        self.wait_default()
+        self.case.ooh8smtEbSrtOuUNqjJa()
         obj = cached('articlesNo')
         obj_2 = cached('bidPrice')
-        res = [lambda: self.pc.bidding_camera_assert(headers='camera', data='a', autoBidPrice=obj_2, articlesNo=obj)]
+        res = [lambda: self.pc.jEJvoj(headers='camera', data='a', autoBidPrice=obj_2, articlesNo=obj)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_modify_the_price(self):
+    def test_YvnI8JFogJKDJyevymIw(self):
         """[竞拍]暗拍-修改价格"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DD2', 'DD4', '@BA2'])
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'naBM', 'xNAC', 'OAqF'])
         self.wait_default()
-        self.case.modify_the_price()
+        self.case.YvnI8JFogJKDJyevymIw()
         obj = cached('articlesNo')
         obj_2 = cached('bidPrice')
-        res = [lambda: self.pc.bidding_camera_assert(headers='camera', data='a', autoBidPrice=obj_2, articlesNo=obj)]
+        res = [lambda: self.pc.jEJvoj(headers='camera', data='a', autoBidPrice=obj_2, articlesNo=obj)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_auction_bidding(self):
+    def test_SAnRSrq1160pZali4yIf(self):
         """[竞拍]直拍-出价"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2'])
-        self.wait_until_next_five_minute()
-        self.case.direct_auction_bidding()
-        obj = cached('articlesNo')
-        obj_2 = cached('bidPrice')
-        res = [lambda: self.pc.bidding_camera_assert(headers='camera', autoBidPrice=obj_2, articlesNo=obj)]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    def test_direct_auction_price_change(self):
-        """[竞拍]直拍-改价"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1'])
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU'])
         self.wait_default()
-        self.case.direct_auction_price_change()
+        self.case.SAnRSrq1160pZali4yIf()
         obj = cached('articlesNo')
         obj_2 = cached('bidPrice')
-        res = [lambda: self.pc.bidding_camera_assert(headers='camera', autoBidPrice=obj_2, articlesNo=obj)]
+        res = [lambda: self.pc.jEJvoj(headers='camera', autoBidPrice=obj_2, articlesNo=obj)]
         self.assert_all(*res)
-
-
-@test_mode_handler(mc_r.BiddingMyRequest, None)
-class TestBiddingMy(MiniBaseCase):
-    """我的"""
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_straight_shot_change_to_self_pickup(self):
-        """[待发货]直拍-改自提"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1'])
-        self.wait_for_five_minutes()
-        self.case.straight_shot_change_to_self_pickup()
+    def test_MdM1073dpYo2D4xRtbN4(self):
+        """[竞拍]直拍-改价"""
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB'])
+        self.wait_default()
+        self.case.MdM1073dpYo2D4xRtbN4()
         obj = cached('articlesNo')
-        res = [lambda: self.pc.bidding_my_assert(headers='camera', i=3, articlesNo=obj)]
+        obj_2 = cached('bidPrice')
+        res = [lambda: self.pc.jEJvoj(headers='camera', autoBidPrice=obj_2, articlesNo=obj)]
+        self.assert_all(*res)
+
+
+@test_mode_handler(bidding_r.RQTYlCj2X9, None)
+class TestqK0kgBw7(MiniBaseCase):
+    """拍机小程序|我的"""
+
+    @BaseCase.auto('api')
+    @BaseCase.author('Jack')
+    def test_0Ly41cUm9R4N75FqquckG(self):
+        """[待发货]直拍-改自提"""
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB'])
+        self.wait_default()
+        self.case.Ly41cUm9R4N75FqquckG()
+        obj = cached('articlesNo')
+        res = [lambda: self.pc.Alrd2T(headers='camera', i=3, articlesNo=obj)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @unittest.skip('没按最新的数据排序，测不了')
-    def test_direct_shot_change_to_mailing(self):
+    def test_wOMYzQailIlwneqp3YqQ(self):
         """[待收货]直拍-改邮寄"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1'])
-        self.case.direct_shot_change_to_mailing()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv'])
+        self.case.wOMYzQailIlwneqp3YqQ()
         obj = cached('articlesNo')
-        res = [lambda: self.pc.bidding_my_assert(headers='camera', i=2, articlesNo=obj)]
+        res = [lambda: self.pc.Alrd2T(headers='camera', i=2, articlesNo=obj)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shot_confirm_receipt(self):
+    def test_c71cLTyRLuY4tAw5OBlV(self):
         """[待收货]直拍-确认收货"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1'])
-        self.case.direct_shot_confirm_receipt()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv'])
+        self.case.c71cLTyRLuY4tAw5OBlV()
         obj = cached('articlesNo')
-        res = [lambda: self.pc.bidding_my_assert(headers='camera', i=4, articlesNo=obj)]
+        res = [lambda: self.pc.Alrd2T(headers='camera', i=4, articlesNo=obj)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shooting_apply_for_after_sales(self):
+    def test_aVXdmJVbK9wjjXJCBjst(self):
         """[已收货]直拍-申请售后"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1'])
-        self.case.direct_shooting_apply_for_after_sales()
-        res = [lambda: self.pc.camera_after_sales_order_assert(headers='camera', applyTime='now', afterDesc='售后', afterStatusStr='线上审核', tradeCategoryStr='直拍')]
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm'])
+        self.case.aVXdmJVbK9wjjXJCBjst()
+        res = [lambda: self.pc.bijXOp(headers='camera', applyTime='now', afterDesc='售后', afterStatusStr='线上审核', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_auction_receives_the_difference(self):
+    def test_BPBCQmGYcAgtwQuFgbaO(self):
         """[可补差]直拍-接收补差"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF1'])
-        self.case.direct_auction_receives_the_difference()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'NiF8'])
+        self.case.BPBCQmGYcAgtwQuFgbaO()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[5], headers='camera', id=obj, afterStatus=5)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[5], headers='camera', id=obj, afterStatus=5)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shot_refuses_to_make_up_for_the_difference(self):
+    def test_XFuplSfvhfY3pPN3q60t(self):
         """[可补差]直拍-拒绝补差"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF1'])
-        self.case.direct_shot_refuses_to_make_up_for_the_difference()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'NiF8'])
+        self.case.XFuplSfvhfY3pPN3q60t()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[7], headers='camera', id=obj, afterStatus=7)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[7], headers='camera', id=obj, afterStatus=7)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shooting_ends_after_sales(self):
+    def test_jw92LPqmCSgtAgFxlGVO(self):
         """[可补差]直拍-结束售后"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF1'])
-
-        self.case.direct_shooting_ends_after_sales()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'NiF8'])
+        self.case.jw92LPqmCSgtAgFxlGVO()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(i=4, headers='camera', id=obj, articlesStatus=4)]
+        res = [lambda: self.pc.Alrd2T(i=4, headers='camera', id=obj, articlesStatus=4)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shot_go_shipping(self):
+    def test_UfKqlNZ2jFR6rFZUiH8v(self):
         """[待寄回]直拍-去发货-预约上门"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF2'])
-        self.case.direct_shot_go_shipping()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 's522'])
+        self.case.UfKqlNZ2jFR6rFZUiH8v()
         obj = cached('id')
-        res = [lambda: self.pc.fulfillment_camera_after_sales_order_assert(id=obj, afterStatus=10, buyerReturnModeStr='预约上门', afterStatusStr='待接收', tradeCategoryStr='直拍')]
+        res = [lambda: self.pc.fulfillment_bijXOp(id=obj, afterStatus=10, buyerReturnModeStr='预约上门', afterStatusStr='待接收', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shooting_to_ship_logistics(self):
+    def test_fujEfOlXIMCY3oXrDNVd(self):
         """[待寄回]直拍-去发货-自叫物流"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF2'])
-        self.case.direct_shooting_to_ship_logistics()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 's522'])
+        self.case.fujEfOlXIMCY3oXrDNVd()
         obj = cached('id')
-        res = [lambda: self.pc.fulfillment_camera_after_sales_order_assert(id=obj, afterStatus=10, buyerReturnModeStr='自叫物流', afterStatusStr='待接收', tradeCategoryStr='直拍')]
+        res = [lambda: self.pc.fulfillment_bijXOp(id=obj, afterStatus=10, buyerReturnModeStr='自叫物流', afterStatusStr='待接收', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shot_to_ship_by_yourself(self):
+    def test_ZLMjQKplgxx6Krvopxg7(self):
         """[待寄回]直拍-去发货-自行送货"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF2'])
-        self.case.direct_shot_to_ship_by_yourself()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 's522'])
+        self.case.ZLMjQKplgxx6Krvopxg7()
         obj = cached('id')
-        res = [lambda: self.pc.fulfillment_camera_after_sales_order_assert(id=obj, afterStatus=10, buyerReturnModeStr='自行送货', afterStatusStr='待接收', tradeCategoryStr='直拍')]
+        res = [lambda: self.pc.fulfillment_bijXOp(id=obj, afterStatus=10, buyerReturnModeStr='自行送货', afterStatusStr='待接收', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shot_re_inspection_receive_the_spread(self):
+    def test_J62o1YNEgyQUVrUfzEs3(self):
         """[可补差]-直拍-复检审核-接收补差"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF2', '@BB4', 'CF3', 'CB7', 'CB8', 'CF4'])
-        self.case.direct_shot_re_inspection_receive_the_spread()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 's522', 'GJ8B', 'EuOa', 'UXXj', 'KXoh', 'trt4'])
+        self.case.J62o1YNEgyQUVrUfzEs3()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[5], headers='camera', id=obj, afterStatus=5)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[5], headers='camera', id=obj, afterStatus=5)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shot_re_inspection_rejection_price(self):
+    def test_zd1jfkpdiIAy1G9RVrIq(self):
         """[可补差]-直拍-复检审核-拒绝补差"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF2', '@BB4', 'CF3', 'CB7', 'CB8', 'CF4'])
-        self.case.direct_shot_re_inspection_rejection_price()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 's522', 'GJ8B', 'EuOa', 'UXXj', 'KXoh', 'trt4'])
+        self.case.zd1jfkpdiIAy1G9RVrIq()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[7], headers='camera', id=obj, afterStatus=7)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[7], headers='camera', id=obj, afterStatus=7)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_shooting_re_inspection_ends_after_sales(self):
+    def test_G8mzJPJPK9gNaeIm9U7P(self):
         """[可补差]-直拍-复检审核-结束售后"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5'])
-        self.case.direct_shooting_re_inspection_ends_after_sales()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV'])
+        self.case.G8mzJPJPK9gNaeIm9U7P()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[9], headers='camera', id=obj, afterStatus=9)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[9], headers='camera', id=obj, afterStatus=9)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_straight_shot_i_want_to_appeal(self):
+    def test_xYF6VMP7gVBubHHeRksW(self):
         """[待申诉]-直拍-我要申诉"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5'])
-        self.case.straight_shot_i_want_to_appeal()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV'])
+        self.case.xYF6VMP7gVBubHHeRksW()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[4], headers='camera', id=obj, afterStatus=4)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[4], headers='camera', id=obj, afterStatus=4)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_pending_appeal_and_end_after_sales(self):
+    def test_qy2BOyYcjRZCMRxmI1HJ(self):
         """[待申诉]-直拍-结束售后"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5'])
-        self.case.pending_appeal_and_end_after_sales()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV'])
+        self.case.qy2BOyYcjRZCMRxmI1HJ()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[4], headers='camera', id=obj, afterStatus=4)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[4], headers='camera', id=obj, afterStatus=4)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_platform_review_receive_the_spread(self):
+    def test_GUCbnylR1i5xvkHG84Lq(self):
         """[可补差]-直拍-平台申诉通过-接收补差"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5', '@BB5', 'DC2'])
-        self.case.direct_platform_review_receive_the_spread()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV', 'INjZ', 'r1GJ'])
+        self.case.GUCbnylR1i5xvkHG84Lq()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[5], headers='camera', id=obj, afterStatus=5)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[5], headers='camera', id=obj, afterStatus=5)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_platform_review_no_rejection_price(self):
+    def test_HOPKwhJtyDRx8zxTdh7S(self):
         """[可补差]-直拍-平台申诉通过-拒绝补差"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5', '@BB5', 'DC2'])
-        self.case.direct_platform_review_no_rejection_price()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV', 'INjZ', 'r1GJ'])
+        self.case.HOPKwhJtyDRx8zxTdh7S()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[7], headers='camera', id=obj, afterStatus=7)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[7], headers='camera', id=obj, afterStatus=7)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_platform_review_ends_after_sales(self):
+    def test_SXKFMEeSoPN01IP9Lwlp(self):
         """[可补差]-直拍-平台申诉通过-结束售后"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5', '@BB5', 'DC2'])
-        self.case.direct_platform_review_ends_after_sales()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV', 'INjZ', 'r1GJ'])
+        self.case.SXKFMEeSoPN01IP9Lwlp()
         obj = cached('id')
-        res = [lambda: self.pc.bidding_my_assert(data='c', i=[9], headers='camera', id=obj, afterStatus=9)]
+        res = [lambda: self.pc.Alrd2T(data='c', i=[9], headers='camera', id=obj, afterStatus=9)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_platform_review_go_shipping(self):
+    def test_aSUFM1IQg6Qn99K4na0b(self):
         """[待寄回]-直拍-平台申诉通过-去发货-预约上门"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5', '@BB5', 'DC1'])
-        self.case.direct_platform_review_go_shipping()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV', 'INjZ', 'mw4N'])
+        self.case.aSUFM1IQg6Qn99K4na0b()
         obj = cached('id')
-        res = [lambda: self.pc.fulfillment_camera_after_sales_order_assert(id=obj, afterStatus=10, buyerReturnModeStr='预约上门', afterStatusStr='待接收', tradeCategoryStr='直拍')]
+        res = [lambda: self.pc.fulfillment_bijXOp(id=obj, afterStatus=10, buyerReturnModeStr='预约上门', afterStatusStr='待接收', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_platform_review_self_proclaimed_logistics(self):
+    def test_nKqLT6q8XX9QYiJ26jms(self):
         """[待寄回]-直拍-平台申诉通过-去发货-自叫物流"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5', '@BB5', 'DC1'])
-        self.case.direct_platform_review_self_proclaimed_logistics()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV', 'INjZ', 'mw4N'])
+        self.case.nKqLT6q8XX9QYiJ26jms()
         obj = cached('id')
-        res = [lambda: self.pc.fulfillment_camera_after_sales_order_assert(id=obj, afterStatus=10, buyerReturnModeStr='自叫物流', afterStatusStr='待接收', tradeCategoryStr='直拍')]
+        res = [lambda: self.pc.fulfillment_bijXOp(id=obj, afterStatus=10, buyerReturnModeStr='自叫物流', afterStatusStr='待接收', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
-    def test_direct_platform_review_mail_it_yourself(self):
+    def test_FFK90vpcso9aPNnQyAWS(self):
         """[待寄回]-直拍-平台申诉通过-去发货-自行送货"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2', 'CF5', '@BB5', 'DC1'])
-        self.case.direct_platform_review_mail_it_yourself()
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu', 'zEPV', 'INjZ', 'mw4N'])
+        self.case.FFK90vpcso9aPNnQyAWS()
         obj = cached('id')
-        res = [lambda: self.pc.fulfillment_camera_after_sales_order_assert(id=obj, afterStatus=10, buyerReturnModeStr='自行送货', afterStatusStr='待接收', tradeCategoryStr='直拍')]
+        res = [lambda: self.pc.fulfillment_bijXOp(id=obj, afterStatus=10, buyerReturnModeStr='自行送货', afterStatusStr='待接收', tradeCategoryStr='直拍')]
         self.assert_all(*res)
 
 

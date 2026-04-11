@@ -23,6 +23,7 @@ class LoginApi(BaseApi):
             'idle': {},
             'super': {},
             'camera': {},
+            'collection': {},
         }
         # 从Redis缓存获取token
         cached_data = self.get_cached_tokens()
@@ -49,6 +50,7 @@ class LoginApi(BaseApi):
             'idle': self.idle_login,
             'super': self.super_login,
             'camera': self.camera_login,
+            'collection': self.collection_login,
         }
         if key in login_methods:
             token = login_methods[key]()
@@ -68,60 +70,59 @@ class LoginApi(BaseApi):
 
     def initialize_tokens_headers(self):
         """初始化所有预定义账号类型的token和header"""
-        for key in ['main', 'vice', 'special', 'platform', 'idle', 'super', 'camera']:
+        for key in ['main', 'vice', 'special', 'platform', 'idle', 'super', 'camera','collection']:
             self._set_token_header(key)
 
     def main_login(self):
-        """登录主账号并获取token"""
+        """主账号"""
         data = {'password': INFO['password'], 'username': INFO['main_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
     def vice_login(self):
-        """登录帮卖来货专用账号并获取token"""
+        """帮卖来货账号"""
         data = {'password': INFO['password'], 'username': INFO['vice_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
     def special_login(self):
-        """登录管理员账号并获取token"""
+        """管理员账号"""
         data = {'password': INFO['password'], 'username': INFO['special_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
     def idle_login(self):
-        """登录特殊场景测试账号并获取token"""
+        """特殊账号"""
         data = {'password': INFO['password'], 'username': INFO['idle_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
     def platform_login(self):
-        """登录平台账号并获取token"""
+        """平台账号"""
         data = {'password': INFO['password'], 'username': INFO['platform_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
     def super_login(self):
-        """登录超级管理员获取token"""
+        """超级管理员账号"""
         data = {'password': INFO['super_admin_password'], 'username': INFO['super_admin_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
     def camera_login(self):
-        """登录拍机专用账号获取token"""
+        """拍机账号"""
         data = {'password': INFO['password'], 'username': INFO['camera_account']}
-        response = self.request_handle('post', self.urls['login_account'], data=json.dumps(data),
-                                       headers=self.headers['basic'])
+        response = self.request_handle('post', self.urls['CDQ3XEEfT'], data=json.dumps(data), headers=self.headers['basic'])
+        return self.get_token(response)
+
+    def collection_login(self):
+        """bot速收账号"""
+        data = {'phone': INFO['bot_phone'], 'wechatId': INFO['bot_wechatId'], 'miniOpenid': INFO['bot_miniOpenid'], 'loginPlatform': INFO['bot_loginPlatform'], 'type': INFO['bot_type'], 'loginType': INFO['bot_loginType'], 'latitude': INFO['bot_latitude'], 'longitude': INFO['bot_longitude'], 'deviceInfo': INFO['bot_deviceInfo']}
+        response = self.request_handle('post', self.urls['W51G1tkCw'], data=json.dumps(data), headers=self.headers['basic'])
         return self.get_token(response)
 
 
 if __name__ == '__main__':
     api = LoginApi()
-    result = api.camera_login()
+    result = api.collection_login()
     print(json.dumps(result, indent=4, ensure_ascii=False))

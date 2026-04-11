@@ -1,188 +1,185 @@
 # coding: utf-8
 import json
 from common.base_api import BaseApi
-from common.base_params import InitializeParams
 
 
-class SellAfterSaleAddArticlesApi(InitializeParams):
+class VqEvejbpK4kaxGc8KQymZ(BaseApi):
     """商品销售|销售售后管理|销售售后处理"""
 
 
-class SellAfterSalesListApi(BaseApi):
+class Kw5nIo3WQBrH2BPScRj1B(BaseApi):
     """商品销售|销售售后管理|销售售后列表"""
 
-    def sales_and_after_sales_are_completed(self, headers=None, num=1, size=1000):
+    def CfIRP7WqVPD0(self, headers=None, num=1, size=1000):
         """销售售后完成"""
         headers = headers or self.headers['main']
         data = {'saleStatus': '5', **self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['sales_aftermarket_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['ia8hPCPU9'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def in_the_after_sales_service(self, headers=None, num=1, size=1000):
+    def TB2VQJLBUDje(self, headers=None, num=1, size=1000):
         """销售售后中"""
         headers = headers or self.headers['main']
         data = {'saleStatus': '4', **self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['sales_aftermarket_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['ia8hPCPU9'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class SellCustomersManageApi(BaseApi):
+class PaCOjaNKGGuX7m5M6knOA(BaseApi):
     """商品销售|客户管理"""
 
-    def customers_manage(self, headers=None):
+    def BWkrNYN6KI65(self, headers=None):
         """客户管理"""
         headers = headers or self.headers['main']
         data = {"type": 1, **self.get_page_params()}
-        response = self.request_handle('post', self.urls['supplier_manage'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['jj0Esnp8n'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    # 获取id
-    def get_id(self):
-        return self._get_field_copy_value('customers_manage', 'main', 'id', index=1)
+    def Dr0F7PV8ZEXi(self):
+        """获取id"""
+        return self._get_field_copy_value('BWkrNYN6KI65', 'main', 'id', index=1)
 
-    # 获取id
-    def get_id_vice(self):
-        return self._get_field_copy_value('customers_manage', 'vice', 'id')
+    def X2OzrVJcQf2u(self):
+        """获取id"""
+        return self._get_field_copy_value('BWkrNYN6KI65', 'vice', 'id')
 
 
-class SellGoodsReceivedApi(BaseApi):
+class Mb5NtymgNZq58BhIE7Umz(BaseApi):
     """商品销售|销售管理|待接收物品"""
 
-    def goods_received_list(self, headers=None):
+    def z8Q8CdTAeeYa(self, headers=None):
         """待接收物品列表"""
         headers = headers or self.headers['main']
         data = {"articlesState": 13, "articlesType": "1", **self.get_page_params()}
-        response = self.request_handle('post', self.urls['inventory_receive_items'], data=json.dumps(data), headers=headers)
-        res = self.get_response_data(response, 'data', list)
-        self.make_pkl_file(res)
-        return res
+        response = self.request_handle('post', self.urls['RbZZfqC2S'], data=json.dumps(data), headers=headers)
+        return self.get_response_data(response, 'data', list)
 
-    # 获取物品编号
-    def get_list_articles_no(self):
-        return self._get_field_copy_value('goods_received_list', 'main', 'articlesNo')
+    def K3BimDHtN4Wm(self):
+        """获取物品编号"""
+        return self._get_field_copy_value('z8Q8CdTAeeYa', 'main', 'articlesNo')
 
 
-class SellItemsForSaleApi(BaseApi):
+class XTk41pUDr28xCf1YL17uR(BaseApi):
     """商品销售|销售管理|待销售物品"""
 
-    def items_for_sale(self, headers=None, num=1, size=1000):
+    def CSDYFXdhL7n5(self, headers=None, num=1, size=1000):
         """待销售物品列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['items_for_sale'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['aoTTb5SV6'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def items_detail(self, headers=None, articles_no=None):
+    def enB0x369cbFt(self, headers=None):
         """待销售物品详情"""
         headers = headers or self.headers['main']
-        articles_no = articles_no or self.get_articles_no()
-        response = self.request_handle('get', self.urls['items_for_sale_detail'] + articles_no, headers=headers)
+        obj = self.YmkWFo8i8lsJ()
+        response = self.request_handle('get', self.urls['EuHHS09oD'] + obj, headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    # 获取物品编号
-    def get_articles_no(self):
-        return self._get_field_copy_value('items_for_sale', 'main', 'articlesNo')
+    def YmkWFo8i8lsJ(self):
+        """获取物品编号"""
+        return self._get_field_copy_value('CSDYFXdhL7n5', 'main', 'articlesNo')
 
 
-class SellListOfItemsForSaleApi(BaseApi):
+class Ez77PXDybIrSTaH32RHsz(BaseApi):
     """商品销售|销售管理|销售中物品列表"""
 
-    def goods_list_for_sale(self, i=None, j=None, headers=None, num=1, size=1000):
+    def TyFTRRkgcx28(self, i=None, j=None, headers=None, num=1, size=1000):
         """销售中物品列表
          i：销售状态 2已销售 3已取消 1销售中
          j：销售类型 1销售 3铺货 5预售
         """
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size), 'saleStatus': i, 'saleType': j}
-        response = self.request_handle('post', self.urls['goods_list_for_sale'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['Dj1kQUUk9'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def sales_goods_detail(self, headers=None, articles_no=None):
+    def fReTQwlPp5ig(self, headers=None):
         """销售物品详情"""
         headers = headers or self.headers['main']
-        articles_no = articles_no or self.get_articles_no()
-        data = {"code": articles_no, "saleType": 2}
-        response = self.request_handle('post', self.urls['delisting_details'], data=json.dumps(data), headers=headers)
+        obj = self.mVtqOxQxQW2k()
+        data = {"code": obj, "saleType": 2}
+        response = self.request_handle('post', self.urls['F6KRfR2sB'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def sales_goods_list_delisting_details(self, headers=None, item=None):
+    def JPomkBOsk0MN(self, headers=None):
         """下架详情"""
         headers = headers or self.headers['main']
-        item = item or self.get_articles_no()
-        data = {'code': item, 'saleType': 2}
-        response = self.request_handle('post', self.urls['delisting_details'], data=json.dumps(data), headers=headers)
+        obj = self.mVtqOxQxQW2k()
+        data = {'code': obj, 'saleType': 2}
+        response = self.request_handle('post', self.urls['F6KRfR2sB'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'data', list)
         self.make_pkl_file(res)
         return res
 
-    # 获取物品编号
-    def get_articles_no(self):
-        return self._get_field_copy_value('goods_list_for_sale', 'main', 'articlesNo')
+    def mVtqOxQxQW2k(self):
+        """获取物品编号"""
+        return self._get_field_copy_value('TyFTRRkgcx28', 'main', 'articlesNo')
 
 
-class SellOrderListForSaleApi(BaseApi):
+class PvQWvJ1ETZicFTZpXHiQa(BaseApi):
     """商品销售|销售管理|销售中订单列表"""
 
-    def order_list_for_sale(self, headers=None, num=1, size=1000):
+    def lZHWz7XAePfb(self, headers=None, num=1, size=1000):
         """销售中订单列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['order_list_for_sale'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['MRyx7Q3Y7'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class SellSaleItemListApi(BaseApi):
+class JU8QYbNi3BDlSn2XaNZKe(BaseApi):
     """商品销售|销售管理|已销售物品列表"""
 
-    def sell_sale_item_list(self, headers=None, num=1, size=1000):
+    def L6IQgdpG4iaP(self, headers=None, num=1, size=1000):
         """已销售物品列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['sell_sale_item_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['RMIZIc17j'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class SellSoldOrderApi(BaseApi):
+class OY2fdbdieaa3seD31U6ZQ(BaseApi):
     """商品销售|销售管理|已销售订单列表"""
 
-    def sold_order_list(self, headers=None, num=1, size=1000):
+    def B37xGAx8rLVJ(self, headers=None, num=1, size=1000):
         """已销售订单列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['list_of_sold_orders'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['yst2PxBzE'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class SellStaticsApi(BaseApi):
+class RCRdrY38amwbJyUzKuJcM(BaseApi):
     """商品销售|销售数据统计"""
 
-    def statics(self, headers=None, i=None):
+    def oatZoHAFV0w1(self, headers=None, i=None):
         """统计"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(), "startTime": self.get_the_date(-30), "endTime": self.get_the_date(), 'saleSupplierId': i}
-        response = self.request_handle('post', self.urls['sell_statics'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['zT60feze1'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
 if __name__ == '__main__':
-    api = SellStaticsApi()
-    result = api.statics()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))

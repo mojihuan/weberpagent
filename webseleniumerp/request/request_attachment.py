@@ -7,45 +7,43 @@ from common.import_desc import *
 from config.user_info import INFO
 
 
-class AttachmentGoodsReceivedRequest(InitializeParams):
+class GGZectTPpu(InitializeParams):
     """配件管理|入库管理|待接收物品"""
 
-    @doc(a_goods_received)
+    @doc(do56fxxjyrxq3jf44spl)
     @BaseApi.timing_decorator
-    def goods_received(self, nocheck=False):
-        res = (self.pc.attachment_goods_received_data()
+    def do56fxxjyrxq3jf44spl(self, nocheck=False):
+        obj = (self.pc.BF3x3lYIzbEHMnrvr80JO()
                if is_performance_close else self.get_list_data('list_of_items_to_be_received'))
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo'],
-                    "oao": "123"
+                    "articlesNo": obj[0]['articlesNo'],
                 }
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_receive_items', data, 'special', nocheck)
+        return self._make_request('post', 'Sm7yLloyr', data, 'special', nocheck)
 
-    @doc(a_goods_received_search_item)
+    @doc(wkocqx1u2ihsf32i7co1)
     @BaseApi.timing_decorator
-    def goods_received_search_item(self, nocheck=False):
-        res = self.pc.attachment_goods_received_data()
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def wkocqx1u2ihsf32i7co1(self, nocheck=False):
+        obj = self.pc.BF3x3lYIzbEHMnrvr80JO()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNo": obj
+            "articlesNo": obj[0]['articlesNo']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'special', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'special', nocheck)
 
-    @doc(a_goods_received_search_time)
+    @doc(a33hoz47yc05hmc4n7jw)
     @BaseApi.timing_decorator
-    def goods_received_search_time(self, nocheck=False):
-        res = self.pc.attachment_goods_received_data()
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def a33hoz47yc05hmc4n7jw(self, nocheck=False):
+        obj = self.pc.BF3x3lYIzbEHMnrvr80JO()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -53,20 +51,21 @@ class AttachmentGoodsReceivedRequest(InitializeParams):
             "deliveryEndTime": self.get_the_date(days=1),
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'special', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'special', nocheck)
 
 
-class AttachmentHandOverItemsRequest(InitializeParams):
+class O7NTx8CXpa(InitializeParams):
     """配件管理|移交接收管理|移交物品"""
 
-    @doc(a_hand_over_items_to_inventory)
+    @doc(pxx47rbom8j1ul0o5otk)
     @BaseApi.timing_decorator
-    def hand_over_items_to_inventory(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def pxx47rbom8j1ul0o5otk(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "6",
@@ -74,16 +73,17 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_to_purchase)
+    @doc(bq9jhuudug0bycyitdho)
     @BaseApi.timing_decorator
-    def hand_over_items_to_purchase(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def bq9jhuudug0bycyitdho(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "5",
@@ -91,16 +91,17 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_to_sell)
+    @doc(qnig8uaqhu0cma5jwmjd)
     @BaseApi.timing_decorator
-    def hand_over_items_to_sell(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def qnig8uaqhu0cma5jwmjd(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "4",
@@ -108,16 +109,17 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_to_send)
+    @doc(p0su9g9hxgnbgmkfhw8b)
     @BaseApi.timing_decorator
-    def hand_over_items_to_send(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def p0su9g9hxgnbgmkfhw8b(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "3",
@@ -125,16 +127,17 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_to_repair)
+    @doc(vicvey7gwzlidkxk2756)
     @BaseApi.timing_decorator
-    def hand_over_items_to_repair(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def vicvey7gwzlidkxk2756(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "2",
@@ -142,16 +145,17 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_to_quality)
+    @doc(tvl7rnnvwpmaivcnflho)
     @BaseApi.timing_decorator
-    def hand_over_items_to_quality(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def tvl7rnnvwpmaivcnflho(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "1",
@@ -159,16 +163,17 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_different_recipients)
+    @doc(y1f0go3apyd2gpjhtp6e)
     @BaseApi.timing_decorator
-    def hand_over_different_recipients(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def y1f0go3apyd2gpjhtp6e(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": "1",
@@ -176,72 +181,70 @@ class AttachmentHandOverItemsRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_item)
+    @doc(cwwg81c7fuxew6ohcyna)
     @BaseApi.timing_decorator
-    def hand_over_items_search_item(self, nocheck=False):
-        res = self.pc.attachment_goods_received_data()
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def cwwg81c7fuxew6ohcyna(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
-            "articlesNo": obj
+            "articlesNo": obj[0]['articlesNo']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessories_search_items', data, 'main', nocheck)
+        return self._make_request('post', 'WfRN4FHg5', data, 'main', nocheck)
 
 
-class AttachmentHandOverRecordsRequest(InitializeParams):
+class BVA8mmtbcT(InitializeParams):
     """配件管理|移交接收管理|移交记录"""
 
-    @doc(a_bulk_cancel_handovers)
+    @doc(z36rbt8nuevvk5zw0ev1)
     @BaseApi.timing_decorator
-    def bulk_cancel_handovers(self, nocheck=False):
-        res = self.pc.attachment_handover_records_data(data='a')
+    def z36rbt8nuevvk5zw0ev1(self, nocheck=False):
+        obj = self.pc.BFOjFKv6ZxII7V5LzQcr4(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "articlesNoList": [
-                res[0]['articlesNo']
+                obj[0]['articlesNo']
             ],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'bulk_cancel_handovers', data, 'main', nocheck)
+        return self._make_request('post', 'qaZzLXfvX', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_item_no)
+    @doc(sdl1o9ghd61tojp5ap48)
     @BaseApi.timing_decorator
-    def hand_over_items_search_item_no(self, nocheck=False):
-        res = self.pc.attachment_handover_records_data(data='a')
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def sdl1o9ghd61tojp5ap48(self, nocheck=False):
+        obj = self.pc.BFOjFKv6ZxII7V5LzQcr4(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNo": obj,
+            "articlesNo": obj[0]['articlesNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'handover_records', data, 'main', nocheck)
+        return self._make_request('post', 'zbE7yOZvu', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_order)
+    @doc(evbb4ktxeipdare0ybrf)
     @BaseApi.timing_decorator
-    def hand_over_items_search_order(self, nocheck=False):
-        res = self.pc.attachment_handover_records_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj})
+    def evbb4ktxeipdare0ybrf(self, nocheck=False):
+        obj = self.pc.BFOjFKv6ZxII7V5LzQcr4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "orderNo": obj,
+            "orderNo": obj[0]['orderNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'handover_records', data, 'main', nocheck)
+        return self._make_request('post', 'zbE7yOZvu', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_name)
+    @doc(v3j4micfjps17busi402)
     @BaseApi.timing_decorator
-    def hand_over_items_search_name(self, nocheck=False):
-        res = self.pc.attachment_handover_records_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def v3j4micfjps17busi402(self, nocheck=False):
+        obj = self.pc.BFOjFKv6ZxII7V5LzQcr4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -249,13 +252,13 @@ class AttachmentHandOverRecordsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'handover_records', data, 'main', nocheck)
+        return self._make_request('post', 'zbE7yOZvu', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_receive)
+    @doc(pudb09khr1ozo3wwci4a)
     @BaseApi.timing_decorator
-    def hand_over_items_search_receive(self, nocheck=False):
-        res = self.pc.attachment_handover_records_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def pudb09khr1ozo3wwci4a(self, nocheck=False):
+        obj = self.pc.BFOjFKv6ZxII7V5LzQcr4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -263,25 +266,26 @@ class AttachmentHandOverRecordsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'handover_records', data, 'main', nocheck)
+        return self._make_request('post', 'zbE7yOZvu', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_time)
+    @doc(rf7nygh1xebifff8bl22)
     @BaseApi.timing_decorator
-    def hand_over_items_search_time(self, nocheck=False):
-        res = self.pc.attachment_handover_records_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def rf7nygh1xebifff8bl22(self, nocheck=False):
+        obj = self.pc.BFOjFKv6ZxII7V5LzQcr4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "userId": INFO['special_user_id'],
+            "erpStartTime": self.get_the_date(),
+            "erpEndTime": self.get_the_date(days=1),
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'handover_records', data, 'main', nocheck)
+        return self._make_request('post', 'zbE7yOZvu', data, 'main', nocheck)
 
-    @doc(a_hand_over_items_search_status)
+    @doc(hpjacvh5iwz7rzgwap4)
     @BaseApi.timing_decorator
-    def hand_over_items_search_status(self, nocheck=False, status=None):
+    def hpjacvh5iwz7rzgwap4(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -289,20 +293,21 @@ class AttachmentHandOverRecordsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'handover_records', data, 'main', nocheck)
+        return self._make_request('post', 'zbE7yOZvu', data, 'main', nocheck)
 
 
-class AttachmentInventoryListRequest(InitializeParams):
+class NccuqXjU5C(InitializeParams):
     """配件管理|配件库存|库存列表"""
 
-    @doc(a_item_details_modify_item_information)
+    @doc(r5gxaxtpflvd7qfj153k)
     @BaseApi.timing_decorator
-    def item_details_modify_item_information(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def r5gxaxtpflvd7qfj153k(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
-            "id": res[0]['id'],
-            "articlesNo": res[0]['articlesNo'],
-            "skuInfo": res[0]['skuInfo'],
+            "id": obj[0]['id'],
+            "articlesNo": obj[0]['articlesNo'],
+            "skuInfo": obj[0]['skuInfo'],
             "accessoryType": 1,
             "channelType": 1,
             "baseAccessoryDTO": {
@@ -316,16 +321,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             }
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'modify_the_sku_information', data, 'main', nocheck)
+        return self._make_request('post', 'PSwyXMyag', data, 'main', nocheck)
 
-    @doc(a_transfer_items_special)
+    @doc(oqmc5nwi0399dzltytx2)
     @BaseApi.timing_decorator
-    def transfer_items_special(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def oqmc5nwi0399dzltytx2(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": 6,
@@ -333,16 +339,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_handover_items_purchase_after_sales)
+    @doc(saaotn9359y5rsz0php1)
     @BaseApi.timing_decorator
-    def handover_items_purchase_after_sales(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def saaotn9359y5rsz0php1(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": 5,
@@ -350,16 +357,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_handover_items_sell_personnel)
+    @doc(lrfqyoilnhzw2ejk659d)
     @BaseApi.timing_decorator
-    def handover_items_sell_personnel(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def lrfqyoilnhzw2ejk659d(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": 4,
@@ -367,16 +375,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_handover_items_send_personnel)
+    @doc(v60oxil51ddo2si7jl7x)
     @BaseApi.timing_decorator
-    def handover_items_send_personnel(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def v60oxil51ddo2si7jl7x(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": 3,
@@ -384,16 +393,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_handover_items_repair_personnel)
+    @doc(p3vluvp1sur9pfwpeyrh)
     @BaseApi.timing_decorator
-    def handover_items_repair_personnel(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def p3vluvp1sur9pfwpeyrh(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": 2,
@@ -401,16 +411,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_handover_items_quality_personnel)
+    @doc(icdh72iujmalc7gukwol)
     @BaseApi.timing_decorator
-    def handover_items_quality_personnel(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def icdh72iujmalc7gukwol(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo']
+                    "articlesNo": obj[0]['articlesNo']
                 }
             ],
             "deliveryType": 1,
@@ -418,16 +429,17 @@ class AttachmentInventoryListRequest(InitializeParams):
             "deliveryRemark": "备注"
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'EgcsFMe1T', data, 'main', nocheck)
 
-    @doc(a_list_edit_item_info)
+    @doc(abuhabsmqfhq1ut9qc3c)
     @BaseApi.timing_decorator
-    def list_edit_item_info(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def abuhabsmqfhq1ut9qc3c(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
-            "id": res[0]['id'],
-            "articlesNo": res[0]['articlesNo'],
-            "skuInfo": res[0]['skuInfo'],
+            "id": obj[0]['id'],
+            "articlesNo": obj[0]['articlesNo'],
+            "skuInfo": obj[0]['skuInfo'],
             "accessoryType": 1,
             "channelType": 1,
             "baseAccessoryDTO": {
@@ -441,80 +453,78 @@ class AttachmentInventoryListRequest(InitializeParams):
             }
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'modify_the_sku_information', data, 'main', nocheck)
+        return self._make_request('post', 'PSwyXMyag', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_item)
+    @doc(oohakdwo34k03yybh9s8)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_item(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def oohakdwo34k03yybh9s8(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNo": obj
+            "articlesNo": obj[0]['articlesNo']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_suppliers)
+    @doc(pn81zph6ujrzvf8p5qxw)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_suppliers(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def pn81zph6ujrzvf8p5qxw(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "supplierId": INFO['main_supplier_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_affiliation)
+    @doc(fiy75muh6gz6nsyhyah6)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_affiliation(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def fiy75muh6gz6nsyhyah6(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "userId": INFO['main_user_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_order_no)
+    @doc(lqdftflzdi25uvz52b4z)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_order_no(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        obj = res[0]['purchaseNo']
-        ParamCache.cache_object({"purchaseNo": obj})
+    def lqdftflzdi25uvz52b4z(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['purchaseNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "purchaseNo": obj
+            "purchaseNo": obj[0]['purchaseNo']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_purchaser)
+    @doc(j4r6o9x82lrhfgn7houk)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_purchaser(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"purchaseNo": res[0]['purchaseNo']})
+    def j4r6o9x82lrhfgn7houk(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['purchaseNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "purchaseId": ['main_user_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_time)
+    @doc(awfdfgrvu5yt8ocg4om9)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_time(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"purchaseNo": res[0]['purchaseNo']})
+    def awfdfgrvu5yt8ocg4om9(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['purchaseNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -522,97 +532,96 @@ class AttachmentInventoryListRequest(InitializeParams):
             "purchaseStartTime": self.get_the_date(days=1)
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_class)
+    @doc(ie8fsxmabji7a7q54r1w)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_class(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def ie8fsxmabji7a7q54r1w(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "accessoryType": 2,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_status)
+    @doc(tje23q2s5q19u1i0r264)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_status(self, nocheck=False, status=None):
+    def tje23q2s5q19u1i0r264(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "inventoryStatus": status,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_category)
+    @doc(utqrzheihgso0dngmplj)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_category(self, nocheck=False, type_id=None):
+    def utqrzheihgso0dngmplj(self, nocheck=False, type_id=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "articlesTypeId": type_id,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_color)
+    @doc(je9vs9v7ryk65bgnpnrt)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_color(self, nocheck=False, color=None):
+    def je9vs9v7ryk65bgnpnrt(self, nocheck=False, color=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "accessoryQuality": color,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_serial_number)
+    @doc(is3591xz3eohk67pi7h9)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_serial_number(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        obj = res[0]['accessoryNo']
-        ParamCache.cache_object({"accessoryNo": obj})
+    def is3591xz3eohk67pi7h9(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['accessoryNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "accessoryNo": obj,
+            "accessoryNo": obj[0]['accessoryNo'],
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_duration)
+    @doc(d41766ll2lal2a6qly54)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_duration(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def d41766ll2lal2a6qly54(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "inventoryTime": 1,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_channel)
+    @doc(wuufeqpw5tq8hy6290ce)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_channel(self, nocheck=False, channel=None):
+    def wuufeqpw5tq8hy6290ce(self, nocheck=False, channel=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "channelType": channel,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_brand_model)
+    @doc(vfi204ksnbxzyybqadvh)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_brand_model(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def vfi204ksnbxzyybqadvh(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
@@ -621,39 +630,39 @@ class AttachmentInventoryListRequest(InitializeParams):
             "modelId": 18111
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_warehouse)
+    @doc(x1coaubd9r45peqs8hua)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_warehouse(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def x1coaubd9r45peqs8hua(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
             "warehouseId": INFO['main_warehouse_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_attachment_inventory_list_search_accessory_name)
+    @doc(tlfu0zq3fcj6qj4k4v02)
     @BaseApi.timing_decorator
-    def attachment_inventory_list_search_accessory_name(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data()
-        obj = res[0]['accessoryName']
-        ParamCache.cache_object({"articlesNo": obj})
+    def tlfu0zq3fcj6qj4k4v02(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu()
+        ParamCache.cache_object({"i": obj[0]['accessoryName']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
-            "accessoryName": obj
+            "accessoryName": obj[0]['accessoryName']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'inventory_list', data, 'main', nocheck)
+        return self._make_request('post', 'QARwOTuPY', data, 'main', nocheck)
 
-    @doc(a_accessory_sales_express_delivery)
+    @doc(u6a07svx0rwzn93bn54o)
     @BaseApi.timing_decorator
-    def accessory_sales_express_delivery(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def u6a07svx0rwzn93bn54o(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "status": "1",
             "accountNo": INFO['main_account_no'],
@@ -669,22 +678,23 @@ class AttachmentInventoryListRequest(InitializeParams):
             "userAddressId": INFO['main_user_address_id'],
             "saleOrderAccessoryList": [
                 {
-                    "accessoryNo": res[0]['articlesNo'],
-                    "accessoryId": res[0]['id'],
+                    "accessoryNo": obj[0]['articlesNo'],
+                    "accessoryId": obj[0]['id'],
                     "salePrice": "123",
-                    "costPrice": res[0]['totalCost']
+                    "costPrice": obj[0]['totalCost']
                 }
             ],
             "deliveryNum": 1,
             "accountName": INFO['main_account_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_sales', data, 'main', nocheck)
+        return self._make_request('post', 'kyVzUMNcM', data, 'main', nocheck)
 
-    @doc(a_accessory_sales)
+    @doc(s4ix3uhl32fhg96aeiis)
     @BaseApi.timing_decorator
-    def accessory_sales(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def s4ix3uhl32fhg96aeiis(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "status": "2",
             "accountNo": INFO['main_account_no'],
@@ -696,123 +706,121 @@ class AttachmentInventoryListRequest(InitializeParams):
             "remark": "备注",
             "saleOrderAccessoryList": [
                 {
-                    "accessoryNo": res[0]['articlesNo'],
-                    "accessoryId": res[0]['id'],
+                    "accessoryNo": obj[0]['articlesNo'],
+                    "accessoryId": obj[0]['id'],
                     "salePrice": "70",
-                    "costPrice": res[0]['totalCost']
+                    "costPrice": obj[0]['totalCost']
                 }
             ],
             "deliveryNum": 1,
             "accountName": INFO['main_account_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_sales', data, 'main', nocheck)
+        return self._make_request('post', 'kyVzUMNcM', data, 'main', nocheck)
 
 
-class AttachmentMaintenanceRequest(InitializeParams):
+class A3AKRuhANY(InitializeParams):
     """配件管理|配件维护"""
 
-    @doc(a_added_a_button_category_external_category)
+    @doc(vnsg549qqo4e8la9pvyz)
     @BaseApi.timing_decorator
-    def added_a_button_category_external_category(self, nocheck=False):
+    def vnsg549qqo4e8la9pvyz(self, nocheck=False):
         data = {
             "accessoryName": "配件名称" + self.imei,
             "accessoryType": "3",
             "status": 1
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'new_maintenance', data, 'idle', nocheck)
+        return self._make_request('post', 'KbfOfrq4k', data, 'idle', nocheck)
 
-    @doc(a_added_a_button_category_matching)
+    @doc(sk6ol090tlyb6qyetwl2)
     @BaseApi.timing_decorator
-    def added_a_button_category_matching(self, nocheck=False):
+    def sk6ol090tlyb6qyetwl2(self, nocheck=False):
         data = {
             "accessoryName": "配件名称" + self.imei,
             "accessoryType": "2",
             "status": 0
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'new_maintenance', data, 'idle', nocheck)
+        return self._make_request('post', 'KbfOfrq4k', data, 'idle', nocheck)
 
-    @doc(a_modify_the_accessory_name)
+    @doc(e8rzsfkgsktqcjm31vfu)
     @BaseApi.timing_decorator
-    def modify_the_accessory_name(self, nocheck=False):
-        res = self.pc.attachment_maintenance_data()
+    def e8rzsfkgsktqcjm31vfu(self, nocheck=False):
+        obj = self.pc.Ln0faZ5CGpaYmkrcCVg4X()
+        ParamCache.cache_object({"i": obj[0]['accessoryNo']})
         data = {
             "createBy": "杰克",
-            "createTime": res[0]['createTime'],
+            "createTime": obj[0]['createTime'],
             "pageSize": 10,
             "pageNum": 1,
             "orderByColumn": "create_time",
             "isAsc": "desc",
-            "id": res[0]['id'],
-            "accessoryNo": "PJ0352",
-            "accessoryName": "名称I01779513423562",
+            "id": obj[0]['id'],
+            "accessoryNo": obj[0]['accessoryNo'],
+            "accessoryName": '名称' + self.serial,
             "accessoryType": "3",
             "price": 0,
             "status": 1,
             "tenantId": 573448,
             "isDelete": 0
         }
-        self.validate_request_data(data)
-        return self._make_request('put', 'modify_the_accessory_name', data, 'idle', nocheck)
+        return self._make_request('put', 'VFgNtfVfH', data, 'idle', nocheck)
 
-    @doc(a_delete_the_accessory_name)
+    @doc(u8m46ujx2im1noarlsmu)
     @BaseApi.timing_decorator
-    def delete_the_accessory_name(self, nocheck=False):
-        res = self.pc.attachment_maintenance_data()
+    def u8m46ujx2im1noarlsmu(self, nocheck=False):
+        obj = self.pc.Ln0faZ5CGpaYmkrcCVg4X()
         data = {
-            "id": res[0]['id']
+            "id": obj[0]['id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'delete_the_accessory_name', data, 'idle', nocheck)
+        return self._make_request('post', 'M3mcL0BDw', data, 'idle', nocheck)
 
-    @doc(a_attachment_maintenance_search_num)
+    @doc(fd2dzuppjfcy0vc68osp)
     @BaseApi.timing_decorator
-    def attachment_maintenance_search_num(self, nocheck=False):
-        res = self.pc.attachment_maintenance_data()
-        obj = res[0]['accessoryNo']
-        ParamCache.cache_object({"accessoryNo": obj})
+    def fd2dzuppjfcy0vc68osp(self, nocheck=False):
+        obj = self.pc.Ln0faZ5CGpaYmkrcCVg4X()
+        ParamCache.cache_object({"i": obj[0]['accessoryNo']})
         data = {
-            "accessoryNo": obj,
+            "accessoryNo": obj[0]['accessoryNo'],
             "pageSize": 10,
             "pageNum": 1
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'maintenance_list', data, 'idle', nocheck)
+        return self._make_request('post', 'GTZ0UOiDK', data, 'idle', nocheck)
 
-    @doc(a_attachment_maintenance_search_name)
+    @doc(oqclfc811pbxjb1ydmtf)
     @BaseApi.timing_decorator
-    def attachment_maintenance_search_name(self, nocheck=False):
-        res = self.pc.attachment_maintenance_data()
-        obj = res[0]['accessoryName']
-        ParamCache.cache_object({"accessoryName": obj})
+    def oqclfc811pbxjb1ydmtf(self, nocheck=False):
+        obj = self.pc.Ln0faZ5CGpaYmkrcCVg4X()
+        ParamCache.cache_object({"i": obj[0]['accessoryName']})
         data = {
-            "accessoryName": obj,
+            "accessoryName": obj[0]['accessoryName'],
             "pageSize": 10,
             "pageNum": 1
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'maintenance_list', data, 'idle', nocheck)
+        return self._make_request('post', 'GTZ0UOiDK', data, 'idle', nocheck)
 
-    @doc(a_attachment_maintenance_search_status)
+    @doc(uxs5seo7otyrzfugdqsl)
     @BaseApi.timing_decorator
-    def attachment_maintenance_search_status(self, nocheck=False, status=None):
+    def uxs5seo7otyrzfugdqsl(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "status": status,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'maintenance_list', data, 'main', nocheck)
+        return self._make_request('post', 'GTZ0UOiDK', data, 'main', nocheck)
 
 
-class AttachmentOldWarehouseRequest(InitializeParams):
+class HkVg66f8Mk(InitializeParams):
     """配件管理|入库管理|旧配件入库"""
 
-    @doc(a_phone_old_attachment_warehouse)
+    @doc(sPBqvfYc9boVR4rGIL4w)
     @BaseApi.timing_decorator
-    def phone_old_attachment_warehouse(self, nocheck=False):
+    def sPBqvfYc9boVR4rGIL4w(self, nocheck=False):
         data = {
             "warehouseId": INFO['main_in_warehouse_id'],
             "userId": INFO['special_user_id'],
@@ -839,11 +847,11 @@ class AttachmentOldWarehouseRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'old_create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'AowpSZBva', data, 'main', nocheck)
 
-    @doc(a_thousand_phone_old_attachment_warehouse)
+    @doc(zq8av7DX7E15sOdOA5na)
     @BaseApi.timing_decorator
-    def thousand_phone_old_attachment_warehouse(self, nocheck=False):
+    def zq8av7DX7E15sOdOA5na(self, nocheck=False):
         data = {
             "warehouseId": INFO['main_in_warehouse_id'],
             "userId": INFO['special_user_id'],
@@ -869,11 +877,11 @@ class AttachmentOldWarehouseRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'old_create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'AowpSZBva', data, 'main', nocheck)
 
-    @doc(a_ipa_old_attachment_warehouse)
+    @doc(NIg8OImrULuxaaLnvprF)
     @BaseApi.timing_decorator
-    def ipa_old_attachment_warehouse(self, nocheck=False):
+    def NIg8OImrULuxaaLnvprF(self, nocheck=False):
         data = {
             "warehouseId": INFO['main_in_warehouse_id'],
             "userId": INFO['special_user_id'],
@@ -900,11 +908,11 @@ class AttachmentOldWarehouseRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'old_create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'AowpSZBva', data, 'main', nocheck)
 
-    @doc(a_notebook_old_attachment_warehouse)
+    @doc(V7VzYOhxyeCqh4OaUKh3)
     @BaseApi.timing_decorator
-    def notebook_old_attachment_warehouse(self, nocheck=False):
+    def V7VzYOhxyeCqh4OaUKh3(self, nocheck=False):
         data = {
             "warehouseId": INFO['main_in_warehouse_id'],
             "userId": INFO['special_user_id'],
@@ -931,11 +939,11 @@ class AttachmentOldWarehouseRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'old_create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'AowpSZBva', data, 'main', nocheck)
 
-    @doc(a_smartwatches_old_attachment_warehouse)
+    @doc(PMcmyjds8q4To8x1WYWe)
     @BaseApi.timing_decorator
-    def smartwatches_old_attachment_warehouse(self, nocheck=False):
+    def PMcmyjds8q4To8x1WYWe(self, nocheck=False):
         data = {
             "warehouseId": INFO['main_in_warehouse_id'],
             "userId": INFO['special_user_id'],
@@ -962,67 +970,65 @@ class AttachmentOldWarehouseRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'old_create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'AowpSZBva', data, 'main', nocheck)
 
-    @doc(a_attachment_old_warehouse_search_item)
+    @doc(rXmtCESQnyljezY5hqQF)
     @BaseApi.timing_decorator
-    def attachment_old_warehouse_search_item(self, nocheck=False):
-        res = self.pc.attachment_old_warehouse_data(data='a')
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def rXmtCESQnyljezY5hqQF(self, nocheck=False):
+        obj = self.pc.RjB1dOTFUrlGReUmemgQr(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
-            "articlesNo": obj,
+            "articlesNo": obj[0]['articlesNo'],
             "pageSize": 10,
             "pageNum": 1,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'list_of_old_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'icqD4B9Rk', data, 'main', nocheck)
 
-    @doc(a_attachment_old_warehouse_search_order)
+    @doc(BBRaKuLnfUAs23bBdW7L)
     @BaseApi.timing_decorator
-    def attachment_old_warehouse_search_order(self, nocheck=False):
-        res = self.pc.attachment_old_warehouse_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj})
+    def BBRaKuLnfUAs23bBdW7L(self, nocheck=False):
+        obj = self.pc.RjB1dOTFUrlGReUmemgQr()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
-            "orderNo": obj,
+            "orderNo": obj[0]['orderNo'],
             "pageSize": 10,
             "pageNum": 1,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'list_of_old_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'icqD4B9Rk', data, 'main', nocheck)
 
-    @doc(a_attachment_old_warehouse_search_warehouse)
+    @doc(whT4XzVC2HWmjrLwPGbu)
     @BaseApi.timing_decorator
-    def attachment_old_warehouse_search_warehouse(self, nocheck=False):
-        res = self.pc.attachment_old_warehouse_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def whT4XzVC2HWmjrLwPGbu(self, nocheck=False):
+        obj = self.pc.RjB1dOTFUrlGReUmemgQr()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "warehouseId": INFO['main_in_warehouse_id'],
             "pageSize": 10,
             "pageNum": 1,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'list_of_old_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'icqD4B9Rk', data, 'main', nocheck)
 
-    @doc(a_attachment_old_warehouse_search_user)
+    @doc(sJy6JWqmmKyM7r2DjLiS)
     @BaseApi.timing_decorator
-    def attachment_old_warehouse_search_user(self, nocheck=False):
-        res = self.pc.attachment_old_warehouse_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def sJy6JWqmmKyM7r2DjLiS(self, nocheck=False):
+        obj = self.pc.RjB1dOTFUrlGReUmemgQr()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "userId": INFO['special_user_id'],
             "pageSize": 10,
             "pageNum": 1,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'list_of_old_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'icqD4B9Rk', data, 'main', nocheck)
 
-    @doc(a_attachment_old_warehouse_search_time)
+    @doc(WbSFKLvOUocIJPFJCwVb)
     @BaseApi.timing_decorator
-    def attachment_old_warehouse_search_time(self, nocheck=False):
-        res = self.pc.attachment_old_warehouse_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def WbSFKLvOUocIJPFJCwVb(self, nocheck=False):
+        obj = self.pc.RjB1dOTFUrlGReUmemgQr()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
@@ -1030,71 +1036,67 @@ class AttachmentOldWarehouseRequest(InitializeParams):
             "endTime": self.get_the_date(days=1),
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'list_of_old_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'icqD4B9Rk', data, 'main', nocheck)
 
 
-class AttachmentPickListsRequest(InitializeParams):
+class ZgkiOAdiZt(InitializeParams):
     """配件管理|入库管理|分拣列表"""
 
-    @doc(a_attachment_pick_lists_search_status)
+    @doc(x2I7I6LSgnOWJ5UfzkPs)
     @BaseApi.timing_decorator
-    def attachment_pick_lists_search_status(self, nocheck=False, status=None):
+    def x2I7I6LSgnOWJ5UfzkPs(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "sortationStatus": status,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sorting_list', data, 'main', nocheck)
+        return self._make_request('post', 'QTembQdXx', data, 'main', nocheck)
 
-    @doc(a_attachment_pick_lists_search_logistics)
+    @doc(kieRlhO7K2AGuSdQH9b3)
     @BaseApi.timing_decorator
-    def attachment_pick_lists_search_logistics(self, nocheck=False):
-        res = self.pc.attachment_sorting_list_data()
-        obj = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": obj})
+    def kieRlhO7K2AGuSdQH9b3(self, nocheck=False):
+        obj = self.pc.LnfQBDqBvleaE2O0412qk()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
-            "logisticsNo": obj,
+            "logisticsNo": obj[0]['logisticsNo'],
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sorting_list', data, 'main', nocheck)
+        return self._make_request('post', 'QTembQdXx', data, 'main', nocheck)
 
-    @doc(a_attachment_pick_lists_search_item)
+    @doc(bOxmYfGUFrevxZUW1A6G)
     @BaseApi.timing_decorator
-    def attachment_pick_lists_search_item(self, nocheck=False):
-        res = self.pc.attachment_new_arrival_data()
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def bOxmYfGUFrevxZUW1A6G(self, nocheck=False):
+        obj = self.pc.KFkHdZyASZRhMrmNKfHiQ()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
-            "articlesNo": obj,
+            "articlesNo": obj[0]['articlesNo'],
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sorting_list', data, 'main', nocheck)
+        return self._make_request('post', 'QTembQdXx', data, 'main', nocheck)
 
-    @doc(a_attachment_pick_lists_search_business)
+    @doc(gMjMJ10FSSvSiwf8JbsW)
     @BaseApi.timing_decorator
-    def attachment_pick_lists_search_business(self, nocheck=False):
-        res = self.pc.attachment_new_arrival_data()
-        obj = res[0]['businessNo']
-        ParamCache.cache_object({"businessNo": obj})
+    def gMjMJ10FSSvSiwf8JbsW(self, nocheck=False):
+        obj = self.pc.KFkHdZyASZRhMrmNKfHiQ()
+        ParamCache.cache_object({"i": obj[0]['businessNo']})
         data = {
             "pageSize": 10,
             "pageNum": 1,
             "businessNo": obj,
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sorting_list', data, 'main', nocheck)
+        return self._make_request('post', 'QTembQdXx', data, 'main', nocheck)
 
-    @doc(a_attachment_pick_lists_search_time)
+    @doc(BnQQG1HUn8tvq1ZjDMCV)
     @BaseApi.timing_decorator
-    def attachment_pick_lists_search_time(self, nocheck=False):
-        res = self.pc.attachment_sorting_list_data()
-        obj = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": obj})
+    def BnQQG1HUn8tvq1ZjDMCV(self, nocheck=False):
+        obj = self.pc.LnfQBDqBvleaE2O0412qk()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1102,15 +1104,15 @@ class AttachmentPickListsRequest(InitializeParams):
             "sortationEndTime": self.get_the_date(days=1),
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sorting_list', data, 'main', nocheck)
+        return self._make_request('post', 'QTembQdXx', data, 'main', nocheck)
 
 
-class AttachmentPurchaseAddRequest(InitializeParams):
+class EdqL4NE5hk(InitializeParams):
     """配件管理|配件采购|新增采购单"""
 
-    @doc(a_added_purchase_order_unpaid_in_transit)
+    @doc(nBfEGGe1LJguXHi6aesS)
     @BaseApi.timing_decorator
-    def added_purchase_order_unpaid_in_transit(self, nocheck=False):
+    def nBfEGGe1LJguXHi6aesS(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
@@ -1152,11 +1154,11 @@ class AttachmentPurchaseAddRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'qg5Cp2gXr', data, 'main', nocheck)
 
-    @doc(a_new_purchase_order_warehousing)
+    @doc(niKwILpBHogDvGt52uEB)
     @BaseApi.timing_decorator
-    def new_purchase_order_warehousing(self, nocheck=False):
+    def niKwILpBHogDvGt52uEB(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
@@ -1199,11 +1201,11 @@ class AttachmentPurchaseAddRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'qg5Cp2gXr', data, 'main', nocheck)
 
-    @doc(a_attachment_new_purchase_order_payment)
+    @doc(fi51E5jCFUxE1nLYPO7w)
     @BaseApi.timing_decorator
-    def attachment_new_purchase_order_payment(self, nocheck=False):
+    def fi51E5jCFUxE1nLYPO7w(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
@@ -1244,11 +1246,11 @@ class AttachmentPurchaseAddRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'qg5Cp2gXr', data, 'main', nocheck)
 
-    @doc(a_new_purchase_order_route)
+    @doc(rYvpUsdluGutOhIhm7af)
     @BaseApi.timing_decorator
-    def new_purchase_order_route(self, nocheck=False):
+    def rYvpUsdluGutOhIhm7af(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
@@ -1290,11 +1292,11 @@ class AttachmentPurchaseAddRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'qg5Cp2gXr', data, 'main', nocheck)
 
-    @doc(a_generate_purchase_orders_in_bulk)
+    @doc(qyeHP1UKtW02kXOihCU1)
     @BaseApi.timing_decorator
-    def generate_purchase_orders_in_bulk(self, nocheck=False):
+    def qyeHP1UKtW02kXOihCU1(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
@@ -1336,11 +1338,11 @@ class AttachmentPurchaseAddRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'qg5Cp2gXr', data, 'main', nocheck)
 
-    @doc(a_add_purchase_orders_in_bulk)
+    @doc(Cd8pPBeDJMVuZBrTbFXN)
     @BaseApi.timing_decorator
-    def add_purchase_orders_in_bulk(self, nocheck=False):
+    def Cd8pPBeDJMVuZBrTbFXN(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
@@ -1407,16 +1409,17 @@ class AttachmentPurchaseAddRequest(InitializeParams):
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'create_purchase_order', data, 'main', nocheck)
+        return self._make_request('post', 'qg5Cp2gXr', data, 'main', nocheck)
 
 
-class AttachmentPurchaseListRequest(InitializeParams):
+class Kxg46XEPdY(InitializeParams):
     """配件管理|配件采购|采购列表"""
 
-    @doc(a_refund_after_purchase_express)
+    @doc(ytFlEaPZYL2krOQHCL4y)
     @BaseApi.timing_decorator
-    def refund_after_purchase_express(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data(data='a')
+    def ytFlEaPZYL2krOQHCL4y(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": "1",
             "payState": "2",
@@ -1432,22 +1435,23 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "userAddressId": INFO['main_user_address_id'],
             "purchaseAccessoryDTOList": [
                 {
-                    "purchasePrice": res[0]['purchasePrice'],
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "newPurchasePrice": res[0]['returnAblePrice'],
-                    "articlesNo": res[0]['articlesNo'],
+                    "purchasePrice": obj[0]['purchasePrice'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "newPurchasePrice": obj[0]['returnAblePrice'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "salePrice": 0,
-                    "id": res[0]['id']
+                    "id": obj[0]['id']
                 }
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'procurement_after_sales', data, 'main', nocheck)
+        return self._make_request('post', 'fed411lAJ', data, 'main', nocheck)
 
-    @doc(a_refund_after_purchase)
+    @doc(DUKh4wv9QHERfWyZo08U)
     @BaseApi.timing_decorator
-    def refund_after_purchase(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data(data='a')
+    def DUKh4wv9QHERfWyZo08U(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": "1",
             "payState": "2",
@@ -1460,22 +1464,23 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "walletAccountNo": INFO['main_wallet_account_no'],
             "purchaseAccessoryDTOList": [
                 {
-                    "purchasePrice": res[0]['purchasePrice'],
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "newPurchasePrice": res[0]['returnAblePrice'],
-                    "articlesNo": res[0]['articlesNo'],
+                    "purchasePrice": obj[0]['purchasePrice'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "newPurchasePrice": obj[0]['returnAblePrice'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "salePrice": 0,
-                    "id": res[0]['id']
+                    "id": obj[0]['id']
                 }
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'procurement_after_sales', data, 'main', nocheck)
+        return self._make_request('post', 'fed411lAJ', data, 'main', nocheck)
 
-    @doc(a_purchase_sale_refund)
+    @doc(kuo3zYG5OY6r1J5GFLwS)
     @BaseApi.timing_decorator
-    def purchase_sale_refund(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data(data='a')
+    def kuo3zYG5OY6r1J5GFLwS(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": "7",
             "payState": "2",
@@ -1485,22 +1490,23 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "remark": "备注",
             "purchaseAccessoryDTOList": [
                 {
-                    "purchasePrice": res[0]['purchasePrice'],
-                    "purchaseNo": res[0]['purchaseNo'],
+                    "purchasePrice": obj[0]['purchasePrice'],
+                    "purchaseNo": obj[0]['purchaseNo'],
                     "newPurchasePrice": 1,
-                    "articlesNo": res[0]['articlesNo'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "salePrice": 0,
-                    "id": res[0]['id']
+                    "id": obj[0]['id']
                 }
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'procurement_after_sales', data, 'main', nocheck)
+        return self._make_request('post', 'fed411lAJ', data, 'main', nocheck)
 
-    @doc(a_all_amount_refund_difference)
+    @doc(rNxmjG3kaLQP30Voi9tR)
     @BaseApi.timing_decorator
-    def all_amount_refund_difference(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data(data='a')
+    def rNxmjG3kaLQP30Voi9tR(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": "7",
             "payState": "2",
@@ -1510,52 +1516,37 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "remark": "备注",
             "purchaseAccessoryDTOList": [
                 {
-                    "purchasePrice": res[0]['purchasePrice'],
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "newPurchasePrice": res[0]['returnAblePrice'],
-                    "articlesNo": res[0]['articlesNo'],
+                    "purchasePrice": obj[0]['purchasePrice'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "newPurchasePrice": obj[0]['returnAblePrice'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "salePrice": 0,
-                    "id": res[0]['id']
+                    "id": obj[0]['id']
                 }
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'procurement_after_sales', data, 'main', nocheck)
+        return self._make_request('post', 'fed411lAJ', data, 'main', nocheck)
 
-    @doc(a_details_of_the_spare_parts_purchase_list)
+    @doc(OCChvTOX3BOwhsZ3x1Vk)
     @BaseApi.timing_decorator
-    def details_of_the_spare_parts_purchase_list(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data()
-        res_2 = self.pc.attachment_purchase_list_data(data='a')
-        ParamCache.cache_object({"articlesNo": res_2[0]['articlesNo']})
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "purchaseNo": res[0]['orderNo']
-        }
-        self.validate_request_data(data)
-        return self._make_request('post', 'purchase_detail', data, 'main', nocheck)
-
-    @doc(a_attachment_purchase_list_search_order)
-    @BaseApi.timing_decorator
-    def attachment_purchase_list_search_order(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj})
+    def OCChvTOX3BOwhsZ3x1Vk(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
             "pageSize": 10,
-            "orderNo": obj
+            "orderNo": obj[0]['orderNo']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
-    @doc(a_attachment_purchase_list_search_suppliers)
+    @doc(YHUNy8WSwZqIFfM88jqk)
     @BaseApi.timing_decorator
-    def attachment_purchase_list_search_suppliers(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def YHUNy8WSwZqIFfM88jqk(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
@@ -1563,13 +1554,13 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
-    @doc(a_attachment_purchase_list_search_people)
+    @doc(uTH0rGcq6USIvzBzwnqn)
     @BaseApi.timing_decorator
-    def attachment_purchase_list_search_people(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def uTH0rGcq6USIvzBzwnqn(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
@@ -1577,13 +1568,13 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "userId": INFO['main_user_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
-    @doc(a_attachment_purchase_list_search_time)
+    @doc(Q66Jftlrzxz0MflmYaRr)
     @BaseApi.timing_decorator
-    def attachment_purchase_list_search_time(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def Q66Jftlrzxz0MflmYaRr(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
@@ -1592,13 +1583,13 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "erpStartTime": self.get_the_date()
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
-    @doc(a_attachment_purchase_list_search_status)
+    @doc(art1lLuMH6tdwDoJNCVF)
     @BaseApi.timing_decorator
-    def attachment_purchase_list_search_status(self, nocheck=False, state=None):
-        res = self.pc.attachment_purchase_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def art1lLuMH6tdwDoJNCVF(self, nocheck=False, state=None):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
@@ -1606,13 +1597,13 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "state": state
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
-    @doc(a_attachment_purchase_list_search_payment)
+    @doc(aa4ufzsTKdxHRDOhwcsN)
     @BaseApi.timing_decorator
-    def attachment_purchase_list_search_payment(self, nocheck=False, pay=None):
-        res = self.pc.attachment_purchase_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def aa4ufzsTKdxHRDOhwcsN(self, nocheck=False, pay=None):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
@@ -1620,73 +1611,73 @@ class AttachmentPurchaseListRequest(InitializeParams):
             "payState": pay
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
-    @doc(a_attachment_purchase_list_search_logistics)
+    @doc(L2C0xDrhKPDjvib6JES4)
     @BaseApi.timing_decorator
-    def attachment_purchase_list_search_logistics(self, nocheck=False):
-        res = self.pc.attachment_purchase_list_data()
-        obj = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": obj})
+    def L2C0xDrhKPDjvib6JES4(self, nocheck=False):
+        obj = self.pc.OiUAWoPURtS5QdkSFauge()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
         data = {
             "articlesType": 2,
             "pageNum": 1,
             "pageSize": 10,
-            "logisticsNo": obj
+            "logisticsNo": obj[0]['logisticsNo']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'purchase_list', data, 'main', nocheck)
+        return self._make_request('post', 'fRokl0vv2', data, 'main', nocheck)
 
 
-class AttachmentReceiveItemsRequest(InitializeParams):
-    """库存管理|移交接收管理|接收物品"""
+class TYqfRUwK8U(InitializeParams):
+    """配件管理|移交接收管理|接收物品"""
 
-    @doc(a_item_inventory_accessory_item_receipt)
+    @doc(YGHj7l8L8BkOXk1wxK6L)
     @BaseApi.timing_decorator
-    def item_inventory_accessory_item_receipt(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def YGHj7l8L8BkOXk1wxK6L(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]["articlesNo"]
+                    "articlesNo": obj[0]["articlesNo"]
                 }
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'Sm7yLloyr', data, 'main', nocheck)
 
-    @doc(a_handover_orders_received_in_batches)
+    @doc(J8ahGmCVn2GdPlK8RMlj)
     @BaseApi.timing_decorator
-    def handover_orders_received_in_batches(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data()
+    def J8ahGmCVn2GdPlK8RMlj(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "orderNoList": [
-                res[0]['orderNo']
+                obj[0]['orderNo']
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'Sm7yLloyr', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_item)
+    @doc(wJXR0rLyC9FiD2Hab2GK)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_item(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def wJXR0rLyC9FiD2Hab2GK(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNo": obj,
+            "articlesNo": obj[0]['articlesNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'main', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_category)
+    @doc(vKg2HxGmBKyPPtp6kJf7)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_category(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def vKg2HxGmBKyPPtp6kJf7(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1696,13 +1687,13 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'main', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_person)
+    @doc(gyC9dbIGUhd7LCpcYvDF)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_person(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def gyC9dbIGUhd7LCpcYvDF(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1710,13 +1701,13 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'main', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_accept)
+    @doc(L4sWT7EPZcuwuxZX1mLK)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_accept(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def L4sWT7EPZcuwuxZX1mLK(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1724,13 +1715,13 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'main', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_time)
+    @doc(ZitlblU4lMp7BYK8ANyM)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_time(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        ParamCache.cache_object({"articlesNo": res[0]['articlesNo']})
+    def ZitlblU4lMp7BYK8ANyM(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1739,58 +1730,53 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'main', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_order)
+    @doc(vRCdl2fqoKNJpFGdRzRD)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_order(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj})
+    def vRCdl2fqoKNJpFGdRzRD(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "orderNo": obj,
+            "orderNo": obj[0]['orderNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'items_to_be_received', data, 'main', nocheck)
+        return self._make_request('post', 'JKjPTfATh', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_item_no)
+    @doc(Vzw0lwBx2ZAyHWSrX6RQ)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_item_no(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data(data='a')
-        obj = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": obj})
+    def Vzw0lwBx2ZAyHWSrX6RQ(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe(data='a')
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNo": obj,
+            "articlesNo": obj[0]['articlesNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'ZspzD8hZ0', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_order_no)
+    @doc(UF6kXeN3uHtmuNDjeKwu)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_order_no(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj})
+    def UF6kXeN3uHtmuNDjeKwu(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "orderNo": obj,
+            "orderNo": obj[0]['orderNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'ZspzD8hZ0', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_status)
+    @doc(un6reo9grtxgYp8gEDjc)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_status(self, nocheck=False, status=None):
-        res = self.pc.attachment_receive_items_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def un6reo9grtxgYp8gEDjc(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1798,13 +1784,13 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'ZspzD8hZ0', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_transfer_person)
+    @doc(byg7MwSRAnzhwUDcj1Wk)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_transfer_person(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def byg7MwSRAnzhwUDcj1Wk(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1812,13 +1798,13 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "distributorId": INFO['main_user_id']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'ZspzD8hZ0', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_recipient)
+    @doc(stvghsNX2dN5itJABNYT)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_recipient(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def stvghsNX2dN5itJABNYT(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1826,13 +1812,13 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'ZspzD8hZ0', data, 'main', nocheck)
 
-    @doc(a_attachment_receive_item_search_transfer_time)
+    @doc(sn75xNW4A5LGaJtgZiQV)
     @BaseApi.timing_decorator
-    def attachment_receive_item_search_transfer_time(self, nocheck=False):
-        res = self.pc.attachment_receive_items_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def sn75xNW4A5LGaJtgZiQV(self, nocheck=False):
+        obj = self.pc.AMaXd2PkDsrT5cj1SArOe()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -1841,16 +1827,17 @@ class AttachmentReceiveItemsRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'receive_items', data, 'main', nocheck)
+        return self._make_request('post', 'ZspzD8hZ0', data, 'main', nocheck)
 
 
-class AttachmentSalesListRequest(InitializeParams):
+class R3Xo25O7tV(InitializeParams):
     """配件管理|配件销售|销售列表"""
 
-    @doc(a_accessories_sales_express_received_payment)
+    @doc(btbwOSZldzzeYBn6qsYo)
     @BaseApi.timing_decorator
-    def accessories_sales_express_received_payment(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def btbwOSZldzzeYBn6qsYo(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "status": "1",
             "accountNo": INFO['main_account_no'],
@@ -1862,22 +1849,23 @@ class AttachmentSalesListRequest(InitializeParams):
             "remark": "备注",
             "saleOrderAccessoryList": [
                 {
-                    "accessoryNo": res[0]['articlesNo'],
-                    "accessoryId": res[0]['id'],
+                    "accessoryNo": obj[0]['articlesNo'],
+                    "accessoryId": obj[0]['id'],
                     "salePrice": "70",
-                    "costPrice": res[0]['totalCost']
+                    "costPrice": obj[0]['totalCost']
                 }
             ],
             "deliveryNum": 1,
             "accountName": INFO['main_account_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_sales', data, 'main', nocheck)
+        return self._make_request('post', 'kyVzUMNcM', data, 'main', nocheck)
 
-    @doc(a_accessory_sales_express_easy)
+    @doc(H4KdZEXetFlTiBVp1fME)
     @BaseApi.timing_decorator
-    def accessory_sales_express_easy(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def H4KdZEXetFlTiBVp1fME(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "status": "2",
             "accountNo": INFO['main_account_no'],
@@ -1893,22 +1881,23 @@ class AttachmentSalesListRequest(InitializeParams):
             "userAddressId": INFO['main_user_address_id'],
             "saleOrderAccessoryList": [
                 {
-                    "accessoryNo": res[0]['articlesNo'],
-                    "accessoryId": res[0]['id'],
+                    "accessoryNo": obj[0]['articlesNo'],
+                    "accessoryId": obj[0]['id'],
                     "salePrice": "70",
-                    "costPrice": res[0]['totalCost']
+                    "costPrice": obj[0]['totalCost']
                 }
             ],
             "deliveryNum": 1,
             "accountName": INFO['main_account_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_sales', data, 'main', nocheck)
+        return self._make_request('post', 'kyVzUMNcM', data, 'main', nocheck)
 
-    @doc(a_accessory_sales_express_easy_maximum)
+    @doc(ye7ARAsQ9uacwEptFiSV)
     @BaseApi.timing_decorator
-    def accessory_sales_express_easy_maximum(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def ye7ARAsQ9uacwEptFiSV(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "status": "2",
             "accountNo": INFO['main_account_no'],
@@ -1924,22 +1913,23 @@ class AttachmentSalesListRequest(InitializeParams):
             "userAddressId": INFO['main_user_address_id'],
             "saleOrderAccessoryList": [
                 {
-                    "accessoryNo": res[0]['articlesNo'],
-                    "accessoryId": res[0]['id'],
+                    "accessoryNo": obj[0]['articlesNo'],
+                    "accessoryId": obj[0]['id'],
                     "salePrice": "99999",
-                    "costPrice": res[0]['totalCost']
+                    "costPrice": obj[0]['totalCost']
                 }
             ],
             "deliveryNum": 1,
             "accountName": INFO['main_account_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_sales', data, 'main', nocheck)
+        return self._make_request('post', 'kyVzUMNcM', data, 'main', nocheck)
 
-    @doc(a_uncollected_partial_sales_amount)
+    @doc(ivhxLmwFUYJ160MKBThl)
     @BaseApi.timing_decorator
-    def uncollected_partial_sales_amount(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def ivhxLmwFUYJ160MKBThl(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "status": "2",
             "accountNo": INFO['main_account_no'],
@@ -1951,22 +1941,23 @@ class AttachmentSalesListRequest(InitializeParams):
             "remark": "备注",
             "saleOrderAccessoryList": [
                 {
-                    "accessoryNo": res[0]['articlesNo'],
-                    "accessoryId": res[0]['id'],
+                    "accessoryNo": obj[0]['articlesNo'],
+                    "accessoryId": obj[0]['id'],
                     "salePrice": "644",
-                    "costPrice": res[0]['totalCost']
+                    "costPrice": obj[0]['totalCost']
                 }
             ],
             "deliveryNum": 1,
             "accountName": INFO['main_account_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'accessory_sales', data, 'main', nocheck)
+        return self._make_request('post', 'kyVzUMNcM', data, 'main', nocheck)
 
-    @doc(a_sales_after_sale_refund_not_received)
+    @doc(bovLHIlzJSfrRryibqyF)
     @BaseApi.timing_decorator
-    def sales_after_sale_refund_not_received(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data(data='b')
+    def bovLHIlzJSfrRryibqyF(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4(data='b')
+        ParamCache.cache_object({"i": obj[0]['accessoryNo']})
         data = {
             "sellType": "1",
             "sellSupplierId": INFO['main_sale_supplier_id'],
@@ -1978,23 +1969,24 @@ class AttachmentSalesListRequest(InitializeParams):
             "isEexpress": "0",
             "afterSaleOrderAccessoryList": [
                 {
-                    "salePrice": res[0]['salePrice'],
-                    "accessoryNo": res[0]['accessoryNo'],
-                    "accessoryId": res[0]['id'],
-                    "saleReturnPrice": res[0]['returnAblePrice'],
-                    "saleOrderNo": res[0]['saleOrderNo']
+                    "salePrice": obj[0]['salePrice'],
+                    "accessoryNo": obj[0]['accessoryNo'],
+                    "accessoryId": obj[0]['id'],
+                    "saleReturnPrice": obj[0]['returnAblePrice'],
+                    "saleOrderNo": obj[0]['saleOrderNo']
                 }
             ],
             "deliveryNum": 1,
             "supplierName": INFO['vice_sales_customer_name'],
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'after_sales_of_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'Kuc4ZIm7H', data, 'main', nocheck)
 
-    @doc(a_sales_after_sale_refund_warehouse)
+    @doc(oe82ledRfRK4B7jiOSVc)
     @BaseApi.timing_decorator
-    def sales_after_sale_refund_warehouse(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data(data='b')
+    def oe82ledRfRK4B7jiOSVc(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4(data='b')
+        ParamCache.cache_object({"i": obj[0]['accessoryNo']})
         data = {
             "sellType": "1",
             "sellSupplierId": INFO['main_sale_supplier_id'],
@@ -2004,11 +1996,11 @@ class AttachmentSalesListRequest(InitializeParams):
             "isEexpress": "0",
             "afterSaleOrderAccessoryList": [
                 {
-                    "salePrice": res[0]['salePrice'],
-                    "accessoryNo": res[0]['accessoryNo'],
-                    "accessoryId": res[0]['id'],
-                    "saleReturnPrice": res[0]['returnAblePrice'],
-                    "saleOrderNo": res[0]['saleOrderNo'],
+                    "salePrice": obj[0]['salePrice'],
+                    "accessoryNo": obj[0]['accessoryNo'],
+                    "accessoryId": obj[0]['id'],
+                    "saleReturnPrice": obj[0]['returnAblePrice'],
+                    "saleOrderNo": obj[0]['saleOrderNo'],
                     "warehouseId": INFO['main_warehouse_id'],
                 }
             ],
@@ -2016,14 +2008,15 @@ class AttachmentSalesListRequest(InitializeParams):
             "supplierName": INFO['vice_sales_customer_name'],
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'after_sales_of_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'Kuc4ZIm7H', data, 'main', nocheck)
 
-    @doc(a_sales_after_refund_the_price_difference)
+    @doc(hBh7ycF1AumEt4nXwMyZ)
     @BaseApi.timing_decorator
-    def sales_after_refund_the_price_difference(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data()
-        res_2 = self.pc.attachment_sales_list_data(data='a')
-        res_3 = self.pc.attachment_sales_list_data(data='b')
+    def hBh7ycF1AumEt4nXwMyZ(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4()
+        obj_2 = self.pc.IW1UwaP9R0hojKPOJQSH4(data='a')
+        obj_3 = self.pc.IW1UwaP9R0hojKPOJQSH4(data='b')
+        ParamCache.cache_object({"i": obj_3[0]['accessoryNo']})
         data = {
             "sellType": "2",
             "sellSupplierId": INFO['main_sale_supplier_id'],
@@ -2032,11 +2025,11 @@ class AttachmentSalesListRequest(InitializeParams):
             "isEexpress": "0",
             "afterSaleOrderAccessoryList": [
                 {
-                    "salePrice": res_2[0]['salePrice'],
-                    "accessoryNo": res_2[0]['accessoryNo'],
-                    "accessoryId": res[0]['id'],
-                    "saleReturnPrice": res_3[0]['returnAblePrice'],
-                    "saleOrderNo": res[0]['orderNo'],
+                    "salePrice": obj_2[0]['salePrice'],
+                    "accessoryNo": obj_2[0]['accessoryNo'],
+                    "accessoryId": obj[0]['id'],
+                    "saleReturnPrice": obj_3[0]['returnAblePrice'],
+                    "saleOrderNo": obj[0]['orderNo'],
                     "newSellPrice": "1"
                 }
             ],
@@ -2044,14 +2037,15 @@ class AttachmentSalesListRequest(InitializeParams):
             "supplierName": INFO['vice_sales_customer_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'after_sales_of_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'Kuc4ZIm7H', data, 'main', nocheck)
 
-    @doc(a_the_full_amount_will_be_refunded_the_difference)
+    @doc(dvDaOWftNEncBuIMeo7h)
     @BaseApi.timing_decorator
-    def the_full_amount_will_be_refunded_the_difference(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data()
-        res_2 = self.pc.attachment_sales_list_data(data='a')
-        res_3 = self.pc.attachment_sales_list_data(data='b')
+    def dvDaOWftNEncBuIMeo7h(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4()
+        obj_2 = self.pc.IW1UwaP9R0hojKPOJQSH4(data='a')
+        obj_3 = self.pc.IW1UwaP9R0hojKPOJQSH4(data='b')
+        ParamCache.cache_object({"i": obj_3[0]['accessoryNo']})
         data = {
             "sellType": "2",
             "sellSupplierId": INFO['main_sale_supplier_id'],
@@ -2060,40 +2054,39 @@ class AttachmentSalesListRequest(InitializeParams):
             "isEexpress": "0",
             "afterSaleOrderAccessoryList": [
                 {
-                    "salePrice": res_2[0]['salePrice'],
-                    "accessoryNo": res_2[0]['accessoryNo'],
-                    "accessoryId": res[0]['id'],
-                    "saleReturnPrice": res_3[0]['returnAblePrice'],
-                    "saleOrderNo": res[0]['orderNo'],
-                    "newSellPrice": res[0]['salePrice']
+                    "salePrice": obj_2[0]['salePrice'],
+                    "accessoryNo": obj_2[0]['accessoryNo'],
+                    "accessoryId": obj[0]['id'],
+                    "saleReturnPrice": obj_3[0]['returnAblePrice'],
+                    "saleOrderNo": obj[0]['orderNo'],
+                    "newSellPrice": obj[0]['salePrice']
                 }
             ],
             "deliveryNum": 1,
             "supplierName": INFO['vice_sales_customer_name']
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'after_sales_of_accessories', data, 'main', nocheck)
+        return self._make_request('post', 'Kuc4ZIm7H', data, 'main', nocheck)
 
-    @doc(a_attachment_sales_list_search_order)
+    @doc(JufIUEkkoghm3ZPziz11)
     @BaseApi.timing_decorator
-    def attachment_sales_list_search_order(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj})
+    def JufIUEkkoghm3ZPziz11(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "orderNo": obj,
+            "orderNo": obj[0]['orderNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'm9MsjRh7V', data, 'main', nocheck)
 
-    @doc(a_attachment_sales_list_search_customer)
+    @doc(U9NQEB15gOzUs1kWPzHL)
     @BaseApi.timing_decorator
-    def attachment_sales_list_search_customer(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def U9NQEB15gOzUs1kWPzHL(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -2101,13 +2094,11 @@ class AttachmentSalesListRequest(InitializeParams):
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'm9MsjRh7V', data, 'main', nocheck)
 
-    @doc(a_attachment_sales_list_search_status)
+    @doc(hVsGoqqW3itUAfALyFs8)
     @BaseApi.timing_decorator
-    def attachment_sales_list_search_status(self, nocheck=False, status=None):
-        res = self.pc.attachment_sales_list_data()
-        ParamCache.cache_object({"orderNo": res[0]['orderNo']})
+    def hVsGoqqW3itUAfALyFs8(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
@@ -2115,42 +2106,57 @@ class AttachmentSalesListRequest(InitializeParams):
             "status": status
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'm9MsjRh7V', data, 'main', nocheck)
 
-    @doc(a_attachment_sales_list_search_logistics)
+    @doc(aSQHqjds3CGl32QrMMgp)
     @BaseApi.timing_decorator
-    def attachment_sales_list_search_logistics(self, nocheck=False):
-        res = self.pc.attachment_sales_list_data()
-        obj = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": obj})
+    def aSQHqjds3CGl32QrMMgp(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "logisticsNo": obj,
+            "logisticsNo": obj[0]['logisticsNo'],
             "articlesType": 2
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'm9MsjRh7V', data, 'main', nocheck)
+
+    @doc(Rd9OUwhBuPlpGWYEzDoo)
+    @BaseApi.timing_decorator
+    def Rd9OUwhBuPlpGWYEzDoo(self, nocheck=False):
+        obj = self.pc.IW1UwaP9R0hojKPOJQSH4()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": 2,
+            "erpStartTime": self.get_the_date(),
+            "erpEndTime": self.get_the_date(days=1),
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'm9MsjRh7V', data, 'main', nocheck)
 
 
-class AttachmentSortingListRequest(InitializeParams):
+class OS9qwvYXb5(InitializeParams):
     """配件管理|入库管理|新到货入库"""
 
-    @doc(a_search_for_tracking_number_inbound_and_handover)
+    @doc(Jslqnx0TJYAcPWsTNgWG)
     @BaseApi.timing_decorator
-    def search_for_tracking_number_inbound_and_handover(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=1)
+    def Jslqnx0TJYAcPWsTNgWG(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=1)
+        ParamCache.cache_object({"i": obj[0]['purchaseLogisticsNo']})
         data = {
             "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "warehouseId": INFO['main_warehouse_id']
                 }
             ],
             "quickOperation": 1,
             "purchaseOrdersArticlesDTO": {
                 "articlesNoList": [
-                    res[0]['articlesNo']
+                    obj[0]['articlesNo']
                 ],
                 "createBy": INFO['special_account_name'],
                 "type": "",
@@ -2159,41 +2165,82 @@ class AttachmentSortingListRequest(InitializeParams):
             }
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'old_sign_into_the_library', data, 'main', nocheck)
+        return self._make_request('post', 'Wgwpc3mTg', data, 'main', nocheck)
 
-
-class AttachmentStockTransferRequest(InitializeParams):
-    """配件管理|配件库存|库存调拨"""
-
-    @doc(a_select_add_item_transfer)
+    @doc(k75gfpU0uyhS1aEhcD2Y)
     @BaseApi.timing_decorator
-    def new_allocation(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def k75gfpU0uyhS1aEhcD2Y(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=1)
+        ParamCache.cache_object({"i": obj[0]['purchaseLogisticsNo']})
         data = {
-            "outWarehouseId": INFO['main_warehouse_id'],
-            "inWarehouseId": INFO['main_item_in_warehouse_id'],
-            "remark": "备注",
-            "articlesType": "2",
-            "articles": [
+            "accessoryList": [
                 {
-                    "articlesNo": res[0]['articlesNo'],
-                    "imei": None
+                    "articlesNo": obj[0]['articlesNo'],
+                    "warehouseId": INFO['main_warehouse_id']
                 }
             ],
-            "expressInfo": {
-                "walletAccountNo": INFO['main_wallet_account_no'],
-                "isEexpress": 0,
-                "estimateFreight": None,
-                "expressNo": self.jd
+            "quickOperation": 0,
+            "purchaseOrdersArticlesDTO": {
+                "articlesNoList": [
+                    obj[0]['articlesNo']
+                ],
+                "createBy": "",
+                "type": "",
+                "userId": "",
+                "remark": ""
             }
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'new_allocation', data, 'main', nocheck)
+        return self._make_request('post', 'Wgwpc3mTg', data, 'main', nocheck)
 
-    @doc(a_express_is_easy_new_allocation)
+    @doc(pZnZ4E4EWsok60VOwAt0)
     @BaseApi.timing_decorator
-    def express_is_easy_new_allocation(self, nocheck=False):
-        res = self.pc.attachment_inventory_list_data(i=2)
+    def pZnZ4E4EWsok60VOwAt0(self, nocheck=False):
+        obj = self.pc.KFkHdZyASZRhMrmNKfHiQ()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "logisticsNo": obj[0]['logisticsNo'],
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'apFM5LAR2', data, 'main', nocheck)
+
+    @doc(ddwluOeEUDWfjvQcXtFf)
+    @BaseApi.timing_decorator
+    def ddwluOeEUDWfjvQcXtFf(self, nocheck=False):
+        obj = self.pc.KFkHdZyASZRhMrmNKfHiQ()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesNo": obj[0]['articlesNo'],
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'apFM5LAR2', data, 'main', nocheck)
+
+    @doc(ZHplaC78vCAAs9nTV3tu)
+    @BaseApi.timing_decorator
+    def ZHplaC78vCAAs9nTV3tu(self, nocheck=False):
+        obj = self.pc.KFkHdZyASZRhMrmNKfHiQ()
+        ParamCache.cache_object({"i": obj[0]['businessNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesNo": obj[0]['businessNo'],
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'apFM5LAR2', data, 'main', nocheck)
+
+
+class KofyeHTY2V(InitializeParams):
+    """配件管理|配件库存|库存调拨"""
+
+    @doc(AdqaPYO38jf7TVM9akKm)
+    @BaseApi.timing_decorator
+    def AdqaPYO38jf7TVM9akKm(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "outWarehouseId": INFO['main_warehouse_id'],
             "inWarehouseId": INFO['main_item_in_warehouse_id'],
@@ -2201,7 +2248,7 @@ class AttachmentStockTransferRequest(InitializeParams):
             "articlesType": "2",
             "articles": [
                 {
-                    "articlesNo": res[0]['articlesNo'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "imei": None
                 }
             ],
@@ -2215,13 +2262,13 @@ class AttachmentStockTransferRequest(InitializeParams):
                 "payWay": 1,
                 "senderName": "admin",
                 "senderPhone": INFO['receiving_phone'],
-                "senderProvinceId": INFO['shipping_province_id'],
-                "senderProvinceName": INFO['shipping_city_name'],
-                "senderCityId": INFO['shipping_city_id'],
-                "senderCityName": INFO['shipping_city_name'],
-                "senderCountyId": INFO['shipping_county_id'],
-                "senderCountyName": INFO['shipping_detailed_address'],
-                "senderAddress": INFO['shipping_detailed_address'],
+                "senderProvinceId": INFO['province_id'],
+                "senderProvinceName": INFO['city_name'],
+                "senderCityId": INFO['city_id'],
+                "senderCityName": INFO['city_name'],
+                "senderCountyId": INFO['county_id'],
+                "senderCountyName": INFO['detailed_address'],
+                "senderAddress": INFO['detailed_address'],
                 "recipientName": INFO['shipping_address_creator'],
                 "recipientPhone": INFO['receiving_phone'],
                 "recipientProvinceId": INFO['province_id'],
@@ -2234,35 +2281,264 @@ class AttachmentStockTransferRequest(InitializeParams):
             }
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'new_allocation', data, 'main', nocheck)
+        return self._make_request('post', 'x79aTjjzc', data, 'main', nocheck)
 
-    @doc(a_receive)
+    @doc(UXuoreny4UjWmENBXQgX)
     @BaseApi.timing_decorator
-    def receive(self, nocheck=False):
-        res = self.pc.attachment_warehouse_allocation_data()
+    def UXuoreny4UjWmENBXQgX(self, nocheck=False):
+        obj = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i=2)
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
-            "id": res[0]['id'],
+            "outWarehouseId": INFO['main_warehouse_id'],
+            "inWarehouseId": INFO['main_item_in_warehouse_id'],
+            "remark": "备注",
+            "articlesType": "2",
+            "articles": [
+                {
+                    "articlesNo": obj[0]['articlesNo'],
+                    "imei": None
+                },
+                {
+                    "articlesNo": obj[1]['articlesNo'],
+                    "imei": None
+                }
+            ],
+            "expressInfo": {
+                "walletAccountNo": INFO['main_wallet_account_no'],
+                "isEexpress": 0,
+                "estimateFreight": None,
+                "expressNo": self.sf
+            }
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'x79aTjjzc', data, 'main', nocheck)
+
+    @doc(vy4GQrC9c2PByhpKlKX7)
+    @BaseApi.timing_decorator
+    def vy4GQrC9c2PByhpKlKX7(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "id": obj[0]['id'],
             "quickOperation": 0
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'allocation_receive', data, 'main', nocheck)
+        return self._make_request('post', 'qIZUVHhiB', data, 'main', nocheck)
 
-    @doc(a_revoke)
+    @doc(SfRJFEo1omEqQEMXCt1A)
     @BaseApi.timing_decorator
-    def revoke(self, nocheck=False):
-        res = self.pc.attachment_warehouse_allocation_data()
-        res_2 = self.pc.attachment_warehouse_allocation_data(data='b')
+    def SfRJFEo1omEqQEMXCt1A(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        obj_2 = self.pc.DgyYP8ygDMIIeEEXHuLbW(data='b')
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
-            "id": res[0]['id'],
+            "id": obj[0]['id'],
             "articlesNoList": [
-                res_2[0]['articlesNo']
+                obj_2[0]['articlesNo']
             ]
         }
         self.validate_request_data(data)
-        return self._make_request('post', 'allocation_revoke', data, 'main', nocheck)
+        return self._make_request('post', 'lBPBIvUgX', data, 'main', nocheck)
+
+    @doc(irVf881IgnSudhdqrzNT)
+    @BaseApi.timing_decorator
+    def irVf881IgnSudhdqrzNT(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "orderNo": obj[0]['orderNo'],
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(uxleDdCbgv5xe0Yh9ihY)
+    @BaseApi.timing_decorator
+    def uxleDdCbgv5xe0Yh9ihY(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "outWarehouseId": INFO['main_warehouse_id'],
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(GEzDUNHZDHJGT31d5arP)
+    @BaseApi.timing_decorator
+    def GEzDUNHZDHJGT31d5arP(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "inWarehouseId": INFO['main_item_in_warehouse_id'],
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(ykbpvOAyRCpcWTc8FTo0)
+    @BaseApi.timing_decorator
+    def ykbpvOAyRCpcWTc8FTo0(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "userId": INFO['main_user_id'],
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(N7hyMWrgBhZs95uhMTfo)
+    @BaseApi.timing_decorator
+    def N7hyMWrgBhZs95uhMTfo(self, nocheck=False, status=None):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "status": status,
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(gMOD5rLLkrIFYE4i7uWv)
+    @BaseApi.timing_decorator
+    def gMOD5rLLkrIFYE4i7uWv(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "receiveUserId": INFO['main_user_id'],
+            "pageNum": 1,
+            "pageSize": 10,
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(qUeEiqtgrjyltpAB3WwJ)
+    @BaseApi.timing_decorator
+    def qUeEiqtgrjyltpAB3WwJ(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "startCreateTime": self.get_the_date(),
+            "endCreateTime": self.get_the_date(days=1),
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+    @doc(boCbPTo0KQQbybfPC7Dp)
+    @BaseApi.timing_decorator
+    def boCbPTo0KQQbybfPC7Dp(self, nocheck=False):
+        obj = self.pc.DgyYP8ygDMIIeEEXHuLbW()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "startUpdateTime": self.get_the_date(),
+            "endUpdateTime": self.get_the_date(days=1),
+            "articlesType": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Vqx4RAgDI', data, 'main', nocheck)
+
+
+class A1SFjHxpUV(InitializeParams):
+    """配件管理|配件销售|销售售后列表"""
+
+    @doc(fQ4Cx53aMDNueSRTtdCt)
+    @BaseApi.timing_decorator
+    def fQ4Cx53aMDNueSRTtdCt(self, nocheck=False):
+        obj = self.pc.Nd81xbVVnxevE1Oy8yXcy()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "orderNo": obj[0]['orderNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'r9ytswUaJ', data, 'main', nocheck)
+
+    @doc(M2uPO43Gwj1MxRNJdmCn)
+    @BaseApi.timing_decorator
+    def M2uPO43Gwj1MxRNJdmCn(self, nocheck=False, status=None):
+        obj = self.pc.Nd81xbVVnxevE1Oy8yXcy()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "sellType": status
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'r9ytswUaJ', data, 'main', nocheck)
+
+    @doc(cUNSieph0X3TfNdfkcSr)
+    @BaseApi.timing_decorator
+    def cUNSieph0X3TfNdfkcSr(self, nocheck=False):
+        obj = self.pc.Nd81xbVVnxevE1Oy8yXcy()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "sellSupplierId": INFO['main_sale_supplier_id']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'r9ytswUaJ', data, 'main', nocheck)
+
+    @doc(okQmkaKm4xMprd8BtEc3)
+    @BaseApi.timing_decorator
+    def okQmkaKm4xMprd8BtEc3(self, nocheck=False):
+        obj = self.pc.Nd81xbVVnxevE1Oy8yXcy()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "logisticsNo": obj[0]['logisticsNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'r9ytswUaJ', data, 'main', nocheck)
+
+    @doc(S5HIKmlK3427TT3VXmlV)
+    @BaseApi.timing_decorator
+    def S5HIKmlK3427TT3VXmlV(self, nocheck=False):
+        obj = self.pc.Nd81xbVVnxevE1Oy8yXcy()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "userId": INFO['main_user_id']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'r9ytswUaJ', data, 'main', nocheck)
+
+    @doc(XODp5acGT6jdcx10I682)
+    @BaseApi.timing_decorator
+    def XODp5acGT6jdcx10I682(self, nocheck=False):
+        obj = self.pc.Nd81xbVVnxevE1Oy8yXcy()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "erpStartTime": self.get_the_date(),
+            "erpEndTime": self.get_the_date(days=1)
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'r9ytswUaJ', data, 'main', nocheck)
 
 
 if __name__ == '__main__':
-    api = AttachmentGoodsReceivedRequest()
-    result = api.goods_received()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))

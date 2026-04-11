@@ -63,19 +63,27 @@ class ParamCache:
         return os.path.join(cache_path, filename)
 
     @staticmethod
-    def cache_object(*args, filename='practical.json', cache_dir='cache_assert'):
+    def cache_object(*args, filename='practical.json', cache_dir='cache_assert', copy_to_clipboard=True, clipboard_key=None):
         """
         通用缓存对象方法 - 存储到项目根目录的 cache 文件夹 (JSON 格式)
-        支持以下调用方式：
+        支持以下调用方式:
         1. cache_object(obj) - 使用默认文件名
         2. cache_object(obj, filename) - 指定文件名
         3. cache_object(dict1, dict2, ..., filename) - 合并多个字典后指定文件名
+        4. cache_object({"cache": value}, copy_to_clipboard=True, clipboard_key="cache") - 缓存并复制到剪贴板
         Args:
             *args: 要缓存的对象，可以是单个对象或多个字典
             filename: 缓存文件名，默认为 practical.json
             cache_dir: 缓存目录名称，默认为 cache_assert
+            copy_to_clipboard: 是否将值复制到剪贴板，默认 False
+            clipboard_key: 当 copy_to_clipboard=True 时，指定从 obj 中提取哪个 key 的值复制到剪贴板
+                          如果为 None，则尝试从 obj 中提取 'cache' 键的值
+        Returns:
+            缓存的对象，如果 copy_to_clipboard=True 且提取到值，则返回该值
         """
         try:
+            import pyperclip
+
             # 判断最后一个参数是否为字符串（即 filename）
             if len(args) > 0 and isinstance(args[-1], str):
                 # 最后一个参数是文件名
@@ -110,7 +118,21 @@ class ParamCache:
 
             print(f"缓存文件已保存到项目根目录：{cache_file}")
 
+            # 如果需要复制到剪贴板
+            if copy_to_clipboard and isinstance(obj, dict):
+                # 确定从哪个 key 提取值
+                key_to_copy = clipboard_key if clipboard_key else 'i'
+                if key_to_copy in obj:
+                    value_to_copy = str(obj[key_to_copy])
+                    pyperclip.copy(value_to_copy)
+                    print(f"已将 '{key_to_copy}' 的值复制到剪贴板：{value_to_copy}")
+                    return obj[key_to_copy]
+
+            return obj
+
         except Exception as e:
             print(f"创建缓存文件时发生错误：{e}")
             import traceback
             traceback.print_exc()
+            return None
+

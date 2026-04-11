@@ -275,7 +275,7 @@ class InitializeParams(BaseImport):
 
 class PcImport(BaseImport):
 
-    def attachment_inventory_list_data(self, data='main', **kwargs):
+    def CtRBRcFNn2LnUPfJF5Yhu(self, data='main', **kwargs):
         """配件管理|配件库存|库存列表
         i: 库存状态 2库存中 1待入库 3已出库
         j: 品类
@@ -283,668 +283,674 @@ class PcImport(BaseImport):
         l：型号
         """
         type_map = {
-            'main': ('attachment_inventory_list', 'main'),  # 库存列表
+            'main': ('H2lnntBLD8A3', 'main'),  # 库存列表
         }
-        return self._get_data('attachment_inventory_list', data, type_map, **kwargs)
+        return self._get_data('CtRBRcFNn2LnUPfJF5Yhu', data, type_map, **kwargs)
 
-    def attachment_goods_received_data(self, data='main', **kwargs):
+    def BF3x3lYIzbEHMnrvr80JO(self, data='main', **kwargs):
         """配件管理|入库管理|待接收物品"""
         type_map = {
-            'main': ('list_of_items_to_be_received', 'main'),  # 待接收物品列表
+            'main': ('iigq4MszOhe3', 'main'),  # 待接收物品列表
         }
-        return self._get_data('attachment_goods_received', data, type_map, **kwargs)
+        return self._get_data('BF3x3lYIzbEHMnrvr80JO', data, type_map, **kwargs)
 
-    def attachment_maintenance_data(self, data='main', **kwargs):
+    def Ln0faZ5CGpaYmkrcCVg4X(self, data='main', **kwargs):
         """配件管理|配件维护"""
         type_map = {
-            'main': ('maintenance_list', 'idle'),  # 配件维护列表
+            'main': ('c69L92JCEAfA', 'idle'),  # 配件维护列表
         }
-        return self._get_data('attachment_maintenance', data, type_map, **kwargs)
+        return self._get_data('Ln0faZ5CGpaYmkrcCVg4X', data, type_map, **kwargs)
 
-    def attachment_old_warehouse_data(self, data='main', **kwargs):
+    def RjB1dOTFUrlGReUmemgQr(self, data='main', **kwargs):
         """配件管理|入库管理|旧配件入库"""
         type_map = {
-            'main': ('accessories_inventory_list', 'main'),  # 旧配件入库列表
-            'a': ('accessories_inventory_detail', 'main'),  # 旧配件入库详情
+            'main': ('U6Xw8Ui8Ti9x', 'main'),  # 旧配件入库列表
+            'a': ('eGKYE973IfbO', 'main'),  # 旧配件入库详情
         }
-        return self._get_data('attachment_old_warehouse', data, type_map, **kwargs)
+        return self._get_data('RjB1dOTFUrlGReUmemgQr', data, type_map, **kwargs)
 
-    def attachment_sales_list_data(self, data='main', **kwargs):
+    def IW1UwaP9R0hojKPOJQSH4(self, data='main', **kwargs):
         """配件管理|配件销售|销售列表"""
         type_map = {
-            'main': ('sales_list', 'main'),  # 销售列表
-            'a': ('sales_details', 'main'),  # 销售详情
-            'b': ('sales_after_sales', 'main'),  # 销售售后
+            'main': ('xTgxXhKIdF5f', 'main'),  # 销售列表
+            'a': ('iVaMuxcu6FrP', 'main'),  # 销售详情
+            'b': ('q83zbqHUQwKT', 'main'),  # 销售售后
         }
-        return self._get_data('attachment_sales_list', data, type_map, **kwargs)
+        return self._get_data('IW1UwaP9R0hojKPOJQSH4', data, type_map, **kwargs)
 
-    def attachment_purchase_list_data(self, data='main', **kwargs):
+    def OiUAWoPURtS5QdkSFauge(self, data='main', **kwargs):
         """配件管理|配件采购|采购列表"""
         type_map = {
-            'main': ('purchase_list', 'main'),  # 采购列表
-            'a': ('procurement_after_sales', 'main'),  # 采购售后
+            'main': ('PA6i54jUEr6x', 'main'),  # 采购列表
+            'a': ('lJHIDIvQhKow', 'main'),  # 采购售后
         }
-        return self._get_data('attachment_purchase_list', data, type_map, **kwargs)
+        return self._get_data('OiUAWoPURtS5QdkSFauge', data, type_map, **kwargs)
 
-    def attachment_warehouse_allocation_data(self, data='main', **kwargs):
+    def DgyYP8ygDMIIeEEXHuLbW(self, data='main', **kwargs):
         """配件管理|配件库存|库存调拨"""
         type_map = {
-            'main': ('warehouse_allocation', 'main'),  # 库存调拨列表
-            'a': ('inventory_transfer_details_list', 'main'),  # 库存调拨详情
-            'b': ('revoke_the_transfer_details', 'main'),  # 撤销调拨详情
+            'main': ('QGOxnhn1YW7x', 'main'),  # 库存调拨列表
+            'a': ('ZT5PSTjrth3p', 'main'),  # 库存调拨详情
+            'b': ('rpHRNtqAmFV0', 'main'),  # 撤销调拨详情
         }
-        return self._get_data('attachment_warehouse_allocation', data, type_map, **kwargs)
+        return self._get_data('DgyYP8ygDMIIeEEXHuLbW', data, type_map, **kwargs)
 
-    def attachment_receive_items_data(self, data='main', **kwargs):
+    def AMaXd2PkDsrT5cj1SArOe(self, data='main', **kwargs):
         """配件管理|移交接收管理|接收物品"""
         type_map = {
-            'main': ('handover_order_received_list', 'main'),  # 移交单接收列表
-            'a': ('item_received_list', 'main'),  # 物品接收列表
+            'main': ('s3Ycs7Oyt5DL', 'main'),  # 移交单接收列表
+            'a': ('mfaVZuvBLcri', 'main'),  # 物品接收列表
         }
-        return self._get_data('attachment_receive_items', data, type_map, **kwargs)
+        return self._get_data('AMaXd2PkDsrT5cj1SArOe', data, type_map, **kwargs)
 
-    def attachment_sorting_list_data(self, data='main', **kwargs):
+    def LnfQBDqBvleaE2O0412qk(self, data='main', **kwargs):
         """配件管理|入库管理|分拣列表"""
         type_map = {
-            'main': ('sorting_list', 'main'),  # 分拣列表
+            'main': ('IB3TfKONJp2x', 'main'),  # 分拣列表
         }
-        return self._get_data('attachment_sorting_list', data, type_map, **kwargs)
+        return self._get_data('LnfQBDqBvleaE2O0412qk', data, type_map, **kwargs)
 
-    def attachment_new_arrival_data(self, data='main', **kwargs):
+    def KFkHdZyASZRhMrmNKfHiQ(self, data='main', **kwargs):
         """配件管理|入库管理|新到货入库"""
         type_map = {
-            'main': ('new_arrival_list', 'main'),  # 分拣列表
+            'main': ('aYrCZLAaSxA7', 'main'),  # 新到货入库列表
         }
-        return self._get_data('attachment_new_arrival', data, type_map, **kwargs)
+        return self._get_data('KFkHdZyASZRhMrmNKfHiQ', data, type_map, **kwargs)
 
-    def finance_account_list_data(self, data='main', **kwargs):
+    def NQXuyZ5kySQBpsQJxR3vC(self, data='main', **kwargs):
         """财务管理|资金账户|账户列表"""
         type_map = {
-            'main': ('account_list', 'idle'),  # 账户列表
+            'main': ('xsn47jtSUiZ8', 'idle'),  # 账户列表
         }
-        return self._get_data('finance_account_list', data, type_map, **kwargs)
+        return self._get_data('NQXuyZ5kySQBpsQJxR3vC', data, type_map, **kwargs)
 
-    def finance_bill_review_data(self, data='main', **kwargs):
+    def VFy40VMBZGf8pQEkVFRor(self, data='main', **kwargs):
         """财务管理|业务记账|账单审核
         i：1应付 2应收
         j: 0待审核 1审核通过 2未通过
         """
         type_map = {
-            'main': ('payable_bill', 'main'),  # 应付应收账单
-            'a': ('payable_bill', 'vice'),  # 应付应收账单
+            'main': ('zS2mEs09Al0d', 'main'),  # 应付应收账单
+            'a': ('zS2mEs09Al0d', 'vice'),  # 应付应收账单
         }
-        return self._get_data('finance_bill_review', data, type_map, **kwargs)
+        return self._get_data('VFy40VMBZGf8pQEkVFRor', data, type_map, **kwargs)
 
-    def finance_coping_with_each_other_data(self, data='main', **kwargs):
+    def MOyeqlzcgLqhqdWBrkyYg(self, data='main', **kwargs):
         """财务管理|业务记账|往来应付"""
         type_map = {
-            'main': ('reconciliation_details_list', 'main'),  # 对账详情
-            'a': ('machine_list', 'main'),  # 按机器结算 添加机器 机器列表
-            'b': ('reconciliation_details_list_info', 'main'),  # 对账详情 单据详情
-            'c': ('pay_list', 'main'),  # 往来应付列表
-            'd': ('prepaid_slips_list', 'main'),  # 按供应商结算 列表
+            'main': ('VPtqPg96V4bb', 'main'),  # 对账详情
+            'a': ('aXD0ILNAtA0v', 'main'),  # 按机器结算 添加机器 机器列表
+            'b': ('Anlk8HQ08DoN', 'main'),  # 对账详情 单据详情
+            'c': ('NrrYfPEfdJwE', 'main'),  # 往来应付列表
+            'd': ('rRW8valbixkj', 'main'),  # 按供应商结算 列表
         }
-        return self._get_data('finance_coping_with_each_other', data, type_map, **kwargs)
+        return self._get_data('MOyeqlzcgLqhqdWBrkyYg', data, type_map, **kwargs)
 
-    def finance_exchanges_and_receivables_data(self, data='main', **kwargs):
+    def A9mwkPeNc1x7YnLCF9jUk(self, data='main', **kwargs):
         """财务管理|业务记账|往来应收"""
         type_map = {
-            'main': ('reconciliation_details_list', 'main'),  # 对账详情
-            'a': ('machine_list', 'main'),  # 按机器结算 添加机器 机器列表
-            'b': ('reconciliation_details_list_info', 'main'),  # 对账详情 单据详情
-            'c': ('receive_list', 'main'),  # 往来应收列表
-            'd': ('customer_settlement_advance_receipts', 'main'),  # 按客户结算 列表
+            'main': ('onzqxhWPmd6i', 'main'),  # 对账详情
+            'a': ('iL6f7yggjwGo', 'main'),  # 按机器结算 添加机器 机器列表
+            'b': ('oIkWBNgsRuRQ', 'main'),  # 对账详情 单据详情
+            'c': ('bWw7A4mK6xtK', 'main'),  # 往来应收列表
+            'd': ('uznhxIKxB5lv', 'main'),  # 按客户结算 列表
         }
-        return self._get_data('finance_exchanges_and_receivables', data, type_map, **kwargs)
+        return self._get_data('A9mwkPeNc1x7YnLCF9jUk', data, type_map, **kwargs)
 
-    def help_generate_order_data(self, data='main', **kwargs):
+    def PurkQXBjQXG3tz8hUb1SF(self, data='main', **kwargs):
         """帮卖管理|帮卖上架列表
         i：物品状态 wsg待发货 wtg待收货 rg已收货 wr待质检 wbi待议价 wb待确认 ws待结算 wrg待退机 rig退机中 wsr待售出
         """
         type_map = {
-            'main': ('help_list_of_orders', 'main'),  # 订单列表
-            'a': ('initiate_a_list_of_helpers', 'main'),  # 发起帮卖列表
+            'main': ('l6TOXA4JkEjO', 'main'),  # 订单列表
+            'a': ('gavz8010zhrA', 'main'),  # 发起帮卖列表
         }
-        return self._get_data('help_generate_order', data, type_map, **kwargs)
+        return self._get_data('PurkQXBjQXG3tz8hUb1SF', data, type_map, **kwargs)
 
-    def help_sell_the_list_of_goods_data(self, data='main', **kwargs):
+    def Jc9Odo2T6JqvbWDRSsDXy(self, data='main', **kwargs):
         """帮卖管理|帮卖来货列表"""
         type_map = {
-            'main': ('help_incoming_goods_list', 'vice'),  # 订单列表
+            'main': ('vw76zdVHgk8Q', 'vice'),  # 订单列表
         }
-        return self._get_data('help_sell_the_list_of_goods', data, type_map, **kwargs)
+        return self._get_data('Jc9Odo2T6JqvbWDRSsDXy', data, type_map, **kwargs)
 
-    def help_service_configuration_data(self, data='main', **kwargs):
+    def Ea7Wjr4ctTv69frbEUPZJ(self, data='main', **kwargs):
         """帮卖管理|帮卖业务配置"""
         type_map = {
-            'main': ('service_configuration', 'vice'),  # 帮卖业务配置列表
+            'main': ('OUYQFhYf3krT', 'vice'),  # 帮卖业务配置列表
         }
-        return self._get_data('help_service_configuration', data, type_map, **kwargs)
+        return self._get_data('Ea7Wjr4ctTv69frbEUPZJ', data, type_map, **kwargs)
 
-    def inventory_address_manage_data(self, data='main', **kwargs):
+    def Ie1Dlx6hKL0xHjTgV7J4p(self, data='main', **kwargs):
         """库存管理|出库管理|地址管理"""
         type_map = {
-            'main': ('address_manage', 'idle'),  # 地址管理列表
+            'main': ('X41neJLZTAeU', 'idle'),  # 地址管理列表
         }
-        return self._get_data('inventory_address_manage', data, type_map, **kwargs)
+        return self._get_data('Ie1Dlx6hKL0xHjTgV7J4p', data, type_map, **kwargs)
 
-    def inventory_list_data(self, data='main', **kwargs):
+    def UYV6mZaVwDk4HHhyuWRRp(self, data='main', **kwargs):
         """库存管理|库存列表
         i：库存状态 2库存中 1待入库 3已出库
         j：物品状态 13待销售 3待分货 7维修中 5质检中 19销售预售中 14销售铺货中 16待送修 9已销售 15销售售后中 17送修中 11采购售后完成 12采购售后中 18仅出库 10待采购售后
         """
         type_map = {
-            'main': ('inventory_list', 'main'),  # 库存列表
-            'a': ('inventory_list', 'vice'),  # 库存列表
-            'b': ('item_details_sell_info', 'main'),  # 物品详情 销售信息
-            'c': ('operation_log', 'main'),  # 物品详情 操作日志
+            'main': ('I8TzeuUVWOYr', 'main'),  # 库存列表
+            'a': ('I8TzeuUVWOYr', 'vice'),  # 库存列表
+            'b': ('DiPuR7wiWR9p', 'main'),  # 物品详情 销售信息
+            'c': ('LtZxEhUVdwQS', 'main'),  # 物品详情 操作日志
         }
-        return self._get_data('inventory_list', data, type_map, **kwargs)
+        return self._get_data('UYV6mZaVwDk4HHhyuWRRp', data, type_map, **kwargs)
 
-    def inventory_outbound_orders_list_data(self, data='main', **kwargs):
+    def QYSFzOWmZ2zYnize8ppKN(self, data='main', **kwargs):
         """库存管理|出库管理|仅出库订单列表"""
         type_map = {
-            'main': ('only_outbound_list', 'main'),  # 仅出库列表
-            'a': ('only_outbound_order_details', 'main'),  # 仅出库订单详情
+            'main': ('ORF5PGdo8vkp', 'main'),  # 仅出库列表
+            'a': ('FlBn7VEIrt0P', 'main'),  # 仅出库订单详情
         }
-        return self._get_data('inventory_outbound_orders_list', data, type_map, **kwargs)
+        return self._get_data('QYSFzOWmZ2zYnize8ppKN', data, type_map, **kwargs)
 
-    def inventory_receive_items_data(self, data='main', **kwargs):
+    def LWT9dymUmXdvWqLk1qEeA(self, data='main', **kwargs):
         """库存管理|移交接收管理|接收物品
         i：物品状态 1待维修 2待收货 3待分货 4待质检 5质检中 6待维修 7维修中
         """
         type_map = {
-            'main': ('stay_work_list', 'main'),  # 物品接收列表
-            'a': ('receive_items', 'main'),  # 移交单接收列表
-            'b': ('receive_items_detail', 'main'),  # 移交单接收详情
+            'main': ('wX85yA1a0yOb', 'main'),  # 物品接收列表
+            'a': ('XbUs4Xjcx1eU', 'main'),  # 移交单接收列表
+            'b': ('fPKMGLwa2uJG', 'main'),  # 移交单接收详情
         }
-        return self._get_data('inventory_receive_items', data, type_map, **kwargs)
+        return self._get_data('LWT9dymUmXdvWqLk1qEeA', data, type_map, **kwargs)
 
-    def inventory_receive_records_data(self, data='main', **kwargs):
+    def PzpwGb0gERxw3s5t4WiGd(self, data='main', **kwargs):
         """库存管理|移交接收管理|移交记录
         """
         type_map = {
-            'main': ('receive_log', 'main'),  # 移交记录列表
-            'a': ('receive_log_detail', 'main'),  # 移交记录-物品详情
+            'main': ('YsmsUS99q8Mf', 'main'),  # 移交记录列表
+            'a': ('O2cpz6NJM1Ql', 'main'),  # 移交记录详情
         }
-        return self._get_data('inventory_transfer_records', data, type_map, **kwargs)
+        return self._get_data('PzpwGb0gERxw3s5t4WiGd', data, type_map, **kwargs)
 
-    def attachment_handover_records_data(self, data='main', **kwargs):
+    def BFOjFKv6ZxII7V5LzQcr4(self, data='main', **kwargs):
         """配件管理|移交接收管理|移交记录
         """
         type_map = {
-            'main': ('handover_records_list', 'main'),  # 移交记录列表
-            'a': ('handover_records_details', 'main'),  # 移交记录详情
+            'main': ('pvspNI89ooNR', 'main'),  # 移交记录列表
+            'a': ('ABCpFCzCuSNt', 'main'),  # 移交记录详情
         }
-        return self._get_data('attachment_handover_records', data, type_map, **kwargs)
+        return self._get_data('BFOjFKv6ZxII7V5LzQcr4', data, type_map, **kwargs)
 
-    def inventory_count_data(self, data='main', **kwargs):
+    def Ux7lF2b6qktEytPTzyaQW(self, data='main', **kwargs):
         """库存管理|库存盘点"""
         type_map = {
-            'main': ('inventory_count', 'main'),  # 库存盘点列表
+            'main': ('dGxdNvDrm0gW', 'main'),  # 库存盘点列表
         }
-        return self._get_data('inventory_count', data, type_map, **kwargs)
+        return self._get_data('Ux7lF2b6qktEytPTzyaQW', data, type_map, **kwargs)
 
-    def inventory_warehouse_allocation_data(self, data='main', **kwargs):
-        """库存管理|仓库调拨"""
+    def XHyhIffDlKvRSMGo6DlG2(self, data='main', **kwargs):
+        """库存管理|库存调拨"""
         type_map = {
-            'main': ('warehouse_transfers', 'main'),  # 仓库调拨列表
-            'a': ('transfer_details', 'main'),  # 仓库调拨详情
+            'main': ('scIEFidBwtZs', 'main'),  # 仓库调拨列表
+            'a': ('pbck8gdOUVzz', 'main'),  # 仓库调拨详情
         }
-        return self._get_data('inventory_warehouse_allocation', data, type_map, **kwargs)
+        return self._get_data('XHyhIffDlKvRSMGo6DlG2', data, type_map, **kwargs)
 
-    def inventory_logistics_list_data(self, data='main', **kwargs):
+    def D2grXOWzOv0I5f5rFGf6A(self, data='main', **kwargs):
         """库存管理|入库管理|物流列表"""
         type_map = {
-            'main': ('material_flow_list', 'main'),  # 物流列表
-            'a': ('material_flow_list_detail', 'main'),  # 物流列表详情
+            'main': ('bI2yFNa61M9Q', 'main'),  # 物流列表
+            'a': ('t9tSA8AX8kJj', 'main'),  # 物流列表详情
         }
-        return self._get_data('inventory_logistics_list', data, type_map, **kwargs)
+        return self._get_data('D2grXOWzOv0I5f5rFGf6A', data, type_map, **kwargs)
 
-    def inventory_logistics_into_warehouse_data(self, data_type='main'):
+    def WbrwTMcyqVsFRjRMcUD9e(self, data='main', **kwargs):
         """库存管理|入库管理|物流签收入库"""
         type_map = {
-            'main': ('logistics_list', 'main'),  # 物流列表
+            'main': ('joJXaZxu9B1W', 'main'),  # 物流列表
         }
-        return self._get_data('inventory_logistics_into_warehouse', data_type, type_map)
+        return self._get_data('WbrwTMcyqVsFRjRMcUD9e', data, type_map, **kwargs)
 
-    def message_release_list_data(self, data='main', **kwargs):
+    def KxO3PKRgVuNDVjQUSHVcl(self, data='main', **kwargs):
         """消息管理|消息发布列表"""
         type_map = {
-            'main': ('release_list', 'main'),  # 消息发布列表
+            'main': ('qTd9V34NC3MZ', 'main'),  # 消息发布列表
         }
-        return self._get_data('message_release_list', data, type_map, **kwargs)
+        return self._get_data('KxO3PKRgVuNDVjQUSHVcl', data, type_map, **kwargs)
 
-    def platform_product_review_data(self, data='main', **kwargs):
+    def AlZdueYspz0c2CHbT7D29(self, data='main', **kwargs):
         """平台管理|同售管理|商品审核"""
         type_map = {
-            'main': ('product_review_wait_audit', 'platform'),  # 待审核列表
+            'main': ('ILGktF8orGlt', 'platform'),  # 待审核列表
         }
-        return self._get_data('platform_product_review', data, type_map, **kwargs)
+        return self._get_data('AlZdueYspz0c2CHbT7D29', data, type_map, **kwargs)
 
-    def platform_message_release_list_data(self, data='main', **kwargs):
+    def IyY9m4jNrW6D0vQNpkgVH(self, data='main', **kwargs):
         """平台管理|消息管理|消息发布列表"""
         type_map = {
-            'main': ('order_review', 'platform'),  # 回收商发布列表
+            'main': ('cCF5oVBu3uHW', 'platform'),  # 回收商发布列表
         }
-        return self._get_data('platform_message_release_list', data, type_map, **kwargs)
+        return self._get_data('IyY9m4jNrW6D0vQNpkgVH', data, type_map, **kwargs)
 
-    def platform_order_review_data(self, data='main', **kwargs):
+    def V3LpfoN0H354ztNVHPWtf(self, data='main', **kwargs):
         """平台管理|订单管理|订单审核"""
         type_map = {
-            'main': ('order_review', 'platform'),  # 订单审核列表
+            'main': ('TdbQGLoDJMFo', 'platform'),  # 订单审核列表
         }
-        return self._get_data('platform_order_review', data, type_map, **kwargs)
+        return self._get_data('V3LpfoN0H354ztNVHPWtf', data, type_map, **kwargs)
 
-    def platform_purchase_manage_data(self, data='main', **kwargs):
+    def VzF4todMPF4UN7aNpYfCs(self, data='main', **kwargs):
         """平台管理|商户管理"""
         type_map = {
-            'main': ('manage_list_by_main', 'platform'),  # 商户管理列表
+            'main': ('LZRK5ZWFXGxQ', 'platform'),  # 商户管理列表
         }
-        return self._get_data('platform_purchase_manage', data, type_map, **kwargs)
+        return self._get_data('VzF4todMPF4UN7aNpYfCs', data, type_map, **kwargs)
 
-    def platform_items_to_be_specified_data(self, data='main', **kwargs):
+    def YVqIQus8roZWysBseaMP0(self, data='main', **kwargs):
         """平台管理|运营中心|待指定物品"""
         type_map = {
-            'main': ('item_to_be_specified_list', 'super'),  # 待指定物品列表
+            'main': ('DSpcSKcA7pw5', 'super'),  # 待指定物品列表
         }
-        return self._get_data('platform_items_to_be_specified', data, type_map, **kwargs)
+        return self._get_data('YVqIQus8roZWysBseaMP0', data, type_map, **kwargs)
 
-    def platform_list_of_direct_auction_houses_data(self, data='main', **kwargs):
+    def BaxRsHzRpoNsTb8fnSa9e(self, data='main', **kwargs):
         """平台管理|卖场管理|直拍卖场列表
         i: 上架状态 1已上架 2待上架 3已下架
         """
         type_map = {
-            'main': ('list_of_stores', 'super'),  # 直拍卖场列表
-            'a': ('edit_details', 'super'),  # 编辑详情
-            'b': ('view_session_details', 'super'),  # 查看场次详情 场次列表
-            'c': ('product_list', 'super'),  # 查看场次详情 商品列表
+            'main': ('gXHSWafumwCe', 'super'),  # 直拍卖场列表
+            'a': ('wpfOmsjWdkny', 'super'),  # 编辑详情
+            'b': ('oTwifIq7ER6o', 'super'),  # 查看场次详情 场次列表
+            'c': ('sh3cTsLUbzwu', 'super'),  # 查看场次详情 商品列表
         }
-        return self._get_data('platform_list_of_direct_auction_houses', data, type_map, **kwargs)
+        return self._get_data('BaxRsHzRpoNsTb8fnSa9e', data, type_map, **kwargs)
 
-    def platform_list_of_dark_auction_houses_data(self, data='main', **kwargs):
+    def EEdalTouEaLL3VEx3wMnz(self, data='main', **kwargs):
         """平台管理|卖场管理|暗拍卖场列表
         i: 上架状态 1已上架 2待上架 3已下架
         """
         type_map = {
-            'main': ('list_of_dark_auction_houses', 'super'),  # 暗拍卖场列表
-            'a': ('edit_details', 'super'),  # 编辑详情
-            'b': ('view_session_details', 'super'),  # 查看场次详情 场次列表
-            'c': ('product_list', 'super'),  # 查看场次详情 商品列表
+            'main': ('pzCWj3Ksrd4P', 'super'),  # 暗拍卖场列表
+            'a': ('TezdhkF6QXGQ', 'super'),  # 编辑详情
+            'b': ('i2hsWJeCQxKo', 'super'),  # 查看场次详情 场次列表
+            'c': ('q5mIVNB1zQPk', 'super'),  # 查看场次详情 商品列表
         }
-        return self._get_data('platform_list_of_dark_auction_houses', data, type_map, **kwargs)
+        return self._get_data('EEdalTouEaLL3VEx3wMnz', data, type_map, **kwargs)
 
-    def platform_auction_product_manage_data(self, data='main', **kwargs):
+    def HnlUtAPz07JtZRXny3Ogs(self, data='main', **kwargs):
         """平台管理|虚拟库存|上拍商品管理
         i：类型 1可上拍商品 2已上拍商品 3待定价物品     这里是从pc或者小程序的查询列表去拿最新数据的，比如我新增采购单，物品编号是唯一的
         那么这个用力就是用这个物品编号，另外的用例需要新造数据去拿数据，不然数据混淆，举个例子
         [a]：i：类型 1暗拍 2直拍
         """
         type_map = {
-            'main': ('list_of_auctioned_products', 'super'),  # 上拍商品管理列表
-            'a': ('select_the_list_of_sessions', 'super'),  # 选择场次列表
+            'main': ('FgMfvbUdU4qZ', 'super'),  # 上拍商品管理列表
+            'a': ('LWfPhO8u3XJv', 'super'),  # 选择场次列表
         }
-        return self._get_data('platform_auction_product_manage', data, type_map, **kwargs)
+        return self._get_data('HnlUtAPz07JtZRXny3Ogs', data, type_map, **kwargs)
 
-    def platform_inspection_center_manage_data(self, data='main', **kwargs):
+    def B63gyanXogW9NpUu1Gr1K(self, data='main', **kwargs):
         """平台管理|运营中心|验机中心管理"""
         type_map = {
-            'main': ('list_of_inspection_centers', 'super'),  # 验机中心管理列表
+            'main': ('cQkBD5in87Ys', 'super'),  # 验机中心管理列表
         }
-        return self._get_data('platform_inspection_center_manage', data, type_map, **kwargs)
+        return self._get_data('B63gyanXogW9NpUu1Gr1K', data, type_map, **kwargs)
 
-    def purchase_after_sales_list_data(self, data='main', **kwargs):
+    def Jz32tuIMNM7geguh5D8TF(self, data='main', **kwargs):
         """商品采购|采购售后管理|采购售后列表"""
         type_map = {
-            'main': ('after_sales_orders_list', 'main'),  # 采购售后中列表
+            'main': ('a3xoH8PZvyPQ', 'main'),  # 采购售后列表
         }
-        return self._get_data('purchase_after_sales_list', data, type_map, **kwargs)
+        return self._get_data('Jz32tuIMNM7geguh5D8TF', data, type_map, **kwargs)
 
-    def purchase_post_sale_list_data(self, data='main', **kwargs):
+    def ZzpxfXbO9fEmLG1gxxzjP(self, data='main', **kwargs):
+        """商品采购|采购任务"""
+        type_map = {
+            'main': ('we5YUPreA4h0', 'main'),  # 采购任务列表
+            'a': ('sOOabMKgYnDs', 'main'),  # 更新到货详情
+            'b': ('i13Vwm2s7hDn', 'main'),  # 采购录入详情
+        }
+        return self._get_data('ZzpxfXbO9fEmLG1gxxzjP', data, type_map, **kwargs)
+
+    def XHVW0IhQgPnb63fnaqTdN(self, data='main', **kwargs):
         """商品采购|采购售后管理|待售后列表"""
         type_map = {
-            'main': ('post_sale_list', 'main'),  # 待售后列表
+            'main': ('gx9ALZDTXtyL', 'main'),  # 待售后列表
         }
-        return self._get_data('purchase_post_sale_list', data, type_map, **kwargs)
+        return self._get_data('XHVW0IhQgPnb63fnaqTdN', data, type_map, **kwargs)
 
-    def purchase_order_list_data(self, data='main', **kwargs):
+    def Z6BEKs3GvdIWf6a1Dj2uP(self, data='main', **kwargs):
         """商品采购|采购管理|采购订单列表"""
         type_map = {
-            'main': ('order_list', 'main'),  # 采购订单列表
-            'a': ('after_sales_detail', 'main'),  # 采购单详情
+            'main': ('QYMK9r8Zx1lb', 'main'),  # 采购订单列表
+            'a': ('ua4pZjFEITx3', 'main'),  # 采购单详情
         }
-        return self._get_data('purchase_order_list', data, type_map, **kwargs)
+        return self._get_data('Z6BEKs3GvdIWf6a1Dj2uP', data, type_map, **kwargs)
 
-    def purchase_supplier_manage_data(self, data='main', **kwargs):
+    def UCpwX0dlRXRmKVzfDX5dd(self, data='main', **kwargs):
         """商品采购|供应商管理"""
         type_map = {
-            'main': ('supplier_manage', 'idle'),  # 供应商管理列表
+            'main': ('q9RXyfc2X1UG', 'idle'),  # 供应商管理列表
         }
-        return self._get_data('purchase_supplier_manage', data, type_map, **kwargs)
+        return self._get_data('UCpwX0dlRXRmKVzfDX5dd', data, type_map, **kwargs)
 
-    def purchase_work_order_data(self, data='main', **kwargs):
+    def WmKG9OkI9OlJlOENUzgNu(self, data='main', **kwargs):
         """商品采购|采购管理|采购工单"""
         type_map = {
-            'main': ('work_orders_list', 'main'),  # 采购工单列表
+            'main': ('b1R30NI8UzKR', 'main'),  # 采购工单列表
         }
-        return self._get_data('purchase_work_order', data, type_map, **kwargs)
+        return self._get_data('WmKG9OkI9OlJlOENUzgNu', data, type_map, **kwargs)
 
-    def purchase_items_to_be_received_data(self, data='main', **kwargs):
+    def Rwpqef340gYUd4Hgkbq8l(self, data='main', **kwargs):
         """商品采购|采购售后管理|待接收物品"""
         type_map = {
-            'main': ('receive_items_list', 'main'),  # 待接收物品列表
+            'main': ('JsXBVOMtGANq', 'main'),  # 待接收物品列表
         }
-        return self._get_data('purchase_items_to_be_received', data, type_map, **kwargs)
+        return self._get_data('Rwpqef340gYUd4Hgkbq8l', data, type_map, **kwargs)
 
-    def purchase_unsend_order_list(self, data='main', **kwargs):
-        """商品采购|采购售后管理|未发货订单列表"""
+    def Y6hDdvp1tY9uk0H51cn91(self, data='main', **kwargs):
+        """商品采购|采购管理|未发货订单列表"""
         type_map = {
-            'main': ('un_shipped_order_list', 'main'),  # 未发货订单列表
+            'main': ('B2HBJYTnnYyI', 'main'),  # 未发货订单列表
         }
-        return self._get_data('purchase_un_shipped_order_list', data, type_map, **kwargs)
+        return self._get_data('Y6hDdvp1tY9uk0H51cn91', data, type_map, **kwargs)
 
-    def purchase_arrival_list(self, data='main', **kwargs):
-        """商品采购|采购售后管理|到货通知单列表"""
+    def THtT7YW545kAG73W2gHDj(self, data='main', **kwargs):
+        """商品采购|采购管理|到货通知单列表"""
         type_map = {
-            'main': ('arrival_notices_list', 'main'),  # 未发货订单列表
+            'main': ('Yf0yiomYxwUn', 'main'),  # 到货通知单列表
         }
-        return self._get_data('purchase_arrival_notices', data, type_map, **kwargs)
+        return self._get_data('THtT7YW545kAG73W2gHDj', data, type_map, **kwargs)
 
-    def quality_centre_item_data(self, data='main', **kwargs):
+    def UJwDgUZKhNNEKJEIdEAKw(self, data='main', **kwargs):
         """质检管理|质检中物品"""
         type_map = {
-            'main': ('quality_centre_item', 'main'),  # 质检中物品列表
+            'main': ('diFPISdg6WyC', 'main'),  # 质检中物品列表
         }
-        return self._get_data('quality_centre_item', data, type_map, **kwargs)
+        return self._get_data('UJwDgUZKhNNEKJEIdEAKw', data, type_map, **kwargs)
 
-    def quality_content_template_data(self, data='main', **kwargs):
+    def TzjKXVa7hC8j6pmsPJQvk(self, data='main', **kwargs):
         """质检管理|质检内容模版"""
         type_map = {
-            'main': ('content_template', 'idle'),  # 质检内容模版列表
+            'main': ('WY9tdqjthqMp', 'idle'),  # 质检内容模版列表
         }
-        return self._get_data('quality_content_template', data, type_map, **kwargs)
+        return self._get_data('TzjKXVa7hC8j6pmsPJQvk', data, type_map, **kwargs)
 
-    def quality_wait_turn_over_data(self, data='main', **kwargs):
+    def PYi7eKoJOr5suysXpCFvf(self, data='main', **kwargs):
         """质检管理|待移交物品"""
         type_map = {
-            'main': ('wait_turn_over_list', 'main'),  # 待移交物品列表
+            'main': ('eJitQXxutgtJ', 'main'),  # 待移交物品列表
         }
-        return self._get_data('quality_wait_turn_over', data, type_map, **kwargs)
+        return self._get_data('PYi7eKoJOr5suysXpCFvf', data, type_map, **kwargs)
 
-    def quality_record_list_data(self, data='main', **kwargs):
+    def QyKIiWECv2ppl2UxZhwh3(self, data='main', **kwargs):
         """质检管理|质检记录列表"""
         type_map = {
-            'main': ('quality_record_list', 'main'),  # 质检记录列表
+            'main': ('vAUM2VniBdJP', 'main'),  # 质检记录列表
         }
-        return self._get_data('quality_record_list', data, type_map, **kwargs)
+        return self._get_data('QyKIiWECv2ppl2UxZhwh3', data, type_map, **kwargs)
 
-    def repair_review_list_data(self, data='main', **kwargs):
+    def ZdhlTgRrRPGEMOegDrOfk(self, data='main', **kwargs):
         """维修管理|维修审核列表"""
         type_map = {
-            'main': ('repair_audit_list', 'main'),  # 维修审核列表 待审核
+            'main': ('dUaU2azQ6FGY', 'main'),  # 维修审核列表 待审核
         }
-        return self._get_data('repair_review_list', data, type_map, **kwargs)
+        return self._get_data('ZdhlTgRrRPGEMOegDrOfk', data, type_map, **kwargs)
 
-    def repair_project_list_data(self, data='main', **kwargs):
+    def Gv7PVAqUJKoyfROzOacmx(self, data='main', **kwargs):
         """维修管理|维修项目列表
         i: 品类 1手机 2平板 3电脑 4手表
         """
         type_map = {
-            'main': ('project_list', 'idle'),
-            'a': ('project_list', 'main'),
+            'main': ('bltCvd8b8uHx', 'idle'),
+            'a': ('bltCvd8b8uHx', 'main'),
         }
-        return self._get_data('repair_project_list', data, type_map, **kwargs)
+        return self._get_data('Gv7PVAqUJKoyfROzOacmx', data, type_map, **kwargs)
 
-    def sell_sale_order_list_data(self, data='main', **kwargs):
-        """商品销售|销售管理|已销售订单列表
-        """
-        type_map = {
-            'main': ('sold_order_list', 'main'),  # 已销售物品列表
-        }
-        return self._get_data('sell_sold_order', data, type_map, **kwargs)
-
-    def sell_sale_item_list_data(self, data='main', **kwargs):
+    def JU8QYbNi3BDlSn2XaNZKe(self, data='main', **kwargs):
         """商品销售|销售管理|已销售物品列表
         i：销售状态 2已销售 3已取消 1销售中
         j：销售类型 1销售 3铺货 5预售
         """
         type_map = {
-            'main': ('sell_sale_item_list', 'main'),  # 已销售物品列表
+            'main': ('L6IQgdpG4iaP', 'main'),  # 已销售物品列表
         }
-        return self._get_data('sell_sale_item_list', data, type_map, **kwargs)
+        return self._get_data('JU8QYbNi3BDlSn2XaNZKe', data, type_map, **kwargs)
 
-    def sell_list_of_items_for_sale_data(self, data='main', **kwargs):
+    def Ez77PXDybIrSTaH32RHsz(self, data='main', **kwargs):
         """商品销售|销售管理|销售中物品列表
         i：销售状态 2已销售 3已取消 1销售中
         j：销售类型 1销售 3铺货 5预售
         """
         type_map = {
-            'main': ('goods_list_for_sale', 'main'),  # 销售中物品列表
-            'a': ('sales_goods_detail', 'main'),  # 销售中物品列表 销售物品详情
-            'b': ('sales_goods_list_delisting_details', 'main'),  # 销售中物品列表 下架详情
+            'main': ('TyFTRRkgcx28', 'main'),  # 销售中物品列表
+            'a': ('fReTQwlPp5ig', 'main'),  # 销售物品详情
+            'b': ('JPomkBOsk0MN', 'main'),  # 下架详情
         }
-        return self._get_data('sell_list_of_items_for_sale', data, type_map, **kwargs)
+        return self._get_data('Ez77PXDybIrSTaH32RHsz', data, type_map, **kwargs)
 
-    def sell_items_for_sale_data(self, data='main', **kwargs):
+    def XTk41pUDr28xCf1YL17uR(self, data='main', **kwargs):
         """商品销售|销售管理|待销售物品"""
         type_map = {
-            'main': ('items_for_sale', 'main'),  # 待销售物品列表
-            'a': ('items_detail', 'main'),  # 待销售物品 详情
+            'main': ('CSDYFXdhL7n5', 'main'),  # 待销售物品列表
+            'a': ('enB0x369cbFt', 'main'),  # 待销售物品 详情
         }
-        return self._get_data('sell_items_for_sale', data, type_map, **kwargs)
+        return self._get_data('XTk41pUDr28xCf1YL17uR', data, type_map, **kwargs)
 
-    def sell_after_sales_list_data(self, data='main', **kwargs):
+    def Nd81xbVVnxevE1Oy8yXcy(self, data='main', **kwargs):
+        """配件管理|配件销售|销售售后列表"""
+        type_map = {
+            'main': ('VGeFY2YzIHzc', 'main'),  # 销售售后列表
+            'a': ('FOLBxm2fXcoW', 'main'),  # 销售售后详情
+        }
+        return self._get_data('Nd81xbVVnxevE1Oy8yXcy', data, type_map, **kwargs)
+
+    def Kw5nIo3WQBrH2BPScRj1B(self, data='main', **kwargs):
         """商品销售|销售售后管理|销售售后列表"""
         type_map = {
-            'main': ('sales_and_after_sales_are_completed', 'main'),  # 销售售后完成列表
-            'a': ('in_the_after_sales_service', 'main'),  # 销售售后中列表
+            'main': ('CfIRP7WqVPD0', 'main'),  # 销售售后完成
+            'a': ('TB2VQJLBUDje', 'main'),  # 销售售后中
         }
-        return self._get_data('sell_after_sales_list', data, type_map, **kwargs)
+        return self._get_data('Kw5nIo3WQBrH2BPScRj1B', data, type_map, **kwargs)
 
-    def sell_goods_received_data(self, data='main', **kwargs):
+    def Mb5NtymgNZq58BhIE7Umz(self, data='main', **kwargs):
         """商品销售|销售管理|待接收物品"""
         type_map = {
-            'main': ('goods_received_list', 'main'),  # 待接收物品列表
+            'main': ('z8Q8CdTAeeYa', 'main'),  # 待接收物品列表
         }
-        return self._get_data('sell_goods_received', data, type_map, **kwargs)
+        return self._get_data('Mb5NtymgNZq58BhIE7Umz', data, type_map, **kwargs)
 
-    def selling_order_list_data(self, data='main', **kwargs):
+    def PvQWvJ1ETZicFTZpXHiQa(self, data='main', **kwargs):
         """商品销售|销售管理|销售中订单列表"""
         type_map = {
-            'main': ('order_list_for_sale', 'main'),  # 销售中订单列表
+            'main': ('lZHWz7XAePfb', 'main'),  # 销售中订单列表
         }
-        return self._get_data('sell_order_list_for_sale', data, type_map, **kwargs)
+        return self._get_data('PvQWvJ1ETZicFTZpXHiQa', data, type_map, **kwargs)
 
-    def sell_order_list_data(self, data='main', **kwargs):
+    def OY2fdbdieaa3seD31U6ZQ(self, data='main', **kwargs):
         """商品销售|销售管理|已销售订单列表"""
         type_map = {
-            'main': ('order_list_for_sale', 'main'),  # 销售中订单列表
+            'main': ('B37xGAx8rLVJ', 'main'),  # 销售中订单列表
         }
-        return self._get_data('sell_order_list_for_sale', data, type_map, **kwargs)
+        return self._get_data('OY2fdbdieaa3seD31U6ZQ', data, type_map, **kwargs)
 
-    def send_been_sent_repair_data(self, data='main', **kwargs):
+    def QM4hD6LNhqKxZAitqFFJl(self, data='main', **kwargs):
         """送修管理|已送修物品"""
         type_map = {
-            'main': ('send_been_sent_repair', 'main'),  # 已送修物品列表
+            'main': ('bkXQFPd3Pz5I', 'main'),  # 已送修物品列表
         }
-        return self._get_data('send_been_sent_repair', data, type_map, **kwargs)
+        return self._get_data('QM4hD6LNhqKxZAitqFFJl', data, type_map, **kwargs)
 
-    def send_list_of_repair_orders_data(self, data='main', **kwargs):
+    def MMuymWgzUDbCSdlZPeMMY(self, data='main', **kwargs):
         """送修管理|送修单列表"""
         type_map = {
-            'main': ('send_list', 'main'),  # 送修单列表
+            'main': ('FaEsPLDSYo0I', 'main'),  # 送修单列表
         }
-        return self._get_data('send_list_of_repair_orders', data, type_map, **kwargs)
+        return self._get_data('MMuymWgzUDbCSdlZPeMMY', data, type_map, **kwargs)
 
-    def sold_ninety_five_item_list_data(self, data='main', **kwargs):
-        """同售管理|得物95分|95商品列表
-        i：物品状态 3已发布 2发布失败
+    def WziJGBshZjou10L8PleRe(self, data='main', **kwargs):
+        """系统管理|基础设置|工单配置
+        i：业务名称 付款 报价 退货 工序
         """
         type_map = {
-            'main': ('get_ninety_five_item_list', 'main'),  # 95商品列表
+            'main': ('keAqvfuWduT9', 'main'),  # 瑕疵项列表
+            'a': ('tJ7mRunfhfkN', 'main'),  # 业务工序列表
         }
-        return self._get_data('sold_ninety_five_item_list', data, type_map, **kwargs)
+        return self._get_data('WziJGBshZjou10L8PleRe', data, type_map, **kwargs)
 
-    def system_work_order_setting_data(self, data='main', **kwargs):
-        """系统管理|基础设置|工单配置"""
+    def BoKPsGPfTNvMGy8lEDfDK(self, data='main', **kwargs):
+        """商城管理|网点管理"""
         type_map = {
-            'main': ('list_of_defects', 'main'),  # 瑕疵项列表
-            'a': ('business_sequence_list', 'main'),  # 业务工序列表
+            'main': ('nNxpGKdNDGBb', 'main'),  # 网点管理列表
         }
-        return self._get_data('system_work_order_setting', data, type_map, **kwargs)
+        return self._get_data('BoKPsGPfTNvMGy8lEDfDK', data, type_map, **kwargs)
 
-    def mall_branch_manage_data(self, data='main', **kwargs):
-        """商城管理||网点管理"""
-        type_map = {
-            'main': ('branch_manage_list', 'main'),  # 网点管理列表
-        }
-        return self._get_data('mall_branch_manage', data, type_map, **kwargs)
-
-    def fulfillment_order_manage_data(self, data='main', **kwargs):
+    def VzruD2bzEUPV1JJY9d6vF(self, data='main', **kwargs):
         """运营中心|订单管理
         i：订单状态 1待发货 2待取件 3待收货 4已收货 5已完成 6已取消 7已退货
         """
         type_map = {
-            'main': ('order_list', 'main'),  # 订单列表
-            'a': ('item_list', 'main'),  # 物品列表
+            'main': ('G1ZATPtlzjWF', 'main'),  # 订单列表
+            'a': ('URWCKM7vfuMg', 'main'),  # 物品列表
         }
-        return self._get_data('fulfillment_order_manage', data, type_map, **kwargs)
+        return self._get_data('VzruD2bzEUPV1JJY9d6vF', data, type_map, **kwargs)
 
-    def fulfillment_quality_manage_data(self, data='main', **kwargs):
+    def FYXRA4IxF49PvhUCLpp5Z(self, data='main', **kwargs):
         """运营中心|质检管理
         [d]i类型 1未上传 2已上传
         """
         type_map = {
-            'main': ('quality_manage_list', 'main'),  # 待领取物品列表
-            'a': ('items_in_quality_inspection_list', 'main'),  # 质检中物品列表
-            'b': ('inspected_items_list', 'main'),  # 已质检物品列表
-            'c': ('re_examine_the_application_list', 'main'),  # 重验申请列表
-            'd': ('product_image_shooting_list', 'main'),  # 商品图拍摄
-            'e': ('quality_inspection_template', 'main'),  # 质检模版
+            'main': ('KhNjoVcM4iuf', 'main'),  # 待领取物品列表
+            'a': ('OHXGClp3BoJm', 'main'),  # 质检中物品列表
+            'b': ('oSzj9Md6vHyl', 'main'),  # 已质检物品列表
+            'c': ('eDr2hpq6xEBa', 'main'),  # 重验申请列表
+            'd': ('YkybIUUCs2Dh', 'main'),  # 商品图拍摄
+            'e': ('AY6K1XbHNTzW', 'main'),  # 质检模版
+            'f': ('KhNjoVcM4iuf', 'camera'),  # 待领取物品列表
+            'g': ('OHXGClp3BoJm', 'camera'),  # 质检中物品列表
+            'h': ('AY6K1XbHNTzW', 'camera'),  # 质检模版
         }
-        return self._get_data('fulfillment_quality_manage', data, type_map, **kwargs)
+        return self._get_data('FYXRA4IxF49PvhUCLpp5Z', data, type_map, **kwargs)
 
-    def fulfillment_sign_into_the_library_data(self, data='main', **kwargs):
+    def KgbSrz63njmC8XfrU1jty(self, data='main', **kwargs):
         """运营中心|收货入库"""
         type_map = {
-            'main': ('search_tracking_numbers', 'main'),  # 搜索保卖订单号
-            'a': ('search_tracking_express', 'main'),  # 搜索保卖物流单号
-            'b': ('search_pj_tracking_numbers', 'main'),  # 搜索拍机订单号
+            'main': ('skBKV5OKhyz7', 'main'),  # 搜索保卖订单号
+            'a': ('h1cdqp8AtfOD', 'main'),  # 搜索保卖物流单号
+            'b': ('jxEKaglEujSi', 'main'),  # 搜索拍机订单号
+            'c': ('skBKV5OKhyz7', 'camera'),  # 搜索保卖订单号
         }
-        return self._get_data('fulfillment_sign_into_the_library', data, type_map, **kwargs)
+        return self._get_data('KgbSrz63njmC8XfrU1jty', data, type_map, **kwargs)
 
-    def fulfillment_returns_manage_data(self, data='main', **kwargs):
+    def M4Xsay25almyg0RzXz4ui(self, data='main', **kwargs):
         """运营中心|退货管理
          i：订单状态 1待退货 2待取货 3退货已出库 4已退货 5已取消
         """
         type_map = {
-            'main': ('merchant_details_list', 'main'),  # 商户明细列表
-            'a': ('item_detail_list', 'main'),  # 物品明细列表
-            'b': ('batch_detail_list', 'main'),  # 批次明细列表
+            'main': ('WCB6NcIMpsMe', 'main'),  # 商户明细列表
+            'a': ('ua4JlujLXZDP', 'main'),  # 物品明细列表
+            'b': ('VnssCpqfEIlk', 'main'),  # 批次明细列表
         }
-        return self._get_data('fulfillment_returns_manage', data, type_map, **kwargs)
+        return self._get_data('M4Xsay25almyg0RzXz4ui', data, type_map, **kwargs)
 
-    def fulfillment_items_to_be_quoted_data(self, data='main', **kwargs):
+    def RjVgo4LDzg4voonKUBXr1(self, data='main', **kwargs):
         """运营中心|待报价物品"""
         type_map = {
-            'main': ('items_to_be_quoted_list', 'main'),  # 待报价物品列表
+            'main': ('vSNmU0ZwGwPu', 'main'),  # 待报价物品列表
         }
-        return self._get_data('fulfillment_items_to_be_quoted', data, type_map, **kwargs)
+        return self._get_data('RjVgo4LDzg4voonKUBXr1', data, type_map, **kwargs)
 
-    def fulfillment_items_are_out_of_storage_data(self, data='main', **kwargs):
+    def M55r2pn7CkJ0DzgKvHhuX(self, data='main', **kwargs):
         """运营中心|物品出库"""
         type_map = {
-            'main': ('item_outbound_list', 'main'),  # 物品出库 销售出库
+            'main': ('OpUzgQkpwsBG', 'main'),  # 物品出库 销售出库
         }
-        return self._get_data('fulfillment_items_are_out_of_storage', data, type_map, **kwargs)
+        return self._get_data('M55r2pn7CkJ0DzgKvHhuX', data, type_map, **kwargs)
 
-    def fulfillment_sales_and_shipment_manage_data(self, data='main', **kwargs):
+    def KmxOWBECeMnMqtP1qACyx(self, data='main', **kwargs):
         """运营中心|销售发货管理"""
         type_map = {
-            'main': ('sales_and_shipment_manage_list', 'main'),  # 待发货 按商户
-            'a': ('sales_and_shipment_manage_item_list', 'main'),  # 待发货 按物品
-            'b': ('snap_the_order_to_be_received_list', 'main'),  # 待收货 按物品
-            'c': ('sales_and_fulfillment_management_list', 'main'),  # 待收货 按包裹
-            'd': ('snap_machine_has_been_received_list', 'main'),  # 已收货 按包裹
-            'e': ('snap_machine_has_been_received_item_list', 'main'),  # 已收货 按物品
+            'main': ('Oqr9od3TrupA', 'main'),  # 待发货 按商户
+            'a': ('N3GKYzC6P5TZ', 'main'),  # 待发货 按物品
+            'b': ('fNSLGMFC7atc', 'main'),  # 待收货 按物品
+            'c': ('clirkK4CTUj0', 'main'),  # 待收货 按包裹
+            'd': ('uByZKczL88yQ', 'main'),  # 已收货 按包裹
+            'e': ('ntnTnNcZjnPi', 'main'),  # 已收货 按物品
         }
-        return self._get_data('fulfillment_sales_and_shipment_manage', data, type_map, **kwargs)
+        return self._get_data('KmxOWBECeMnMqtP1qACyx', data, type_map, **kwargs)
 
-    def guarantee_returns_manage_data(self, data='main', **kwargs):
+    def TD9Y1EebwgkWWw4gbKGII(self, data='main', **kwargs):
         """保卖管理|退货管理
          i：订单状态 1待退货 2待取货 3退货已出库 4已退货 5已取消
         """
         type_map = {
-            'main': ('item_detail_list', 'main'),  # 物品明细列表
-            'a': ('batch_detail_list', 'main'),  # 批次明细列表
+            'main': ('MTU290s6GvCd', 'main'),  # 物品明细列表
+            'a': ('BxBcWC50E2qm', 'main'),  # 批次明细列表
         }
-        return self._get_data('guarantee_returns_manage', data, type_map, **kwargs)
+        return self._get_data('TD9Y1EebwgkWWw4gbKGII', data, type_map, **kwargs)
 
-    def guarantee_order_manage_data(self, data='main', **kwargs):
+    def BAc7o7mzTE8oACvyeArJW(self, data='main', **kwargs):
         """保卖管理|订单列表
         i：订单状态 1待发货 2待取件 3待收货 4已收货 5已完成 6已取消 7已退货
         """
         type_map = {
-            'main': ('order_list', 'main'),  # 订单管理列表
-            'a': ('item_list', 'main'),  # 物品列表
+            'main': ('PoY7iA7QafwP', 'main'),  # 订单列表
+            'a': ('v6lgcdrrB6rn', 'main'),  # 物品列表
         }
-        return self._get_data('guarantee_order_manage', data, type_map, **kwargs)
+        return self._get_data('BAc7o7mzTE8oACvyeArJW', data, type_map, **kwargs)
 
-    def guarantee_goods_manage_data(self, data='main', **kwargs):
+    def Krj5gFvH88BTJJo3iWzJX(self, data='main', **kwargs):
         """保卖管理|商品管理
         i：订单状态 1质检中 2待销售 3销售中
         """
         type_map = {
-            'main': ('order_list', 'main'),  # 商品管理列表
+            'main': ('G1RYa7qCCi7R', 'main'),  # 商品管理列表
         }
-        return self._get_data('guarantee_goods_manage', data, type_map, **kwargs)
+        return self._get_data('Krj5gFvH88BTJJo3iWzJX', data, type_map, **kwargs)
 
-    def camera_after_sales_order_data(self, data='main', **kwargs):
+    def ZpUG9P3oxkPb5GFqBrxGQ(self, data='main', **kwargs):
         """拍机管理|售后管理|售后订单"""
         type_map = {
-            'main': ('after_sales_list', 'camera'),  # 售后订单列表
+            'main': ('Hz8EMlxg5WBm', 'camera'),  # 售后订单列表
         }
-        return self._get_data('camera_after_sales_order', data, type_map, **kwargs)
+        return self._get_data('ZpUG9P3oxkPb5GFqBrxGQ', data, type_map, **kwargs)
 
-    def fulfillment_camera_after_sales_order_data(self, data='main', **kwargs):
+    def CO4AXsbHeeFE7zOfrBooq(self, data='main', **kwargs):
         """运营中心|壹准拍机|售后管理|售后订单
         i 订单状态
         [2]待申诉 [1]线上审核 [3]线上拒退 [4]申诉中 [5]补差成功 [6]可补差
         [7]待寄回 [8]超时取消 [9]主动取消 [10]待接收 [11]实物复检 [12]实物拒退 [13]退货成功
         """
         type_map = {
-            'main': ('camera_after_sales_order_list', 'main'),  # 售后订单列表
+            'main': ('ZyxQLsb9tEjy', 'main'),  # 售后订单列表
         }
-        return self._get_data('fulfillment_camera_after_sales_order', data, type_map, **kwargs)
+        return self._get_data('CO4AXsbHeeFE7zOfrBooq', data, type_map, **kwargs)
 
-    def platform_grievance_manage_data(self, data='main', **kwargs):
+    def NLUkzWtFzjZSO2vR8Yhhb(self, data='main', **kwargs):
         """平台管理|壹准拍机|售后管理|申诉管理
         i订单类型 0待处理 1申诉成功 2申诉失败 3申诉取消
         """
         type_map = {
-            'main': ('statement_list', 'super'),  # 申诉管理列表
+            'main': ('nG1FaeCsMOtb', 'super'),  # 申诉管理列表
         }
-        return self._get_data('platform_grievance_manage', data, type_map, **kwargs)
+        return self._get_data('NLUkzWtFzjZSO2vR8Yhhb', data, type_map, **kwargs)
 
-    def fulfillment_after_sales_return_manage_data(self, data='main', **kwargs):
+    def YBoIFlRaGyVtfzeObzsmf(self, data='main', **kwargs):
         """运营中心|壹准拍机|售后管理|售后退货管理
         i 类型  1待退货 2退货已出库
         """
         type_map = {
-            'main': ('statement_list', 'super'),  # 售后退货列表
+            'main': ('awpLxMlBWNtR', 'super'),  # 售后退货列表
         }
-        return self._get_data('fulfillment_after_sales_return_manage', data, type_map, **kwargs)
+        return self._get_data('YBoIFlRaGyVtfzeObzsmf', data, type_map, **kwargs)
 
-    def camera_list_of_airport_visits_data(self, data='main', **kwargs):
+    def Z4B1h5YLGNro3dwGrXQhF(self, data='main', **kwargs):
         """拍机管理|拍机场次列表"""
         type_map = {
-            'main': ('list_of_airport_visits', 'camera'),  # 拍机场次列表
-            'a': ('view_the_products_of_the_session', 'camera'),  # 查看场次商品
+            'main': ('ZuIQQpaDevaL', 'camera'),  # 拍机场次列表
+            'a': ('nOhPEhCFHgIT', 'camera'),  # 查看场次商品
         }
-        return self._get_data('camera_list_of_airport_visits', data, type_map, **kwargs)
+        return self._get_data('Z4B1h5YLGNro3dwGrXQhF', data, type_map, **kwargs)
 
-    def auction_my_data(self, data='main', **kwargs):
-        """保卖小程序-我的
+    def D7NTmTMqMuHicClYboqMC(self, data='main', **kwargs):
+        """保卖小程序|我的
          i：订单状态 1质检中 2待销售 3销售中 4已销售 5待平台确认 6报价确认 8退货中 9退货已出库 10已退货 7质检完成
          j：类型 1销售服务 2质检服务
         [b]
@@ -952,30 +958,30 @@ class PcImport(BaseImport):
          j：类型 1销售服务 2质检服务
         """
         type_map = {
-            'main': ('sell_order_list', 'main'),  # 销售物品 订单列表
-            'a': ('sell_return_details', 'main'),  # 销售物品 退货中 退货详情
-            'b': ('order_list', 'main'),  # 订单信息 订单列表
+            'main': ('NVuRscNpWXeL', 'main'),  # 销售物品 订单列表
+            'a': ('WGXX2ZOSwrbe', 'main'),  # 销售物品 退货详情
+            'b': ('CyIwoGFLypcc', 'main'),  # 订单信息 订单列表
         }
-        return self._get_data('auction_my', data, type_map, **kwargs)
+        return self._get_data('D7NTmTMqMuHicClYboqMC', data, type_map, **kwargs)
 
-    def auction_index_data(self, data='main', **kwargs):
-        """保卖小程序-首页"""
+    def Of0qYX0IunlCsfIKGi4b5(self, data='main', **kwargs):
+        """保卖小程序|首页"""
         type_map = {
-            'main': ('item_info_list', 'main'),  # 精确发货 物品信息列表
-            'a': ('list_of_appearance_finishes', 'main'),  # 精确发货 外观成色列表
+            'main': ('WiNPlq2wIljG', 'main'),  # 精确发货 物品信息列表
+            'a': ('wuqs6Abzx3BS', 'main'),  # 精确发货 外观成色列表
         }
-        return self._get_data('auction_index', data, type_map, **kwargs)
+        return self._get_data('Of0qYX0IunlCsfIKGi4b5', data, type_map, **kwargs)
 
-    def bidding_camera_data(self, data='main', **kwargs):
-        """拍机小程序-竞拍"""
+    def B1VzuYLyr5G9mdeT7BDwW(self, data='main', **kwargs):
+        """拍机小程序|竞拍"""
         type_map = {
-            'main': ('zhi_auction_list', 'camera'),  # 竞拍列表 直拍
-            'a': ('an_auction_list', 'camera'),  # 竞拍列表 暗拍
+            'main': ('QwNTfbys2CCL', 'camera'),  # 竞拍列表 直拍
+            'a': ('Uf0OesfH65Pq', 'camera'),  # 竞拍列表 暗拍
         }
-        return self._get_data('bidding_camera', data, type_map, **kwargs)
+        return self._get_data('B1VzuYLyr5G9mdeT7BDwW', data, type_map, **kwargs)
 
-    def bidding_my_data(self, data='main', **kwargs):
-        """拍机小程序-我的
+    def UAPqxpSx1qiMwyQEcIPXb(self, data='main', **kwargs):
+        """拍机小程序|我的
         i：订单状态 1待支付 2待发货 3待收货 4已收货  5已售后 6已取消
         [a]i: 订单状态
         审核中：[1]线上审核 [11]实物复检 [10]待接收 [4]申诉中
@@ -984,7 +990,21 @@ class PcImport(BaseImport):
         售后失败：[9]主动取消 [8]超时取消 [3]线上拒退 [12]实物拒退
         """
         type_map = {
-            'main': ('racket_product_list', 'camera'),  # 商品列表
-            'a': ('pat_machine_return_after_sales_list', 'camera'),  # 售后退货列表
+            'main': ('R0ylvsKYSTRn', 'camera'),  # 商品列表
+            'a': ('DnyApTb8QiIk', 'camera'),  # 售后退货列表
         }
-        return self._get_data('bidding_my', data, type_map, **kwargs)
+        return self._get_data('UAPqxpSx1qiMwyQEcIPXb', data, type_map, **kwargs)
+
+    def KsJkf77pdK7sRJY6s9lfO(self, data='main', **kwargs):
+        """运营中心|bot订单管理"""
+        type_map = {
+            'main': ('FTdfLz90lzeR', 'main'),  # bot订单管理列表
+        }
+        return self._get_data('KsJkf77pdK7sRJY6s9lfO', data, type_map, **kwargs)
+
+    def VnVeCrt7kNUg7iObK5ZBc(self, data='main', **kwargs):
+        """运营中心|bot收货入库"""
+        type_map = {
+            'main': ('KdrTCtXRVAJ7', 'main'),  # 搜索订单号
+        }
+        return self._get_data('VnVeCrt7kNUg7iObK5ZBc', data, type_map, **kwargs)

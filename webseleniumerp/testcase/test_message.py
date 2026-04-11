@@ -4,85 +4,85 @@ from common.base_case import BaseCase
 from common.import_case import *
 
 
-class TestMessageReleaseList(BaseCase, unittest.TestCase):
+class TestCHLZlzWz(BaseCase, unittest.TestCase):
     """消息管理|消息发布列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return message_r.MessageReleaseListRequest()
+            return message_r.QRSsWbYWV1()
         else:
-            return message_p.MessageReleaseListPages(self.driver)
+            return message_p.Alkolwr5Vbg(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0publish_the_message(self):
+    def test_0p2KvndGL0zVJEDKHGIPU(self):
         """[发布新消息]-立即发布提交审核"""
         case = self.common_operations(login='main')
-        case.publish_the_message()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='待发布', internalAuditStateDesc='待审核', platformAuditStateDesc='未审核', createTime='now')]
+        case.p2KvndGL0zVJEDKHGIPU()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='待发布', internalAuditStateDesc='待审核', platformAuditStateDesc='未审核', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_release_new_news_timed_release_time(self):
+    def test_fNGpyQ3gggozz0uW4Ko0(self):
         """[发布新消息]-定时发布提交审核"""
         case = self.common_operations()
-        case.release_new_news_timed_release_time()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='待发布', internalAuditStateDesc='待审核', platformAuditStateDesc='未审核', createTime='now')]
+        case.fNGpyQ3gggozz0uW4Ko0()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='待发布', internalAuditStateDesc='待审核', platformAuditStateDesc='未审核', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_release_the_review_message(self):
+    def test_qJP3yR1nymSHmVoKgKFz(self):
         """[发布新消息]-审核并发布"""
         case = self.common_operations()
-        case.release_the_review_message()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='待发布', internalAuditStateDesc='审核通过', platformAuditStateDesc='待审核', createTime='now')]
+        case.qJP3yR1nymSHmVoKgKFz()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='待发布', internalAuditStateDesc='审核通过', platformAuditStateDesc='待审核', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_release_new_news_save_the_draft(self):
+    def test_ELqbuERMQsawGlkE9Ala(self):
         """[发布新消息]-保存草稿"""
         case = self.common_operations()
-        case.release_new_news_save_the_draft()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='草稿', internalAuditStateDesc='未审核', platformAuditStateDesc='未审核', createTime='now')]
+        case.ELqbuERMQsawGlkE9Ala()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='草稿', internalAuditStateDesc='未审核', platformAuditStateDesc='未审核', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_release_new_news_preview_release(self):
+    def test_JERvfLXoEn18N8nGDyMd(self):
         """[发布新消息]-预览-审核并发布"""
         case = self.common_operations()
-        case.release_new_news_preview_release()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='待发布', internalAuditStateDesc='审核通过', platformAuditStateDesc='待审核', createTime='now')]
+        case.JERvfLXoEn18N8nGDyMd()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='待发布', internalAuditStateDesc='审核通过', platformAuditStateDesc='待审核', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_refuse(self):
+    def test_yNFy3et5XdWwF0gE1VJQ(self):
         """[审核]-商户审核拒绝"""
-        self.pre.operations(data=['JA1'])
+        self.pre.operations(data=['IBY2'])
         case = self.common_operations()
-        case.refuse()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='待发布', internalAuditStateDesc='审核不通过', platformAuditStateDesc='-', createTime='now')]
+        case.yNFy3et5XdWwF0gE1VJQ()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='待发布', internalAuditStateDesc='审核不通过', platformAuditStateDesc='-', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_approved(self):
+    def test_FAEFTmKmDM49LcbTv3tL(self):
         """[审核]-商户审核通过"""
-        self.pre.operations(data=['JA1'])
+        self.pre.operations(data=['IBY2'])
         case = self.common_operations()
-        case.approved()
-        res = [lambda: self.pc.message_release_list_assert(publishStateDesc='待发布', internalAuditStateDesc='审核通过', platformAuditStateDesc='待审核', createTime='now')]
+        case.FAEFTmKmDM49LcbTv3tL()
+        res = [lambda: self.pc.dbii4b(publishStateDesc='待发布', internalAuditStateDesc='审核通过', platformAuditStateDesc='待审核', createTime='now')]
         self.assert_all(*res)
 
 

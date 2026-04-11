@@ -2,29 +2,29 @@
 import json
 import time
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.import_desc import *
 from config.user_info import INFO
 
 
-class FinanceAccountListRequest(InitializeParams):
+class WnS8MVqkMl(InitializeParams):
     """财务管理|资金账户|账户列表"""
 
-    @doc(f_create_account)
+    @doc(EPKsvmKzhm7PJO1muKwj)
     @BaseApi.timing_decorator
-    def create_account(self, nocheck=False):
+    def EPKsvmKzhm7PJO1muKwj(self, nocheck=False):
         data = {
             "accountName": "账户名称" + self.imei,
             "accountType": 6,
             "accountBalance": 9999,
             "remark": "备注"
         }
-        return self._make_request('post', 'add_account', data, 'idle', nocheck)
+        return self._make_request('post', 'HAUaZuczI', data, 'idle', nocheck)
 
-    @doc(f_edit_account)
+    @doc(JWqdZElvJgNFFHaXqZRT)
     @BaseApi.timing_decorator
-    def edit_account(self, nocheck=False):
-        res = self.pc.finance_account_list_data()
+    def JWqdZElvJgNFFHaXqZRT(self, nocheck=False):
+        res = self.pc.NQXuyZ5kySQBpsQJxR3vC()
         data = {
             "id": res[0]['id'],
             "accountName": res[0]['accountName'],
@@ -32,30 +32,30 @@ class FinanceAccountListRequest(InitializeParams):
             "rechargePrice": 5,
             "remark": "备注"
         }
-        return self._make_request('put', 'edit_account', data, 'idle', nocheck)
+        return self._make_request('put', 'Z6Mw8XcVM', data, 'idle', nocheck)
 
-    @doc(f_account_transfer)
+    @doc(uFTVSOsNXHqB5vxndsyu)
     @BaseApi.timing_decorator
-    def account_transfer(self, nocheck=False):
+    def uFTVSOsNXHqB5vxndsyu(self, nocheck=False):
         data = {
             "time": self.get_formatted_datetime(),
             "accountBalance": 5,
             "id": INFO['idle_account_no'],
             "rollId": INFO['idle_out_account_no']
         }
-        return self._make_request('post', 'transfer_account', data, 'idle', nocheck)
+        return self._make_request('post', 'byK5puX6U', data, 'idle', nocheck)
 
 
-class FinanceBillReviewRequest(InitializeParams):
+class DISZcB8ZYA(InitializeParams):
     """财务管理|业务记账|账单审核"""
 
-    @doc(f_financial_audit_deal_with)
+    @doc(B7RHH1KuhjdPrvwiHaID)
     @BaseApi.timing_decorator
-    def financial_audit_deal_with(self, nocheck=False):
+    def B7RHH1KuhjdPrvwiHaID(self, nocheck=False):
         for _ in range(5):
             time.sleep(2)
-            self.pc.finance_bill_review_data(i=1, j=0)
-        res = self.pc.finance_bill_review_data(i=1, j=0)
+            self.pc.VFy40VMBZGf8pQEkVFRor(i=1, j=0)
+        res = self.pc.VFy40VMBZGf8pQEkVFRor(i=1, j=0)
         data = {
             "billNoList": [
                 res[0]['billNo']
@@ -69,12 +69,12 @@ class FinanceBillReviewRequest(InitializeParams):
                 INFO['main_account_no']
             ]
         }
-        return self._make_request('put', 'the_submission_is_approved', data, 'main', nocheck)
+        return self._make_request('put', 'NYfWyJWvz', data, 'main', nocheck)
 
-    @doc(f_audit_accounts_payable_turn_down)
+    @doc(owv9tEsxrz0pHaC8wXtH)
     @BaseApi.timing_decorator
-    def audit_accounts_payable_turn_down(self, nocheck=False):
-        res = self.pc.finance_bill_review_data(i=1, j=0)
+    def owv9tEsxrz0pHaC8wXtH(self, nocheck=False):
+        res = self.pc.VFy40VMBZGf8pQEkVFRor(i=1, j=0)
         data = {
             "billNoList": [
                 res[0]['billNo']
@@ -88,15 +88,15 @@ class FinanceBillReviewRequest(InitializeParams):
                 INFO['main_account_no']
             ]
         }
-        return self._make_request('put', 'the_submission_is_approved', data, 'main', nocheck)
+        return self._make_request('put', 'NYfWyJWvz', data, 'main', nocheck)
 
-    @doc(f_financial_audit_receivable)
+    @doc(u9n7DKzDxeT1rnv4h3tV)
     @BaseApi.timing_decorator
-    def financial_audit_receivable(self, nocheck=False):
+    def u9n7DKzDxeT1rnv4h3tV(self, nocheck=False):
         for _ in range(5):
             time.sleep(2)
-            self.pc.finance_bill_review_data(i=2, j=0)
-        res = self.pc.finance_bill_review_data(i=2, j=0)
+            self.pc.VFy40VMBZGf8pQEkVFRor(i=2, j=0)
+        res = self.pc.VFy40VMBZGf8pQEkVFRor(i=2, j=0)
         data = {
             "billNoList": [
                 res[0]['billNo']
@@ -110,12 +110,12 @@ class FinanceBillReviewRequest(InitializeParams):
                 INFO['main_account_no']
             ]
         }
-        return self._make_request('put', 'the_submission_is_approved', data, 'main', nocheck)
+        return self._make_request('put', 'NYfWyJWvz', data, 'main', nocheck)
 
-    @doc(f_account_receivable_audit_turn_down)
+    @doc(LDw1ORDeq57nUxfwqx8P)
     @BaseApi.timing_decorator
-    def account_receivable_audit_turn_down(self, nocheck=False):
-        res = self.pc.finance_bill_review_data(i=2, j=0)
+    def LDw1ORDeq57nUxfwqx8P(self, nocheck=False):
+        res = self.pc.VFy40VMBZGf8pQEkVFRor(i=2, j=0)
         data = {
             "billNoList": [
                 res[0]['billNo']
@@ -129,12 +129,12 @@ class FinanceBillReviewRequest(InitializeParams):
                 INFO['main_account_no'],
             ]
         }
-        return self._make_request('put', 'the_submission_is_approved', data, 'main', nocheck)
+        return self._make_request('put', 'NYfWyJWvz', data, 'main', nocheck)
 
-    @doc(f_financial_audit_receivable_vice)
+    @doc(BwTCKfib2nxArwfojqzu)
     @BaseApi.timing_decorator
-    def financial_audit_receivable_vice(self, nocheck=False):
-        res = self.pc.finance_bill_review_data(data='a', i=2, j=0)
+    def BwTCKfib2nxArwfojqzu(self, nocheck=False):
+        res = self.pc.VFy40VMBZGf8pQEkVFRor(data='a', i=2, j=0)
         data = {
             "billNoList": [
                 res[0]['billNo']
@@ -148,16 +148,16 @@ class FinanceBillReviewRequest(InitializeParams):
                 INFO['vice_account_no']
             ]
         }
-        return self._make_request('put', 'the_submission_is_approved', data, 'vice', nocheck)
+        return self._make_request('put', 'NYfWyJWvz', data, 'vice', nocheck)
 
 
-class FinanceCopingWithEachOtherRequest(InitializeParams):
+class AgnH0XzSB2(InitializeParams):
     """财务管理|业务记账|往来应付"""
 
-    @doc(f_settle_by_order_machine)
+    @doc(EREYtlx2HerCU1zbpObk)
     @BaseApi.timing_decorator
-    def settle_by_order_machine(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data()
+    def EREYtlx2HerCU1zbpObk(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg()
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_supplier_id'],
@@ -173,11 +173,11 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_supplier_settlement)
+    @doc(rN6o1ZUYdtDbm4jrcy5R)
     @BaseApi.timing_decorator
-    def supplier_settlement(self, nocheck=False):
+    def rN6o1ZUYdtDbm4jrcy5R(self, nocheck=False):
         data = {
             "supplierId": INFO['main_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -189,12 +189,12 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
             "supplierName": INFO['main_supplier_name'],
             "accountName": INFO['main_account_name']
         }
-        return self._make_request('post', 'settle_by_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'l22kgVIOn', data, 'main', nocheck)
 
-    @doc(f_order_settlement)
+    @doc(Hxs7NXz0FKtXSPkjcof8)
     @BaseApi.timing_decorator
-    def order_settlement(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data='b')
+    def Hxs7NXz0FKtXSPkjcof8(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='b')
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_supplier_id'],
@@ -212,12 +212,12 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_settle_vendor_amount_all)
+    @doc(D97tgtc9GTXE0vdXK6lA)
     @BaseApi.timing_decorator
-    def settle_vendor_amount_all(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data='d')
+    def D97tgtc9GTXE0vdXK6lA(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "supplierId": INFO['main_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -229,12 +229,12 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
             "supplierName": INFO['main_supplier_name'],
             "accountName": INFO['main_account_name']
         }
-        return self._make_request('post', 'settle_by_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'l22kgVIOn', data, 'main', nocheck)
 
-    @doc(f_prepayment_deduction_all)
+    @doc(hciCQ89oHrPs7V8gpK2s)
     @BaseApi.timing_decorator
-    def prepayment_deduction_all(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data='d')
+    def hciCQ89oHrPs7V8gpK2s(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "supplierId": INFO['main_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -252,12 +252,12 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'l22kgVIOn', data, 'main', nocheck)
 
-    @doc(f_prepayment_deduction_part)
+    @doc(euOyfYcWF0WoC0gVogWr)
     @BaseApi.timing_decorator
-    def prepayment_deduction_part(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data='d')
+    def euOyfYcWF0WoC0gVogWr(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "supplierId": INFO['main_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -275,12 +275,12 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'l22kgVIOn', data, 'main', nocheck)
 
-    @doc(f_settle_by_order_part)
+    @doc(gSSx2ogkswH5sLVoUa56)
     @BaseApi.timing_decorator
-    def settle_by_order_part(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data()
+    def gSSx2ogkswH5sLVoUa56(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg()
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_supplier_id'],
@@ -295,13 +295,13 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_settle_by_order_prepaid_part)
+    @doc(tNULVYUnORNWpB5La3kh)
     @BaseApi.timing_decorator
-    def settle_by_order_prepaid_part(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data()
-        res_2 = self.pc.finance_coping_with_each_other_data(data='d')
+    def tNULVYUnORNWpB5La3kh(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg()
+        res_2 = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "accountName": INFO['main_account_name'],
@@ -322,13 +322,13 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_settle_by_order_prepaid_all)
+    @doc(VdFBXs16N2ZEhp4PqlbM)
     @BaseApi.timing_decorator
-    def settle_by_order_prepaid_all(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data()
-        res_2 = self.pc.finance_coping_with_each_other_data(data='d')
+    def VdFBXs16N2ZEhp4PqlbM(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg()
+        res_2 = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "accountName": INFO['main_account_name'],
@@ -349,12 +349,12 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_settle_machine_settlement)
+    @doc(N5qtlbV2nKad4orzWHDh)
     @BaseApi.timing_decorator
-    def settle_machine_settlement(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data="b")
+    def N5qtlbV2nKad4orzWHDh(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data="b")
         data = {
             "accountNo": INFO['main_account_no'],
             "accountName": INFO['main_account_name'],
@@ -372,13 +372,13 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_machine_deduction_party)
+    @doc(SM3tdEQRoyKAUKE6Kjhu)
     @BaseApi.timing_decorator
-    def machine_deduction_party(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data="b")
-        res_2 = self.pc.finance_coping_with_each_other_data(data='d')
+    def SM3tdEQRoyKAUKE6Kjhu(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data="b")
+        res_2 = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "accountName": INFO['main_account_name'],
@@ -402,13 +402,13 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_machine_deduction_all)
+    @doc(t9oHAeUXlbi3VyJNnJD4)
     @BaseApi.timing_decorator
-    def machine_deduction_all(self, nocheck=False):
-        res = self.pc.finance_coping_with_each_other_data(data="b")
-        res_2 = self.pc.finance_coping_with_each_other_data(data='d')
+    def t9oHAeUXlbi3VyJNnJD4(self, nocheck=False):
+        res = self.pc.MOyeqlzcgLqhqdWBrkyYg(data="b")
+        res_2 = self.pc.MOyeqlzcgLqhqdWBrkyYg(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "accountName": INFO['main_account_name'],
@@ -432,16 +432,16 @@ class FinanceCopingWithEachOtherRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
 
-class FinanceCostIncomeAdjustmentRequest(InitializeParams):
+class QR58hbFLmz(InitializeParams):
     """财务管理|成本收入调整"""
 
-    @doc(f_new_adjustment_order_cost)
+    @doc(UuPR3hG2S8ND6eRZD6CU)
     @BaseApi.timing_decorator
-    def new_adjustment_order_cost(self, nocheck=False):
-        res = self.pc.inventory_list_data(i=2)
+    def UuPR3hG2S8ND6eRZD6CU(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2)
         data = {
             "adjustmentType": "1",
             "accountNo": INFO['main_account_no'],
@@ -460,12 +460,12 @@ class FinanceCostIncomeAdjustmentRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'purchase_amount_change', data, 'main', nocheck)
+        return self._make_request('post', 'VoKxnNFFb', data, 'main', nocheck)
 
-    @doc(f_new_adjustment_order_cost_other_costs)
+    @doc(L2MWh5RuYAnG54UuqEDd)
     @BaseApi.timing_decorator
-    def new_adjustment_order_cost_other_costs(self, nocheck=False):
-        res = self.pc.inventory_list_data()
+    def L2MWh5RuYAnG54UuqEDd(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp()
         data = {
             "adjustmentType": "1",
             "adjustmentRemark": 750,
@@ -485,13 +485,13 @@ class FinanceCostIncomeAdjustmentRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'purchase_amount_change', data, 'main', nocheck)
+        return self._make_request('post', 'VoKxnNFFb', data, 'main', nocheck)
 
-    @doc(f_new_adjustment_order_income)
+    @doc(ZOu34dViPFdE8YXvix3K)
     @BaseApi.timing_decorator
-    def new_adjustment_order_income(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.sell_sale_item_list_data()
+    def ZOu34dViPFdE8YXvix3K(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "adjustmentType": "2",
             "accountNo": INFO['main_account_no'],
@@ -510,13 +510,13 @@ class FinanceCostIncomeAdjustmentRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'purchase_amount_change', data, 'main', nocheck)
+        return self._make_request('post', 'VoKxnNFFb', data, 'main', nocheck)
 
-    @doc(f_new_adjustment_order_income_other_income)
+    @doc(JsHXjaPThXs1bk0gJW6L)
     @BaseApi.timing_decorator
-    def new_adjustment_order_income_other_income(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.sell_sale_item_list_data()
+    def JsHXjaPThXs1bk0gJW6L(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "adjustmentType": "2",
             "adjustmentRemark": 749,
@@ -536,13 +536,13 @@ class FinanceCostIncomeAdjustmentRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'purchase_amount_change', data, 'main', nocheck)
+        return self._make_request('post', 'VoKxnNFFb', data, 'main', nocheck)
 
-    @doc(f_multi_item_other_income_adjustments)
+    @doc(I7JXB9egcS81B9M2KvPn)
     @BaseApi.timing_decorator
-    def multi_item_other_income_adjustments(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.sell_sale_item_list_data()
+    def I7JXB9egcS81B9M2KvPn(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.JU8QYbNi3BDlSn2XaNZKe()
         data = {
             "adjustmentType": "2",
             "adjustmentRemark": 749,
@@ -573,15 +573,15 @@ class FinanceCostIncomeAdjustmentRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'purchase_amount_change', data, 'main', nocheck)
+        return self._make_request('post', 'VoKxnNFFb', data, 'main', nocheck)
 
 
-class FinanceDailyDisburseRequest(InitializeParams):
+class HZwCxB8wAq(InitializeParams):
     """财务管理|业务记账|日常支出"""
 
-    @doc(f_new_disburse)
+    @doc(FayuY8TiAhpMWGjKj1UK)
     @BaseApi.timing_decorator
-    def new_disburse(self, nocheck=False):
+    def FayuY8TiAhpMWGjKj1UK(self, nocheck=False):
         data = {
             "type": 746,
             "amount": 100,
@@ -592,11 +592,11 @@ class FinanceDailyDisburseRequest(InitializeParams):
             "accountName": INFO['main_account_name'],
             "userName": f"admin({INFO['main_account']})"
         }
-        return self._make_request('post', 'daily_expenses', data, 'main', nocheck)
+        return self._make_request('post', 'goE4u9JEj', data, 'main', nocheck)
 
-    @doc(f_new_expenditure_items_negative_amount)
+    @doc(voyc86f85IklIULStMSB)
     @BaseApi.timing_decorator
-    def new_expenditure_items_negative_amount(self, nocheck=False):
+    def voyc86f85IklIULStMSB(self, nocheck=False):
         data = {
             "type": 746,
             "amount": -230,
@@ -607,15 +607,15 @@ class FinanceDailyDisburseRequest(InitializeParams):
             "accountName": INFO['main_account_name'],
             "userName": f"admin({INFO['main_account']})"
         }
-        return self._make_request('post', 'daily_expenses', data, 'main', nocheck)
+        return self._make_request('post', 'goE4u9JEj', data, 'main', nocheck)
 
 
-class FinanceDailyIncomeRequest(InitializeParams):
+class WK90Io3VHs(InitializeParams):
     """财务管理|业务记账|日常收入"""
 
-    @doc(f_new_income)
+    @doc(HGwxHVDLmqfBnulaegiO)
     @BaseApi.timing_decorator
-    def new_income(self, nocheck=False):
+    def HGwxHVDLmqfBnulaegiO(self, nocheck=False):
         data = {
             "type": 748,
             "amount": 1,
@@ -627,11 +627,11 @@ class FinanceDailyIncomeRequest(InitializeParams):
             "accountName": INFO['main_account_name'],
             "userName": f"admin({INFO['main_account']})"
         }
-        return self._make_request('post', 'daily_income', data, 'main', nocheck)
+        return self._make_request('post', 'JIKJUk54b', data, 'main', nocheck)
 
-    @doc(f_default_revenue_type_negative_amount)
+    @doc(ZB0P0AxSNEJ3bgjge7xl)
     @BaseApi.timing_decorator
-    def default_revenue_type_negative_amount(self, nocheck=False):
+    def ZB0P0AxSNEJ3bgjge7xl(self, nocheck=False):
         data = {
             "type": 748,
             "amount": -100,
@@ -643,16 +643,16 @@ class FinanceDailyIncomeRequest(InitializeParams):
             "accountName": INFO['main_account_name'],
             "userName": f"admin({INFO['main_account']})"
         }
-        return self._make_request('post', 'daily_income', data, 'main', nocheck)
+        return self._make_request('post', 'JIKJUk54b', data, 'main', nocheck)
 
 
-class FinanceExchangesAndReceivablesRequest(InitializeParams):
+class ERK6sz547k(InitializeParams):
     """财务管理|业务记账|往来应收"""
 
-    @doc(f_customer_order_machine_settlement)
+    @doc(fuzCuDjXSjYFn8gzpiBS)
     @BaseApi.timing_decorator
-    def customer_order_machine_settlement(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data(data='b')
+    def fuzCuDjXSjYFn8gzpiBS(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='b')
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_sale_supplier_id'],
@@ -671,12 +671,12 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_machine', data, 'main', nocheck)
+        return self._make_request('post', 'F9rKxzrEm', data, 'main', nocheck)
 
-    @doc(f_settle_the_full_amount_by_the_machine)
+    @doc(REpw06TJaUceWaw86bTt)
     @BaseApi.timing_decorator
-    def settle_the_full_amount_by_the_machine(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data(data='b')
+    def REpw06TJaUceWaw86bTt(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='b')
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_sale_supplier_id'],
@@ -695,13 +695,13 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_machine', data, 'main', nocheck)
+        return self._make_request('post', 'F9rKxzrEm', data, 'main', nocheck)
 
-    @doc(f_the_machine_settles_all_part_of_the_amount)
+    @doc(NnVNr1PtqWEZZG0qwyj0)
     @BaseApi.timing_decorator
-    def the_machine_settles_all_part_of_the_amount(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data(data='b')
-        res_2 = self.pc.finance_exchanges_and_receivables_data(data='d')
+    def NnVNr1PtqWEZZG0qwyj0(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='b')
+        res_2 = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_sale_supplier_id'],
@@ -725,11 +725,11 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_machine', data, 'main', nocheck)
+        return self._make_request('post', 'F9rKxzrEm', data, 'main', nocheck)
 
-    @doc(f_customers_settle_bills)
+    @doc(ZJ7XVXb9AG0TE9iIa6N4)
     @BaseApi.timing_decorator
-    def customers_settle_bills(self, nocheck=False):
+    def ZJ7XVXb9AG0TE9iIa6N4(self, nocheck=False):
         data = {
             "supplierId": INFO['main_sale_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -742,12 +742,12 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
             "supplierName": INFO['vice_sales_customer_name'],
             "accountName": INFO['main_account_name']
         }
-        return self._make_request('post', 'settle_by_order_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'r3lH50xQO', data, 'main', nocheck)
 
-    @doc(f_the_customer_settles_the_full_amount)
+    @doc(DNIPeuwYliXnuo8Lkc5X)
     @BaseApi.timing_decorator
-    def the_customer_settles_the_full_amount(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data(data='d')
+    def DNIPeuwYliXnuo8Lkc5X(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='d')
         data = {
             "supplierId": INFO['main_sale_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -759,12 +759,12 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
             "supplierName": INFO['vice_sales_customer_name'],
             "accountName": INFO['main_account_name']
         }
-        return self._make_request('post', 'settle_by_order_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'r3lH50xQO', data, 'main', nocheck)
 
-    @doc(f_settlement_un_edit_amount)
+    @doc(akzhzMMfUHIInmvykkV5)
     @BaseApi.timing_decorator
-    def settlement_un_edit_amount(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data()
+    def akzhzMMfUHIInmvykkV5(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk()
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_sale_supplier_id'],
@@ -779,13 +779,13 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_all_settlement_prepaid_part_of_the_amount)
+    @doc(Mn5CphHorfpXIIk2meIv)
     @BaseApi.timing_decorator
-    def all_settlement_prepaid_part_of_the_amount(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data()
-        res_2 = self.pc.finance_exchanges_and_receivables_data(data='d')
+    def Mn5CphHorfpXIIk2meIv(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk()
+        res_2 = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_sale_supplier_id'],
@@ -807,13 +807,13 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_settle_all_advance_receipt_of_the_entire_amount)
+    @doc(aRnzRjjFEkGwEOrhcsdE)
     @BaseApi.timing_decorator
-    def settle_all_advance_receipt_of_the_entire_amount(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data()
-        res_2 = self.pc.finance_exchanges_and_receivables_data(data='d')
+    def aRnzRjjFEkGwEOrhcsdE(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk()
+        res_2 = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='d')
         data = {
             "accountNo": INFO['main_account_no'],
             "supplierId": INFO['main_sale_supplier_id'],
@@ -835,12 +835,12 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_machine', data, 'main', nocheck)
+        return self._make_request('post', 'WMRxDiO0Y', data, 'main', nocheck)
 
-    @doc(f_settle_all_prepaid_part_of_the_amount)
+    @doc(nsMAwLXUhDECtHFrGK01)
     @BaseApi.timing_decorator
-    def settle_all_prepaid_part_of_the_amount(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data(data='d')
+    def nsMAwLXUhDECtHFrGK01(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='d')
         data = {
             "supplierId": INFO['main_sale_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -858,12 +858,12 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'r3lH50xQO', data, 'main', nocheck)
 
-    @doc(f_full_settlement_the_entire_amount_of_the_presale)
+    @doc(vjiYpRgS61Jil8l1AIb1)
     @BaseApi.timing_decorator
-    def full_settlement_the_entire_amount_of_the_presale(self, nocheck=False):
-        res = self.pc.finance_exchanges_and_receivables_data(data='d')
+    def vjiYpRgS61Jil8l1AIb1(self, nocheck=False):
+        res = self.pc.A9mwkPeNc1x7YnLCF9jUk(data='d')
         data = {
             "supplierId": INFO['main_sale_supplier_id'],
             "isReconciliationDetailPage": True,
@@ -881,15 +881,15 @@ class FinanceExchangesAndReceivablesRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'settle_by_order_supplier', data, 'main', nocheck)
+        return self._make_request('post', 'r3lH50xQO', data, 'main', nocheck)
 
 
-class FinancePrePayReceivedRequest(InitializeParams):
+class UjpqCZlmIK(InitializeParams):
     """财务管理|业务记账|预付预收"""
 
-    @doc(f_add_prepay)
+    @doc(f9xh8uqQHD61p0h46zFQ)
     @BaseApi.timing_decorator
-    def add_prepay(self, nocheck=False):
+    def f9xh8uqQHD61p0h46zFQ(self, nocheck=False):
         data = {
             "amount": 100,
             "preType": "2",
@@ -901,11 +901,11 @@ class FinancePrePayReceivedRequest(InitializeParams):
             "supplierName": INFO['main_supplier_name'],
             "userName": INFO['main_account'],
         }
-        return self._make_request('post', 'add_prepay', data, 'main', nocheck)
+        return self._make_request('post', 'uXc65JPTQ', data, 'main', nocheck)
 
-    @doc(f_add_received)
+    @doc(A7yoyiFi7P8jDGNe67Y0)
     @BaseApi.timing_decorator
-    def add_received(self, nocheck=False):
+    def A7yoyiFi7P8jDGNe67Y0(self, nocheck=False):
         data = {
             "preType": "1",
             "receiptTime": self.get_the_date(),
@@ -917,7 +917,7 @@ class FinancePrePayReceivedRequest(InitializeParams):
             "supplierName": INFO['vice_sales_customer_name'],
             "userName": INFO['main_manager']
         }
-        return self._make_request('post', 'add_prepay', data, 'main', nocheck)
+        return self._make_request('post', 'uXc65JPTQ', data, 'main', nocheck)
 
 
 if __name__ == '__main__':

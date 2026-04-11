@@ -50,7 +50,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
         self.positioning = self.elem_positioning['positioning']  # 元素定位字典（简化访问）
         self.api = ImportApi()  # api 查询类
         self.URL = URL['api']  # 公共请求地址
-        self._captured_requests_map = {} # 使用字典可实现相同 keyword 自动覆盖，确保只保留最后一次请求
+        self._captured_requests_map = {}  # 使用字典可实现相同 keyword 自动覆盖，确保只保留最后一次请求
 
     def get_formatted_datetime(self, days=0, hours=0):
         """
@@ -61,6 +61,13 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
         """
         current_time = datetime.now() + timedelta(days=days, hours=hours)
         return current_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    def get_current_time_hms(self):
+        """
+        获取当前时分秒
+        :return: 格式化后的时间字符串（时分秒）
+        """
+        return time.strftime("%H:%M:%S", time.localtime(time.time()))
 
     def get_the_date(self, days=0):
         """
@@ -194,7 +201,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
             self.take_step_screenshot("error")
             raise  # 抛出原始异常，不影响后续行为
 
-    def up_arrow_return(self, count=1):
+    def up_enter(self, count=1):
         """
         键盘 - 向上箭头 - 回车
         :param count: 按向上箭头的次数
@@ -205,7 +212,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
             self.actions.send_keys(Keys.ARROW_UP).perform()
         self.actions.key_down(Keys.RETURN).key_up(Keys.RETURN).perform()
 
-    def down_arrow_return(self, count=1):
+    def down_enter(self, count=1):
         """
         键盘 - 向下箭头 - 回车
         :param count: 按向下箭头的次数
@@ -216,9 +223,20 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
             self.actions.send_keys(Keys.ARROW_DOWN).perform()
         self.actions.key_down(Keys.RETURN).key_up(Keys.RETURN).perform()
 
-    def tab_return(self, count=1):
+    def down_right_right_enter(self):
         """
-        键盘-Tab 键 - 空格键 (原为向下箭头 - 回车)
+        键盘 - 向下箭头 - 回车
+        :return: None
+        """
+        self.wait_time()
+        self.actions.send_keys(Keys.ARROW_DOWN).perform()
+        self.actions.send_keys(Keys.ARROW_RIGHT).perform()
+        self.actions.send_keys(Keys.ARROW_RIGHT).perform()
+        self.actions.key_down(Keys.RETURN).key_up(Keys.RETURN).perform()
+
+    def tab_space(self, count=1):
+        """
+        键盘-Tab 键 - 空格键
         :param count: 按 Tab 键的次数
         :return: None
         """
@@ -227,7 +245,28 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
             self.actions.send_keys(Keys.TAB).perform()
         self.actions.send_keys(Keys.SPACE).perform()
 
-    def carriage_return(self):
+    def tab_enter(self, count=1):
+        """
+        键盘-Tab 键 - 回车键
+        :param count: 按 Tab 键的次数
+        :return: None
+        """
+        self.wait_time()
+        for _ in range(count):
+            self.actions.send_keys(Keys.TAB).perform()
+        self.actions.key_down(Keys.RETURN).key_up(Keys.RETURN).perform()
+
+    def tab(self, count=1):
+        """
+        键盘-Tab 键
+        :param count: 按 Tab 键的次数
+        :return: None
+        """
+        self.wait_time()
+        for _ in range(count):
+            self.actions.send_keys(Keys.TAB).perform()
+
+    def enter(self):
         """
         键盘 - 回车
         :return: None
@@ -235,7 +274,15 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
         self.wait_time()
         self.actions.key_down(Keys.RETURN).key_up(Keys.RETURN).perform()
 
-    def affix(self):
+    def esc(self):
+        """
+        键盘 - 按 ESC 键
+        :return: None
+        """
+        self.wait_time()
+        self.actions.key_down(Keys.ESCAPE).key_up(Keys.ESCAPE).perform()
+
+    def ctrl_v(self):
         """
         键盘 - 粘贴
         :return: None
@@ -243,7 +290,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
         self.wait_time()
         self.actions.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
 
-    def affix_carriage_return(self):
+    def ctrl_v_enter(self):
         """
         键盘 - 粘贴 - 回车
         :return: None
@@ -355,18 +402,27 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
         pyperclip.copy(str(value))
         return self
 
-    def click(self, key=None, force_js=False, desc=None, auto=True, index=1, tag=None):
+    def click(self, key=None, force_js=False, desc=None, auto=None, index=1, tag=None, p_tag=None, p_name=None, o_tag=None, o_name=None, d=None):
         """
        单击指定元素
         :param key: 元素定位器 (By, value) 或定位器列表，或元素 key 字符串
         :param force_js: 是否强制使用 JavaScript 点击
         :param desc: 注解以及截图的名称（可选，未提供时自动生成）
-        :param auto: 是否自动生成并更新定位（默认 True，但只在有 HTML 时生效）
-        :param index: 元素索引（从 1 开始，用于点击第几个重复元素）
+        :param auto: 是否自动生成并更新定位（默认从 settings.py 读取，也可手动覆盖）
+        :param index: 元素索引（从 1 开始，用于点击第 n 个重复元素）
         :param tag: HTML 标签名（如 'button', 'input', 'span' 等），用于与 desc 组合匹配
+        :param p_tag: 父元素标签类型（可选）
+        :param p_name: 父元素类名（可选）
+        :param o_tag: 祖父元素标签类型（可选）
+        :param o_name: 祖父元素属性值（如 aria-label）
+        :param d: 额外的注释，没代码逻辑
         :return: None
         """
         self.wait_time()
+
+        # 如果 auto 参数未提供，则从配置文件读取默认值
+        if auto is None:
+            auto = DATA_PATHS.get('auto_generate_xpath', True)
 
         def find_with_exc():
             # 如果传入的是字符串且不是定位器元组，则从 positioning 中获取
@@ -401,7 +457,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
                             # print(f"🎯 使用 XPath 索引：({locator[1]})[{index}]")
 
                     element = wait.until(EC.element_to_be_clickable(locator))
-                    self.scroll_custom(element=element)
+                    self.scroll(element=element)
 
                     if not force_js:
                         element.click()
@@ -428,15 +484,18 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
                             # print(f"📄 首次保存 HTML - URL: {self.driver.current_url}")
                             html_path = self.save_html_code(file_name='elem/auto_generated.html')
 
-                        # 收集 desc 信息（带上 HTML 路径、index 和 tag）
-                        self.collect_desc_info(key_name, desc, html_path, index=index, tag=tag)
+                        # 收集 desc 信息（带上 HTML 路径、index、tag 和父元素、祖父元素信息）
+                        self.collect_desc_info(key_name, desc, html_path, index=index, tag=tag, p_tag=p_tag, p_name=p_name, o_tag=o_tag, o_name=o_name)
 
-                        # 自动生成并更新 XPath（实时保存，传递 index 和 tag）
-                        self.auto_and_update_xpath_realtime(key=key_name, desc=desc, html_path=html_path, index=index, tag=tag)
+                        # 自动生成并更新 XPath（实时保存，传递 index、tag 和父元素、祖父元素信息）
+                        self.auto_and_update_xpath_realtime(key=key_name, desc=desc, html_path=html_path, index=index, tag=tag, p_tag=p_tag, p_name=p_name, o_tag=o_tag, o_name=o_name)
                     elif desc and key_name and not auto:
                         # 不生成定位，但记录 desc 信息
                         pass
                         # print(f"ℹ️  已跳过自动生成 - key: {key_name}, desc: {desc}")
+
+                    # 点击成功后刷新 HTML 源代码
+                    self.refresh_html_source()
 
                     return
 
@@ -451,18 +510,28 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
 
         return self.exc(find_with_exc)
 
-    def input(self, key=None, text=None, desc=None, auto=True, index=1, tag=None):
+    def input(self, key=None, text=None, desc=None, auto=None, index=1, tag=None, p_tag=None, p_name=None, o_tag=None, o_name=None, d=None):
         """
         在指定元素中输入文本，并等待其可点击
         :param key: 元素定位器 (By, value) 或定位器列表，或元素 key 字符串
         :param text: 输入的文本
         :param desc: 注解以及截图的名称（可选，未提供时自动生成）
-        :param auto: 是否自动生成并更新定位（默认 True，但只在有 HTML 时生效）
-        :param index: 元素索引（从 1 开始，用于在第几个重复元素中输入）
+        :param auto: 是否自动生成并更新定位（默认从 settings.py 读取，也可手动覆盖）
+        :param index: 元素索引（从 1 开始，用于在第 n 个重复元素中输入）
         :param tag: HTML 标签名（如 'input', 'textarea' 等），用于与 desc 组合匹配
+        :param p_tag: 父元素标签类型（可选）
+        :param p_name: 父元素类名（可选）
+        :param o_tag: 祖父元素标签类型（可选）
+        :param o_name: 祖父元素属性值（如 aria-label）
+        :param d: 额外的注释，没代码逻辑
         :return: None
         """
         self.wait_time()
+
+        # 如果 auto 参数未提供，则从配置文件读取默认值
+        if auto is None:
+            auto = DATA_PATHS.get('auto_generate_xpath', True)
+
         # 如果传入的是字符串且不是定位器元组，则从 positioning 中获取
         if isinstance(key, str) and not key.startswith(('//', '/', 'xpath=', '(')):
             selector_value = self.positioning.get(key)
@@ -517,11 +586,11 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
                         # print(f"📄 首次保存 HTML - URL: {self.driver.current_url}")
                         html_path = self.save_html_code(file_name='elem/auto_generated.html')
 
-                    # 收集 desc 信息（带上 HTML 路径、index 和 tag）
-                    self.collect_desc_info(key_name, desc, html_path, index=index, tag=tag)
+                    # 收集 desc 信息（带上 HTML 路径、index、tag 和父元素、祖父元素信息）
+                    self.collect_desc_info(key_name, desc, html_path, index=index, tag=tag, p_tag=p_tag, p_name=p_name, o_tag=o_tag, o_name=o_name)
 
-                    # 自动生成并更新 XPath（实时保存，传递 index 和 tag）
-                    self.auto_and_update_xpath_realtime(key=key_name, desc=desc, html_path=html_path, index=index, tag=tag)
+                    # 自动生成并更新 XPath（实时保存，传递 index、tag 和父元素、祖父元素信息）
+                    self.auto_and_update_xpath_realtime(key=key_name, desc=desc, html_path=html_path, index=index, tag=tag, p_tag=p_tag, p_name=p_name, o_tag=o_tag, o_name=o_name)
                 elif desc and key_name and not auto:
                     # 不生成定位，但记录 desc 信息
                     pass
@@ -538,308 +607,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
         error_msg = f"无法在任何提供的元素中输入文本：{selector_item_locator}"
         raise RuntimeError(error_msg)
 
-    def generate_xpath_from_desc(self, desc_text, html_file_path=None, index=1, tag=None):
-        """
-        通过 desc 参数的文本绝对匹配 HTML 代码中的对应文本，找到标签位置并生成定位
-        支持处理重复元素，可返回所有匹配或指定索引的元素
-        兼容处理：自动过滤文本前后的引号、空白字符、HTML 注释
-        :param desc_text: desc 参数文本
-        :param html_file_path: HTML 文件路径
-        :param index: 元素索引（从 1 开始，用于生成带括号的索引格式）
-        :param tag: HTML 标签名（如 'button', 'input' 等），用于与 desc 组合匹配（可选）
-        :return: 生成的定位列表 [XPath, CSS, XPath 绝对路径，XPath(and 逻辑)]，如果有多个匹配，返回所有匹配的列表
-        """
-        try:
-            if html_file_path is None:
-                if not desc_collector:
-                    raise FileNotFoundError("未找到已保存的 HTML 文件，请先调用 save_html_code 方法")
-                html_file_path = desc_collector[-1].get('html_path')
-
-            if not os.path.exists(html_file_path):
-                raise FileNotFoundError(f"HTML 文件不存在：{html_file_path}")
-
-            soup = self._get_soup_from_file(html_file_path)
-            target_elements = []
-
-            # 预处理 desc_text：去除前后引号和空白字符
-            desc_text_clean = desc_text.strip().strip('"').strip("'").strip()
-
-            # 策略 1: 精确匹配文本 + 标签名（如果提供了 tag）
-            if tag:
-                tag_lower = tag.lower()
-                for element in soup.find_all(tag_lower):
-                    # 获取元素的文本内容
-                    text_content = element.get_text(strip=True)
-                    if not text_content:
-                        continue
-
-                    elem_text_raw = text_content
-                    elem_text_clean = elem_text_raw.strip('"').strip("'").strip()
-                    elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
-
-                    if elem_text_raw == desc_text or elem_text_clean == desc_text_clean or elem_text_no_comment == desc_text_clean:
-                        target_elements.append(element)
-
-            if not target_elements:
-                # 策略 2: 精确匹配文本（不限制标签名）
-                for element in soup.find_all(string=True):
-                    elem_text_raw = element.strip()
-                    elem_text_clean = elem_text_raw.strip('"').strip("'").strip()
-                    elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
-
-                    if elem_text_raw == desc_text or elem_text_clean == desc_text_clean or elem_text_no_comment == desc_text_clean:
-                        # 如果指定了 tag，验证父级标签是否匹配
-                        if tag:
-                            parent = element.parent
-                            if parent and parent.name and parent.name.lower() == tag_lower:
-                                target_elements.append(parent)
-                        else:
-                            target_elements.append(element.parent)
-
-            if not target_elements:
-                # 策略 3: 部分匹配文本 + 标签名
-                if tag:
-                    tag_lower = tag.lower()
-                    for element in soup.find_all(tag_lower):
-                        text_content = element.get_text(strip=True)
-                        if not text_content:
-                            continue
-
-                        elem_text_clean = text_content.strip('"').strip("'").strip()
-                        elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
-
-                        if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
-                            target_elements.append(element)
-
-            if not target_elements:
-                # 策略 4: 部分匹配文本（不限制标签名）
-                for element in soup.find_all(string=True):
-                    elem_text_clean = element.strip().strip('"').strip("'").strip()
-                    elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
-
-                    if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
-                        if tag:
-                            parent = element.parent
-                            if parent and parent.name and parent.name.lower() == tag_lower:
-                                target_elements.append(parent)
-                        else:
-                            target_elements.append(element.parent)
-
-            if not target_elements:
-                # 策略 5: 查找 placeholder + 标签名
-                if tag:
-                    tag_lower = tag.lower()
-                    if tag_lower in ['input', 'textarea']:
-                        for tag in [tag_lower]:
-                            target_elements_placeholder = soup.find_all(tag, attrs={'placeholder': lambda x: x and desc_text in x})
-                            target_elements.extend(target_elements_placeholder)
-
-                            if not target_elements:
-                                target_element = soup.find(tag, attrs={'value': lambda x: x and desc_text in x})
-                                if target_element:
-                                    target_elements.append(target_element)
-
-            if not target_elements:
-                # 策略 6: 查找 button/a 标签 + 标签名
-                if tag:
-                    tag_lower = tag.lower()
-                    if tag_lower in ['button', 'a']:
-                        all_buttons = soup.find_all(tag_lower)
-                        for idx, elem in enumerate(all_buttons):
-                            btn_text = elem.get_text(strip=True)
-                            if not btn_text:
-                                continue
-
-                            btn_text_clean = btn_text.strip('"').strip("'").strip()
-                            btn_text_no_comment = re.sub(r'<!--.*?-->', '', btn_text_clean, flags=re.DOTALL).strip()
-
-                            if btn_text == desc_text or btn_text_clean == desc_text_clean or btn_text_no_comment == desc_text_clean:
-                                target_elements.append(elem)
-
-            if not target_elements:
-                # 策略 7: 模糊匹配 + 标签名
-                if tag:
-                    tag_lower = tag.lower()
-                    elements = soup.find_all(tag_lower)
-                    for elem in elements:
-                        text = elem.get_text(strip=True)
-                        if not text:
-                            continue
-
-                        text_clean = text.strip('"').strip("'").strip()
-                        text_no_comment = re.sub(r'<!--.*?-->', '', text_clean, flags=re.DOTALL).strip()
-
-                        if text and (desc_text in text or desc_text_clean in text_clean or desc_text_clean in text_no_comment):
-                            target_elements.append(elem)
-                            break
-
-            if not target_elements:
-                # 策略 8: 正则表达式匹配（兼容引号）+ 标签名
-                if tag:
-                    tag_lower = tag.lower()
-                    escaped_text = re.escape(desc_text_clean)
-                    pattern = r'^\s*["\']?' + escaped_text + r'["\']?\s*$'
-                    for element in soup.find_all(tag_lower, string=re.compile(pattern)):
-                        if element and hasattr(element, 'parent'):
-                            target_elements.append(element.parent)
-
-            if not target_elements:
-                # 策略 9: 遍历所有元素 + 标签名验证
-                for element in soup.find_all(True):
-                    text_content = element.get_text(strip=True)
-                    if not text_content:
-                        continue
-
-                    text_clean = text_content.strip('"').strip("'").strip()
-                    text_no_comment = re.sub(r'<!--.*?-->', '', text_clean, flags=re.DOTALL).strip()
-
-                    if text_content == desc_text or text_clean == desc_text_clean or text_no_comment == desc_text_clean:
-                        if tag:
-                            if element.name and element.name.lower() == tag_lower:
-                                target_elements.append(element)
-                        else:
-                            target_elements.append(element)
-
-            if not target_elements:
-                # 策略 10: 使用 Selenium 验证 + 标签名
-                if tag:
-                    tag_lower = tag.lower()
-                    xpath = f'//{tag_lower}[normalize-space()="{desc_text_clean}"]'
-                else:
-                    xpath = f'//*[normalize-space()="{desc_text_clean}"]'
-                try:
-                    from selenium.webdriver.common.by import By
-                    elements = self.driver.find_elements(By.XPATH, xpath)
-                    if elements:
-                        print(f"   ✅ Selenium 找到 {len(elements)} 个元素")
-                        for elem in elements:
-                            elem_html = elem.get_attribute('outerHTML')
-                            soup_elem = BeautifulSoup(elem_html, 'html.parser')
-                            if soup_elem:
-                                target_elements.append(soup_elem)
-
-                        print(f"✅ 步骤 10 匹配成功 - 找到 {len(target_elements)} 个元素")
-                except Exception as e:
-                    print(f"   ⚠️  XPath 查找失败：{e}")
-
-            if not target_elements:
-                # 策略 11: 优先匹配带有特定 class 的元素 + 标签名
-                for element in soup.find_all(True):
-                    text_content = element.get_text(strip=True)
-                    if not text_content:
-                        continue
-
-                    text_clean = text_content.strip('"').strip("'").strip()
-                    text_no_comment = re.sub(r'<!--.*?-->', '', text_clean, flags=re.DOTALL).strip()
-
-                    if text_no_comment == desc_text_clean and element.has_attr('class'):
-                        class_str = ' '.join(element.get('class', []))
-                        if any(keyword in class_str for keyword in ['radio', 'checkbox', 'button', 'inner']):
-                            if tag:
-                                if element.name and element.name.lower() == tag_lower:
-                                    target_elements.append(element)
-                                    break
-                            else:
-                                target_elements.append(element)
-                                break
-
-            if not target_elements:
-                print(f"\n❌ 警告：未在 HTML 中找到包含文本 '{desc_text}' 元素" + (f" (标签名：{tag})" if tag else ""))
-                return ['', '', '', '']
-
-            # 打印调试信息
-            if index is not None:
-                print(f"📍 找到 {len(target_elements)} 个匹配元素，需要获取第 {index} 个")
-
-            # 构建最终结果
-            indexed_xpaths = []
-            for idx, elem in enumerate(target_elements, 1):
-                css = self._build_css(elem)
-                xpath_absolute = self._build_absolute_xpath(elem)
-                xpath_context = self._build_relative_xpath_with_context(elem)
-
-                # 构建基础 XPath（已包含 [1] 索引）
-                base_xpath_raw = self._build_xpath(elem)
-
-                # 当有多个匹配元素时，替换最外层的索引
-                if len(target_elements) > 1:
-                    # 移除末尾的 [1]，替换为当前索引
-                    if COMPILED_PATTERNS['xpath_index'].search(base_xpath_raw):
-                        # '(//xxx)[1]' → '(//xxx)[2]'
-                        xpath_with_index = COMPILED_PATTERNS['xpath_index'].sub(f'[{idx}]', base_xpath_raw)
-                    else:
-                        xpath_with_index = f"({base_xpath_raw})[{idx}]"
-                else:
-                    # 唯一元素，保留 [1]
-                    xpath_with_index = base_xpath_raw
-
-                indexed_xpaths.append({
-                    'index': idx,
-                    'xpath': xpath_with_index,
-                    'css': css,
-                    'xpath_absolute': xpath_absolute,
-                    'xpath_context': xpath_context,
-                    'element': elem
-                })
-
-            # 如果指定了 index 参数，强制返回对应索引的元素
-            if index is not None:
-                if index <= 0:
-                    raise ValueError(f"index 参数必须大于 0，当前值：{index}")
-
-                if index > len(target_elements):
-                    raise IndexError(
-                        f"⚠️  索引超出范围：需要第 {index} 个元素，但只找到 {len(target_elements)} 个匹配元素\n"
-                        f"   desc: '{desc_text}'\n"
-                        f"   tag: {tag}\n"
-                        f"   HTML 文件：{html_file_path}"
-                    )
-
-                elem_info = indexed_xpaths[index - 1]
-                print(f"✅ 返回第 {index} 个元素的定位：{elem_info['xpath']}")
-
-                global _multi_element_cache
-                _multi_element_cache = {
-                    'desc': desc_text,
-                    'tag': tag,
-                    'elements': indexed_xpaths,
-                    'timestamp': time.time()
-                }
-
-                return [
-                    elem_info['xpath'],
-                    elem_info['css'],
-                    elem_info['xpath_absolute'],
-                    elem_info['xpath_context']
-                ]
-
-            # 未指定 index 参数时，返回第一个元素
-            first_elem_info = indexed_xpaths[0]
-
-            xpath_to_return = first_elem_info['xpath']
-            css_to_return = first_elem_info['css']
-            xpath_abs_to_return = first_elem_info['xpath_absolute']
-            xpath_ctx_to_return = first_elem_info['xpath_context']
-
-            _multi_element_cache = {
-                'desc': desc_text,
-                'tag': tag,
-                'elements': indexed_xpaths,
-                'timestamp': time.time()
-            }
-
-            return [
-                xpath_to_return,
-                css_to_return,
-                xpath_abs_to_return,
-                xpath_ctx_to_return
-            ]
-
-        except Exception as e:
-            print(f"生成定位失败：{str(e)}")
-            raise
-
-    def scroll_custom(self, element):
+    def scroll(self, element):
         """
         滚动到指定元素
         :param element: 元素定位器 (By, value)、定位器列表、元素 key 字符串，或 WebElement 对象
@@ -977,6 +745,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
 
     def update_and_modify_the_imei(self, file_type, row=2, column=3):
         """
+        新增菜单单专用
         更新 Excel 文件中的字段数据
         修改 imei 号
         """
@@ -1136,7 +905,7 @@ class BasePage(BaseRandomMixin, BaseSmartPositioning):
             # 使用 cache_assert 目录
             cache_path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                'cache_assert'
+                'cache_parameters'
             )
             os.makedirs(cache_path, exist_ok=True)
 
@@ -1205,7 +974,7 @@ class ImportDataEdit(BasePage, InitializeParams):
         if data_type not in ['imei', 'articles_no']:
             raise ValueError(f"不支持的数据类型：{data_type}")
         kwargs = {k: v for k, v in {'i': i, 'j': j}.items() if v is not None}
-        res = self.pc.inventory_list_data(**kwargs)
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(**kwargs)
         number = res[0][data_type]
         self.copy(number)
         return self.update_excel_with_number(file_type, number, row=row, column=column)
@@ -1218,7 +987,7 @@ class ImportDataEdit(BasePage, InitializeParams):
         :param row: 写入的行号，默认为 2
         :param column: 写入的列号，默认为 1
         """
-        articles_no = self.pc.attachment_inventory_list_data(i='2')[0]['articlesNo']
+        articles_no = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i='2')[0]['articlesNo']
         self.copy(articles_no)
         self.update_excel_with_number(file_type, articles_no, row=row, column=column)  # 更新 Excel
         return articles_no  # 返回物品编号
@@ -1247,4 +1016,3 @@ def reset_after_execution(func):
             raise e
 
     return wrapper
-

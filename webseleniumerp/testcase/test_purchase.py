@@ -3,837 +3,1365 @@ import unittest
 from common.base_case import BaseCase
 from common.decorators import cached
 from common.import_case import *
-from config.constant import CON
+from config.constant import DICT_DATA
 from config.user_info import INFO
 
 
-class TestPurchaseAdd(BaseCase, unittest.TestCase):
+class TestrrPjGZUY(BaseCase, unittest.TestCase):
     """商品采购|采购管理|新增采购单"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseAddRequest()
+            return purchase_r.ZTKvMx4gs4()
         else:
-            return purchase_p.PurchaseAddPages(self.driver)
+            return purchase_p.Yum9T9OO7WP(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0new_purchase_order_unpaid_journey(self):
-        """[新增]-苹果手机-未付款在路上-单个物品创建采购单"""
+    def test_0LTMkAl3mr9wdiYoATjak(self):
+        """[新增]-苹果手机-未付款在路上-物品创建采购单"""
         case = self.common_operations(login='main')
-        case.new_purchase_order_unpaid_journey()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已发货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_new_purchase_order_unpaid_warehouse(self):
-        """[新增]-苹果手机-未付款入库-单个物品创建采购单"""
-        case = self.common_operations()
-        case.new_purchase_order_unpaid_warehouse()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_new_purchase_order_has_not_been_shipped(self):
-        """[新增]-苹果手机-未付款未发货-单个物品创建采购单"""
-        case = self.common_operations()
-        case.new_purchase_order_has_not_been_shipped()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='未发货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('ui')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_create_batch_order(self):
-        """[新增]-苹果手机-已付款已到货-多个物品创建采购单"""
-        case = self.common_operations()
-        case.create_batch_order()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_new_purchase_order_paid_warehouse(self):
-        """[新增]-苹果手机-已付款已到货-单个物品创建采购单"""
-        case = self.common_operations()
-        case.new_purchase_order_paid_warehouse()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('ui')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_import_purchase_order(self):
-        """[导入]-采购物品导入-创建采购单"""
-        case = self.common_operations()
-        case.import_purchase_order()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('ui')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_transfer_import_create_a_purchase_order(self):
-        """[导入]-转转导入-创建采购单"""
-        case = self.common_operations()
-        case.transfer_import_create_a_purchase_order()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('ui')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_import_and_adjust_price(self):
-        """[批量调价]-调价后创建采购单"""
-        case = self.common_operations()
-        case.import_and_adjust_price()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已发货')]
+        case.LTMkAl3mr9wdiYoATjak()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已发货')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_create_and_transfer_order(self):
+    def test_N4CQUFEbAhA6O3SqB3ap(self):
+        """[新增]-苹果手机-未付款入库-物品创建采购单"""
+        case = self.common_operations()
+        case.N4CQUFEbAhA6O3SqB3ap()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_UXWWtbpIHPQ9A7QMbtc9(self):
+        """[新增]-苹果手机-未付款未发货-物品创建采购单"""
+        case = self.common_operations()
+        case.UXWWtbpIHPQ9A7QMbtc9()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='未发货')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_Iv2a1sAnyG1YRbkyU84V(self):
+        """[新增]-苹果手机-部分已付款入库-物品创建采购单"""
+        case = self.common_operations()
+        case.Iv2a1sAnyG1YRbkyU84V()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_W8Tva7jFU0AkEqegXRnE(self):
+        """[新增]-苹果手机-全部已付款入库-物品创建采购单"""
+        case = self.common_operations()
+        case.W8Tva7jFU0AkEqegXRnE()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('ui')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_tkqeuQNKA9C86c8AQuHz(self):
+        """[导入]-采购物品导入-创建采购单"""
+        case = self.common_operations()
+        case.tkqeuQNKA9C86c8AQuHz()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_K2g9gJbSU76WxYKMFL1A(self):
         """[新增]-已付款入库-创建采购单-入库并移交订单原因是质检"""
         case = self.common_operations()
-        case.create_and_transfer_order()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已收货')]
+        case.K2g9gJbSU76WxYKMFL1A()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已收货')]
         self.assert_all(*res)
 
 
-class TestPurchaseAddTwo(TestPurchaseAdd):
+class TestgSsguYTq(BaseCase, unittest.TestCase):
     """商品采购|采购管理|新增采购单"""
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_create_with_new_supplier(self):
+    def test_0BB4DySLMjyQ0zFNVq9sj(self):
         """[+-创建供应商]-选择供应商生成采购单"""
         case = self.common_operations(login='idle')
-        case.create_with_new_supplier()
-        res = [lambda: self.pc.purchase_order_list_assert(headers='idle', purchaseTime='now', payStateStr='部分付款', stateStr='已收货')]
+        case.BB4DySLMjyQ0zFNVq9sj()
+        res = [lambda: self.pc.LXtfeb(headers='idle', purchaseTime='now', payStateStr='部分付款', stateStr='已收货')]
         self.assert_all(*res)
 
 
-class TestPurchaseAfterSaleList(BaseCase, unittest.TestCase):
+class TestGVVLVGSZ(BaseCase, unittest.TestCase):
     """商品采购|采购售后管理|采购售后列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseAfterSaleListRequest()
+            return purchase_r.N47ymrezM8()
         else:
-            return purchase_p.PurchaseAfterSaleListPages(self.driver)
+            return purchase_p.Sd1EWjfzgR1(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0purchase_barter_route(self):
+    def test_0tTRW133mzbKPeCd8m40H(self):
         """[采购售后中tab]-换货-在途"""
-        self.pre.operations(data=['FA1', 'HC6', 'HG1'])
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations(login='main')
-        case.purchase_barter_route()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购换货')]
+        case.tTRW133mzbKPeCd8m40H()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', saleStateStr='采购换货', id=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_barter_warehousing(self):
+    def test_J5gqPGgMCU66iUGcjVkX(self):
         """[采购售后中tab]-换货-直接入库"""
-        self.pre.operations(data=['FA1', 'HC6', 'HG1'])
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_barter_warehousing()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购换货')]
+        case.J5gqPGgMCU66iUGcjVkX()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', saleStateStr='采购换货', id=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_refund_single(self):
+    def test_phfsqPqFesHVfgjiWNer(self):
         """[采购售后中tab]-退货退款-未结算"""
-        self.pre.operations(data=['FA1', 'HC6', 'HG1'])
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_refund_single()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购退货退款')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_purchase_refuse_route(self):
-        """[采购售后中tab]-拒退退回-在途"""
-        self.pre.operations(data=['FA1', 'HC6', 'HG1'])
-        case = self.common_operations()
-        case.purchase_refuse_route()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购拒退')]
+        case.phfsqPqFesHVfgjiWNer()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', saleStateStr='采购退货退款', id=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_refuse_warehousing(self):
+    def test_jVgd53LQsvnwXfUXRRgq(self):
+        """[采购售后中tab]-退货退款-已结算"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
+        case = self.common_operations()
+        case.jVgd53LQsvnwXfUXRRgq()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', saleStateStr='采购退货退款', id=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_Z4SuqHs6Y2LaV2QZa5Ir(self):
+        """[采购售后中tab]-拒退退回-在途"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
+        case = self.common_operations()
+        case.Z4SuqHs6Y2LaV2QZa5Ir()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', saleStateStr='采购拒退', id=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_pHj61cDnzOd8FgCqMVW5(self):
         """[采购售后中tab]-拒退退回-入库"""
-        self.pre.operations(data=['FA1', 'HC6', 'HG1'])
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_refuse_warehousing()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购拒退')]
+        case.pHj61cDnzOd8FgCqMVW5()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', saleStateStr='采购拒退', id=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_imei(self):
-        """[搜索]-imei查询"""
+    def test_OrOE57gtX6xtqaXXMsPi(self):
+        """[导出]"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_imei()
-        obj = cached('imei')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', imei=obj)]
+        case.OrOE57gtX6xtqaXXMsPi()
+        res = [lambda: self.pc.T241Se(name='采购待售后列表数据导出', state=2, createTime='now')]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_supplier_id(self):
-        """[搜索]-supplier_id查询"""
+    def test_Bht5FveIIJwsO1nzrSou(self):
+        """[搜索]全部-imei"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD', 'O09i'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_supplier_id()
-        obj = cached('supplierId')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', supplierId=obj)]
+        case.Bht5FveIIJwsO1nzrSou()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', imei=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_platform_articles_no(self):
-        """[搜索]-platform_articles_no查询"""
+    def test_CfF5rsovr6q1eXvK89E3(self):
+        """[搜索]采购售后中-imei"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_platform_articles_no()
-        obj = cached('platformArticlesNo')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', platformArticlesNo=obj)]
+        case.CfF5rsovr6q1eXvK89E3()
+        res = [lambda: self.pc.BtoGb1(i=2, createTime='now', imei=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_sale_state(self):
-        """[搜索]-sale_state查询"""
+    def test_k39WRkcNXmAaALC0Vslr(self):
+        """[搜索]全部-采购供应商"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD', 'O09i'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_sale_state()
-        obj = cached('saleState')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleState=obj)]
+        case.k39WRkcNXmAaALC0Vslr()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', supplierId=INFO['main_supplier_id'], imei=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_sale_no(self):
-        """[搜索]-sale_no查询"""
+    def test_NqFHiIZhsGNUUdvC6h2P(self):
+        """[搜索]采购售后中-采购供应商"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_sale_no()
-        obj = cached('saleNo')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleNo=obj)]
+        case.NqFHiIZhsGNUUdvC6h2P()
+        res = [lambda: self.pc.BtoGb1(i=2, createTime='now', supplierId=INFO['main_supplier_id'], imei=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_logistics_no(self):
-        """[搜索]-logistics_no查询"""
+    def test_WGIFhMXGjLDYNdHFNmZ6(self):
+        """[搜索]全部-平台物品编号"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD', 'O09i'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_logistics_no()
-        obj = cached('logisticsNo')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', logisticsNo=obj)]
+        case.WGIFhMXGjLDYNdHFNmZ6()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', platformArticlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_date(self):
-        """[搜索]-date查询"""
+    def test_nwM5r4G3gxMKFkY7vCkS(self):
+        """[搜索]采购售后中-平台物品编号"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_date()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now')]
+        case.nwM5r4G3gxMKFkY7vCkS()
+        res = [lambda: self.pc.BtoGb1(i=2, createTime='now', platformArticlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_sale_no(self):
-        """[搜索]-售后订单号查询"""
+    def test_SdxPSZvsxDBQFJmoq0sn(self):
+        """[搜索]全部-售后订单号"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD', 'O09i'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_sale_no()
-        obj = cached('saleNo')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleNo=obj)]
+        case.SdxPSZvsxDBQFJmoq0sn()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', billNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purchase_after_list_search_by_logistics_no(self):
-        """[搜索]-出库物流单号查询"""
+    def test_xKOkW569Bn2xL0RXmnEZ(self):
+        """[搜索]采购售后中-售后订单号"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
         case = self.common_operations()
-        case.purchase_after_list_search_by_logistics_no()
-        obj = cached('logisticsNo')
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', logisticsNo=obj)]
+        case.xKOkW569Bn2xL0RXmnEZ()
+        res = [lambda: self.pc.BtoGb1(i=2, createTime='now', saleNo=cached('i'))]
         self.assert_all(*res)
 
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_XEQ3tAQnMxJ6mC5Z3zSu(self):
+        """[搜索]全部-创建时间"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD', 'O09i'])
+        case = self.common_operations()
+        case.XEQ3tAQnMxJ6mC5Z3zSu()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', billNo=cached('i'))]
+        self.assert_all(*res)
 
-class TestPurchaseAwaitAfterSaleList(BaseCase, unittest.TestCase):
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_PhchxOyoBh6ZBZxAR8B5(self):
+        """[搜索]采购售后中-创建时间"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
+        case = self.common_operations()
+        case.PhchxOyoBh6ZBZxAR8B5()
+        res = [lambda: self.pc.BtoGb1(i=2, createTime='now', saleNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_cJyOkQvyQsMExyu5Vt45(self):
+        """[搜索]全部-出库物流单号"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD', 'O09i'])
+        case = self.common_operations()
+        case.cJyOkQvyQsMExyu5Vt45()
+        res = [lambda: self.pc.BtoGb1(i=1, createTime='now', logisticsNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_y4THlC3ekhRh4iae3DtD(self):
+        """[搜索]采购售后中-出库物流单号"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD'])
+        case = self.common_operations()
+        case.y4THlC3ekhRh4iae3DtD()
+        res = [lambda: self.pc.BtoGb1(i=2, createTime='now', logisticsNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_dhBbO6TlYXaCCyMti4Sf(self):
+        """[搜索]-售后状态"""
+        if self.auto_type == 'ui':
+            self.pre.operations(data=['ekBx', 'Fv9l', 'O09i'])
+            case = self.common_operations()
+            case.dhBbO6TlYXaCCyMti4Sf()
+            res = [lambda: self.pc.BtoGb1(i=2, createTime='now', saleStateStr='采购退货退款', billNo=cached('i'))]
+            self.assert_all(*res)
+        else:
+            self.pre.operations(data=['ekBx', 'Fv9l', 'v6AD',
+                                      'ekBx', 'Fv9l', 'v6AD', 'O09i',
+                                      'ekBx', 'Fv9l', 'v6AD', 'LuOO',
+                                      'ekBx', 'Fv9l', 'v6AD', 'gfHM',
+                                      'ekBx', 'Fv9l', 'v6AD', 'vQ7r'])
+            for status in DICT_DATA['j']:
+                case = self.common_operations()
+                case.dhBbO6TlYXaCCyMti4Sf(status)
+                res = [lambda s=status: self.pc.BtoGb1(j=s, saleState=s)]
+                self.assert_all(*res)
+
+
+class TestiJ167dNl(BaseCase, unittest.TestCase):
     """商品采购|采购售后管理|待售后列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseAwaitAfterSaleListRequest()
+            return purchase_r.WdU75jpBUw()
         else:
-            return purchase_p.PurchaseAwaitAfterSaleListPages(self.driver)
+            return purchase_p.ZrnG6O3xUlf(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0cancel_purchase_after_sale(self):
+    def test_0AObSRgmEGYVIgbuCw6h4(self):
         """[取消售后]-确认取消"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations(login='main')
-        case.cancel_purchase_after_sale()
-
-    @BaseCase.auto('all')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_purchase_refund_difference_not_settled(self):
-        """[售后操作]-采购补差-未结算确认"""
-        self.pre.operations(data=['FA1', 'HC6'])
-        case = self.common_operations()
-        case.purchase_refund_difference_not_settled()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购退差价')]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_purchase_refund_difference_settled(self):
-        """[售后操作]-采购补差-已结算确认"""
-        self.pre.operations(data=['FA1', 'HC6'])
-        case = self.common_operations()
-        case.purchase_refund_difference_settled()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购退差价')]
+        case.AObSRgmEGYVIgbuCw6h4()
+        res = [lambda: self.pc.XtWLz8(data='b', info='取消物品采购售后状态,取消原因：备注')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_delivery(self):
-        """[售后操作]-售后出库-普通快递-无"""
-        self.pre.operations(data=['FA1', 'HC6'])
+    def test_Zd7znz6pdWwciZ4zhv18(self):
+        """[售后操作]-采购补差-未结算"""
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_delivery()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购售后中')]
+        case.Zd7znz6pdWwciZ4zhv18()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购退差价', articlesNo=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_outbound_return_refund_unsettled(self):
+    def test_Mlllk8zWuMbryTvo07YA(self):
+        """[售后操作]-采购补差-已结算"""
+        self.pre.operations(data=['ekBx', 'Fv9l'])
+        case = self.common_operations()
+        case.Mlllk8zWuMbryTvo07YA()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购退差价', articlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_EXJN6Kfs99I6kkD0lNX2(self):
         """[售后操作]-售后出库-普通快递-退货退款-未结算"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_outbound_return_refund_unsettled()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购退货退款')]
+        case.EXJN6Kfs99I6kkD0lNX2()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购退货退款', articlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_outbound_return_refund_settled(self):
+    def test_r3no6VL2SjqT3qCMSXsF(self):
         """[售后操作]-售后出库-普通快递-退货退款-已结算"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_outbound_return_refund_settled()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购退货退款')]
+        case.r3no6VL2SjqT3qCMSXsF()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购退货退款', articlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_delivery_refusal_to_return_in_transit(self):
+    def test_WCIspC62VSOcHhuvk6oH(self):
         """[售后操作]-售后出库-普通快递-拒退退回-在途"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_delivery_refusal_to_return_in_transit()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购拒退')]
+        case.WCIspC62VSOcHhuvk6oH()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购拒退', articlesNo=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_outbound_refuse_to_return_warehousing(self):
+    def test_bRT8qBZ1qzcsOegIVUiL(self):
         """[售后操作]-售后出库-普通快递-拒退退回-直接入库"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_outbound_refuse_to_return_warehousing()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购拒退')]
+        case.bRT8qBZ1qzcsOegIVUiL()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购拒退', articlesNo=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_delivery_exchange_in_transit(self):
+    def test_p2NxayPBZqnmytlhtjEy(self):
         """[售后操作]-售后出库-普通快递-换货-在途"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_delivery_exchange_in_transit()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购换货')]
+        case.p2NxayPBZqnmytlhtjEy()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购换货', articlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_after_sales_outbound_replacement_warehousing(self):
+    def test_HR074UMjBJ9KgEckp0hD(self):
         """[售后操作]-售后出库-普通快递-换货-直接入库"""
-        self.pre.operations(data=['FA1', 'HC6'])
+        self.pre.operations(data=['ekBx', 'Fv9l'])
         case = self.common_operations()
-        case.after_sales_outbound_replacement_warehousing()
-        res = [lambda: self.pc.purchase_after_sales_list_assert(createTime='now', saleStateStr='采购换货')]
+        case.HR074UMjBJ9KgEckp0hD()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购换货', articlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_iWItsJtwj5CLc0GYimGA(self):
+        """[批量售后]-退差价"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'ekBx', 'Fv9l'])
+        case = self.common_operations()
+        case.iWItsJtwj5CLc0GYimGA()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购退差价', articlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_uq01dOZeO9ByThGMfj4w(self):
+        """[批量售后]-售后出库-普通快递-无"""
+        self.pre.operations(data=['ekBx', 'Fv9l', 'ekBx', 'Fv9l'])
+        case = self.common_operations()
+        case.uq01dOZeO9ByThGMfj4w()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购售后中', articlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_mtmZ9ns5g8nanblESlTR(self):
+        """[售后操作]-售后出库-普通快递-无"""
+        self.pre.operations(data=['ekBx', 'Fv9l'])
+        case = self.common_operations()
+        case.mtmZ9ns5g8nanblESlTR()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购售后中', articlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_gXtFuS2Icw1FTTfLvWC0(self):
+        """[售后操作]-售后出库-快递易-无"""
+        self.pre.operations(data=['ekBx', 'Fv9l'])
+        case = self.common_operations()
+        case.gXtFuS2Icw1FTTfLvWC0()
+        res = [lambda: self.pc.BtoGb1(createTime='now', saleStateStr='采购售后中', articlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_nFSWCuNM4gli2yRB2dwD(self):
+        """[添加物品]-"""
+        self.pre.operations(data=['ekBx', 'Fv9l'])
+        case = self.common_operations()
+        case.nFSWCuNM4gli2yRB2dwD()
+        res = [lambda: self.pc.QPF5WW(purchaseTime='now', articlesState='待采购售后')]
         self.assert_all(*res)
 
 
-class TestPurchaseGoodsReceived(BaseCase, unittest.TestCase):
+class TestHqbVmZqx(BaseCase, unittest.TestCase):
     """商品采购|采购售后管理|待接收物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseGoodsReceivedRequest()
+            return purchase_r.LZnv9DokCX()
         else:
-            return purchase_p.PurchaseGoodsReceivedPages(self.driver)
+            return purchase_p.Am1rGtH5Djz(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0goods_received(self):
-        """[接收]-单个物品接收"""
-        self.pre.operations(data=['FA1', 'HC7'])
+    def test_0kDYL6B67bVRYqDohXGBm(self):
+        """[接收]-物品接收"""
+        self.pre.operations(data=['ekBx', 'nxWZ'])
         case = self.common_operations(login='special')
-        case.goods_received()
-        res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
+        case.kDYL6B67bVRYqDohXGBm()
+        res = [lambda: self.pc.jbliLf(statusStr='已接收', createTime='now'),
+               lambda: self.pc.jbliLf(data='a', articlesNo=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_scan_goods_received(self):
-        """[扫码精确接收]-单个物品接收"""
-        self.pre.operations(data=['FA1', 'HC7'])
+    def test_rf4cDB3LPxVAKj6lhBRy(self):
+        """[扫码精确接收]-物品接收"""
+        self.pre.operations(data=['ekBx', 'nxWZ'])
         case = self.common_operations()
-        case.scan_goods_received()
-        res = [lambda: self.pc.inventory_handover_record_assert(statusStr='已接收', createTime='now')]
+        case.rf4cDB3LPxVAKj6lhBRy()
+        res = [lambda: self.pc.jbliLf(statusStr='已接收', createTime='now'),
+               lambda: self.pc.jbliLf(data='a', articlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_search_by_imei(self):
-        """[搜索]-IMEI查询"""
+    def test_gXbPXTa8tODEWzcuCWKK(self):
+        """[搜索]-imei"""
+        self.pre.operations(data=['ekBx', 'nxWZ'])
         case = self.common_operations()
-        case.search_by_imei()
-        obj = cached('imei')
-        res = [lambda: self.pc.purchase_items_to_be_received_assert(imei=obj, deliveryTime='now')]
+        case.gXbPXTa8tODEWzcuCWKK()
+        res = [lambda: self.pc.k60zWG(imei=cached('i'), deliveryTime='now')]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_search_by_date(self):
-        """[搜索]-移交时间查询"""
+    def test_GK9UcuLcY440l6QirME6(self):
+        """[搜索]-移交时间"""
+        self.pre.operations(data=['ekBx', 'nxWZ'])
         case = self.common_operations()
-        case.search_by_date()
-        res = [lambda: self.pc.purchase_items_to_be_received_assert(deliveryTime='now')]
+        case.GK9UcuLcY440l6QirME6()
+        res = [lambda: self.pc.k60zWG(imei=cached('i'), deliveryTime='now')]
         self.assert_all(*res)
 
 
-class TestPurchaseOrderList(BaseCase, unittest.TestCase):
+class TestymybGFFL(BaseCase, unittest.TestCase):
     """商品采购|采购管理|采购订单列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseOrderListRequest()
+            return purchase_r.G4EaCouJoJ()
         else:
-            return purchase_p.PurchaseOrderListPages(self.driver)
+            return purchase_p.EDzjBdrUqTJ(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0new_purchase_order_refund(self):
+    def test_0V3OaBTTJgYrJQyoMmypY(self):
         """[采购单号]-售后处理-采购仅退款"""
-        self.pre.operations(data=['FA2'])
+        self.pre.operations(data=['XLBD'])
         case = self.common_operations(login='main')
-        case.new_purchase_order_refund()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已取消')]
+        case.V3OaBTTJgYrJQyoMmypY()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已取消', articlesNoList_0=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_logistics_delivery(self):
-        """[物流发货]-发货"""
-        self.pre.operations(data=['FA4'])
+    def test_FxIuRXAgm25KpkG1vYdL(self):
+        """[发货]-"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.logistics_delivery()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已发货')]
+        case.FxIuRXAgm25KpkG1vYdL()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已发货', articlesNoList_0=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_import_items_shipping(self):
+    def test_onkEdLesfyWSOGVCSZdB(self):
+        """[物流发货]-添加物品-发货"""
+        self.pre.operations(data=['MwyC'])
+        case = self.common_operations()
+        case.onkEdLesfyWSOGVCSZdB()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已发货', imei=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('ui')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_IOHuxRCgSyddeY0Uw98C(self):
         """[物流发货]-导入物品-发货"""
-        self.pre.operations(data=['FA4'])
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations(login='main')
-        case.import_items_shipping()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', stateStr='已发货')]
+        case.IOHuxRCgSyddeY0Uw98C()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', stateStr='已发货', imei=cached('i'))]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_receive_goods(self):
+    def test_ZaJnjFDN816Yj39HvvTA(self):
         """[收货]-签收入库"""
-        self.pre.operations(data=['FA2'])
+        self.pre.operations(data=['XLBD'])
         case = self.common_operations()
-        case.receive_goods()
-        res = [lambda: self.pc.inventory_logistics_list_assert(statusStr='已分拣', businessTime='now', sortationTime='now')]
+        case.ZaJnjFDN816Yj39HvvTA()
+        res = [lambda: self.pc.tTzybz(statusStr='已分拣', businessTime='now', sortationTime='now')]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_purchase_number(self):
-        """[搜索]-采购单号查询"""
+    def test_X9AzyILbQOMXUGnTTHIW(self):
+        """[搜索]-编号/IMEI"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.order_list_search_by_purchase_number()
-        obj = cached('orderNo')
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', orderNo=obj)]
+        case.X9AzyILbQOMXUGnTTHIW()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', articlesNoList_0=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_supplier(self):
-        """[搜索]-供应商查询"""
+    def test_UBQunveHStNfKk7VC1MY(self):
+        """[搜索]-采购单号"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.order_list_search_by_supplier()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', supplierId=INFO['main_supplier_id'])]
+        case.UBQunveHStNfKk7VC1MY()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', orderNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_order_state(self):
-        """[搜索]-订单状态查询"""
-        type_ary = DICT_DATA['g']
-        for item in type_ary:
+    def test_CIlgrf4csxjqTWz7KBW8(self):
+        """[搜索]-供应商"""
+        self.pre.operations(data=['MwyC'])
+        case = self.common_operations()
+        case.CIlgrf4csxjqTWz7KBW8()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', orderNo=cached('i'), supplierId=INFO['main_supplier_id'])]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_SEQRfhZPQLSks8OIHSUp(self):
+        """[搜索]-采购单状态"""
+        if self.auto_type == 'ui':
+            self.pre.operations(data=['MwyC'])
             case = self.common_operations()
-            case.order_list_search_by_order_state(item['key'], item['val'])
-            obj = cached('stateStr')
-            res = [lambda: self.pc.purchase_order_list_assert(i=item['key'], stateStr=obj)]
+            case.SEQRfhZPQLSks8OIHSUp()
+            res = [lambda: self.pc.LXtfeb(purchaseTime='now', orderNo=cached('i'), stateStr='未发货')]
             self.assert_all(*res)
+        else:
+            self.pre.operations(data=['ekBx',
+                                      'XLBD',
+                                      'MwyC',
+                                      'XLBD', 'TFma'])
+            for status in DICT_DATA['f']:
+                case = self.common_operations()
+                case.SEQRfhZPQLSks8OIHSUp(status)
+                res = [lambda s=status: self.pc.LXtfeb(i=s, state=s)]
+                self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_imei(self):
-        """[搜索]-imei查询"""
+    def test_RHW76Y60nHIiwxzfeZNR(self):
+        """[搜索]-物流单号"""
+        self.pre.operations(data=['ekBx'])
         case = self.common_operations()
-        case.order_list_search_by_imei()
-        obj = cached('articlesNoList')
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', articlesNoList=obj)]
+        case.RHW76Y60nHIiwxzfeZNR()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', logisticsNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_logistics_no(self):
-        """[搜索]-物流单号查询"""
-        case = self.common_operations()
-        case.order_list_search_by_logistics_no()
-        obj = cached('logisticsNo')
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', logisticsNo=obj)]
-        self.assert_all(*res)
-
-    @BaseCase.auto('api')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_order_list_search_by_pay_state(self):
-        """[搜索]-付款状态查询"""
-        type_ary = DICT_DATA['b']
-        for item in type_ary:
-            case = self.common_operations(item['key'], item['val'])
-            case.order_list_search_by_pay_state()
-            obj = cached('payStateStr')
-            res = [lambda: self.pc.purchase_order_list_assert(j=item['key'], payStateStr=obj)]
+    def test_ZQ8ruPTDvW7q2hXTRV77(self):
+        """[搜索]-付款状态"""
+        if self.auto_type == 'ui':
+            self.pre.operations(data=['MwyC'])
+            case = self.common_operations()
+            case.ZQ8ruPTDvW7q2hXTRV77()
+            res = [lambda: self.pc.LXtfeb(purchaseTime='now', orderNo=cached('i'), payStateStr='已付款')]
             self.assert_all(*res)
+        else:
+            self.pre.operations(data=['MwyC',
+                                      'CFo3',
+                                      'ciS4'])
+            for status in DICT_DATA['b']:
+                case = self.common_operations()
+                case.ZQ8ruPTDvW7q2hXTRV77(status)
+                res = [lambda s=status: self.pc.LXtfeb(j=s, payState=s)]
+                self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_purchase_uid(self):
-        """[搜索]-采购账号查询"""
+    def test_gwoujeJsaB3onqINz3vL(self):
+        """[搜索]-采购时间"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.order_list_search_by_purchase_uid()
-        obj = cached('purchaseUserId')
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', purchaseUserId=obj)]
+        case.gwoujeJsaB3onqINz3vL()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', orderNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_uid(self):
-        """[搜索]-采购人查询"""
+    def test_JB7S4POKRpjesx1Q32J0(self):
+        """[搜索]-采购人"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.order_list_search_by_uid()
-        obj = cached('userId')
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now', userId=obj)]
+        case.JB7S4POKRpjesx1Q32J0()
+        res = [lambda: self.pc.LXtfeb(purchaseTime='now', orderNo=cached('i'), userId=INFO['main_user_id'])]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_order_list_search_by_date(self):
-        """[搜索]-日期查询"""
+    def test_FysimTUmjHi3FisKVbsM(self):
+        """[搜索]-采购单详情-平台物品编号"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.order_list_search_by_date()
-        res = [lambda: self.pc.purchase_order_list_assert(purchaseTime='now')]
+        case.FysimTUmjHi3FisKVbsM()
+        res = [lambda: self.pc.LXtfeb(data='b', purchaseTime='now', platformArticlesNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_KjmhjLfM7YrFQNE6NiZG(self):
+        """[搜索]-采购单详情-imei"""
+        self.pre.operations(data=['MwyC'])
+        case = self.common_operations()
+        case.KjmhjLfM7YrFQNE6NiZG()
+        res = [lambda: self.pc.LXtfeb(data='b', purchaseTime='now', imei=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_D1M3VTxNoTROnlErwIkd(self):
+        """[搜索]-采购单详情-平台订单号"""
+        self.pre.operations(data=['MwyC'])
+        case = self.common_operations()
+        case.D1M3VTxNoTROnlErwIkd()
+        res = [lambda: self.pc.LXtfeb(data='b', purchaseTime='now', platformOrderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_Nu2xob41mVQX0Uwyv77c(self):
+        """[搜索]-采购单详情-序列号"""
+        self.pre.operations(data=['MwyC'])
+        case = self.common_operations()
+        case.Nu2xob41mVQX0Uwyv77c()
+        res = [lambda: self.pc.LXtfeb(data='b', purchaseTime='now', serialNo=cached('i'))]
         self.assert_all(*res)
 
 
-class TestPurchaseSupplierManage(BaseCase, unittest.TestCase):
+class TestXl9vwQbI(BaseCase, unittest.TestCase):
     """商品采购|供应商管理"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseSupplierManageRequest()
+            return purchase_r.FYDICk4EbP()
         else:
-            return purchase_p.PurchaseSupplierManagePages(self.driver)
+            return purchase_p.O5TxXs1xP4q(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0new_supplier(self):
-        """[新增]-平台拍货-默认付款状态"""
+    def test_0h0V1zMfjLKSd4odY9NU2(self):
+        """[新增]-平台拍货-默认付款"""
         case = self.common_operations(login='idle')
-        case.new_supplier()
+        case.h0V1zMfjLKSd4odY9NU2()
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_edit_supplier(self):
+    def test_VUZzvXlURvWP4b43uTRg(self):
+        """[新增]-同行贸易-已付款"""
+        case = self.common_operations()
+        case.VUZzvXlURvWP4b43uTRg()
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_ZwXnGe8s67ZogrbVkpxf(self):
         """[编辑]-修改信息保存"""
         case = self.common_operations()
-        case.edit_supplier()
-        res = [lambda: self.pc.purchase_supplier_manage_assert(headers='idle', updateTime='now')]
+        case.ZwXnGe8s67ZogrbVkpxf()
+        res = [lambda: self.pc.gsWmaV(headers='idle', updateTime='now')]
         self.assert_all(*res)
 
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_AO2AZxYBELIUmcGqLQlG(self):
+        """[搜索]-供应商名称"""
+        case = self.common_operations()
+        case.AO2AZxYBELIUmcGqLQlG()
 
-class TestPurchaseWorkOrder(BaseCase, unittest.TestCase):
+
+class TestniU1fvak(BaseCase, unittest.TestCase):
     """商品采购|采购管理|采购工单"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseWorkOrderRequest()
+            return purchase_r.EE20RTANF9()
         else:
-            return purchase_p.PurchaseWorkOrderPages(self.driver)
+            return purchase_p.YylKNDKVlLq(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0work_order_add(self):
-        """[创建采购工单]"""
+    def test_0rfP03M51AR6P1V5a2zV9(self):
+        """[新建]-采购工单-按合格数量计算"""
         case = self.common_operations(login='main')
-        case.work_order_add()
-        res = [lambda: self.pc.purchase_work_order_assert(stateStr='待开始', createTime='now')]
+        case.rfP03M51AR6P1V5a2zV9()
+        res = [lambda: self.pc.ttqNVt(stateStr='待开始', createTime='now')]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_work_order_edit(self):
-        """[修改采购工单]"""
-        self.pre.operations(data=['FC1'])
+    def test_plgZg761v9pgtz1l53NY(self):
+        """[新建]-采购工单-按合格数量计算"""
         case = self.common_operations()
-        case.work_order_edit()
-        res = [lambda: self.pc.purchase_work_order_assert(stateStr='待开始', updateTime='now')]
+        case.plgZg761v9pgtz1l53NY()
+        res = [lambda: self.pc.ttqNVt(stateStr='待开始', createTime='now')]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_work_order_to_start_the_task(self):
+    def test_pQejvS83KhwLmhztGkIZ(self):
+        """[编辑]采购工单"""
+        self.pre.operations(data=['IcFU'])
+        case = self.common_operations()
+        case.pQejvS83KhwLmhztGkIZ()
+        res = [lambda: self.pc.ttqNVt(stateStr='待开始', updateTime='now', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_H7QZrgxeJPrgyVASQvUy(self):
+        """[编辑]添加特殊工序-报价"""
+        self.pre.operations(data=['IcFU'])
+        case = self.common_operations()
+        case.H7QZrgxeJPrgyVASQvUy()
+        res = [lambda: self.pc.ttqNVt(stateStr='待开始', orderNo=cached('i'), taskProgressList_1_processName='报价')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_hsFfIhIFCLXHb4x2J1CC(self):
+        """[编辑]添加特殊工序-退货"""
+        self.pre.operations(data=['IcFU', 'ZcF1'])
+        case = self.common_operations()
+        case.hsFfIhIFCLXHb4x2J1CC()
+        res = [lambda: self.pc.ttqNVt(stateStr='待开始', orderNo=cached('i'), taskProgressList_2_processName='退货')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_LrMhNar9BE7bRoEWOGFt(self):
+        """[编辑]添加特殊工序-付款"""
+        self.pre.operations(data=['IcFU', 'ZcF1', 'uVt1'])
+        case = self.common_operations()
+        case.LrMhNar9BE7bRoEWOGFt()
+        res = [lambda: self.pc.ttqNVt(stateStr='待开始', orderNo=cached('i'), taskProgressList_3_processName='付款')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_sruAfwpM3knh3URDgVTd(self):
+        """[业务报工]报价"""
+        self.pre.operations(data=['IcFU', 'ZcF1', 'uVt1', 'DoNc', 'YS1c'])
+        case = self.common_operations()
+        case.sruAfwpM3knh3URDgVTd()
+        res = [lambda: self.pc.ttqNVt(stateStr='进行中', updateTime='now', orderNo=cached('i'), taskProgressList_1_processName='报价'),
+               lambda: self.pc.ttqNVt(data='a', processName='报价', payAmount=88.88)]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_IBx6SkNmcqoSeAqgrxkF(self):
+        """[业务报工]退货"""
+        self.pre.operations(data=['IcFU', 'ZcF1', 'uVt1', 'DoNc', 'YS1c'])
+        case = self.common_operations()
+        case.IBx6SkNmcqoSeAqgrxkF()
+        res = [lambda: self.pc.ttqNVt(stateStr='进行中', updateTime='now', orderNo=cached('i'), taskProgressList_2_processName='退货'),
+               lambda: self.pc.ttqNVt(data='a', processName='退货', returnNum=5)]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_vkKizyCO3AYcLb15f5j2(self):
+        """[业务报工]付款"""
+        self.pre.operations(data=['IcFU', 'ZcF1', 'uVt1', 'DoNc', 'YS1c'])
+        case = self.common_operations()
+        case.vkKizyCO3AYcLb15f5j2()
+        res = [lambda: self.pc.ttqNVt(stateStr='进行中', updateTime='now', orderNo=cached('i'), taskProgressList_3_processName='付款'),
+               lambda: self.pc.ttqNVt(data='a', processName='付款', paidAmount=23.43)]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_HTjf6RsIbsSIfYSwsXzv(self):
+        """[业务报工]工序"""
+        self.pre.operations(data=['IcFU', 'ZcF1', 'uVt1', 'DoNc', 'YS1c'])
+        case = self.common_operations()
+        case.HTjf6RsIbsSIfYSwsXzv()
+        res = [lambda: self.pc.ttqNVt(stateStr='进行中', updateTime='now', orderNo=cached('i'), taskProgressList_0_processName='工序'),
+               lambda: self.pc.ttqNVt(data='a', processName='工序', workNum=100)]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_v7dp0gZaBk5c5dnae7G3(self):
         """[开始任务]"""
-        self.pre.operations(data=['FC1'])
-        # case = self.common_operations()
-        # case.work_order_to_start_the_task()
-        # res = [lambda: self.pc.purchase_work_order_assert(stateStr='进行中', updateTime='now')]
-        # self.assert_all(*res)
+        self.pre.operations(data=['IcFU'])
+        case = self.common_operations()
+        case.v7dp0gZaBk5c5dnae7G3()
+        res = [lambda: self.pc.ttqNVt(stateStr='进行中', updateTime='now', orderNo=cached('i'))]
+        self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_work_order_ends_the_task(self):
+    def test_RB3GNQ8IJqAeegDYmA32(self):
         """[结束任务]"""
-        self.pre.operations(data=['FC1', 'FC2'])
+        self.pre.operations(data=['IcFU', 'YS1c'])
         case = self.common_operations()
-        case.work_order_ends_the_task()
-        res = [lambda: self.pc.purchase_work_order_assert(stateStr='已结束', updateTime='now')]
+        case.RB3GNQ8IJqAeegDYmA32()
+        res = [lambda: self.pc.ttqNVt(stateStr='已结束', updateTime='now', orderNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_work_order_resumes_tasks(self):
+    def test_FNyrgjsFJzK3B4902iHy(self):
         """[恢复任务]"""
-        self.pre.operations(data=['FC1', 'FC2', 'FC3'])
+        self.pre.operations(data=['IcFU', 'YS1c', 'MbiP'])
         case = self.common_operations()
-        case.work_order_resumes_tasks()
-        res = [lambda: self.pc.purchase_work_order_assert(stateStr='进行中', updateTime='now')]
+        case.FNyrgjsFJzK3B4902iHy()
+        res = [lambda: self.pc.ttqNVt(stateStr='进行中', updateTime='now', orderNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_work_order_del(self):
+    def test_q7pI3tL3zRqZ67pGHnxf(self):
         """[删除采购工单]"""
-        self.pre.operations(data=['FC1'])
+        self.pre.operations(data=['IcFU'])
         case = self.common_operations()
-        case.work_order_del()
+        case.q7pI3tL3zRqZ67pGHnxf()
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_KOF9RCucwpiZtv3KYptu(self):
+        """[搜索]工单编号"""
+        self.pre.operations(data=['IcFU', 'YS1c'])
+        case = self.common_operations()
+        case.KOF9RCucwpiZtv3KYptu()
+        res = [lambda: self.pc.ttqNVt(createTime='now', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_D198Z7vIR4WbkTl36hHI(self):
+        """[搜索]计划时间"""
+        self.pre.operations(data=['IcFU', 'YS1c'])
+        case = self.common_operations()
+        case.D198Z7vIR4WbkTl36hHI()
+        res = [lambda: self.pc.ttqNVt(createTime='now', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_GlZThKYcHMLtYtD6WFjf(self):
+        """[搜索]供应商"""
+        self.pre.operations(data=['IcFU', 'YS1c'])
+        case = self.common_operations()
+        case.GlZThKYcHMLtYtD6WFjf()
+        res = [lambda: self.pc.ttqNVt(createTime='now', orderNo=cached('i'), supplierId=INFO['main_supplier_id'])]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_ZfNPiUkcpGxXUTMsfG0n(self):
+        """[搜索]-状态"""
+        if self.auto_type == 'ui':
+            self.pre.operations(data=['IcFU', 'YS1c'])
+            case = self.common_operations()
+            case.ZfNPiUkcpGxXUTMsfG0n()
+            res = [lambda: self.pc.ttqNVt(createTime='now', orderNo=cached('i'), stateStr='待开始')]
+            self.assert_all(*res)
+        else:
+            self.pre.operations(data=['IcFU', 'YS1c',
+                                      'IcFU', 'MbiP',
+                                      'IcFU', 'YS1c', 'mybg'])
+            for state in DICT_DATA['b']:
+                case = self.common_operations()
+                case.ZfNPiUkcpGxXUTMsfG0n(state)
+                res = [lambda s=state: self.pc.ttqNVt(i=s, state=s)]
+                self.assert_all(*res)
 
 
-class TestPurchaseUnSendOrder(BaseCase, unittest.TestCase):
+class TestcwtXrPcU(BaseCase, unittest.TestCase):
     """商品采购|采购管理|未发货订单列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseUnsendListRequest()
+            return purchase_r.GVdV4FYYC3()
         else:
-            return purchase_p.PurchaseUnsendListPages(self.driver)
+            return purchase_p.TsxUzXRsZ5y(self.driver)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0order_export(self):
-        """[导出]-导出"""
+    def test_0Ol6cW1DJGyj0f1eaoFJB(self):
+        """[导出]"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations(login='main')
-        case.order_export()
-        res = [lambda: self.pc.system_export_list_assert(name='未发货物品列表导出', state=2, createTime='now')]
+        case.Ol6cW1DJGyj0f1eaoFJB()
+        res = [lambda: self.pc.T241Se(name='未发货物品列表导出', state=2, createTime='now')]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unsend_order_by_supplier(self):
-        """[搜索]-供应商查询"""
+    def test_uXCn7JV8wWVKBqpjkPz1(self):
+        """[搜索]供应商"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.unsend_order_by_supplier()
-        res = [lambda: self.pc.purchase_un_shipped_order_list_assert(createTime='now', supplierName=INFO['main_supplier_name'])]
+        case.uXCn7JV8wWVKBqpjkPz1()
+        res = [lambda: self.pc.p1kRiO(createTime='now', supplierName=INFO['main_supplier_name'], purchaseNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unsend_order_by_platform_order_no(self):
-        """[搜索]-平台订单号查询"""
+    def test_NApBGCWJXaD8TCr8oG0O(self):
+        """[搜索]平台订单号"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.unsend_order_by_platform_order_no()
-        obj = cached('platformOrderNo')
-        res = [lambda: self.pc.purchase_un_shipped_order_list_assert(createTime='now', platformOrderNo=obj)]
+        case.NApBGCWJXaD8TCr8oG0O()
+        res = [lambda: self.pc.p1kRiO(createTime='now', platformOrderNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unsend_order_by_platform_articles_no(self):
-        """[搜索]-平台物品编号查询"""
+    def test_gEvHUJODc2blQ0T3B8vs(self):
+        """[搜索]平台物品编号"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.unsend_order_by_platform_articles_no()
-        obj = cached('platformArticlesNo')
-        res = [lambda: self.pc.purchase_un_shipped_order_list_assert(createTime='now', platformArticlesNo=obj)]
+        case.gEvHUJODc2blQ0T3B8vs()
+        res = [lambda: self.pc.p1kRiO(createTime='now', platformArticlesNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unsend_order_by_platform_imei(self):
-        """[搜索]-imei查询"""
+    def test_tg0itP0B1fKeUwbew3bL(self):
+        """[搜索]imei"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.unsend_order_by_platform_imei()
-        obj = cached('imei')
-        res = [lambda: self.pc.purchase_un_shipped_order_list_assert(createTime='now', imei=obj)]
+        case.tg0itP0B1fKeUwbew3bL()
+        res = [lambda: self.pc.p1kRiO(createTime='now', imei=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unsend_order_by_platform_date(self):
-        """[搜索]-date查询"""
+    def test_DntxwTAfuSnkVqrNwSV9(self):
+        """[搜索]采购时间"""
+        self.pre.operations(data=['MwyC'])
         case = self.common_operations()
-        case.unsend_order_by_platform_date()
-        res = [lambda: self.pc.purchase_un_shipped_order_list_assert(createTime='now')]
+        case.DntxwTAfuSnkVqrNwSV9()
+        res = [lambda: self.pc.p1kRiO(createTime='now', imei=cached('i'))]
         self.assert_all(*res)
 
 
-class TestPurchaseArrivalList(BaseCase, unittest.TestCase):
+class Testx8u6DwMG(BaseCase, unittest.TestCase):
     """商品采购|采购管理|到货通知单列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return purchase_r.PurchaseArrivalListRequest()
+            return purchase_r.HMBSFfGhqc()
         else:
-            return None
+            return purchase_p.UyQmHapMXQU(self.driver)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0arrival_list_by_supplier(self):
-        """[搜索]-供应商查询"""
+    def test_0KbYnHWYarqIZt0JaCFuZ(self):
+        """[搜索]采购供应商"""
+        self.pre.operations(data=['ekBx'])
         case = self.common_operations(login='main')
-        case.arrival_list_by_supplier()
-        obj = cached('supplierId')
-        res = [lambda: self.pc.purchase_arrival_notices_assert(purchaseTime='now', supplierId=obj)]
+        case.KbYnHWYarqIZt0JaCFuZ()
+        res = [lambda: self.pc.uhvTi6(purchaseTime='now', orderNo=cached('i'), supplierId=INFO['main_supplier_id'])]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_arrival_list_by_platform_logistics_no(self):
-        """[搜索]-物流单号查询"""
+    def test_yUfJVOWNNm8e1oZ0AOli(self):
+        """[搜索]物流单号"""
+        self.pre.operations(data=['ekBx'])
         case = self.common_operations()
-        case.arrival_list_by_platform_logistics_no()
-        obj = cached('logisticsNo')
-        res = [lambda: self.pc.purchase_arrival_notices_assert(purchaseTime='now', logisticsNo=obj)]
+        case.yUfJVOWNNm8e1oZ0AOli()
+        res = [lambda: self.pc.LXtfeb(createTime='now'),
+               lambda: self.pc.LXtfeb(data='c', logisticsNoList=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_arrival_list_by_platform_order_no(self):
-        """[搜索]-采购单号查询"""
+    def test_EY8ajeO8hDESQhWV9p4d(self):
+        """[搜索]采购单号"""
+        self.pre.operations(data=['ekBx'])
         case = self.common_operations()
-        case.arrival_list_by_platform_order_no()
-        obj = cached('orderNo')
-        res = [lambda: self.pc.purchase_arrival_notices_assert(purchaseTime='now', orderNo=obj)]
+        case.EY8ajeO8hDESQhWV9p4d()
+        res = [lambda: self.pc.uhvTi6(purchaseTime='now', orderNo=cached('i'))]
         self.assert_all(*res)
 
-    @BaseCase.auto('api')
+    @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_arrival_list_by_platform_date(self):
-        """[搜索]-date查询"""
+    def test_W62QpkNGF7aGdL8UtHlh(self):
+        """[搜索]采购日期"""
+        self.pre.operations(data=['ekBx'])
         case = self.common_operations()
-        case.arrival_list_by_platform_date()
-        res = [lambda: self.pc.purchase_un_shipped_order_list_assert(purchaseTime='now')]
+        case.W62QpkNGF7aGdL8UtHlh()
+        res = [lambda: self.pc.uhvTi6(purchaseTime='now', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+
+class TestGotV9LOz(BaseCase, unittest.TestCase):
+    """商品采购|采购任务"""
+
+    def get_instantiation(self):
+        if self.auto_type == 'api':
+            return purchase_r.SDhYvjpFxu()
+        else:
+            return purchase_p.JlYj7UfDcRG(self.driver)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with(clear_cache=True)
+    def test_0tuGormTpYPA2aELsOzkM(self):
+        """[新建任务]手机"""
+        case = self.common_operations(login='main')
+        case.tuGormTpYPA2aELsOzkM()
+        res = [lambda: self.pc.HMd55z5LcuW(createTime='now', statusStr='未完成')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_Vax4XBiddBZJvUZ7eKdV(self):
+        """[新建任务]平板电脑"""
+        case = self.common_operations()
+        case.Vax4XBiddBZJvUZ7eKdV()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='未完成')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_XBHUgvj186aUw4Sixsaa(self):
+        """[新建任务]笔记本电脑"""
+        case = self.common_operations()
+        case.XBHUgvj186aUw4Sixsaa()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='未完成')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_IlyTw4WbHlrGhJIXjQNt(self):
+        """[新建任务]智能手表"""
+        case = self.common_operations()
+        case.IlyTw4WbHlrGhJIXjQNt()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='未完成')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_Jo3v4QXhq0GyXeDDjAG8(self):
+        """[更新到货初验]"""
+        self.pre.operations(data=['odNU'])
+        case = self.common_operations()
+        case.Jo3v4QXhq0GyXeDDjAG8()
+        res = [lambda: self.pc.HMLcuW(createTime='now', orderNo=cached('i'), deliveryNum=30, qualifiedNum=10)]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_e65OsVYsAZfUdtju3ktx(self):
+        """[采购录入]"""
+        self.pre.operations(data=['odNU'])
+        case = self.common_operations()
+        case.e65OsVYsAZfUdtju3ktx()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已完成', successNum=1, orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_QlWxSfpR4xrTDauwyHLD(self):
+        """[退货]"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(orderNo=cached('i')),
+               lambda: self.pc.HMLcuW(data='a', returnNum='1', returnTime='now')]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_WYBiBGE7VdR3njn7NPom(self):
+        """[取消]"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.WYBiBGE7VdR3njn7NPom()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_SB3L2MTy6Akwg7s7DxMi(self):
+        """[编辑]"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('ui')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_taK4q6mJhM6CWjnVVCPs(self):
+        """[导出]"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_f3N2dDqRmAtCrRFZDaTc(self):
+        """[搜索]采购任务单号"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_Nrafk2EPWIAnq3GrKVH2(self):
+        """[搜索]采购人"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_WDlG1CIIdGDh9T4unA3R(self):
+        """[搜索]供应商"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_ocWEDpiVUd5hyHZiVeuT(self):
+        """[搜索]-任务状态"""
+        if self.auto_type == 'ui':
+            self.pre.operations(data=['ekBx', 'Fv9l', 'O09i'])
+            case = self.common_operations()
+            case.dhBbO6TlYXaCCyMti4Sf()
+            res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+            self.assert_all(*res)
+        else:
+            self.pre.operations(data=['odNU', 'D6bk'])
+            for status in DICT_DATA['j']:
+                case = self.common_operations()
+                case.dhBbO6TlYXaCCyMti4Sf(status)
+                res = [lambda s=status: self.pc.HMLcuW(j=s, saleState=s)]
+                self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_US2rQK6F5ZHHgmuHPHYa(self):
+        """[搜索]任务开始时间"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
+        self.assert_all(*res)
+
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_QZzPyowzxFc8Gfa4rWH5(self):
+        """[搜索]任务结束时间"""
+        self.pre.operations(data=['odNU', 'D6bk'])
+        case = self.common_operations()
+        case.QlWxSfpR4xrTDauwyHLD()
+        res = [lambda: self.pc.HMLcuW(createTime='now', statusStr='已取消', orderNo=cached('i'))]
         self.assert_all(*res)
 
 

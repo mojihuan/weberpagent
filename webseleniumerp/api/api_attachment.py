@@ -4,103 +4,105 @@ from common.base_api import BaseApi
 from config.user_info import INFO
 
 
-class AttachmentAfterSalesListApi(BaseApi):
+class Nd81xbVVnxevE1Oy8yXcy(BaseApi):
     """配件管理|配件销售|销售售后列表"""
 
-    def after_sales_list(self, headers=None, num=1, size=1000):
-        """销售售后列表"""
+    def VGeFY2YzIHzc(self, headers=None, num=1, size=1000, i=None):
+        """销售售后列表
+        i: 售后类型 1退货退款 2退差价
+        """
         headers = headers or self.headers['main']
-        data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['after_sales_list'], data=json.dumps(data), headers=headers)
+        data = {**self.get_page_params(num, size), 'sellType': i}
+        response = self.request_handle('post', self.urls['r9ytswUaJ'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def after_sales_list_detail(self, headers=None):
-        """销售售后列表 详情"""
+    def FOLBxm2fXcoW(self, headers=None):
+        """销售售后详情"""
         headers = headers or self.headers['main']
-        after_sales = self.after_sales_list()
-        data = {**self.get_page_params(), 'orderNo': after_sales[0]['orderNo']}
-        response = self.request_handle('post', self.urls['after_sales_detail'], data=json.dumps(data), headers=headers)
+        obj = self.VGeFY2YzIHzc()
+        data = {**self.get_page_params(), 'orderNo': obj[0]['orderNo']}
+        response = self.request_handle('post', self.urls['zyeN8gswZ'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'rows', list)
 
 
-class AttachmentGiftDetailsApi(BaseApi):
+class Gwz4FEbJD7duHFXM43CTo(BaseApi):
     """配件管理|配件统计|赠送明细"""
 
-    def gift_details_list(self, headers=None, num=1, size=1000):
+    def t3GVi2bbFIzs(self, headers=None, num=1, size=1000):
         """赠送明细列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['gift_details'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['yydFmDz2D'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class AttachmentGoodsReceivedApi(BaseApi):
+class BF3x3lYIzbEHMnrvr80JO(BaseApi):
     """配件管理|入库管理|待接收物品"""
 
-    def list_of_items_to_be_received(self, headers=None, num=1, size=1000):
+    def iigq4MszOhe3(self, headers=None, num=1, size=1):
         """待接收物品列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['items_to_be_received'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['JKjPTfATh'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class AttachmentHandoverRecordsApi(BaseApi):
+class BFOjFKv6ZxII7V5LzQcr4(BaseApi):
     """配件管理|移交接收管理|移交记录"""
 
-    def handover_records_list(self, headers=None, num=1, size=1000, i=None):
+    def pvspNI89ooNR(self, headers=None, num=1, size=1000, i=None):
         """移交记录"""
         headers = headers or self.headers['main']
         data = {'articlesType': 2, 'status': i, **self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['handover_records'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['zbE7yOZvu'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def handover_records_details(self, headers=None):
+    def ABCpFCzCuSNt(self, headers=None):
         """移交记录详情"""
         headers = headers or self.headers['main']
-        data = {"orderNo": self.get_order_no(), "articlesType": 2}
-        response = self.request_handle('post', self.urls['hand_over_no_detail'], data=json.dumps(data), headers=headers)
+        data = {"orderNo": self.fiNWNRpni7P6(), "articlesType": 2}
+        response = self.request_handle('post', self.urls['HltehqYGD'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'data', list)
         self.make_pkl_file(res)
         return res
 
-    # 获取订单号
-    def get_order_no(self):
-        return self._get_field_copy_value('handover_records_list', 'main', 'orderNo')
+    def fiNWNRpni7P6(self):
+        """获取订单号"""
+        return self._get_field_copy_value('pvspNI89ooNR', 'main', 'orderNo')
 
 
-class AttachmentInventoryDetailsApi(BaseApi):
+class Jv7ADErQkdUSgRBqXT5qz(BaseApi):
     """配件管理|配件库存|库存明细"""
 
-    def inventory_details_list(self, headers=None, num=1, size=1000):
+    def vdzd03TVxB8g(self, headers=None, num=1, size=1000):
         """库存明细列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size), 'total': 0}
-        response = self.request_handle('post', self.urls['inventory_details'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['hEtBXn55f'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def inventory_details_stats(self, headers=None):
+    def WlKyKGm5zDPh(self, headers=None):
         """库存明细统计"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(), 'total': 0}
-        response = self.request_handle('post', self.urls['inventory_stats'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['HVMZS71CQ'], data=json.dumps(data), headers=headers)
         return response.json()["data"]
 
 
-class AttachmentInventoryListApi(BaseApi):
+class CtRBRcFNn2LnUPfJF5Yhu(BaseApi):
     """配件管理|配件库存|库存列表"""
 
-    def attachment_inventory_list(self, i=None, j=None, k=None, l=None, m=None, a=None, headers=None, num=1, size=1000):
+    def H2lnntBLD8A3(self, i=None, j=None, k=None, l=None, m=None, a=None, headers=None, num=1, size=1000):
         """库存列表
         i: 库存状态 2库存中 1待入库 3已出库
         j: 品类
@@ -110,354 +112,345 @@ class AttachmentInventoryListApi(BaseApi):
         a：配件渠道 1原厂 2非原厂
         """
         headers = headers or self.headers['main']
-        data = {**self.get_page_params(num, size), 'inventoryStatus': i, 'articlesTypeId': j, 'brandId': k,
-                'modelId': l, 'accessoryQuality': m, 'channelType': a}
-        response = self.request_handle('post', self.urls['inventory_list'], data=json.dumps(data), headers=headers)
+        data = {**self.get_page_params(num, size), 'inventoryStatus': i, 'articlesTypeId': j, 'brandId': k, 'modelId': l, 'accessoryQuality': m, 'channelType': a}
+        response = self.request_handle('post', self.urls['QARwOTuPY'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def inventory_detail(self, headers=None):
-        """库存列表详情"""
+    def OS0dslt8oIW6(self, headers=None):
+        """物品详情"""
         headers = headers or self.headers['main']
-        articles_no = self.get_articles_no()
-        data = {'articlesNo': articles_no}
-        response = self.request_handle('post', self.urls['inventory_detail'], data=json.dumps(data), headers=headers)
+        data = {'articlesNo': self.Ja2f73XKPwQz()}
+        response = self.request_handle('post', self.urls['yuX8ASRLX'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def inventory_purchase_info(self, headers=None):
-        """库存列表-配件详情-采购信息"""
+    def ryjErEJrLvhi(self, headers=None):
+        """物品详情-采购信息"""
         headers = headers or self.headers['main']
-        articles_no = self.get_articles_no()
-        data = {'articlesNo': articles_no}
-        response = self.request_handle('post', self.urls['inventory_purchase_info'], data=json.dumps(data), headers=headers)
+        data = {'articlesNo': self.Ja2f73XKPwQz()}
+        response = self.request_handle('post', self.urls['vJIP1KwBo'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def inventory_sell_info(self, headers=None):
-        """库存列表-配件详情-销售信息"""
+    def X2VJTiwTrgcC(self, headers=None):
+        """物品详情-销售信息"""
         headers = headers or self.headers['main']
-        articles_no = self.get_articles_no()
-        data = {'articlesNo': articles_no}
-        response = self.request_handle('post', self.urls['inventory_sell_info'], data=json.dumps(data), headers=headers)
+        data = {'articlesNo': self.Ja2f73XKPwQz()}
+        response = self.request_handle('post', self.urls['MdXnAHnec'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', list)
 
-    def inventory_log_info(self, headers=None):
-        """库存列表-配件详情-操作日志"""
+    def Wo6IwyvOfpNM(self, headers=None):
+        """物品详情-操作日志"""
         headers = headers or self.headers['main']
-        articles_no = self.get_articles_no()
-        data = {'articlesNoList': [articles_no]}
-        response = self.request_handle('post', self.urls['operation_log'], data=json.dumps(data), headers=headers)
+        data = {'articlesNoList': [self.Ja2f73XKPwQz()]}
+        response = self.request_handle('post', self.urls['dJ8r3vdbO'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', list)
 
-    #
-    def get_all_articles_no(self, i=None, index=0):
-        """获取库存列表 物品编号
-         i: 库存状态 2库存中 1待入库 3已出库
-         index
-        """
-        return self._get_field_copy_value('attachment_inventory_list', 'main', 'articlesNo', i=i, index=index)
-
-    # 获取库存列表 物品编号
-    def get_articles_no(self):
-        return self._get_field_copy_value('attachment_inventory_list', 'main', 'articlesNo')
+    def Ja2f73XKPwQz(self):
+        """获取物品编号"""
+        return self._get_field_copy_value('H2lnntBLD8A3', 'main', 'articlesNo')
 
 
-class AttachmentMaintenanceApi(BaseApi):
+class Ln0faZ5CGpaYmkrcCVg4X(BaseApi):
     """配件管理|配件维护"""
 
-    def maintenance_list(self, headers=None, i=None, num=1, size=1000):
+    def c69L92JCEAfA(self, headers=None, i=None, num=1, size=1000):
         """配件维护列表
         i：状态 0开启用 1停用
         """
         headers = headers or self.headers['idle']
         data = {**self.get_page_params(num, size), 'status': i}
-        response = self.request_handle('post', self.urls['maintenance_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['GTZ0UOiDK'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class AttachmentNewArrivalApi(BaseApi):
+class KFkHdZyASZRhMrmNKfHiQ(BaseApi):
     """配件管理|入库管理|新到货入库"""
 
     def __init__(self):
         super().__init__()
-        self.sorting_list = AttachmentSortingListApi()
+        self.obj = LnfQBDqBvleaE2O0412qk()
 
-    def new_arrival_list(self, headers=None, num=1, size=1000):
+    def aYrCZLAaSxA7(self, headers=None, num=1, size=1000):
         """新到货入库"""
-        sorting_list = self.sorting_list.get_tracking_number()
         headers = headers or self.headers['main']
-        data = {**self.get_page_params(num, size), 'logisticsNo': sorting_list}
-        response = self.request_handle('post', self.urls['new_arrival'], data=json.dumps(data), headers=headers)
+        data = {**self.get_page_params(num, size), 'logisticsNo': self.obj.YwVSc3Nv5QU3()}
+        response = self.request_handle('post', self.urls['apFM5LAR2'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, '', list)
         self.make_pkl_file(res)
         return res
 
 
-class AttachmentOldWarehouseApi(BaseApi):
+class RjB1dOTFUrlGReUmemgQr(BaseApi):
     """配件管理|入库管理|旧配件入库"""
 
-    def accessories_inventory_list(self, headers=None, num=1, size=1000):
+    def U6Xw8Ui8Ti9x(self, headers=None, num=1, size=1000):
         """旧配件入库列表"""
         headers = headers or self.headers['main']
         data = {'total': 0, **self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['list_of_old_accessories'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['icqD4B9Rk'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def accessories_inventory_detail(self, headers=None):
+    def eGKYE973IfbO(self, headers=None):
         """旧配件入库列表 详情"""
         headers = headers or self.headers['main']
-        res = self.accessories_inventory_list()
+        res = self.U6Xw8Ui8Ti9x()
         data = {'total': 0, **self.get_page_params(), "orderNo": res[0]['orderNo']}
-        response = self.request_handle('post', self.urls['details_of_old_accessories'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['WhJckIuHl'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', list)
 
 
-class AttachmentPurchaseListApi(BaseApi):
+class OiUAWoPURtS5QdkSFauge(BaseApi):
     """配件管理|配件采购|采购列表"""
 
-    def purchase_list(self, headers=None, num=1, size=1000, i=None, j=None):
+    def PA6i54jUEr6x(self, headers=None, num=1, size=1000, i=None, j=None):
         """采购列表
         i: 采购单状态 3已发货 4已收货
         j: 付款状态 1已付款 2未付款
         """
         headers = headers or self.headers['main']
         data = {'articlesType': 2, **self.get_page_params(num, size), 'state': i, 'payState': j}
-        response = self.request_handle('post', self.urls['purchase_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['fRokl0vv2'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def purchase_list_detail(self, headers=None):
-        """采购列表 详情"""
+    def NOWFR2ysZMiz(self, headers=None):
+        """采购列表详情"""
         headers = headers or self.headers['main']
-        order_no = self.get_order_no()
-        data = {**self.get_page_params(), 'purchaseNo': order_no}
-        response = self.request_handle('post', self.urls['purchase_detail'], data=json.dumps(data), headers=headers)
+        data = {**self.get_page_params(), 'purchaseNo': self.DJF7CiNjGRTC()}
+        response = self.request_handle('post', self.urls['NWi2CZbYk'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'rows', list)
 
-    def procurement_after_sales(self, headers=None):
+    def lJHIDIvQhKow(self, headers=None):
         """采购售后详情"""
         headers = headers or self.headers['main']
-        order_no = self.get_order_no()
-        data = {"supplierId": INFO['main_supplier_id'], "purchaseNoList": [order_no]}
-        response = self.request_handle('post', self.urls['purchase_after_sales'], data=json.dumps(data), headers=headers)
+        data = {"supplierId": INFO['main_supplier_id'], "purchaseNoList": [self.DJF7CiNjGRTC()]}
+        response = self.request_handle('post', self.urls['XKp5SlLCE'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', list)
 
-    # 获取采购单号
-    def get_order_no(self):
-        return self._get_field_copy_value('purchase_list', 'main', 'orderNo')
+    def DJF7CiNjGRTC(self):
+        """获取采购单号"""
+        return self._get_field_copy_value('PA6i54jUEr6x', 'main', 'orderNo')
 
 
-class AttachmentPurchaseSalesListApi(BaseApi):
+class KjMTctZhHuOMIT0xd1AP3(BaseApi):
     """配件管理|配件采购|采购售后列表"""
 
-    def purchase_sales_list(self, headers=None, num=1, size=1000):
+    def G5wHf1sqe1zu(self, headers=None, num=1, size=1000):
         """采购售后列表"""
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['purchase_sales_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['gnqQCdDTa'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def purchase_sales_list_detail(self, headers=None):
+    def osRwiAV9t4QT(self, headers=None):
         """采购售后列表详情"""
         headers = headers or self.headers['main']
-        purchase_sales = self.purchase_sales_list()
-        data = {"saleNo": purchase_sales[0]['saleNo'], **self.get_page_params()}
-        response = self.request_handle('post', self.urls['purchase_sales_detail'], data=json.dumps(data), headers=headers)
+        obj = self.G5wHf1sqe1zu()
+        data = {"saleNo": obj[0]['saleNo'], **self.get_page_params()}
+        response = self.request_handle('post', self.urls['LVVrmH10p'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'rows', list)
 
 
-class AttachmentReceiveItemsApi(BaseApi):
+class AMaXd2PkDsrT5cj1SArOe(BaseApi):
     """配件管理|移交接收管理|接收物品"""
 
-    def item_received_list(self, headers=None, num=1, size=1000):
+    def mfaVZuvBLcri(self, headers=None, num=1, size=1000):
         """物品接收列表"""
         headers = headers or self.headers['main']
         data = {'articlesType': '2', **self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['items_to_be_received'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['JKjPTfATh'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def handover_order_received_list(self, headers=None, i=None, num=1, size=1000):
+    def s3Ycs7Oyt5DL(self, headers=None, i=None, num=1, size=1000):
         """移交单接收列表
         i：移交单状态 1待接收 2已接收 3已取消
         """
         headers = headers or self.headers['main']
         data = {'articlesType': '2', **self.get_page_params(num, size), 'status': i}
-        response = self.request_handle('post', self.urls['receive_items'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['ZspzD8hZ0'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
+    def NPp0AJ9kG7cr(self, headers=None):
+        """移交单接收详情"""
+        headers = headers or self.headers['main']
+        data = {'articlesType': '2', 'orderNo': self.DhUI624oh7bX()}
+        response = self.request_handle('post', self.urls['HltehqYGD'], data=json.dumps(data), headers=headers)
+        res = self.get_response_data(response, 'data', list)
+        self.make_pkl_file(res)
+        return res
 
-class AttachmentHandOverTheListOfItemsApi(BaseApi):
+    def DhUI624oh7bX(self):
+        """获取采购单号"""
+        return self._get_field_copy_value('s3Ycs7Oyt5DL', 'main', 'orderNo')
+
+
+class Yitlwlf3LfoaHccm1J6mF(BaseApi):
     """配件管理|移交接收管理|移交物品"""
 
     def __init__(self):
         super().__init__()
-        self.inventory_list = AttachmentInventoryListApi()
+        self.obj = CtRBRcFNn2LnUPfJF5Yhu()
 
-    def hand_over_the_list_of_items(self, headers=None):
+    def pk3yPDL8mWlJ(self, headers=None):
         """移交物品列表"""
-        articles_no = self.inventory_list.get_articles_no()
         headers = headers or self.headers['main']
-        data = {"articlesNo": articles_no}
-        response = self.request_handle('post', self.urls['accessories_search_items'], data=json.dumps(data), headers=headers)
+        data = {"articlesNo": self.obj.Ja2f73XKPwQz()}
+        response = self.request_handle('post', self.urls['WfRN4FHg5'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'data', dict)
         self.make_pkl_file(res)
         return res
 
 
-class AttachmentSalesDetailsApi(BaseApi):
+class Y9pPmEIVBiqj7NBb64Jy4(BaseApi):
     """配件管理|配件统计|销售明细"""
 
-    def statics_list(self, i=1, headers=None):
+    def acB0a2Y5bfRO(self, i=1, headers=None):
         """销售明细列表
          i：1本月 2上月
         """
         headers = headers or self.headers['main']
         data = {**self.get_page_params(), "total": 99, "month": i}
-        response = self.request_handle('post', self.urls['list_of_sales_details'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['RtfOH9UEB'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'rows', list)
 
-    def statics_detail(self, i=1, headers=None):
+    def jWnUAmYy0V7w(self, i=1, headers=None):
         """销售明细统计-本月
          i：1本月 2上月
         """
         headers = headers or self.headers['main']
         data = {**self.get_page_params(), "total": 99, "month": i}
-        response = self.request_handle('post', self.urls['sales_details_statics'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['HQBxA0jMJ'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
 
-class AttachmentSalesListApi(BaseApi):
+class IW1UwaP9R0hojKPOJQSH4(BaseApi):
     """配件管理|配件销售|销售列表"""
 
-    def sales_list(self, headers=None, num=1, size=1000, i=None):
+    def xTgxXhKIdF5f(self, headers=None, num=1, size=1000, i=None):
         """销售列表
         i: 收款状态 1已收款 2未收款
         """
         headers = headers or self.headers['main']
         data = {'articlesType': 2, **self.get_page_params(num, size), 'status': i}
-        response = self.request_handle('post', self.urls['sales_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['m9MsjRh7V'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def sales_details(self, headers=None):
+    def iVaMuxcu6FrP(self, headers=None):
         """销售详情"""
         headers = headers or self.headers['main']
-        order_no = self.get_order_no()
-        data = {'orderNo': order_no, **self.get_page_params()}
-        response = self.request_handle('post', self.urls['sales_details'], data=json.dumps(data), headers=headers)
+        data = {'orderNo': self.JXbPQwCVMKBn(), **self.get_page_params()}
+        response = self.request_handle('post', self.urls['to9GfL6Bk'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'rows', list)
 
-    def sales_after_sales(self, headers=None):
+    def q83zbqHUQwKT(self, headers=None):
         """销售售后"""
         headers = headers or self.headers['main']
-        order_no = self.get_order_no()
-        data = {"saleOrderNoList": [order_no]}
-        response = self.request_handle('post', self.urls['sales_after_sales'], data=json.dumps(data), headers=headers)
+        data = {"saleOrderNoList": [self.JXbPQwCVMKBn()]}
+        response = self.request_handle('post', self.urls['Hb55WHGTZ'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', list)
 
-    # 获取销售单号
-    def get_order_no(self):
-        return self._get_field_copy_value('sales_list', 'main', 'orderNo')
+    def JXbPQwCVMKBn(self):
+        """获取销售单号"""
+        return self._get_field_copy_value('xTgxXhKIdF5f', 'main', 'orderNo')
 
 
-class AttachmentSortingListApi(BaseApi):
+class LnfQBDqBvleaE2O0412qk(BaseApi):
     """配件管理|入库管理|分拣列表"""
 
-    def sorting_list(self, headers=None, i=None, num=1, size=1000):
+    def IB3TfKONJp2x(self, headers=None, i=None, num=1, size=1000):
         """分拣列表
         i: 分拣状态 1未分拣 2已分拣
         """
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size), 'sortationStatus': i}
-        response = self.request_handle('post', self.urls['sorting_list'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['QTembQdXx'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def package_video(self, headers=None):
+    def PaJDXqH7P5A0(self, headers=None):
         """包裹视频"""
         headers = headers or self.headers['main']
-        tracking_number = self.get_tracking_number()
-        data = {'articlesType': 2, 'logisticsNo': tracking_number}
-        response = self.request_handle('post', self.urls['sorting_package_video'], data=json.dumps(data), headers=headers)
+        data = {'articlesType': 2, 'logisticsNo': self.YwVSc3Nv5QU3()}
+        response = self.request_handle('post', self.urls['GVeaSBtQu'], data=json.dumps(data), headers=headers)
         if response.status_code == 200:
             return response.json()
         return None
 
-    # 获取物流单号
-    def get_tracking_number(self):
-        return self._get_field_copy_value('sorting_list', 'main', 'logisticsNo')
+    def YwVSc3Nv5QU3(self):
+        """获取物流单号"""
+        return self._get_field_copy_value('IB3TfKONJp2x', 'main', 'logisticsNo')
 
 
-class AttachmentStaticsDetailApi(BaseApi):
+class Ved7inYORAmtB67RNFcCG(BaseApi):
     """配件管理|配件统计|维修明细"""
 
-    def statics_detail_list(self, month=1, headers=None, num=1, size=1000):
+    def tHXpLoSvaDSH(self, month=1, headers=None, num=1, size=1000):
         """维修明细列表
          month：1本月 2上月
         """
         headers = headers or self.headers['main']
         data = {**self.get_page_params(num, size), "month": month}
-        response = self.request_handle('post', self.urls['list_of_repair_details'], data=json.dumps(data), headers=headers)
+        response = self.request_handle('post', self.urls['tzNKqu20B'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def statics_detail_list_detail(self, headers=None):
+    def AHDIlJyWnSd1(self, headers=None):
         """维修消耗 详情"""
         headers = headers or self.headers['main']
-        res = self.statics_detail_list()
-        data = {**self.get_page_params(), "modelId": res[0]['modelId'], "brandId": res[0]['brandId'], "accessoryNo": res[0]['accessoryNo']}
-        response = self.request_handle('post', self.urls['repair_details_detail'], data=json.dumps(data), headers=headers)
+        statics = self.tHXpLoSvaDSH()
+        data = {**self.get_page_params(), "modelId": statics[0]['modelId'], "brandId": statics[0]['brandId'], "accessoryNo": statics[0]['accessoryNo']}
+        response = self.request_handle('post', self.urls['vwDBMHEOa'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'rows', list)
 
 
-class AttachmentWarehouseAllocationApi(BaseApi):
+class DgyYP8ygDMIIeEEXHuLbW(BaseApi):
     """配件管理|配件库存|库存调拨"""
 
-    def warehouse_allocation(self, headers=None, num=1, size=1000):
-        """库存调拨列表"""
+    def QGOxnhn1YW7x(self, headers=None, num=1, size=1000, i=None):
+        """库存调拨列表
+        i: 接收状态 1待接收 2部分接收 3已完成 4已撤销
+        """
         headers = headers or self.headers['main']
-        data = {'articlesType': '2', **self.get_page_params(num, size)}
-        response = self.request_handle('post', self.urls['warehouse_allocation'], data=json.dumps(data), headers=headers)
+        data = {'articlesType': '2', **self.get_page_params(num, size), 'status': i}
+        response = self.request_handle('post', self.urls['Vqx4RAgDI'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def inventory_transfer_details_list(self, headers=None):
-        """库存调拨列表 详情"""
+    def ZT5PSTjrth3p(self, headers=None):
+        """库存调拨详情"""
         headers = headers or self.headers['main']
-        res = self.warehouse_allocation()
-        data = {'articlesType': '2', 'id': res[0]['id']}
-        response = self.request_handle('post', self.urls['transfer_details'], data=json.dumps(data), headers=headers)
+        obj = self.QGOxnhn1YW7x()
+        data = {'articlesType': '2', 'id': obj[0]['id']}
+        response = self.request_handle('post', self.urls['mMiwJEj2a'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', dict)
 
-    def revoke_the_transfer_details(self, headers=None):
-        """撤销调拨 详情"""
+    def rpHRNtqAmFV0(self, headers=None):
+        """撤销调拨详情"""
         headers = headers or self.headers['main']
-        res = self.warehouse_allocation()
-        data = {'articlesType': '2', 'id': res[0]['id']}
-        response = self.request_handle('post', self.urls['revoke_the_transfer_details'], data=json.dumps(data), headers=headers)
+        obj = self.QGOxnhn1YW7x()
+        data = {'articlesType': '2', 'id': obj[0]['id']}
+        response = self.request_handle('post', self.urls['IRy0rknua'], data=json.dumps(data), headers=headers)
         return self.get_response_data(response, 'data', list)
-
-    # 获取库存调拨列表 详情 物品编号
-    def get_articles_no(self):
-        return self._get_field_copy_value('inventory_transfer_details_list', 'main', 'itemList.articlesNo')
 
 
 if __name__ == '__main__':
-    api = AttachmentNewArrivalApi()
-    result = api.new_arrival_list()
+    api = AMaXd2PkDsrT5cj1SArOe()
+    result = api.NPp0AJ9kG7cr()
     print(json.dumps(result, indent=4, ensure_ascii=False))

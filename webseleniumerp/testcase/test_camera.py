@@ -5,34 +5,34 @@ from common.decorators import cached
 from common.import_case import *
 
 
-class TestCameraAfterSalesOrders(BaseCase, unittest.TestCase):
+class Testz3dPwWoW(BaseCase, unittest.TestCase):
     """拍机管理|售后管理|售后订单"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return camera_r.CameraAfterSalesOrdersRequest()
+            return camera_r.Qca9iy6PVm()
         else:
             return None
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0pending_end_of_after_sales(self):
+    def test_0hmyGjNG7wkd0bhQUc2TE(self):
         """[待处理]-结束售后"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1', 'CE1', '@BB1', '@BB2'])
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB', 'cahv', 'VMhm', 'kxvu'])
         case = self.common_operations(login='camera')
-        case.pending_end_of_after_sales()
+        case.hmyGjNG7wkd0bhQUc2TE()
         obj = cached('id')
-        res = [lambda: self.pc.camera_after_sales_order_assert(headers='camera', afterStatusStr='主动取消', id=obj)]
+        res = [lambda: self.pc.bijXOp(headers='camera', afterStatusStr='主动取消', id=obj)]
         self.assert_all(*res)
 
 
-class TestAListOfAirportVisits(BaseCase, unittest.TestCase):
+class TestYTiqew3h(BaseCase, unittest.TestCase):
     """拍机管理|拍机场次列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return camera_r.AListOfAirportVisitsRequest()
+            return camera_r.Cb5YB9WqSi()
         else:
             return None
 
@@ -40,28 +40,28 @@ class TestAListOfAirportVisits(BaseCase, unittest.TestCase):
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
     @unittest.skip('')
-    def test_0direct_auction_bidding_modify_the_price(self):
+    def test_0HX8VkOqbnv1J3lPVSFmm(self):
         """[竞拍中]-直拍-修改价格"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DB1', 'DB2', '@BA1'])
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'IcRG', 'z2MU', 'dJeB'])
         case = self.common_operations(login='camera')
-        case.direct_auction_bidding_modify_the_price()
+        case.HX8VkOqbnv1J3lPVSFmm()
         obj = cached('articlesNo')
         obj_2 = cached('bidPrice')
-        res = [lambda: self.pc.camera_list_of_airport_visits_assert(headers='camera', data='a', articlesNo=obj, bidPrice=obj_2)]
+        res = [lambda: self.pc.CVkKoG(headers='camera', data='a', articlesNo=obj, bidPrice=obj_2)]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
     @unittest.skip('')
-    def test_secret_shot_bidding_modify_the_price(self):
+    def test_lPB3LMDCzxeHLnAzXMs9(self):
         """[竞拍中]-暗拍-修改价格"""
-        self.pre.operations(data=['@AA1', '@AB5', 'CA2', 'CB3', 'CB6', '@AB4', 'DD2', 'DD4', '@BA2'])
+        self.pre.operations(data=['spKR', 'VyCN', 'cTZm', 'Kwz9', 'preu', 'HfWO', 'naBM', 'xNAC', 'OAqF'])
         case = self.common_operations()
-        case.secret_shot_bidding_modify_the_price()
+        case.lPB3LMDCzxeHLnAzXMs9()
         obj = cached('articlesNo')
         obj_2 = cached('bidPrice')
-        res = [lambda: self.pc.camera_list_of_airport_visits_assert(headers='camera', data='a', articlesNo=obj, bidPrice=obj_2)]
+        res = [lambda: self.pc.CVkKoG(headers='camera', data='a', articlesNo=obj, bidPrice=obj_2)]
         self.assert_all(*res)
 
 

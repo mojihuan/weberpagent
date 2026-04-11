@@ -3,22 +3,22 @@ from common.mini_base_minium import BaseMinium
 from common.import_desc import *
 
 
-class AuctionIndexPages(BaseMinium):
+class ZBkZG7Xjdy3(BaseMinium):
     """首页"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.loc = self.mg_locator('index')
 
-    @doc(a_fast_submit_new_order)
-    def fast_submit_new_order(self):
+    @doc(OUEyhYBkDqtcP7GO9DPa)
+    def OUEyhYBkDqtcP7GO9DPa(self):
         self.elem(**self.loc['fast_shipping'], desc='快速发货')
         self.input(**self.loc['selling_price'], text='8888', desc='卖出总价')
         self.elem(**self.loc['committed'], desc='提交')
         return self
 
-    @doc(a_auto_submit_new_order)
-    def auto_submit_new_order(self):
+    @doc(utX70draGUqBWb9xyAMA)
+    def utX70draGUqBWb9xyAMA(self):
         self.elem(**self.loc['precise_shipping'], desc='精准发货')
         self.elem(**self.loc['model'], desc='机型')
         self.elem(**self.loc['small_model'], desc='小型号')

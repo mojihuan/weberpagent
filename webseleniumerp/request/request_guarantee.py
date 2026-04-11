@@ -1,72 +1,72 @@
 # coding: utf-8
 import json
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.file_cache_manager import ParamCache
 from common.import_desc import *
 from config.user_info import INFO
 
 
-class GuaranteeReturnsManageRequest(InitializeParams):
+class Sw9d3Jef89(InitializeParams):
     """保卖管理|退货管理"""
 
-    @doc(g_cancel_returns_by_mail)
+    @doc(uMfpb3JIBZ8oaq0US9Y7)
     @BaseApi.timing_decorator
-    def cancel_returns_by_mail(self, nocheck=False):
-        res = self.pc.guarantee_returns_manage_data(i=1)
+    def uMfpb3JIBZ8oaq0US9Y7(self, nocheck=False):
+        res = self.pc.TD9Y1EebwgkWWw4gbKGII(i=1)
         data = {
             "articlesNo": res[0]['articlesNo']
         }
-        return self._make_request('post', 'cancel_a_return', data, 'main', nocheck)
+        return self._make_request('post', 'X6YV0aF4q', data, 'main', nocheck)
 
-    @doc(g_self_lifted_cancel_a_return)
+    @doc(sbzcNzKjCNBmnqXBUAZP)
     @BaseApi.timing_decorator
-    def self_lifted_cancel_a_return(self, nocheck=False):
-        res = self.pc.guarantee_returns_manage_data(i=2)
+    def sbzcNzKjCNBmnqXBUAZP(self, nocheck=False):
+        res = self.pc.TD9Y1EebwgkWWw4gbKGII(i=2)
         data = {
             "articlesNo": res[0]['articlesNo']
         }
-        return self._make_request('post', 'cancel_a_return', data, 'main', nocheck)
+        return self._make_request('post', 'X6YV0aF4q', data, 'main', nocheck)
 
-    @doc(g_change_the_return_method)
+    @doc(WkJbfcCwi0eL85pLx7Hw)
     @BaseApi.timing_decorator
-    def change_the_return_method(self, nocheck=False):
-        res = self.pc.guarantee_returns_manage_data(i=2)
+    def WkJbfcCwi0eL85pLx7Hw(self, nocheck=False):
+        res = self.pc.TD9Y1EebwgkWWw4gbKGII(i=2)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "logisticsType": 1,
             "addressId": INFO['main_user_address_id']
         }
-        return self._make_request('post', 'change_the_return_method', data, 'main', nocheck)
+        return self._make_request('post', 'QfEosa6DF', data, 'main', nocheck)
 
-    @doc(g_change_the_return_method_by_mail)
+    @doc(LFI07j6GScehS4q0GPNd)
     @BaseApi.timing_decorator
-    def change_the_return_method_by_mail(self, nocheck=False):
-        res = self.pc.guarantee_returns_manage_data(i=1)
+    def LFI07j6GScehS4q0GPNd(self, nocheck=False):
+        res = self.pc.TD9Y1EebwgkWWw4gbKGII(i=1)
         data = {
             "articlesNo": res[0]['articlesNo'],
             "logisticsType": 2,
             "addressId": 100
         }
-        return self._make_request('post', 'change_the_return_method', data, 'main', nocheck)
+        return self._make_request('post', 'QfEosa6DF', data, 'main', nocheck)
 
-    @doc(g_confirm_receipt)
+    @doc(K4TenJe5ql1CTH4mOryF)
     @BaseApi.timing_decorator
-    def confirm_receipt(self, nocheck=False):
-        res = self.pc.guarantee_returns_manage_data(i=3)
+    def K4TenJe5ql1CTH4mOryF(self, nocheck=False):
+        res = self.pc.TD9Y1EebwgkWWw4gbKGII(i=3)
         data = {
             "articlesNo": res[0]['articlesNo'],
         }
-        return self._make_request('post', 'confirm_receipt', data, 'main', nocheck)
+        return self._make_request('post', 'gDObOQ7Xg', data, 'main', nocheck)
 
 
-class GuaranteeOrderManageRequest(InitializeParams):
+class ZEvt5QWNey(InitializeParams):
     """保卖管理|订单列表"""
 
-    @doc(g_quick_guarantee_item_submission)
+    @doc(GIh2R4s4U7in3JVtx4Fh)
     @BaseApi.timing_decorator
-    def quick_guarantee_item_submission(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(data='a')
+    def GIh2R4s4U7in3JVtx4Fh(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(data='a')
         data = {
             "quickList": [
                 {
@@ -156,13 +156,13 @@ class GuaranteeOrderManageRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'quick_guarantee', data, 'main', nocheck)
+        return self._make_request('post', 'LmcfcAJW5', data, 'main', nocheck)
 
-    @doc(g_ship_now_by_express_sf)
+    @doc(UxlDI72fkMivOA7TlGvw)
     @BaseApi.timing_decorator
-    def ship_now_by_express_sf(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(i=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def UxlDI72fkMivOA7TlGvw(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(i=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "type": 1,
@@ -190,13 +190,13 @@ class GuaranteeOrderManageRequest(InitializeParams):
             "expectPostTimeStartEnd": self.get_formatted_datetime(),
             "inspectionCenterId": INFO['check_the_center_id'],
         }
-        return self._make_request('post', 'confirm_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'ikFrerqDh', data, 'main', nocheck)
 
-    @doc(g_ship_now_by_express_jd)
+    @doc(BSo6LUJtzBWcj6edgXxU)
     @BaseApi.timing_decorator
-    def ship_now_by_express_jd(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(i=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def BSo6LUJtzBWcj6edgXxU(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(i=1)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "type": 1,
@@ -224,13 +224,12 @@ class GuaranteeOrderManageRequest(InitializeParams):
             "expectPostTimeStartEnd": self.get_formatted_datetime(),
             "inspectionCenterId": INFO['check_the_center_id'],
         }
-        return self._make_request('post', 'confirm_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'ikFrerqDh', data, 'main', nocheck)
 
-    @doc(g_ship_now_by_express_self_mail)
+    @doc(LPxZ1LIoEgSsdKTXRL2C)
     @BaseApi.timing_decorator
-    def ship_now_by_express_self_mail(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(i=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def LPxZ1LIoEgSsdKTXRL2C(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(i=1)
         data = {
             "businessNo": res[0]['orderNo'],
             "type": 1,
@@ -241,35 +240,34 @@ class GuaranteeOrderManageRequest(InitializeParams):
             "expressCompanyName": "顺丰速运",
             "inspectionCenterId": INFO['check_the_center_id'],
         }
-        return self._make_request('post', 'confirm_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'ikFrerqDh', data, 'main', nocheck)
 
-    @doc(g_ship_now_by_express_send_it_yourself)
+    @doc(jhln7DhaP9NOD9X3azpU)
     @BaseApi.timing_decorator
-    def ship_now_by_express_send_it_yourself(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(i=1)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def ship_now_by_express_send_it_jhln7DhaP9NOD9X3azpUyourself(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(i=1)
         data = {
             "businessNo": res[0]['orderNo'],
             "type": "2",
             "childType": 3,
             "inspectionCenterId": INFO['check_the_center_id'],
         }
-        return self._make_request('post', 'confirm_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'ikFrerqDh', data, 'main', nocheck)
 
-    @doc(g_quick_guarantee_cancel_the_order)
+    @doc(NEZ4KVsoQr6AgkUVtSBE)
     @BaseApi.timing_decorator
-    def quick_guarantee_cancel_the_order(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(i=2)
+    def NEZ4KVsoQr6AgkUVtSBE(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(i=2)
         data = {
             "id": res[0]['id']
         }
-        return self._make_request('post', 'cancel_the_order', data, 'main', nocheck)
+        return self._make_request('post', 'yxUItLkk8', data, 'main', nocheck)
 
-    @doc(g_fast_guarantee_reshipment)
+    @doc(qAhAnnHA7i5RWoR9HPAf)
     @BaseApi.timing_decorator
-    def fast_guarantee_reshipment(self, nocheck=False):
-        res = self.pc.guarantee_order_manage_data(i=3)
-        res_2 = self.pc.platform_inspection_center_manage_data()
+    def qAhAnnHA7i5RWoR9HPAf(self, nocheck=False):
+        res = self.pc.BAc7o7mzTE8oACvyeArJW(i=3)
+        res_2 = self.pc.B63gyanXogW9NpUu1Gr1K()
         data = {
             "businessNo": res[0]['orderNo'],
             "type": "1",
@@ -297,16 +295,16 @@ class GuaranteeOrderManageRequest(InitializeParams):
             "expectPostTimeStartEnd": self.get_formatted_datetime(),
             "inspectionCenterId": INFO['check_the_center_id'],
         }
-        return self._make_request('post', 'reship', data, 'main', nocheck)
+        return self._make_request('post', 'nMM7fu8WE', data, 'main', nocheck)
 
 
-class GuaranteeGoodsManageRequest(InitializeParams):
+class RETp2VmRwT(InitializeParams):
     """保卖管理|商品管理"""
 
-    @doc(g_sell_bid_reference_price)
+    @doc(bEf5Mp7G2xinW35U9v4n)
     @BaseApi.timing_decorator
-    def sell_bid_reference_price(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=2)
+    def bEf5Mp7G2xinW35U9v4n(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = [
@@ -317,12 +315,12 @@ class GuaranteeGoodsManageRequest(InitializeParams):
                 "upbeatPrice": 0
             }
         ]
-        return self._make_request('post', 'sales_goods', data, 'main', nocheck)
+        return self._make_request('post', 'VUNzXGZLo', data, 'main', nocheck)
 
-    @doc(g_sell_bid_self_pricing)
+    @doc(CNaaAq7VSiFlTyYNGrfk)
     @BaseApi.timing_decorator
-    def sell_bid_self_pricing(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=2)
+    def CNaaAq7VSiFlTyYNGrfk(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = [
@@ -333,12 +331,12 @@ class GuaranteeGoodsManageRequest(InitializeParams):
                 "upbeatPrice": 50
             }
         ]
-        return self._make_request('post', 'sales_goods', data, 'main', nocheck)
+        return self._make_request('post', 'VUNzXGZLo', data, 'main', nocheck)
 
-    @doc(g_sell_bid_platform_pricing)
+    @doc(HG0qvmXGjLcEUjmJOKNy)
     @BaseApi.timing_decorator
-    def sell_bid_platform_pricing(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=2)
+    def HG0qvmXGjLcEUjmJOKNy(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = [
@@ -348,12 +346,12 @@ class GuaranteeGoodsManageRequest(InitializeParams):
                 "salePricingType": 3
             }
         ]
-        return self._make_request('post', 'sales_goods', data, 'main', nocheck)
+        return self._make_request('post', 'VUNzXGZLo', data, 'main', nocheck)
 
-    @doc(g_sell_same_sale_reference_price)
+    @doc(sUkAYaxto6tXXFUu1tyJ)
     @BaseApi.timing_decorator
-    def sell_same_sale_reference_price(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=2)
+    def sUkAYaxto6tXXFUu1tyJ(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = [
@@ -364,12 +362,12 @@ class GuaranteeGoodsManageRequest(InitializeParams):
                 "upbeatPrice": 0
             }
         ]
-        return self._make_request('post', 'sales_goods', data, 'main', nocheck)
+        return self._make_request('post', 'VUNzXGZLo', data, 'main', nocheck)
 
-    @doc(g_sell_self_same_sale_pricing)
+    @doc(IpoZ907QoA7qXNUfox4T)
     @BaseApi.timing_decorator
-    def sell_self_same_sale_pricing(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=2)
+    def IpoZ907QoA7qXNUfox4T(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = [
@@ -380,12 +378,12 @@ class GuaranteeGoodsManageRequest(InitializeParams):
                 "upbeatPrice": 50
             }
         ]
-        return self._make_request('post', 'sales_goods', data, 'main', nocheck)
+        return self._make_request('post', 'VUNzXGZLo', data, 'main', nocheck)
 
-    @doc(g_sell_same_sale_platform_pricing)
+    @doc(uojb7cbGSWgC8zL5aCWL)
     @BaseApi.timing_decorator
-    def sell_same_sale_platform_pricing(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=2)
+    def uojb7cbGSWgC8zL5aCWL(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=2)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = [
@@ -395,34 +393,34 @@ class GuaranteeGoodsManageRequest(InitializeParams):
                 "salePricingType": 3
             }
         ]
-        return self._make_request('post', 'sales_goods', data, 'main', nocheck)
+        return self._make_request('post', 'VUNzXGZLo', data, 'main', nocheck)
 
 
-    @doc(g_cancel_the_sale)
+    @doc(ecdR9lamw6zn0y9vyNRF)
     @BaseApi.timing_decorator
-    def cancel_the_sale(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=3)
+    def ecdR9lamw6zn0y9vyNRF(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=3)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id": obj
         }
-        return self._make_request('post', 'cancel_sales', data, 'main', nocheck)
+        return self._make_request('post', 'Qdor1qV6S', data, 'main', nocheck)
 
-    @doc(g_update_price)
+    @doc(LrCC4svDp0JANhnDhJZH)
     @BaseApi.timing_decorator
-    def update_price(self, nocheck=False):
-        res = self.pc.guarantee_goods_manage_data(i=3)
+    def LrCC4svDp0JANhnDhJZH(self, nocheck=False):
+        res = self.pc.Krj5gFvH88BTJJo3iWzJX(i=3)
         obj = res[0]['id']
         ParamCache.cache_object({"id": obj}, 'practical.json')
         data = {
             "id":obj,
             "upbeatPrice": "50"
         }
-        return self._make_request('post', 'update_sales', data, 'main', nocheck)
+        return self._make_request('post', 'xN6HW83XP', data, 'main', nocheck)
 
 
 if __name__ == '__main__':
-    api = GuaranteeGoodsManageRequest()
-    result = api.cancel_the_sale()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))

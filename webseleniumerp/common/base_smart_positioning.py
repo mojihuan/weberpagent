@@ -68,7 +68,6 @@ class BaseSmartPositioning:
                 # 检查父级是否有 class 或 role 等特征
                 if parent.has_attr('class') and parent['class']:
                     parent_class = ' '.join(parent['class'])
-                    # 使用 and 连接父级 class 和子级文本
                     xpath = f'//{parent_tag}[contains(@class,"{parent_class.split()[0]}") and .//{tag}[normalize-space()="{text_content}"]]'
                     return f'({xpath})[1]'
 
@@ -113,15 +112,19 @@ class BaseSmartPositioning:
         xpath = f'//{tag}'
         return f'({xpath})[1]'
 
-    def auto_and_update_xpath_realtime(self, key=None, desc=None, html_path=None, index=1, tag=None):
+    def auto_and_update_xpath_realtime(self, key=None, desc=None, html_path=None, index=1, tag=None, p_tag=None, p_name=None, o_tag=None, o_name=None):
         """
         实时自动生成 XPath 并更新（在 click/input 时立即调用）
         会自动使用最近保存的 HTML 文件
         :param key: 元素 key
         :param desc: desc 文本
-        :param html_path: HTML 文件路径（优先使用此参数）
-        :param index: 元素索引（从 1 开始，用于生成带括号的索引格式）
-        :param tag: HTML 标签名（用于与 desc 组合匹配）
+        :param html_path: HTML 文件路径
+        :param index: 元素索引（从 1 开始）
+        :param tag: HTML 标签名
+        :param p_tag: 父元素标签类型
+        :param p_name: 父元素类名
+        :param o_tag: 祖父元素标签类型
+        :param o_name: 祖父元素属性值
         :return: bool 是否成功
         """
         try:
@@ -137,14 +140,9 @@ class BaseSmartPositioning:
                 print(f"⚠️  跳过生成 - 尚未保存 HTML 文件 (key={key}, desc={desc})")
                 return False
 
-            xpath = self.generate_xpath_from_desc(desc, html_file_path, index=index, tag=tag)
+            xpath = self.generate_xpath_from_desc(desc, html_file_path, index=index, tag=tag, p_tag=p_tag, p_name=p_name, o_tag=o_tag, o_name=o_name)
 
             success = self.update_element_positioning(key, xpath)
-
-            if success:
-                pass
-            else:
-                pass
 
             return success
 
@@ -159,7 +157,7 @@ class BaseSmartPositioning:
         获取重复元素中指定索引的定位
         :param desc_text: desc 参数文本
         :param index: 元素索引（从 1 开始）
-        :return: 定位列表 [XPath, CSS, XPath 绝对路径，XPath(and 逻辑)]，如果索引不存在返回 None
+        :return: XPath 定位器，如果索引不存在返回 None
         """
         try:
             global _multi_element_cache
@@ -167,12 +165,7 @@ class BaseSmartPositioning:
                 elements = _multi_element_cache.get('elements', [])
                 if 0 < index <= len(elements):
                     elem_info = elements[index - 1]
-                    return [
-                        elem_info['xpath'],
-                        elem_info['css'],
-                        elem_info['xpath_absolute'],
-                        elem_info['xpath_context']
-                    ]
+                    return elem_info['xpath']
                 else:
                     print(f"⚠️  索引 {index} 超出范围 (1-{len(elements)})")
                     return None
@@ -185,7 +178,6 @@ class BaseSmartPositioning:
 
             soup = self._get_soup_from_file(html_file_path)
 
-            # 从 desc_collector 中获取最近一次记录的 tag
             tag = None
             if desc_collector:
                 last_record = desc_collector[-1]
@@ -200,14 +192,11 @@ class BaseSmartPositioning:
 
             elem = target_elements[index - 1]
             xpath = self._build_xpath(elem)
-            css = self._build_css(elem)
-            xpath_absolute = self._build_absolute_xpath(elem)
-            xpath_context = self._build_relative_xpath_with_context(elem)
 
             if not COMPILED_PATTERNS['xpath_index'].search(xpath):
                 xpath = f"{xpath}[{index}]"
 
-            return [xpath, css, xpath_absolute, xpath_context]
+            return xpath
 
         except Exception as e:
             print(f"获取指定索引元素失败：{str(e)}")
@@ -216,20 +205,19 @@ class BaseSmartPositioning:
     def refresh_html_source(self, file_name='elem/auto_generated.html'):
         """
         重新获取并保存当前页面的 HTML 源代码
-        用于页面跳转后更新 HTML 缓存
-        :param file_name: 保存的文件名（相对路径）
+        :param file_name: 保存的文件名
         :return: 保存的文件绝对路径
         """
-        time.sleep(1)
+        time.sleep(0.6)
         html_path = self.save_html_code(file_name=file_name)
-        time.sleep(2)
+        time.sleep(1)
         return html_path
 
     def _identify_locator(self, locator):
         """
-        智能识别定位器类型：XPath、CSS 或 XPath 绝对路径
-        :param locator: 定位字符串 或 定位器列表 或已识别的定位器元组
-        :return: (By, locator_type) 或 [(By, locator_type)]
+        智能识别定位器类型
+        :param locator: 定位字符串
+        :return: (By, locator_type)
         """
         if isinstance(locator, tuple) and len(locator) == 2:
             if locator[0] in [By.XPATH, By.CSS_SELECTOR, By.ID, By.CLASS_NAME, By.NAME, By.tag, By.LINK_TEXT,
@@ -246,11 +234,7 @@ class BaseSmartPositioning:
 
     def save_html_code(self, file_name=None):
         """
-        保存当前页面的 HTML 源代码到文件（保留原始格式，不进行过滤和格式化）
-        优化说明：
-        1. 直接保存原始 HTML，不过滤任何内容（style/script 等不影响解析）
-        2. 不进行格式化（BeautifulSoup 解析不受空白字符影响）
-        3. 文件体积减少 70-90%，读写速度提升 5-10 倍
+        保存当前页面的 HTML 源代码到文件
         :param file_name: 相对路径文件名
         :return: 保存的文件绝对路径
         """
@@ -269,12 +253,8 @@ class BaseSmartPositioning:
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
-            # 直接保存原始 HTML，不过滤、不格式化
             with open(abs_file_path, 'w', encoding='utf-8') as f:
                 f.write(html_source)
-
-            file_size_kb = os.path.getsize(abs_file_path) / 1024
-            # print(f"✓ 已保存 HTML: {abs_file_path} (约 {file_size_kb:.1f} KB)")
 
             global desc_collector
             if desc_collector:
@@ -292,8 +272,7 @@ class BaseSmartPositioning:
 
     def format_html(self, html_content):
         """
-        格式化 HTML 代码，添加适当的缩进和换行
-        注意：此方法已被弃用，save_html_code 不再调用此方法
+        格式化 HTML 代码
         :param html_content: HTML 字符串
         :return: 格式化后的 HTML 字符串
         """
@@ -329,12 +308,11 @@ class BaseSmartPositioning:
 
     def _get_parent_path(self, element, max_depth=5):
         """
-       获取元素的父级路径（用于调试）
+        获取元素的父级路径
         :param element: BeautifulSoup 元素
         :param max_depth: 最大深度
         :return: 父级路径字符串
         """
-
         path = []
         current = element
         depth = 0
@@ -354,7 +332,7 @@ class BaseSmartPositioning:
 
     def _build_xpath(self, element, depth=0, max_depth=5):
         """
-        递归构建元素的 XPath 路径（以 // 开头的绝对路径）- 固定使用 (//tag[normalize-space()='文本'])[1] 格式
+        递归构建元素的 XPath 路径
         :param element: BeautifulSoup 元素
         :param depth: 当前递归深度
         :param max_depth: 最大递归深度
@@ -365,13 +343,11 @@ class BaseSmartPositioning:
 
         tag = element.name.lower()
 
-        # 固定格式：优先使用文本内容生成 (//tag[normalize-space()='文本'])[1] 格式
         text_content = element.get_text(strip=True)
         if text_content and len(text_content) < 200:
             xpath = f"//{tag}[normalize-space()='{text_content}']"
             return f'({xpath})[1]'
 
-        # 如果没有文本内容，尝试使用其他属性
         if element.has_attr('id') and element['id']:
             xpath = f'//{tag}[@id="{element["id"]}"]'
             return f'({xpath})[1]'
@@ -394,7 +370,6 @@ class BaseSmartPositioning:
                 xpath = f'//{tag}[@class="{class_val}"]'
                 return f'({xpath})[1]'
 
-        # 回退到基于父级路径的 XPath
         path_elements = []
         current_element = element
         current_depth = 0
@@ -434,9 +409,9 @@ class BaseSmartPositioning:
 
     def _build_xpath_with_or_logic(self, element):
         """
-        构建使用 or 逻辑运算符的组合 XPath 定位器（多属性组合）
+        构建使用 or 逻辑的组合 XPath 定位器
         :param element: BeautifulSoup 元素
-        :return: XPath 字符串，使用 or 连接多个条件
+        :return: XPath 字符串
         """
         if element.name is None:
             return ''
@@ -444,10 +419,8 @@ class BaseSmartPositioning:
         tag = element.name.lower()
         conditions = []
 
-        # 1. 优先添加 tag 名称
         xpath_base = f'//{tag}'
 
-        # 2. 收集所有可用条件
         if element.has_attr('id') and element['id']:
             conditions.append(f'@id="{element["id"]}"')
 
@@ -472,13 +445,11 @@ class BaseSmartPositioning:
                 conditions.append(f'@{attr}="{value}"')
                 break
 
-        # 3. 如果没有其他条件，尝试使用文本内容
         if not conditions:
             text_content = element.get_text(strip=True)
             if text_content and len(text_content) < 50:
                 return f"//{tag}[normalize-space()='{text_content}']"
 
-        # 4. 使用 or 连接条件（最多 3 个条件，避免过于复杂）
         if conditions:
             selected_conditions = conditions[:3]
             if len(selected_conditions) == 1:
@@ -489,81 +460,18 @@ class BaseSmartPositioning:
 
         return xpath_base
 
-    def _build_css(self, element, depth=0, max_depth=20):
-        """
-        递归构建元素的 CSS 选择器 - 绝对路径版本（从 html body 开始）
-        :param element: BeautifulSoup 元素
-        :param depth: 当前递归深度
-        :param max_depth: 最大递归深度
-        :return: CSS 选择器字符串
-        """
-        if element.name is None:
-            return ''
-
-        path_elements = []
-        current_element = element
-        current_depth = 0
-
-        while current_element and current_element.name and current_depth <= max_depth:
-            path_elements.insert(0, current_element)
-            current_element = current_element.parent
-            current_depth += 1
-
-        css_parts = []
-
-        for idx, elem in enumerate(path_elements):
-            if elem.name == 'html':
-                continue
-
-            tag = elem.name.lower()
-
-            if elem.name == 'body':
-                css_parts.append('body')
-                continue
-
-            if elem.name == '[document]':
-                continue
-
-            selector_part = tag
-
-            if elem.has_attr('id') and elem['id']:
-                selector_part = f'{tag}#{elem["id"]}'
-            elif elem.has_attr('class') and elem['class']:
-                class_name = elem['class'][0]
-
-                parent = elem.parent
-                if parent:
-                    siblings_with_same_class = [s for s in parent.children
-                                                if hasattr(s, 'name') and s.name
-                                                and s.has_attr('class')
-                                                and class_name in s.get('class', [])]
-
-                    if len(siblings_with_same_class) > 1:
-                        index = siblings_with_same_class.index(elem) + 1
-                        selector_part = f'{tag}.{class_name}:nth-of-type({index})'
-                    else:
-                        selector_part = f'{tag}.{class_name}'
-            else:
-                parent = elem.parent
-                if parent:
-                    siblings = [s for s in parent.children
-                                if hasattr(s, 'name') and s.name == tag]
-                    if len(siblings) > 1:
-                        index = siblings.index(elem) + 1
-                        selector_part = f'{tag}:nth-of-type({index})'
-
-            css_parts.append(selector_part)
-
-        return ' > '.join(css_parts)
-
-    def collect_desc_info(self, key, desc, html_path=None, index=1, tag=None):
+    def collect_desc_info(self, key, desc, html_path=None, index=1, tag=None, p_tag=None, p_name=None, o_tag=None, o_name=None):
         """
         收集 desc 信息用于后续生成 XPath
         :param key: 元素 key
         :param desc: 描述文本
         :param html_path: HTML 文件路径
-        :param index: 元素索引（从 1 开始）
-        :param tag: HTML 标签名（可选）
+        :param index: 元素索引
+        :param tag: HTML 标签名
+        :param p_tag: 父元素标签类型
+        :param p_name: 父元素类名
+        :param o_tag: 祖父元素标签类型
+        :param o_name: 祖父元素属性值（如 aria-label）
         :return: None
         """
         global desc_collector
@@ -573,16 +481,19 @@ class BaseSmartPositioning:
             'html_path': html_path,
             'index': index,
             'tag': tag,
+            'p_tag': p_tag,
+            'p_name': p_name,
+            'o_tag': o_tag,
+            'o_name': o_name,
             'timestamp': time.time()
         })
-
 
     def update_element_positioning(self, key, xpath_value, positioning_file=None):
         """
         更新 element_positioning.py 中的元素定位
         :param key: 元素 key
-        :param xpath_value: XPath 值或定位列表 [XPath, CSS, XPath 绝对路径，XPath 相对路径，XPath(and 逻辑)]
-        :param positioning_file: 定位文件路径，默认为项目中的 element_positioning.py
+        :param xpath_value: XPath 值
+        :param positioning_file: 定位文件路径
         :return: bool 是否成功更新
         """
         try:
@@ -596,16 +507,7 @@ class BaseSmartPositioning:
             with open(positioning_file, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            if isinstance(xpath_value, list):
-                if len(xpath_value) < 5:
-                    while len(xpath_value) < 5:
-                        xpath_value.append('')
-                elif len(xpath_value) > 5:
-                    xpath_value = xpath_value[:5]
-
-                xpath_str = repr(xpath_value)
-            else:
-                xpath_str = repr([xpath_value, '', '', '', ''])
+            xpath_str = repr(xpath_value) if isinstance(xpath_value, str) else repr([xpath_value, '', '', '', ''])
 
             if f'"{key}"' in content:
                 pattern = rf'("{key}"\s*:\s*)\[.*?\](?=\s*,|\s*\n\s*"[a-zA-Z_]|}})'
@@ -655,9 +557,9 @@ class BaseSmartPositioning:
 
     def auto_and_update_xpath(self, key=None, desc=None, html_file_path=None):
         """
-        自动从 desc 生成 XPath 并更新到 element_positioning.py
-        :param key: 元素 key（如不提供则从最近的 desc 记录获取）
-        :param desc: desc 文本（如不提供则从最近的 desc 记录获取）
+        自动从 desc 生成 XPath 并更新
+        :param key: 元素 key
+        :param desc: desc 文本
         :param html_file_path: HTML 文件路径
         :return: bool 是否成功
         """
@@ -684,7 +586,7 @@ class BaseSmartPositioning:
 
     def _build_relative_xpath(self, element, max_depth=3):
         """
-        构建 XPath 相对路径定位器（基于父级元素的简短路径）
+        构建 XPath 相对路径定位器
         :param element: BeautifulSoup 元素
         :param max_depth: 最大向上追溯深度
         :return: XPath 相对路径字符串
@@ -694,7 +596,6 @@ class BaseSmartPositioning:
 
         tag = element.name.lower()
 
-        # 策略 1: 基于最近的有特征父级元素构建相对路径
         parent = element.parent
         depth = 0
 
@@ -704,7 +605,6 @@ class BaseSmartPositioning:
 
             parent_tag = parent.name.lower()
 
-            # 检查父级是否有唯一性特征
             if parent.has_attr('id') and parent['id']:
                 xpath = f'//{parent_tag}[@id="{parent["id"]}"]//{tag}'
                 return f'({xpath})[1]'
@@ -731,10 +631,8 @@ class BaseSmartPositioning:
             parent = parent.parent
             depth += 1
 
-        # 策略 2: 如果找不到有特征的父级，使用文本内容的相对路径
         text_content = element.get_text(strip=True)
         if text_content and len(text_content) < 50:
-            # 查找包含此文本的最近祖先
             ancestor = element.parent
             while ancestor and ancestor.name and ancestor.name not in ['html', 'body', '[document]']:
                 ancestor_tag = ancestor.name.lower()
@@ -744,13 +642,12 @@ class BaseSmartPositioning:
                     return f'({xpath})[1]'
                 ancestor = ancestor.parent
 
-        # 策略 3: 回退到简单的相对路径
         xpath = f'//{tag}'
         return f'({xpath})[1]'
 
     def _build_absolute_xpath(self, element, max_depth=20):
         """
-        构建元素的 XPath 绝对路径（从 /html 开始）- 强制逐层往下找组合
+        构建元素的 XPath 绝对路径
         :param element: BeautifulSoup 元素
         :param max_depth: 最大递归深度
         :return: XPath 绝对路径字符串
@@ -800,7 +697,7 @@ class BaseSmartPositioning:
 
     def _get_soup_from_file(self, html_file_path):
         """
-        从文件读取 HTML 并解析为 BeautifulSoup 对象（带缓存）
+        从文件读取 HTML 并解析
         :param html_file_path: HTML 文件路径
         :return: BeautifulSoup 对象
         """
@@ -816,21 +713,23 @@ class BaseSmartPositioning:
 
         return soup
 
-    def generate_xpath_from_desc(self, desc_text, html_file_path=None, index=1, tag=None):
+    def generate_xpath_from_desc(self, desc_text, html_file_path=None, index=1, tag=None, p_tag=None, p_name=None, o_tag=None, o_name=None):
         """
-        通过 desc 参数的文本绝对匹配 HTML 代码中的对应文本，找到标签位置并生成定位
-        支持处理重复元素，可返回所有匹配或指定索引的元素
-        兼容处理：自动过滤文本前后的引号、空白字符、HTML 注释
+        通过 desc 参数生成 XPath 定位
         :param desc_text: desc 参数文本
         :param html_file_path: HTML 文件路径
-        :param index: 元素索引（从 1 开始，用于生成带括号的索引格式）
-        :param tag: HTML 标签名（如 'button', 'input' 等），用于与 desc 组合匹配（可选）
-        :return: 生成的定位列表 [XPath, CSS, XPath 绝对路径，XPath(and 逻辑)]，如果有多个匹配，返回所有匹配的列表
+        :param index: 元素索引（从 1 开始）
+        :param tag: HTML 标签名
+        :param p_tag: 父元素标签类型
+        :param p_name: 父元素类名
+        :param o_tag: 祖父元素标签类型
+        :param o_name: 祖父元素属性值（如 aria-label 或 class）
+        :return: XPath 定位器
         """
         try:
             if html_file_path is None:
                 if not desc_collector:
-                    raise FileNotFoundError("未找到已保存的 HTML 文件，请先调用 save_html_code 方法")
+                    raise FileNotFoundError("未找到已保存的 HTML 文件")
                 html_file_path = desc_collector[-1].get('html_path')
 
             if not os.path.exists(html_file_path):
@@ -839,173 +738,219 @@ class BaseSmartPositioning:
             soup = self._get_soup_from_file(html_file_path)
             target_elements = []
 
-            # 预处理 desc_text：去除前后引号和空白字符
-            desc_text_clean = desc_text.strip().strip('"').strip("'").strip()
+            # 判断 desc 是否包含@符号
+            has_at_symbol = '@' in desc_text
 
-            # 策略 1: 如果提供了 tag，优先在指定标签中查找文本（包含 placeholder）
-            if tag:
-                tag_lower = tag.lower()
+            if has_at_symbol:
+                # desc 包含@符号，只使用 tag 查找元素
+                if tag:
+                    tag_lower = tag.lower()
+                    target_elements = soup.find_all(tag_lower)
+                else:
+                    # 没有指定 tag，返回所有元素
+                    target_elements = soup.find_all(True)
+            else:
+                # desc 不包含@符号，使用原有逻辑
+                desc_text_clean = desc_text.strip().strip('"').strip("'").strip()
 
-                # 1.1: 查找 placeholder 和 value 属性（input/textarea）
-                if tag_lower in ['input', 'textarea']:
-                    target_elements_placeholder = soup.find_all(tag_lower, attrs={'placeholder': lambda x: x and desc_text_clean in x})
-                    target_elements.extend(target_elements_placeholder)
+                if tag:
+                    tag_lower = tag.lower()
 
-                    target_elements_value = soup.find_all(tag_lower, attrs={'value': lambda x: x and desc_text_clean in x})
-                    target_elements.extend(target_elements_value)
+                    if tag_lower in ['input', 'textarea']:
+                        target_elements_placeholder = soup.find_all(tag_lower, attrs={'placeholder': lambda x: x and desc_text_clean in x})
+                        target_elements.extend(target_elements_placeholder)
 
-                # 1.2: 精确匹配标签元素的文本内容
+                        target_elements_value = soup.find_all(tag_lower, attrs={'value': lambda x: x and desc_text_clean in x})
+                        target_elements.extend(target_elements_value)
+
+                    if not target_elements:
+                        for element in soup.find_all(tag_lower):
+                            text_content = element.get_text(strip=True)
+                            if not text_content:
+                                continue
+
+                            elem_text_raw = text_content
+                            elem_text_clean = elem_text_raw.strip('"').strip("'").strip()
+                            elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
+
+                            if elem_text_raw == desc_text or elem_text_clean == desc_text_clean or elem_text_no_comment == desc_text_clean:
+                                target_elements.append(element)
+
+                    if not target_elements:
+                        for element in soup.find_all(tag_lower):
+                            text_content = element.get_text(strip=True)
+                            if not text_content:
+                                continue
+
+                            elem_text_clean = text_content.strip('"').strip("'").strip()
+                            elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
+
+                            if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
+                                target_elements.append(element)
+
                 if not target_elements:
-                    for element in soup.find_all(tag_lower):
-                        text_content = element.get_text(strip=True)
-                        if not text_content:
-                            continue
-
-                        elem_text_raw = text_content
+                    for element in soup.find_all(string=True):
+                        elem_text_raw = element.strip()
                         elem_text_clean = elem_text_raw.strip('"').strip("'").strip()
                         elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
 
                         if elem_text_raw == desc_text or elem_text_clean == desc_text_clean or elem_text_no_comment == desc_text_clean:
-                            target_elements.append(element)
+                            target_elements.append(element.parent)
 
-                # 1.3: 部分匹配标签元素的文本内容
                 if not target_elements:
-                    for element in soup.find_all(tag_lower):
+                    for element in soup.find_all(string=True):
+                        elem_text_clean = element.strip().strip('"').strip("'").strip()
+                        elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
+
+                        if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
+                            target_elements.append(element.parent)
+
+                if not target_elements:
+                    for btn_tag in ['button', 'a']:
+                        all_buttons = soup.find_all(btn_tag)
+                        for elem in all_buttons:
+                            btn_text = elem.get_text(strip=True)
+                            if not btn_text:
+                                continue
+
+                            btn_text_clean = btn_text.strip('"').strip("'").strip()
+                            btn_text_no_comment = re.sub(r'<!--.*?-->', '', btn_text_clean, flags=re.DOTALL).strip()
+
+                            if btn_text == desc_text or btn_text_clean == desc_text_clean or btn_text_no_comment == desc_text_clean:
+                                target_elements.append(elem)
+                                break
+                        if target_elements:
+                            break
+
+                if not target_elements:
+                    for element in soup.find_all(True):
                         text_content = element.get_text(strip=True)
                         if not text_content:
                             continue
 
-                        elem_text_clean = text_content.strip('"').strip("'").strip()
-                        elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
+                        text_clean = text_content.strip('"').strip("'").strip()
+                        text_no_comment = re.sub(r'<!--.*?-->', '', text_clean, flags=re.DOTALL).strip()
 
-                        if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
+                        if text_content == desc_text or text_clean == desc_text_clean or text_no_comment == desc_text_clean:
                             target_elements.append(element)
-
-            # 策略 2: 如果没有提供 tag 或者策略 1 没找到，使用原来的逻辑（不限制标签名）
-            if not target_elements:
-                # 2.1: 精确匹配文本节点
-                for element in soup.find_all(string=True):
-                    elem_text_raw = element.strip()
-                    elem_text_clean = elem_text_raw.strip('"').strip("'").strip()
-                    elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
-
-                    if elem_text_raw == desc_text or elem_text_clean == desc_text_clean or elem_text_no_comment == desc_text_clean:
-                        target_elements.append(element.parent)
-
-            # 策略 3: 部分匹配文本节点（不限制标签名）
-            if not target_elements:
-                for element in soup.find_all(string=True):
-                    elem_text_clean = element.strip().strip('"').strip("'").strip()
-                    elem_text_no_comment = re.sub(r'<!--.*?-->', '', elem_text_clean, flags=re.DOTALL).strip()
-
-                    if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
-                        target_elements.append(element.parent)
-
-            # 策略 4: 模糊匹配按钮和链接（不限制标签名）
-            if not target_elements:
-                for tag in ['button', 'a']:
-                    all_buttons = soup.find_all(tag)
-                    for elem in all_buttons:
-                        btn_text = elem.get_text(strip=True)
-                        if not btn_text:
-                            continue
-
-                        btn_text_clean = btn_text.strip('"').strip("'").strip()
-                        btn_text_no_comment = re.sub(r'<!--.*?-->', '', btn_text_clean, flags=re.DOTALL).strip()
-
-                        if btn_text == desc_text or btn_text_clean == desc_text_clean or btn_text_no_comment == desc_text_clean:
-                            target_elements.append(elem)
-                            break
-                    if target_elements:
-                        break
-
-            # 策略 5: 遍历所有元素（不限制标签名）
-            if not target_elements:
-                for element in soup.find_all(True):
-                    text_content = element.get_text(strip=True)
-                    if not text_content:
-                        continue
-
-                    text_clean = text_content.strip('"').strip("'").strip()
-                    text_no_comment = re.sub(r'<!--.*?-->', '', text_clean, flags=re.DOTALL).strip()
-
-                    if text_content == desc_text or text_clean == desc_text_clean or text_no_comment == desc_text_clean:
-                        target_elements.append(element)
-
-            # 策略 6: 使用 Selenium 验证（不限制标签名）
-            if not target_elements:
-                xpath = f'//*[normalize-space()="{desc_text_clean}"]'
-                try:
-                    from selenium.webdriver.common.by import By
-                    elements = self.driver.find_elements(By.XPATH, xpath)
-                    if elements:
-                        print(f"   ✅ Selenium 找到 {len(elements)} 个元素")
-                        for elem in elements:
-                            elem_html = elem.get_attribute('outerHTML')
-                            soup_elem = BeautifulSoup(elem_html, 'html.parser')
-                            if soup_elem:
-                                target_elements.append(soup_elem)
-
-                        print(f"✅ Selenium 匹配成功 - 找到 {len(target_elements)} 个元素")
-                except Exception as e:
-                    print(f"   ⚠️  XPath 查找失败：{e}")
-
-            # 策略 7: 优先匹配带有特定 class 的元素（不限制标签名）
-            if not target_elements:
-                for element in soup.find_all(True):
-                    text_content = element.get_text(strip=True)
-                    if not text_content:
-                        continue
-
-                    text_clean = text_content.strip('"').strip("'").strip()
-                    text_no_comment = re.sub(r'<!--.*?-->', '', text_clean, flags=re.DOTALL).strip()
-
-                    if text_no_comment == desc_text_clean and element.has_attr('class'):
-                        class_str = ' '.join(element.get('class', []))
-                        if any(keyword in class_str for keyword in ['radio', 'checkbox', 'button', 'inner']):
-                            target_elements.append(element)
-                            break
 
             if not target_elements:
                 print(f"\n❌ 警告：未在 HTML 中找到包含文本 '{desc_text}' 元素" + (f" (标签名：{tag})" if tag else ""))
-                return ['', '', '', '']
+                return ''
 
-            # 打印调试信息
             if index is not None:
                 print(f"📍 找到 {len(target_elements)} 个匹配元素，需要获取第 {index} 个")
 
             # 构建最终结果
             indexed_xpaths = []
             for idx, elem in enumerate(target_elements, 1):
-                css = self._build_css(elem)
-                xpath_absolute = self._build_absolute_xpath(elem)
-                xpath_context = self._build_relative_xpath_with_context(elem)
-
-                # 构建基础 XPath（已包含 [1] 索引）
                 base_xpath_raw = self._build_xpath(elem)
 
                 # 当有多个匹配元素时，替换最外层的索引
                 if len(target_elements) > 1:
-                    # 移除末尾的 [1]，替换为当前索引
                     if COMPILED_PATTERNS['xpath_index'].search(base_xpath_raw):
-                        # '(//xxx)[1]' → '(//xxx)[2]'
                         xpath_with_index = COMPILED_PATTERNS['xpath_index'].sub(f'[{idx}]', base_xpath_raw)
                     else:
                         xpath_with_index = f"({base_xpath_raw})[{idx}]"
                 else:
-                    # 唯一元素，保留 [1]
                     xpath_with_index = base_xpath_raw
+
+                # 如果同时有祖父元素和父元素，构建三层嵌套
+                if o_tag and o_name and p_tag and p_name:
+                    # 判断 o_name 是否为中文
+                    is_chinese = bool(re.search(r'[\u4e00-\u9fa5]', o_name))
+
+                    if is_chinese:
+                        # 第一种场景：o_name 是中文，使用@aria-label 属性匹配
+                        grandparent_xpath = f"//{o_tag}[@aria-label='{o_name}']"
+                        # print(f"🔍 检测到中文 o_name: '{o_name}', 使用@aria-label 匹配")
+                    else:
+                        # 第二种场景：o_name 是非中文，使用@class 属性匹配
+                        grandparent_xpath = f"//{o_tag}[@class='{o_name}']"
+                        # print(f"🔍 检测到非中文 o_name: '{o_name}', 使用@class 匹配")
+
+                    # 构建父元素 XPath
+                    parent_xpath = f"//{p_tag}[@class='{p_name}']"
+
+                    # 提取子元素 XPath（去掉最外层的括号和索引）
+                    child_xpath = xpath_with_index
+                    if child_xpath.startswith('('):
+                        last_paren_pos = child_xpath.rfind(')')
+                        if last_paren_pos != -1:
+                            if last_paren_pos < len(child_xpath) - 1 and child_xpath[last_paren_pos + 1] == '[':
+                                end_bracket_pos = child_xpath.find(']', last_paren_pos)
+                                if end_bracket_pos != -1:
+                                    child_xpath = child_xpath[1:last_paren_pos]
+                            else:
+                                if child_xpath.endswith(']'):
+                                    child_xpath = child_xpath[1:-1]
+                                else:
+                                    child_xpath = child_xpath[1:]
+
+                    # 组合祖父 + 父 + 子元素 XPath，并添加索引
+                    full_xpath = f"({grandparent_xpath}{parent_xpath}{child_xpath})[{index}]"
+                    xpath_with_index = full_xpath
+
+                # 如果只有祖父元素，使用祖父元素定位
+                elif o_tag and o_name:
+                    # 判断 o_name 是否为中文
+                    is_chinese = bool(re.search(r'[\u4e00-\u9fa5]', o_name))
+
+                    if is_chinese:
+                        # 第一种场景：o_name 是中文，使用@aria-label 属性匹配
+                        grandparent_xpath = f"//{o_tag}[@aria-label='{o_name}']"
+                        # print(f"🔍 检测到中文 o_name: '{o_name}', 使用@aria-label 匹配")
+                    else:
+                        # 第二种场景：o_name 是非中文，使用@class 属性匹配
+                        grandparent_xpath = f"//{o_tag}[@class='{o_name}']"
+                        # print(f"🔍 检测到非中文 o_name: '{o_name}', 使用@class 匹配")
+
+                    # 提取子元素 XPath（去掉最外层的括号和索引）
+                    child_xpath = xpath_with_index
+                    if child_xpath.startswith('('):
+                        last_paren_pos = child_xpath.rfind(')')
+                        if last_paren_pos != -1:
+                            if last_paren_pos < len(child_xpath) - 1 and child_xpath[last_paren_pos + 1] == '[':
+                                end_bracket_pos = child_xpath.find(']', last_paren_pos)
+                                if end_bracket_pos != -1:
+                                    child_xpath = child_xpath[1:last_paren_pos]
+                            else:
+                                if child_xpath.endswith(']'):
+                                    child_xpath = child_xpath[1:-1]
+                                else:
+                                    child_xpath = child_xpath[1:]
+
+                    # 组合祖父 + 子元素 XPath，并添加索引
+                    full_xpath = f"({grandparent_xpath}{child_xpath})[{index}]"
+                    xpath_with_index = full_xpath
+
+                # 如果只有父元素信息（没有祖父元素），使用原有逻辑
+                elif p_tag and p_name:
+                    parent_xpath = f"//{p_tag}[@class='{p_name}']"
+                    child_xpath = xpath_with_index
+
+                    if child_xpath.startswith('('):
+                        last_paren_pos = child_xpath.rfind(')')
+                        if last_paren_pos != -1:
+                            if last_paren_pos < len(child_xpath) - 1 and child_xpath[last_paren_pos + 1] == '[':
+                                end_bracket_pos = child_xpath.find(']', last_paren_pos)
+                                if end_bracket_pos != -1:
+                                    child_xpath = child_xpath[1:last_paren_pos]
+                            else:
+                                if child_xpath.endswith(']'):
+                                    child_xpath = child_xpath[1:-1]
+                                else:
+                                    child_xpath = child_xpath[1:]
+
+                    full_xpath = f"({parent_xpath}{child_xpath})[{index}]"
+                    xpath_with_index = full_xpath
 
                 indexed_xpaths.append({
                     'index': idx,
                     'xpath': xpath_with_index,
-                    'css': css,
-                    'xpath_absolute': xpath_absolute,
-                    'xpath_context': xpath_context,
                     'element': elem
                 })
 
-            # 如果指定了 index 参数，强制返回对应索引的元素
             if index is not None:
                 if index <= 0:
                     raise ValueError(f"index 参数必须大于 0，当前值：{index}")
@@ -1029,20 +974,10 @@ class BaseSmartPositioning:
                     'timestamp': time.time()
                 }
 
-                return [
-                    elem_info['xpath'],
-                    elem_info['css'],
-                    elem_info['xpath_absolute'],
-                    elem_info['xpath_context']
-                ]
+                return elem_info['xpath']
 
-            # 未指定 index 参数时，返回第一个元素
             first_elem_info = indexed_xpaths[0]
-
             xpath_to_return = first_elem_info['xpath']
-            css_to_return = first_elem_info['css']
-            xpath_abs_to_return = first_elem_info['xpath_absolute']
-            xpath_ctx_to_return = first_elem_info['xpath_context']
 
             _multi_element_cache = {
                 'desc': desc_text,
@@ -1051,12 +986,7 @@ class BaseSmartPositioning:
                 'timestamp': time.time()
             }
 
-            return [
-                xpath_to_return,
-                css_to_return,
-                xpath_abs_to_return,
-                xpath_ctx_to_return
-            ]
+            return xpath_to_return
 
         except Exception as e:
             print(f"生成定位失败：{str(e)}")
@@ -1065,32 +995,26 @@ class BaseSmartPositioning:
     def _find_elements_by_desc(self, soup, desc_text, index=None, html_file_path=None, tag=None):
         """
         在 HTML 中查找匹配 desc 文本的元素
-        兼容处理：自动过滤文本前后的引号、空白字符、HTML 注释
         :param soup: BeautifulSoup 对象
         :param desc_text: 描述文本
-        :param index: 元素索引（从 1 开始），用于指定返回第几个元素
-        :param html_file_path: HTML 文件路径，用于错误提示
-        :param tag: HTML 标签名（可选）
-        :return: 匹配的元素定位信息列表 [XPath, CSS, XPath 绝对路径，XPath(and 逻辑)]
+        :param index: 元素索引
+        :param html_file_path: HTML 文件路径
+        :param tag: HTML 标签名
+        :return: XPath 定位器
         """
         target_elements = []
 
-        # 预处理 desc_text：去除前后引号和空白字符
         desc_text_clean = desc_text.strip().strip('"').strip("'").strip()
 
-        # 策略 1: 查找 placeholder 和 value 属性（优先处理 input/textarea）
         for tag in ['input', 'textarea']:
             if tag and tag.lower() != tag:
                 continue
-            # 查找 placeholder 属性包含文本的元素
             target_elements_placeholder = soup.find_all(tag, attrs={'placeholder': lambda x: x and desc_text_clean in x})
             target_elements.extend(target_elements_placeholder)
 
-            # 查找 value 属性包含文本的元素
             target_elements_value = soup.find_all(tag, attrs={'value': lambda x: x and desc_text_clean in x})
             target_elements.extend(target_elements_value)
 
-        # 策略 2: 精确匹配文本节点
         if not target_elements:
             for element in soup.find_all(string=True):
                 elem_text_raw = element.strip()
@@ -1105,7 +1029,6 @@ class BaseSmartPositioning:
                     else:
                         target_elements.append(element.parent)
 
-        # 策略 3: 精确匹配标签元素的文本内容
         if not target_elements and tag:
             tag_lower = tag.lower()
             for element in soup.find_all(tag_lower):
@@ -1120,7 +1043,6 @@ class BaseSmartPositioning:
                 if elem_text_raw == desc_text or elem_text_clean == desc_text_clean or elem_text_no_comment == desc_text_clean:
                     target_elements.append(element)
 
-        # 策略 4: 部分匹配文本节点
         if not target_elements:
             for element in soup.find_all(string=True):
                 elem_text_clean = element.strip().strip('"').strip("'").strip()
@@ -1134,7 +1056,6 @@ class BaseSmartPositioning:
                     else:
                         target_elements.append(element.parent)
 
-        # 策略 5: 部分匹配标签元素的文本内容
         if not target_elements and tag:
             tag_lower = tag.lower()
             for element in soup.find_all(tag_lower):
@@ -1148,7 +1069,6 @@ class BaseSmartPositioning:
                 if desc_text_clean in elem_text_clean or desc_text_clean in elem_text_no_comment:
                     target_elements.append(element)
 
-        # 策略 6: 模糊匹配按钮和链接
         if not target_elements:
             button_tags = ['button', 'a']
             if tag and tag.lower() in button_tags:
@@ -1170,7 +1090,6 @@ class BaseSmartPositioning:
                 if target_elements:
                     break
 
-        # 策略 7: 遍历所有元素
         if not target_elements:
             for element in soup.find_all(True):
                 text_content = element.get_text(strip=True)
@@ -1187,7 +1106,6 @@ class BaseSmartPositioning:
                     else:
                         target_elements.append(element)
 
-        # 策略 8: 使用 Selenium 验证
         if not target_elements:
             if tag:
                 tag_lower = tag.lower()
@@ -1209,7 +1127,6 @@ class BaseSmartPositioning:
             except Exception as e:
                 print(f"   ⚠️  XPath 查找失败：{e}")
 
-        # 策略 9: 优先匹配带有特定 class 的元素
         if not target_elements:
             for element in soup.find_all(True):
                 text_content = element.get_text(strip=True)
@@ -1232,44 +1149,29 @@ class BaseSmartPositioning:
 
         if not target_elements:
             print(f"\n❌ 警告：未在 HTML 中找到包含文本 '{desc_text}' 元素" + (f" (标签名：{tag})" if tag else ""))
-            return ['', '', '', '']
+            return ''
 
-        # 打印调试信息
         if index is not None:
             print(f"📍 找到 {len(target_elements)} 个匹配元素，需要获取第 {index} 个")
 
-        # 构建最终结果
         indexed_xpaths = []
         for idx, elem in enumerate(target_elements, 1):
-            css = self._build_css(elem)
-            xpath_absolute = self._build_absolute_xpath(elem)
-            xpath_context = self._build_relative_xpath_with_context(elem)
-
-            # 构建基础 XPath（已包含 [1] 索引）
             base_xpath_raw = self._build_xpath(elem)
 
-            # 当有多个匹配元素时，替换最外层的索引
             if len(target_elements) > 1:
-                # 移除末尾的 [1]，替换为当前索引
                 if COMPILED_PATTERNS['xpath_index'].search(base_xpath_raw):
-                    # '(//xxx)[1]' → '(//xxx)[2]'916243952640
                     xpath_with_index = COMPILED_PATTERNS['xpath_index'].sub(f'[{idx}]', base_xpath_raw)
                 else:
                     xpath_with_index = f"({base_xpath_raw})[{idx}]"
             else:
-                # 唯一元素，保留 [1]
                 xpath_with_index = base_xpath_raw
 
             indexed_xpaths.append({
                 'index': idx,
                 'xpath': xpath_with_index,
-                'css': css,
-                'xpath_absolute': xpath_absolute,
-                'xpath_context': xpath_context,
                 'element': elem
             })
 
-        # 如果指定了 index 参数，强制返回对应索引的元素
         if index is not None:
             if index <= 0:
                 raise ValueError(f"index 参数必须大于 0，当前值：{index}")
@@ -1293,20 +1195,10 @@ class BaseSmartPositioning:
                 'timestamp': time.time()
             }
 
-            return [
-                elem_info['xpath'],
-                elem_info['css'],
-                elem_info['xpath_absolute'],
-                elem_info['xpath_context']
-            ]
+            return elem_info['xpath']
 
-        # 未指定 index 参数时，返回第一个元素
         first_elem_info = indexed_xpaths[0]
-
         xpath_to_return = first_elem_info['xpath']
-        css_to_return = first_elem_info['css']
-        xpath_abs_to_return = first_elem_info['xpath_absolute']
-        xpath_ctx_to_return = first_elem_info['xpath_context']
 
         _multi_element_cache = {
             'desc': desc_text,
@@ -1315,9 +1207,4 @@ class BaseSmartPositioning:
             'timestamp': time.time()
         }
 
-        return [
-            xpath_to_return,
-            css_to_return,
-            xpath_abs_to_return,
-            xpath_ctx_to_return
-        ]
+        return xpath_to_return

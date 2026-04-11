@@ -28,76 +28,51 @@ class CommonPages(BasePage, InitializeParams):
             raise ValueError(f"menu not found: {menu_type}")
 
 
-class PurseCenterPages(CommonPages):
+class N7Vx2u7PEoa(CommonPages):
     """钱包管理|钱包中心"""
 
 
     def menu_manage(self):
         """菜单"""
         (self.scroll('purse_wallet_manage_menu', desc='钱包管理')
-         .step(key='purse_wallet_manage_menu', desc='钱包管理')
-         .step(key='purse_wallet_center_menu', desc='钱包中心')
+         .step(key='AurQ1nowhIFaI', desc='钱包管理')
+         .step(key='BC4V5O9i5o0eX', desc='钱包中心')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(p_recharge_the_product_wallet)
-    def recharge_the_product_wallet(self):
+    @doc(JxIyyg72fjeXbmTdyUr7)
+    def JxIyyg72fjeXbmTdyUr7(self):
         """[流程]充值按钮-对公转账支付"""
         self.menu_manage()
-        (self.step(key='top_up', desc='充值')
-         .step(key='top_up_amount', value='124', action='input', desc='充值金额')
-         .step(key='public_transfer', desc='对公转账支付')
-         .step(key='wallet_top_up_and_upload_images', value=self.file_path('img'), action='upload', desc='上传文件')
+        (self.step(key='y3onGibXwI8zR', desc='充值')
+         .step(key='Udl0b6w0OkM20', value='124', action='input', desc='充值金额')
+         .step(key='EtLCXBYKRsnxk', desc='对公转账支付')
+         .step(key='iiym33CEVIx5m', value=self.file_path('img'), action='upload', desc='上传文件')
          .scroll('immediate_payment', desc='立即支付')
-         .step(key='barter_verify', desc='立即支付')
+         .step(key='Bd73ruusMcTZk', desc='立即支付')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(p_alipay_recharge)
-    def alipay_recharge(self):
+    @doc(ItN5k8HledkZ9VtTetAA)
+    def ItN5k8HledkZ9VtTetAA(self):
         self.menu_manage()
-        (self.step(key='top_up', desc='充值')
-         .step(key='alipay_payment', desc='支付宝支付')
-         .step(key='barter_verify', desc='立即支付')
-         .step(key='i_have_paid', desc='我已支付')
+        (self.step(key='VjKCcBR8ghY8u', desc='充值')
+         .step(key='Tr8BcBrV7wZjn', desc='支付宝支付')
+         .step(key='xOjyQCwe77M6o', desc='立即支付')
+         .step(key='FxbFOshiuIljG', desc='我已支付')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(p_wechat_payment)
-    def wechat_payment(self):
+    @doc(a05NJAdkRNkHL45jPTjg)
+    def a05NJAdkRNkHL45jPTjg(self):
         self.menu_manage()
-        (self.step(key='top_up', desc='充值')
-         .step(key='wechat_payment', desc='微信支付')
-         .step(key='barter_verify', desc='立即支付')
-         .step(key='i_have_paid', desc='我已支付')
-         .wait())
-        return self
-
-    @reset_after_execution
-    @doc(p_platform_approval)
-    def platform_approval(self):
-        (self.step(key='platform_manage_menu', desc='平台管理')
-         .step(key='platform_order_manage_menu', desc='订单管理')
-         .step(key='platform_order_review_menu', desc='订单审核')
-         .step(key='order_examine', desc='审核')
-         .step(key='audit_opinion', value=self.serial, action='input', desc='审核说明')
-         .step(key='review_confirmation', desc='确认')
-         .wait())
-        return self
-
-    @reset_after_execution
-    @doc(p_platform_audit_rejection)
-    def platform_audit_rejection(self):
-        (self.step(key='platform_manage_menu', desc='平台管理')
-         .step(key='platform_order_manage_menu', desc='订单管理')
-         .step(key='platform_order_review_menu', desc='订单审核')
-         .step(key='order_examine', desc='审核')
-         .step(key='turn_down', desc='未通过')
-         .step(key='audit_opinion', value=self.serial, action='input', desc='审核说明')
-         .step(key='review_confirmation', desc='确认')
+        (self.step(key='TvV2jHOFm63OK', desc='充值')
+         .step(key='C28t5TsM5HJPV', desc='微信支付')
+         .step(key='F8hWygJQ3vDtO', desc='立即支付')
+         .step(key='v8DJ04BYwdqcA', desc='我已支付')
          .wait())
         return self
 

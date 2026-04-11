@@ -1,7 +1,7 @@
 # coding: utf-8
 import json
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.import_desc import *
 from config.user_info import INFO
 
@@ -10,13 +10,13 @@ optionIdList = BaseApi.load_json_file('request_quality.json')['optionIdList']
 backfillList = BaseApi.load_json_file('request_quality.json')['backfillList']
 
 
-class QualityCentreItemRequest(InitializeParams):
+class BN75aoC3Ic(InitializeParams):
     """质检管理|质检中物品"""
 
-    @doc(q_submit_quality_results)
+    @doc(TyClpwIrykofhqf4laif)
     @BaseApi.timing_decorator
-    def submit_quality_results(self, nocheck=False):
-        res = self.pc.quality_centre_item_data()
+    def TyClpwIrykofhqf4laif(self, nocheck=False):
+        res = self.pc.UJwDgUZKhNNEKJEIdEAKw()
         data = {
             "presalePrice": "1000",
             "imageUrl": "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com//erp-imgfiles/%2Fepbox-erp/20260206/WIehcT%2B7sg/I4FjLToJM%2Bw%3D%3D.jpg",
@@ -54,12 +54,12 @@ class QualityCentreItemRequest(InitializeParams):
             "templateId": 2,
             "isOther": 1
         }
-        return self._make_request('post', 'submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'Wev5hkW8C', data, 'main', nocheck)
 
-    @doc(q_submit_quality_results_by_no_transfer)
+    @doc(RMOcTd2L2tS32gouvcPO)
     @BaseApi.timing_decorator
-    def submit_quality_results_by_no_transfer(self, nocheck=False):
-        res = self.pc.quality_centre_item_data()
+    def RMOcTd2L2tS32gouvcPO(self, nocheck=False):
+        res = self.pc.UJwDgUZKhNNEKJEIdEAKw()
         data = {
             "qualityCategoryList": qualityCategoryList,
             "articlesInfo": {
@@ -89,12 +89,12 @@ class QualityCentreItemRequest(InitializeParams):
             "templateId": 2,
             "isOther": 1
         }
-        return self._make_request('post', 'submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'Wev5hkW8C', data, 'main', nocheck)
 
-    @doc(q_unverified_handover)
+    @doc(DvC4kRy5eVWdWGN9cPXB)
     @BaseApi.timing_decorator
-    def unverified_handover(self, nocheck=False):
-        res = self.pc.quality_centre_item_data()
+    def DvC4kRy5eVWdWGN9cPXB(self, nocheck=False):
+        res = self.pc.UJwDgUZKhNNEKJEIdEAKw()
         data = {
             "type": "6",
             "userId": INFO['main_user_id'],
@@ -104,15 +104,15 @@ class QualityCentreItemRequest(InitializeParams):
             "remark": "eee",
             "createBy": INFO['super_admin_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
 
-class QualityContentTemplateRequest(InitializeParams):
+class GEh4rKFYZs(InitializeParams):
     """质检管理|质检内容模版"""
 
-    @doc(q_new_template_added)
+    @doc(GySsTzThuG7Y0qU4dr6w)
     @BaseApi.timing_decorator
-    def new_template_added(self, nocheck=False):
+    def GySsTzThuG7Y0qU4dr6w(self, nocheck=False):
         data = {
             "qualityName": "质检内容名称" + self.imei,
             "isNormal": 0,
@@ -129,12 +129,12 @@ class QualityContentTemplateRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'new_template_added', data, 'idle', nocheck)
+        return self._make_request('post', 'aJgtGZQGX', data, 'idle', nocheck)
 
-    @doc(q_editor_template)
+    @doc(giRhsRX1en0Lx6jNhHwp)
     @BaseApi.timing_decorator
-    def editor_template(self, nocheck=False):
-        res = self.pc.quality_content_template_data()
+    def giRhsRX1en0Lx6jNhHwp(self, nocheck=False):
+        res = self.pc.TzjKXVa7hC8j6pmsPJQvk()
         data = {
             "createBy": res[0]['createBy'],
             "createTime": res[0]['createTime'],
@@ -159,28 +159,28 @@ class QualityContentTemplateRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('put', 'inspection_content_edit', data, 'idle', nocheck)
+        return self._make_request('put', 'Q7Uuh9oXh', data, 'idle', nocheck)
 
-    @doc(q_delete_template)
+    @doc(fFy1TGBgZDGQp4384V92)
     @BaseApi.timing_decorator
-    def delete_template(self, nocheck=False):
-        res = self.pc.quality_content_template_data()
+    def fFy1TGBgZDGQp4384V92(self, nocheck=False):
+        res = self.pc.TzjKXVa7hC8j6pmsPJQvk()
         data = [
             res[0]['id']
         ]
-        return self._make_request('post', 'inspection_content_delete', data, 'idle', nocheck)
+        return self._make_request('post', 'AMYNoqgEl', data, 'idle', nocheck)
 
 
-class QualityGoodsReceivedRequest(InitializeParams):
+class JPtRHdbeHo(InitializeParams):
     """质检管理|待接收物品"""
 
 
-class QualityStoreRequest(InitializeParams):
+class DItqmHbtYn(InitializeParams):
     """质检管理|先质检后入库"""
 
-    @doc(q_quality_artificial_add)
+    @doc(cKaXogneNjTTTmAdUTcW)
     @BaseApi.timing_decorator
-    def quality_artificial_add(self, nocheck=False):
+    def cKaXogneNjTTTmAdUTcW(self, nocheck=False):
         data = {
             "presalePrice": "2000",
             "imageUrl": "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com//erp-imgfiles/%2Fepbox-erp/20260206/WIehcT%2B7sg/I4FjLToJM%2Bw%3D%3D.jpg",
@@ -214,16 +214,16 @@ class QualityStoreRequest(InitializeParams):
             "templateId": 2,
             "isOther": 1
         }
-        return self._make_request('post', 'quality_add', data, 'main', nocheck)
+        return self._make_request('post', 'GTxGeV0Dn', data, 'main', nocheck)
 
 
-class QualityWaitTurnOverRequest(InitializeParams):
+class Td9eJqCQCG(InitializeParams):
     """质检管理|待移交物品"""
 
-    @doc(q_quality_inspection)
+    @doc(j8LwPxK1SoYZffAVSK0E)
     @BaseApi.timing_decorator
-    def quality_inspection(self, nocheck=False):
-        res = self.pc.quality_wait_turn_over_data()
+    def j8LwPxK1SoYZffAVSK0E(self, nocheck=False):
+        res = self.pc.PYi7eKoJOr5suysXpCFvf()
         data = {
             "articlesNo": "397526641408",
             "imageUrl": "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com//erp-imgfiles/%2Fepbox-erp/20260206/WIehcT%2B7sg/I4FjLToJM%2Bw%3D%3D.jpg",
@@ -258,12 +258,12 @@ class QualityWaitTurnOverRequest(InitializeParams):
             "templateId": 2,
             "isOther": 1
         }
-        return self._make_request('post', 'submit_quality_results', data, 'main', nocheck)
+        return self._make_request('post', 'Wev5hkW8C', data, 'main', nocheck)
 
-    @doc(q_handover_inventory)
+    @doc(cnBfO0w1V0T7Puy4uF3I)
     @BaseApi.timing_decorator
-    def handover_inventory(self, nocheck=False):
-        res = self.pc.quality_wait_turn_over_data()
+    def cnBfO0w1V0T7Puy4uF3I(self, nocheck=False):
+        res = self.pc.PYi7eKoJOr5suysXpCFvf()
         data = {
             "type": "6",
             "userId": res[0]['userId'],
@@ -272,7 +272,7 @@ class QualityWaitTurnOverRequest(InitializeParams):
             ],
             "createBy": res[0]['createBy']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
 
 if __name__ == '__main__':

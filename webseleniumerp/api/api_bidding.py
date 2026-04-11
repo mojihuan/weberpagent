@@ -1,86 +1,81 @@
 # coding: utf-8
 import json
-from api.api_platform import PlatformListOfDirectAuctionHousesApi, PlatformListOfDarkAuctionHousesApi
+from api.api_platform import BaxRsHzRpoNsTb8fnSa9e, EEdalTouEaLL3VEx3wMnz
 from common.base_api import BaseApi
 
 
-class BiddingCameraApi(BaseApi):
-    """拍机小程序-竞拍"""
+class B1VzuYLyr5G9mdeT7BDwW(BaseApi):
+    """拍机小程序|竞拍"""
 
     def __init__(self):
         super().__init__()
-        self.straight_shot = PlatformListOfDirectAuctionHousesApi()
-        self.secret_shot = PlatformListOfDarkAuctionHousesApi()
+        self.obj = BaxRsHzRpoNsTb8fnSa9e()
+        self.obj_2 = EEdalTouEaLL3VEx3wMnz()
 
-    def zhi_auction_list(self, headers=None):
-        """竞拍列表"""
-        result = self.straight_shot.list_of_stores()
-        result_2 = self.straight_shot.view_session_details()
+    def QwNTfbys2CCL(self, headers=None):
+        """竞拍列表 直拍"""
+        obj = self.obj.gXHSWafumwCe()
+        obj_2 = self.obj.oTwifIq7ER6o()
         headers = headers or self.headers['camera']
-        data = {**self.get_page_params(), "marketId": result[0]['id'], "orderByColumn": "create_time",
+        data = {**self.get_page_params(), "marketId": obj[0]['id'], "orderByColumn": "create_time",
                 "isAsc": "desc", "modelIdList": [], "finenessIdList": [], "articlesTypeId": "",
-                "sessionId": result_2[0]['id'], "marketCategory": "1", "isBidPrice": None}
-        response = self.request_handle('post', self.urls['auction_list'], data=json.dumps(data),
-                                       headers=headers)
+                "sessionId": obj_2[0]['id'], "marketCategory": "1", "isBidPrice": None}
+        response = self.request_handle('post', self.urls['NDds92Jo6'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def an_auction_list(self, headers=None):
-        """竞拍列表"""
-        result = self.secret_shot.list_of_dark_auction_houses()
-        result_2 = self.secret_shot.view_session_details()
+    def Uf0OesfH65Pq(self, headers=None):
+        """竞拍列表 暗拍"""
+        obj = self.obj_2.pzCWj3Ksrd4P()
+        obj_2 = self.obj_2.i2hsWJeCQxKo()
         headers = headers or self.headers['camera']
-        data = {**self.get_page_params(), "marketId": result[0]['id'], "orderByColumn": "create_time",
+        data = {**self.get_page_params(), "marketId": obj[0]['id'], "orderByColumn": "create_time",
                 "isAsc": "desc", "modelIdList": [], "finenessIdList": [], "articlesTypeId": "",
-                "sessionId": result_2[0]['id'], "marketCategory": "1", "isBidPrice": None}
-        response = self.request_handle('post', self.urls['auction_list'], data=json.dumps(data),
-                                       headers=headers)
+                "sessionId": obj_2[0]['id'], "marketCategory": "1", "isBidPrice": None}
+        response = self.request_handle('post', self.urls['NDds92Jo6'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
-class BiddingMyApi(BaseApi):
-    """拍机小程序-我的"""
+class UAPqxpSx1qiMwyQEcIPXb(BaseApi):
+    """拍机小程序|我的"""
 
-    def auction_my_purchase_list(self, headers=None, i=None):
+    def aKHpuJH4LWMe(self, headers=None, i=None):
         """我的购买
         i：订单状态 1待支付 2已支付 3已取消
         """
         headers = headers or self.headers['camera']
         data = {**self.get_page_params(), "orderStatus": i}
-        response = self.request_handle('post', self.urls['my_purchase'], data=json.dumps(data),
-                                       headers=headers)
+        response = self.request_handle('post', self.urls['q58fkMkFf'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def camera_my_package_list(self, headers=None, i=None):
+    def lbnWyhZHxWy3(self, headers=None, i=None):
         """我的包裹
         i：订单状态 1待收货 2已收货
         """
         headers = headers or self.headers['camera']
         data = {"packageState": i, 'sendType': None}
-        response = self.request_handle('post', self.urls['camera_my_package'], data=json.dumps(data),
-                                       headers=headers)
+        response = self.request_handle('post', self.urls['gAAnohdPx'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def racket_product_list(self, headers=None, i=None):
+    def R0ylvsKYSTRn(self, headers=None, i=None):
         """商品列表
         i：订单状态 1待支付 2待发货 3待收货 4已收货  5已售后 6已取消
         """
         headers = headers or self.headers['camera']
         data = {"articlesStatus": i, **self.get_page_params()}
-        response = self.request_handle('post', self.urls['racket_product_list'], data=json.dumps(data),
-                                       headers=headers)
+        response = self.request_handle('post', self.urls['kfM3W7bd1'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
-    def pat_machine_return_after_sales_list(self, headers=None, i=None):
+    def DnyApTb8QiIk(self, headers=None, i=None):
         """退货售后列表
         i: 订单状态
         审核中：[1]线上审核 [11]实物复检 [10]待接收 [4]申诉中
@@ -90,14 +85,13 @@ class BiddingMyApi(BaseApi):
         """
         headers = headers or self.headers['camera']
         data = {"afterStatusList": i, **self.get_page_params()}
-        response = self.request_handle('post', self.urls['pat_machine_return_after_sales'], data=json.dumps(data),
-                                       headers=headers)
+        response = self.request_handle('post', self.urls['tkTyS52V5'], data=json.dumps(data), headers=headers)
         res = self.get_response_data(response, 'rows', list)
         self.make_pkl_file(res)
         return res
 
 
 if __name__ == '__main__':
-    api = BiddingCameraApi()
-    result = api.an_auction_list()
+    api = B1VzuYLyr5G9mdeT7BDwW()
+    result = api.QwNTfbys2CCL()
     print(json.dumps(result, indent=4, ensure_ascii=False))

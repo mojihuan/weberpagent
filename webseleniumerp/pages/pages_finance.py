@@ -27,626 +27,626 @@ class CommonPages(BasePage, InitializeParams):
             raise ValueError(f"menu not found: {menu_type}")
 
 
-class FinanceAccountListPages(CommonPages):
+class LHNzSM9GeBa(CommonPages):
     """财务管理|资金账户|账户列表"""
 
     def menu_manage(self):
         """菜单"""
-        (self.step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_capital_account_menu', desc='资金账户')
-         .step(key='financial_account_list_menu', desc='账户列表')
+        (self.step(key='YZ4i6gNiS0bpI', desc='财务管理')
+         .step(key='bCcvwro4OFKQA', desc='资金账户')
+         .step(key='a5hUTueBGb73U', desc='账户列表')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_create_account)
-    def create_account(self):
+    @doc(EPKsvmKzhm7PJO1muKwj)
+    def EPKsvmKzhm7PJO1muKwj(self):
         self.menu_manage()
-        (self.step(key='be_put_in_storage', desc='新建账户')
-         .step(key='account_type', desc='账户类型')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='account_name', value='名称' + self.get_time_stamp(), action='input', desc='账户名称')
-         .step(key='initial_balance', value='1', action='input', desc='初始余额')
-         .step(key='financial_notes', value='备注信息', action='input', desc='备注')
-         .step(key='verify', desc='确认')
+        (self.step(key='DKIl4LJMKjoGU', desc='新建账户')
+         .step(key='reeUF5KM0MaiE', desc='账户类型')
+         .custom(lambda: self.up_enter())
+         .step(key='NGzJZ606xrkSS', value='名称' + self.get_time_stamp(), action='input', desc='账户名称')
+         .step(key='lTKYJuCPtZ2Py', value='1', action='input', desc='初始余额')
+         .step(key='XDaVOTCO1oJEO', value='备注信息', action='input', desc='备注')
+         .step(key='rBNSPbF7XQY9J', desc='确认')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_account_transfer)
-    def account_transfer(self):
+    @doc(uFTVSOsNXHqB5vxndsyu)
+    def uFTVSOsNXHqB5vxndsyu(self):
         self.menu_manage()
-        (self.step(key='scan_the_code_receive', desc='账户间转账')
-         .step(key='date', desc='日期')
-         .step(key='date_ok', desc='确定')
-         .step(key='amount', value='5', action='input', desc='金额')
-         .step(key='transfer_out_account', desc='转出账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='transfer_to_account', desc='转入账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='transfer_to_account_confirmation', desc='确认')
+        (self.step(key='nF41sBxM8nLcM', desc='账户间转账')
+         .step(key='lXJRQq8LOkoPJ', desc='日期')
+         .step(key='Kv2pnpSIbBU7O', desc='确定')
+         .step(key='YDtcW1tF4pX4b', value='5', action='input', desc='金额')
+         .step(key='LxjkKpY4CXvPY', desc='转出账户')
+         .custom(lambda: self.down_enter())
+         .step(key='f4AALw7EG2xt4', desc='转入账户')
+         .custom(lambda: self.up_enter())
+         .step(key='kbIdqJ7EKdSoH', desc='确认')
          .wait())
         return self
 
 
-class FinanceBillReviewPages(CommonPages):
+class DkcYxrWLdQf(CommonPages):
     """财务管理|业务记账|账单审核"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_business_bookkeeping_menu', desc='业务记账')
-         .step(key='financial_bill_review_menu', desc='账单审核')
+        (self.scroll(key='LgAdgT8lZlsn9', desc='财务管理')
+         .step(key='slPFCWvUcupkk', desc='财务管理')
+         .step(key='RHPuf5VNrynLU', desc='业务记账')
+         .step(key='h59LdAyA98OCF', desc='账单审核')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_financial_audit_deal_with)
-    def financial_audit_deal_with(self):
+    @doc(B7RHH1KuhjdPrvwiHaID)
+    def B7RHH1KuhjdPrvwiHaID(self):
         self.menu_manage()
-        (self.step(key='examine', desc='审核')
-         .step(key='instructions', value=self.serial, action='input', desc='说明')
-         .step(key='review_confirmation', desc='确定')
+        (self.step(key='F22R6eTJbUEgI', desc='审核')
+         .step(key='r5dB8BIpSwZ6G', value=self.serial, action='input', desc='说明')
+         .step(key='Lo3ashf73kA4m', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_audit_accounts_payable_turn_down)
-    def audit_accounts_payable_turn_down(self):
+    @doc(owv9tEsxrz0pHaC8wXtH)
+    def owv9tEsxrz0pHaC8wXtH(self):
         self.menu_manage()
-        (self.step(key='examine', desc='审核')
-         .step(key='repair_audit_turn_down', desc='未通过')
-         .step(key='instructions', value=self.serial, action='input', desc='说明')
-         .step(key='review_confirmation', desc='确定')
+        (self.step(key='IZpv8RBNIJWbj', desc='审核')
+         .step(key='X6H0d5Dduk4J4', desc='未通过')
+         .step(key='u7KxSxGNWtbQq', value=self.serial, action='input', desc='说明')
+         .step(key='b3JxD7YZvhbte', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_audit_accounts_payable_batch_audit)
-    def audit_accounts_payable_batch_audit(self):
+    @doc(paKbZdNmtzqoFduDoh5X)
+    def paKbZdNmtzqoFduDoh5X(self):
         self.menu_manage()
-        (self.step(key='search', desc='搜索')
-         .custom(lambda: self.tab_return(2))
-         .step(key='batch_audit', desc='批量审核')
-         .step(key='send_payment_account', desc='付款账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='说明')
-         .step(key='review_confirmation', desc='确定')
+        (self.step(key='VcX3uLPCSQjOQ', desc='搜索')
+         .custom(lambda: self.tab_space(2))
+         .step(key='y8YgIQ2FF8IpE', desc='批量审核')
+         .step(key='A4xpeKic3urSq', desc='付款账户')
+         .custom(lambda: self.down_enter())
+         .step(key='ma43hGLCfiq5f', value=self.serial, action='input', desc='说明')
+         .step(key='rODgVZrRLi7Mc', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_financial_audit_receivable)
-    def financial_audit_receivable(self):
+    @doc(u9n7DKzDxeT1rnv4h3tV)
+    def u9n7DKzDxeT1rnv4h3tV(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='应收账单')
-         .step(key='examine', desc='审核')
-         .step(key='instructions', value=self.serial, action='input', desc='说明')
-         .step(key='review_confirmation', desc='确定')
+        (self.step(key='PaQMUWFE5m1IO', desc='应收账单')
+         .step(key='SVa5pkTlaTUdP', desc='审核')
+         .step(key='dmz4gjxY1Z7CT', value=self.serial, action='input', desc='说明')
+         .step(key='wpBZ523b93rvj', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_account_receivable_audit_turn_down)
-    def account_receivable_audit_turn_down(self):
+    @doc(LDw1ORDeq57nUxfwqx8P)
+    def LDw1ORDeq57nUxfwqx8P(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='应收账单')
-         .step(key='examine', desc='审核')
-         .step(key='repair_audit_turn_down', desc='未通过')
-         .step(key='instructions', value=self.serial, action='input', desc='说明')
-         .step(key='review_confirmation', desc='确定')
+        (self.step(key='J5FImYFJnBqRy', desc='应收账单')
+         .step(key='Z4iuPRx6LEm6y', desc='审核')
+         .step(key='HYzkqiJGp5ZNy', desc='未通过')
+         .step(key='ay4VrZaB4y7mA', value=self.serial, action='input', desc='说明')
+         .step(key='m7yFPiyKZNeYr', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_account_receivable_audit_batch_audit)
-    def account_receivable_audit_batch_audit(self):
+    @doc(IqFjOayhXYSUJpKpCd2B)
+    def IqFjOayhXYSUJpKpCd2B(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='应收账单')
-         .step(key='search', desc='搜索')
-         .custom(lambda: self.tab_return(2))
-         .step(key='batch_audit', desc='批量审核')
-         .step(key='collection_account', desc='收款账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='说明')
-         .step(key='review_confirmation', desc='确定')
+        (self.step(key='xpQBgm0mk2dKq', desc='应收账单')
+         .step(key='XUzJ7gs0KNzAR', desc='搜索')
+         .custom(lambda: self.tab_space(2))
+         .step(key='CsTBsh7AKwYbl', desc='批量审核')
+         .step(key='nItvptjkWChm8', desc='收款账户')
+         .custom(lambda: self.down_enter())
+         .step(key='zfqlFuRnOUGTH', value=self.serial, action='input', desc='说明')
+         .step(key='OOCMa6g7man0m', desc='确定')
          .wait())
         return self
 
 
-class FinanceCopingWithEachOtherPages(CommonPages):
+class YXRRMrHGZDD(CommonPages):
     """财务管理|业务记账|往来应付"""
 
     def menu_manage(self):
         """菜单"""
-        (self.step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_business_bookkeeping_menu', desc='业务记账')
-         .step(key='financial_accounts_payable_menu', desc='往来应付')
+        (self.step(key='vaSPF7HnAyGeK', desc='财务管理')
+         .step(key='my64aYMp2zzCN', desc='业务记账')
+         .step(key='adfgJLIGKPY5X', desc='往来应付')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_supplier_settlement)
-    def supplier_settlement(self):
+    @doc(rN6o1ZUYdtDbm4jrcy5R)
+    def rN6o1ZUYdtDbm4jrcy5R(self):
         self.menu_manage()
-        (self.step(key='suppliers', desc='供应商')
-         .step(key='suppliers', value=INFO['main_supplier_name'], action='input', desc='供应商')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='reconciliation', desc='对账')
-         .step(key='supplier_settlement', desc='按供应商结算')
-         .step(key='payment_time', desc='付款时间')
-         .step(key='now', desc='确定')
-         .step(key='remark', value=self.serial, action='input', desc='备注')
-         .step(key='send_payment_account', desc='付款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='settlement_amount', value='5', action='input', desc='结算金额')
-         .step(key='vendor_settlement_confirmation', desc='确定')
+        (self.step(key='n038yZ2RdOtCT', desc='供应商')
+         .step(key='QyzoGaD21b8R5', value=INFO['main_supplier_name'], action='input', desc='供应商')
+         .custom(lambda: self.up_enter())
+         .step(key='EG46uCQafYgIU', desc='搜索')
+         .step(key='ApilQbCRcfHZa', desc='对账')
+         .step(key='WrSsyxegbYL9z', desc='按供应商结算')
+         .step(key='yVBSM3LVhhCTv', desc='付款时间')
+         .step(key='BleVLACtr2Bqs', desc='确定')
+         .step(key='AIB5bsFCZB0af', value=self.serial, action='input', desc='备注')
+         .step(key='JeePOZHWTpOFh', desc='付款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='T5ptN66YuS3OG', value='5', action='input', desc='结算金额')
+         .step(key='n25BJIvSHZtkO', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_import_order_settlement)
-    def import_order_settlement(self):
+    @doc(Xl1WGAaWEyokRuH78976)
+    def Xl1WGAaWEyokRuH78976(self):
         self.menu_manage()
         self.file.get_inventory_data('financial_settlement', 'imei', i=2, j=3)
-        (self.step(key='customer', desc='供应商')
-         .step(key='customer', value=INFO['main_supplier_name'], action='input', desc='供应商')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='reconciliation', desc='对账')
+        (self.step(key='wXro1Gg950zAP', desc='供应商')
+         .step(key='i20nSAup6IjQh', value=INFO['main_supplier_name'], action='input', desc='供应商')
+         .custom(lambda: self.up_enter())
+         .step(key='qK2m92gbef6eP', desc='搜索')
+         .step(key='T2ZwG8gkxpZ80', desc='对账')
          .custom(lambda: self.wait_time(2))
-         .step(key='machine_settlement', desc='按机器批量结算')
+         .step(key='MvjhzF7h722XU', desc='按机器批量结算')
          .custom(lambda: self.wait_time(3))
-         .step(key='import_into_machine', desc='导入机器')
-         .step(key='handover_import', value=self.file_path('financial_settlement'), action='upload', desc='上传文件')
-         .step(key='import_the_machine_to_confirm', desc='确定')
-         .step(key='account', desc='付款账户')
-         .custom(lambda: self.up_arrow_return())
+         .step(key='u39v2T1Lp233b', desc='导入机器')
+         .step(key='HZ6kvbcfJL3uu', value=self.file_path('financial_settlement'), action='upload', desc='上传文件')
+         .step(key='sN6sbhX84xYCI', desc='确定')
+         .step(key='Pnsk5qcBjkOK5', desc='付款账户')
+         .custom(lambda: self.up_enter())
          .scroll('machine_settlement_amount', desc='结算金额')
-         .step(key='reject_the_note', value='3', action='input', desc='结算金额')
-         .step(key='submit_settlement', desc='提交结算')
+         .step(key='QwYss7RU1UefN', value='3', action='input', desc='结算金额')
+         .step(key='F7W41i3wM7Iru', desc='提交结算')
          .wait())
         return self
 
 
-class FinanceCostIncomeAdjustmentPages(CommonPages):
+class SZKNMopiXGS(CommonPages):
     """财务管理|成本收入调整"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_cost_income_adjustment_menu', desc='成本收入调整')
+        (self.scroll(key='PM86qNNUz7zjV', desc='财务管理')
+         .step(key='bil2F3amUrYik', desc='财务管理')
+         .step(key='rKo7KPfhBHiXc', desc='成本收入调整')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_adjustment_order_cost)
-    def new_adjustment_order_cost(self):
+    @doc(UuPR3hG2S8ND6eRZD6CU)
+    def UuPR3hG2S8ND6eRZD6CU(self):
         self.menu_manage()
-        self.copy(self.pc.inventory_list_data(i=2)[0]['articlesNo'])
-        (self.step(key='sales_after_sales_btn', desc='新增调整单')
-         .step(key='item_input', desc='物品输入框')
-         .custom(lambda: self.affix())
-         .step(key='add_item_btn', desc='添加')
+        self.copy(self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2)[0]['articlesNo'])
+        (self.step(key='WRMEriSlAruqZ', desc='新增调整单')
+         .step(key='TCD3kXiG8Zxup', desc='物品输入框')
+         .custom(lambda: self.ctrl_v())
+         .step(key='W8WJKSKGlyAaK', desc='添加')
          .custom(lambda: self.wait_time())
-         .step(key='new_purchase_amount', value='14', action='input', desc='新采购金额')
-         .step(key='generate_purchase_order', desc='确认')
-         .step(key='send_payment_account', desc='付款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='new_adjustment_order_confirmation', desc='确定')
+         .step(key='PO49LyycvyEPO', value='14', action='input', desc='新采购金额')
+         .step(key='KqmLLSRSHGZ3B', desc='确认')
+         .step(key='jWXuSzYZxlwdI', desc='付款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='rL5LpsFhvHLAZ', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_cost_adjustment_add_items_by_document)
-    def cost_adjustment_add_items_by_document(self):
+    @doc(gwIYPyXMTCz3LKcov2in)
+    def gwIYPyXMTCz3LKcov2in(self):
         self.menu_manage()
-        self.copy(self.pc.finance_coping_with_each_other_data()[0]['billNo'])
-        (self.step(key='sales_after_sales_btn', desc='新增调整单')
-         .step(key='other_costs_other_income', desc='其他成本')
-         .step(key='reason_adjustment', desc='调整原因')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='add_items_by_document', desc='按单据添加物品')
-         .step(key='document_number_ipt', desc='单据号输入框')
-         .custom(lambda: self.affix())
-         .step(key='document_number_search', desc='搜索')
-         .step(key='confirm_the_selection', desc='确认选择')
+        self.copy(self.pc.MOyeqlzcgLqhqdWBrkyYg()[0]['billNo'])
+        (self.step(key='zZp3ZDyZCzYrX', desc='新增调整单')
+         .step(key='KqrLyhTRRVSkf', desc='其他成本')
+         .step(key='uuYko8s8PFbsE', desc='调整原因')
+         .custom(lambda: self.down_enter())
+         .step(key='W3rNocDYNESrW', desc='按单据添加物品')
+         .step(key='G0pdeAEcoQV3u', desc='单据号输入框')
+         .custom(lambda: self.ctrl_v())
+         .step(key='qCDgNBmitq1gU', desc='搜索')
+         .step(key='v2NakgiMqXxs1', desc='确认选择')
          .scroll('new_purchase_amount', desc='调整后金额')
-         .step(key='new_purchase_amount', value='16', action='input', desc='调整后金额')
-         .step(key='generate_purchase_order', desc='确认')
-         .step(key='send_payment_account', desc='付款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='new_adjustment_order_confirmation', desc='确定')
+         .step(key='jbIfSpSQke4c1', value='16', action='input', desc='调整后金额')
+         .step(key='BfRWZonnY9ZnU', desc='确认')
+         .step(key='h1W0YO5kYK0QV', desc='付款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='mrotRW6kMARXb', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_adjustment_order_income)
-    def new_adjustment_order_income(self):
+    @doc(ZOu34dViPFdE8YXvix3K)
+    def ZOu34dViPFdE8YXvix3K(self):
         self.menu_manage()
-        self.copy(self.pc.inventory_list_data(i=3, j=9)[0]['imei'])
-        (self.step(key='sales_after_sales_btn', desc='新增调整单')
-         .step(key='income_adjustment', desc='收入调整')
-         .step(key='item_input', desc='物品输入框')
-         .custom(lambda: self.affix())
-         .step(key='add_item_btn', desc='添加')
+        self.copy(self.pc.UYV6mZaVwDk4HHhyuWRRp(i=3, j=9)[0]['imei'])
+        (self.step(key='C3toHed54sZOX', desc='新增调整单')
+         .step(key='QteXc5satuvn2', desc='收入调整')
+         .step(key='MVMe7E5KfCCXE', desc='物品输入框')
+         .custom(lambda: self.ctrl_v())
+         .step(key='KZ4ey2yVCOcYk', desc='添加')
          .scroll('amount_of_sales', desc='最新销售金额')
-         .step(key='amount_of_sales', value='18', action='input', desc='最新销售金额')
-         .step(key='generate_purchase_order', desc='确认')
-         .step(key='collection_account', desc='收款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='the_sales_adjustment_order_is_determined', desc='确定')
+         .step(key='f5j2rSxx10OPh', value='18', action='input', desc='最新销售金额')
+         .step(key='O106DJajHivB2', desc='确认')
+         .step(key='aQhC3dUGXD0q6', desc='收款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='L4SzST6KGMZWk', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_revenue_adjustment_add_items_by_document)
-    def revenue_adjustment_add_items_by_document(self):
+    @doc(bYHTOqsimobeeyyy4NMk)
+    def bYHTOqsimobeeyyy4NMk(self):
         self.menu_manage()
-        self.copy(self.pc.finance_exchanges_and_receivables_data()[0]['billNo'])
-        (self.step(key='sales_after_sales_btn', desc='新增调整单')
-         .step(key='income_adjustment', desc='收入调整')
-         .step(key='other_costs_other_income', desc='其他收入')
-         .step(key='reason_adjustment', desc='调整原因')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='add_items_by_document', desc='按单据添加物品')
-         .step(key='document_number_ipt', desc='单据号输入框')
-         .custom(lambda: self.affix())
-         .step(key='document_number_search', desc='搜索')
-         .step(key='confirm_the_selection', desc='确认选择')
+        self.copy(self.pc.A9mwkPeNc1x7YnLCF9jUk()[0]['billNo'])
+        (self.step(key='yQJ85qp6DstAg', desc='新增调整单')
+         .step(key='nV7aEZyQXdLhg', desc='收入调整')
+         .step(key='sYGQbDXLQN4UA', desc='其他收入')
+         .step(key='wDk92Ixx1HVnf', desc='调整原因')
+         .custom(lambda: self.down_enter())
+         .step(key='zBglVoMMEHYa2', desc='按单据添加物品')
+         .step(key='jmGew6dDmI58N', desc='单据号输入框')
+         .custom(lambda: self.ctrl_v())
+         .step(key='xrXKOqmzTRfBp', desc='搜索')
+         .step(key='yUrdZdYtKGJUZ', desc='确认选择')
          .scroll('amount_of_sales', desc='调整后金额')
          .custom(lambda: self.wait_time())
-         .step(key='amount_of_sales', value='7', action='input', desc='调整后金额')
-         .step(key='generate_purchase_order', desc='确认')
-         .step(key='collection_account', desc='收款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='the_sales_adjustment_order_is_determined', desc='确定')
+         .step(key='VSCzCIpk7YyvM', value='7', action='input', desc='调整后金额')
+         .step(key='bJwDJgYLUmyeL', desc='确认')
+         .step(key='nwLI3ToYUeUnG', desc='收款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='GuYWovaTRvYxa', desc='确定')
          .wait())
         return self
 
 
-class FinanceDailyDisbursePages(CommonPages):
+class BEEPcrtPqRI(CommonPages):
     """财务管理|业务记账|日常支出"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_business_bookkeeping_menu', desc='业务记账')
-         .step(key='financial_daily_expenditure_menu', desc='日常支出')
+        (self.scroll(key='yAbAfqKf5MTxw', desc='财务管理')
+         .step(key='a9ezc9AsjHW9T', desc='财务管理')
+         .step(key='WfM5aYfpvluGp', desc='业务记账')
+         .step(key='OV7wWNLl3shiT', desc='日常支出')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_disburse)
-    def new_disburse(self):
+    @doc(FayuY8TiAhpMWGjKj1UK)
+    def FayuY8TiAhpMWGjKj1UK(self):
         self.menu_manage()
-        (self.step(key='new_disburse', desc='新增支出项')
-         .step(key='disburse_type', desc='支出类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='disburse_price', value='234', action='input', desc='支出价格')
-         .step(key='disburse_account', desc='支出账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='备注')
-         .step(key='new_spend_confirmation', desc='确定')
+        (self.step(key='SD7aFtfYOjlGy', desc='新增支出项')
+         .step(key='zAlxrsmeRj37V', desc='支出类型')
+         .custom(lambda: self.down_enter())
+         .step(key='EtKwtodhYaYZm', value='234', action='input', desc='支出价格')
+         .step(key='dvxg4wXL6bBJ4', desc='支出账户')
+         .custom(lambda: self.down_enter())
+         .step(key='UoZblQ2ZDViGB', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='RRR0FciSau5ni', value=self.serial, action='input', desc='备注')
+         .step(key='nVje42b31oV7G', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_added_daily_expense_bills)
-    def added_daily_expense_bills(self):
+    @doc(DXjNXH9tYTDU3RC6mwgg)
+    def DXjNXH9tYTDU3RC6mwgg(self):
         self.menu_manage()
-        (self.step(key='new_disburse', desc='新增支出项')
-         .step(key='new_types', desc='新增类型')
-         .step(key='transaction_type', desc='交易类型')
-         .custom(lambda: self.down_arrow_return(2))
-         .step(key='types_of_daily_expenses', value='充话费' + self.serial, action='input', desc='日常费用类型')
-         .step(key='type_of_use', desc='用途类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='use_type_confirmation', desc='确定')
-         .step(key='disburse_type', desc='支出类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='disburse_price', value='100', action='input', desc='支出价格')
-         .step(key='disburse_account', desc='支出账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='备注')
-         .step(key='new_spend_confirmation', desc='确定')
+        (self.step(key='oMFD6sDhGjsew', desc='新增支出项')
+         .step(key='Kadq2NJ4vW6fr', desc='新增类型')
+         .step(key='YuKLpPSNi7iig', desc='交易类型')
+         .custom(lambda: self.down_enter(2))
+         .step(key='OLCu4Y40StWAW', value='充话费' + self.serial, action='input', desc='日常费用类型')
+         .step(key='y6EdMLcFvnLOF', desc='用途类型')
+         .custom(lambda: self.down_enter())
+         .step(key='DQxOTexJNnWDQ', desc='确定')
+         .step(key='vZdnSCvRqRbCj', desc='支出类型')
+         .custom(lambda: self.down_enter())
+         .step(key='bX0NHBh0qjFM7', value='100', action='input', desc='支出价格')
+         .step(key='ts8X83PF16d9V', desc='支出账户')
+         .custom(lambda: self.down_enter())
+         .step(key='gl0gP4SAkFIlT', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='UyOsMgYgrurxv', value=self.serial, action='input', desc='备注')
+         .step(key='oOyugdxKEzccG', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_expenditure_adjustment_order)
-    def new_expenditure_adjustment_order(self):
+    @doc(fHKdXgxjrhTynQXVkJCy)
+    def fHKdXgxjrhTynQXVkJCy(self):
         self.menu_manage()
-        (self.step(key='new_disburse', desc='新增支出项')
-         .step(key='new_types', desc='新增类型')
-         .step(key='transaction_type', desc='交易类型')
-         .custom(lambda: self.down_arrow_return(2))
-         .step(key='types_of_daily_expenses', value='充话费' + self.serial, action='input', desc='日常费用类型')
-         .step(key='type_of_use', desc='用途类型')
-         .custom(lambda: self.down_arrow_return(2))
-         .step(key='use_type_confirmation', desc='确定')
-         .step(key='disburse_type', desc='支出类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='disburse_price', value='125', action='input', desc='支出价格')
-         .step(key='disburse_account', desc='支出账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='备注')
-         .step(key='new_spend_confirmation', desc='确定')
+        (self.step(key='GMhGd0MpEFCeF', desc='新增支出项')
+         .step(key='Tc7ucfjyaUy4f', desc='新增类型')
+         .step(key='sIDRX3KkvO72e', desc='交易类型')
+         .custom(lambda: self.down_enter(2))
+         .step(key='btlGXgvBquIfA', value='充话费' + self.serial, action='input', desc='日常费用类型')
+         .step(key='RoirztxnzCuEA', desc='用途类型')
+         .custom(lambda: self.down_enter(2))
+         .step(key='I3jqJ5hpRyINh', desc='确定')
+         .step(key='xNA0sdqQujqBM', desc='支出类型')
+         .custom(lambda: self.down_enter())
+         .step(key='O3N0o51nqq9Ki', value='125', action='input', desc='支出价格')
+         .step(key='s3u28ml19KOTr', desc='支出账户')
+         .custom(lambda: self.down_enter())
+         .step(key='hPE31OlCpqy2X', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='HseMSgoAe9vYQ', value=self.serial, action='input', desc='备注')
+         .step(key='a3Ef9vK2Etk0h', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_daily_expenses_export_all)
-    def daily_expenses_export_all(self):
+    @doc(cspHMPPcFNfVjtAbiAw4)
+    def cspHMPPcFNfVjtAbiAw4(self):
         self.menu_manage()
-        (self.step(key='scan_the_code_receive', desc='导出全部')
+        (self.step(key='kGqKLLuHHOUpj', desc='导出全部')
          .wait())
         return self
 
 
-class FinanceDailyIncomePages(CommonPages):
+class WeMmSQ9tWMa(CommonPages):
     """财务管理|业务记账|日常收入"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_business_bookkeeping_menu', desc='业务记账')
-         .step(key='financial_daily_income_menu', desc='日常收入')
+        (self.scroll(key='BrEydfDzGG1kW', desc='财务管理')
+         .step(key='Lc4RpAjhLKl8F', desc='财务管理')
+         .step(key='BeYvfa4Jc1RmY', desc='业务记账')
+         .step(key='hcWwuJbUoI1HQ', desc='日常收入')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_income)
-    def new_income(self):
+    @doc(HGwxHVDLmqfBnulaegiO)
+    def HGwxHVDLmqfBnulaegiO(self):
         self.menu_manage()
-        (self.step(key='new_income', desc='新增收入项')
-         .step(key='income_type', desc='收入类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='income_price', value='21', action='input', desc='收入价格')
-         .step(key='income_account', desc='收入账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value='新增收入项备注', action='input', desc='备注')
-         .step(key='new_spend_confirmation', desc='确定')
+        (self.step(key='yVy6rSAUO4EMO', desc='新增收入项')
+         .step(key='PtJF4lrT4xbxD', desc='收入类型')
+         .custom(lambda: self.down_enter())
+         .step(key='sDnhTytCTYYPp', value='21', action='input', desc='收入价格')
+         .step(key='vSzXTurUyNopQ', desc='收入账户')
+         .custom(lambda: self.down_enter())
+         .step(key='HpciNhHbtVQJd', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='MYe5j30cQnQ9J', value='新增收入项备注', action='input', desc='备注')
+         .step(key='Qqconp5VucQI7', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_daily_income_bills)
-    def new_daily_income_bills(self):
+    @doc(aNr3DKkkiWeOO8RYAnfd)
+    def aNr3DKkkiWeOO8RYAnfd(self):
         self.menu_manage()
-        (self.step(key='new_income', desc='新增收入项')
-         .step(key='new_types', desc='新增类型')
-         .step(key='transaction_type', desc='交易类型')
-         .custom(lambda: self.down_arrow_return(2))
-         .step(key='types_of_daily_expenses', value='充话费' + self.serial, action='input', desc='日常费用类型')
-         .step(key='type_of_use', desc='用途类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='the_type_of_use_is_determined', desc='确定')
+        (self.step(key='d8Pqi7895rmxP', desc='新增收入项')
+         .step(key='NMiHBEfRP6u4k', desc='新增类型')
+         .step(key='odKBEuGjlc8gN', desc='交易类型')
+         .custom(lambda: self.down_enter(2))
+         .step(key='hJbZVtaUFy6qy', value='充话费' + self.serial, action='input', desc='日常费用类型')
+         .step(key='GcOCYWIqIr4fu', desc='用途类型')
+         .custom(lambda: self.down_enter())
+         .step(key='oxtytrf7zKeSo', desc='确定')
          .custom(lambda: self.wait_time())
-         .step(key='income_type', desc='收入类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='income_price', value='100', action='input', desc='收入价格')
-         .step(key='income_account', desc='收入账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='备注')
-         .step(key='new_spend_confirmation', desc='确定')
+         .step(key='HlQHIKNpIevbU', desc='收入类型')
+         .custom(lambda: self.down_enter())
+         .step(key='j9DtnTsQIqqqn', value='100', action='input', desc='收入价格')
+         .step(key='wWB8ZJm0kcrKI', desc='收入账户')
+         .custom(lambda: self.down_enter())
+         .step(key='PWLXlkZ9Iwd5P', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='pYbOaK4MXwdEJ', value=self.serial, action='input', desc='备注')
+         .step(key='SFMcRW4A0Nmo8', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_new_revenue_adjustment_order)
-    def new_revenue_adjustment_order(self):
+    @doc(gEJaRtUQ1U9s1GJx0FCI)
+    def gEJaRtUQ1U9s1GJx0FCI(self):
         self.menu_manage()
-        (self.step(key='new_income', desc='新增收入项')
-         .step(key='new_types', desc='新增类型')
-         .step(key='transaction_type', desc='交易类型')
-         .custom(lambda: self.down_arrow_return(2))
-         .step(key='types_of_daily_expenses', value='充话费' + self.serial, action='input', desc='日常费用类型')
-         .step(key='type_of_use', desc='用途类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='the_type_of_use_is_determined', desc='确定')
+        (self.step(key='OMFJw4rd1XeQ5', desc='新增收入项')
+         .step(key='PUs3UKSahri13', desc='新增类型')
+         .step(key='VLnYs5paXCjkZ', desc='交易类型')
+         .custom(lambda: self.down_enter(2))
+         .step(key='SVLzaGqwrDQQN', value='充话费' + self.serial, action='input', desc='日常费用类型')
+         .step(key='DT2t5rOzEsI6z', desc='用途类型')
+         .custom(lambda: self.down_enter())
+         .step(key='YJQVMsBptL73x', desc='确定')
          .custom(lambda: self.wait_time())
-         .step(key='income_type', desc='收入类型')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='income_price', value='100', action='input', desc='收入价格')
-         .step(key='income_account', desc='收入账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='instructions', value=self.serial, action='input', desc='备注')
-         .step(key='new_spend_confirmation', desc='确定')
+         .step(key='wiZo2P4dJD16D', desc='收入类型')
+         .custom(lambda: self.down_enter())
+         .step(key='X8TKcYN4WbMNJ', value='100', action='input', desc='收入价格')
+         .step(key='M27Dvh9mrCiW3', desc='收入账户')
+         .custom(lambda: self.down_enter())
+         .step(key='erV75RJTq5Aeq', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='uqO7ykYSvEiOW', value=self.serial, action='input', desc='备注')
+         .step(key='tBFMytggTAzAP', desc='确定')
          .wait())
         return self
 
 
-class FinanceExchangesAndReceivablesPages(CommonPages):
+class Ig69JnPs8iR(CommonPages):
     """财务管理|业务记账|往来应收"""
 
     def menu_manage(self):
         """菜单"""
-        (self.step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_business_bookkeeping_menu', desc='业务记账')
-         .step(key='financial_receivables_menu', desc='往来应收')
+        (self.step(key='nqLnoat6PnBv3', desc='财务管理')
+         .step(key='jlTsHV1xRdvBk', desc='业务记账')
+         .step(key='rdBXxYS4gpJh0', desc='往来应收')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_customers_settle_bills)
-    def customers_settle_bills(self):
+    @doc(ZJ7XVXb9AG0TE9iIa6N4)
+    def ZJ7XVXb9AG0TE9iIa6N4(self):
         self.menu_manage()
-        (self.step(key='customer', desc='客户')
-         .step(key='customer', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='receivables_reconciliation', desc='对账')
+        (self.step(key='yl4MvnlLhCV2F', desc='客户')
+         .step(key='H3Ep1tYzloshL', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
+         .custom(lambda: self.up_enter())
+         .step(key='fWfZz9JAETolv', desc='搜索')
+         .step(key='d4XJn8eQNKY3n', desc='对账')
          .custom(lambda: self.wait_time())
-         .step(key='customer_settlement', desc='按客户结算')
-         .step(key='collection_time', desc='收款时间')
-         .step(key='confirmation_of_the_payment_time', desc='确定')
-         .step(key='collection_account', desc='收款账户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='settlement_amount', value='8', action='input', desc='结算金额')
-         .step(key='remark', value=self.serial, action='input', desc='备注')
-         .step(key='vendor_settlement_confirmation', desc='确定')
+         .step(key='cD59o82AVXxvA', desc='按客户结算')
+         .step(key='VkwoTQgCy6JDB', desc='收款时间')
+         .step(key='BcXApMYunIfDN', desc='确定')
+         .step(key='Pj5yHpaWioux4', desc='收款账户')
+         .custom(lambda: self.up_enter())
+         .step(key='dw4ShJQ7jWHIM', value='8', action='input', desc='结算金额')
+         .step(key='WhcYX9CKZBWJ6', value=self.serial, action='input', desc='备注')
+         .step(key='yLMhTl9KhV1Z1', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_customer_import_order_settlement)
-    def customer_import_order_settlement(self):
+    @doc(tRKpIUzOlA6X5zEFrDDX)
+    def tRKpIUzOlA6X5zEFrDDX(self):
         self.menu_manage()
         self.file.get_inventory_data('financial_settlement', 'imei', i=3, j=9)
-        (self.step(key='customer', desc='客户')
-         .step(key='customer', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='receivables_reconciliation', desc='对账')
+        (self.step(key='GP04HTkpIcq9K', desc='客户')
+         .step(key='nNJ1jVZivBVPl', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
+         .custom(lambda: self.up_enter())
+         .step(key='vP2UY08gm9atG', desc='搜索')
+         .step(key='M6HIn9b0HT3nU', desc='对账')
          .custom(lambda: self.wait_time())
-         .step(key='order_settlement', desc='按机器批量结算')
-         .step(key='import_into_machine_btn', desc='导入机器')
-         .step(key='machine_settlement_import', value=self.file_path('financial_settlement'), action='upload', desc='上传文件')
-         .step(key='import_the_machine_to_confirm', desc='确定')
-         .step(key='please_select_the_payout_account', desc='收款账户')
-         .custom(lambda: self.up_arrow_return())
+         .step(key='ZfKSpZXtpDvkH', desc='按机器批量结算')
+         .step(key='n9JvVjIHZLfTQ', desc='导入机器')
+         .step(key='GnuwtKkcszG4H', value=self.file_path('financial_settlement'), action='upload', desc='上传文件')
+         .step(key='mNFWrRvwRPuXo', desc='确定')
+         .step(key='rJXVjQh6ZW4aa', desc='收款账户')
+         .custom(lambda: self.up_enter())
          .scroll('machine_settlement_input_amount', desc='结算金额')
-         .step(key='reject_the_note', value='11', action='input', desc='结算金额')
-         .step(key='submit_settlement', desc='提交结算')
+         .step(key='cLRRRw2ca1t3r', value='11', action='input', desc='结算金额')
+         .step(key='be3sCEhBEFve7', desc='提交结算')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_settlement_edit_amount)
-    def settlement_edit_amount(self):
+    @doc(fT6q4WKrfaMumo1hu8bh)
+    def fT6q4WKrfaMumo1hu8bh(self):
         self.menu_manage()
-        (self.step(key='customer', desc='客户')
-         .step(key='customer', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='receivables_reconciliation', desc='对账')
+        (self.step(key='qxinTc7Ddq7AF', desc='客户')
+         .step(key='yh4DcAuxiu2Ea', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
+         .custom(lambda: self.up_enter())
+         .step(key='zBWB2bZnVOXfl', desc='搜索')
+         .step(key='W5zXPHujrawOw', desc='对账')
          .custom(lambda: self.wait_time())
-         .step(key='search', desc='搜索')
-         .custom(lambda: self.tab_return(7))
-         .step(key='settlement_by_order', desc='按订单批量结算')
-         .step(key='please_select_the_payout_account', desc='收款账号')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='reject_the_note', value='2', action='input', desc='结算金额')
-         .step(key='order_tip_ok_btn', desc='确定')
+         .step(key='wpL6BTOB29WJb', desc='搜索')
+         .custom(lambda: self.tab_space(7))
+         .step(key='OqBqblhGQqQJm', desc='按订单批量结算')
+         .step(key='wLdtuRNF10ztJ', desc='收款账号')
+         .custom(lambda: self.down_enter())
+         .step(key='WSCtRs3wx3uUs', value='2', action='input', desc='结算金额')
+         .step(key='typoGmvSml5CN', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_settlement_edit_largest_amount)
-    def settlement_edit_largest_amount(self):
+    @doc(iKi1BJo4BkgRrnQw07D5)
+    def iKi1BJo4BkgRrnQw07D5(self):
         self.menu_manage()
-        (self.step(key='customer', desc='客户')
-         .step(key='customer', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='receivables_reconciliation', desc='对账')
+        (self.step(key='MgRZ4VHfHI4nI', desc='客户')
+         .step(key='cvCpsYVhDQLAR', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
+         .custom(lambda: self.up_enter())
+         .step(key='gBsTR5RvjsI9C', desc='搜索')
+         .step(key='H1XCfxylqZuOk', desc='对账')
          .custom(lambda: self.wait_time())
-         .step(key='settlement_btn', desc='结算')
-         .step(key='please_select_the_payout_account', desc='收款账号')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='reject_the_note', value='99999', action='input', desc='结算金额')
-         .step(key='order_tip_ok_btn', desc='确定')
+         .step(key='p0CNA5z7qwK7z', desc='结算')
+         .step(key='CQmrUoZGsVOKq', desc='收款账号')
+         .custom(lambda: self.down_enter())
+         .step(key='LB75ZlZehA3di', value='99999', action='input', desc='结算金额')
+         .step(key='SHsMuoQ9Hb1Gt', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_settlement_export)
-    def settlement_export(self):
+    @doc(tfxkaybmapLMuR1pFqjY)
+    def tfxkaybmapLMuR1pFqjY(self):
         self.menu_manage()
-        (self.step(key='customer', desc='客户')
-         .step(key='customer', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
-         .custom(lambda: self.up_arrow_return())
-         .step(key='search', desc='搜索')
-         .step(key='receivables_reconciliation', desc='对账')
-         .step(key='export_btn', desc='导出')
+        (self.step(key='pS1rYm2Dq4rbe', desc='客户')
+         .step(key='vkvQeCXYVR9R2', value=INFO['vice_sales_customer_name'], action='input', desc='客户')
+         .custom(lambda: self.up_enter())
+         .step(key='OtpfasXEmh1MF', desc='搜索')
+         .step(key='HUDkCgozgO9OT', desc='对账')
+         .step(key='dcY8F8wmYQNBd', desc='导出')
          .wait())
         return self
 
 
-class FinancePrePayReceivedPages(CommonPages):
+class S8e0gGr58Sx(CommonPages):
     """财务管理|业务记账|预付预收"""
 
     def menu_manage(self):
         """菜单"""
-        (self.scroll(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_manage_menu', desc='财务管理')
-         .step(key='financial_business_bookkeeping_menu', desc='业务记账')
-         .step(key='financial_prepay_received_nemu', desc='预付/预收')
+        (self.scroll(key='h3twKVtv6BdSj', desc='财务管理')
+         .step(key='LWE26LpdC1CqH', desc='财务管理')
+         .step(key='DlLtNGzC6oYTp', desc='业务记账')
+         .step(key='e96qnUmk6j4nq', desc='预付/预收')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_add_prepay)
-    def add_prepay(self):
+    @doc(f9xh8uqQHD61p0h46zFQ)
+    def f9xh8uqQHD61p0h46zFQ(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='预付款tab')
-         .step(key='add_prepay_btn', desc='新增预付款')
-         .step(key='supplier_btn', desc='供应商')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='please_enter_the_amount_of_the_prepayment', value=16, action='input', desc='金额')
-         .step(key='pay_account_input', desc='预付账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='payment_time', value=self.date_time, action='input', desc='日期')
-         .custom(lambda: self.carriage_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='remark_input', value=self.serial, action='input', desc='备注')
-         .step(key='determination', desc='确定')
+        (self.step(key='PX9dsPWOAa0WC', desc='预付款tab')
+         .step(key='bVRAZnKzePFwO', desc='新增预付款')
+         .step(key='Qtnl9ZSXIxDjh', desc='供应商')
+         .custom(lambda: self.down_enter())
+         .step(key='NuFGzdx2iM7hI', value=16, action='input', desc='金额')
+         .step(key='l6v89DEqh15gA', desc='预付账户')
+         .custom(lambda: self.down_enter())
+         .step(key='r2Ajmb8PPvJoo', value=self.date_time, action='input', desc='日期')
+         .custom(lambda: self.enter())
+         .step(key='SG0qSJ3OChbcZ', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='DDMwAKsf3KHau', value=self.serial, action='input', desc='备注')
+         .step(key='lTAPBRkD3UfP5', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_add_prepay_export)
-    def add_prepay_export(self):
+    @doc(yCZnY4hUPXHhgriGFZFe)
+    def yCZnY4hUPXHhgriGFZFe(self):
         self.menu_manage()
-        (self.step(key='delivery_receipt', desc='预付款tab')
-         .step(key='scan_receive_btn', desc='导出')
+        (self.step(key='h65moCifshaAU', desc='预付款tab')
+         .step(key='J4WUumcpx2iSt', desc='导出')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_add_received)
-    def add_received(self):
+    @doc(DsovuKeVyEqIjHwsYRo0)
+    def DsovuKeVyEqIjHwsYRo0(self):
         self.menu_manage()
-        (self.step(key='procurement_info', desc='预收款tab')
-         .step(key='add_received_btn', desc='新增预收款')
-         .step(key='customer_btn', desc='供应商')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='pre_receipt_price_input', value=13, action='input', desc='金额')
-         .step(key='receive_account_input', desc='预收账户')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='collection_time', value=self.date_time, action='input', desc='日期')
-         .custom(lambda: self.carriage_return())
-         .step(key='handle', desc='经办人')
-         .custom(lambda: self.down_arrow_return())
-         .step(key='remark_input', value=self.serial, action='input', desc='备注')
-         .step(key='determination', desc='确定')
+        (self.step(key='VifWd9P70pR9i', desc='预收款tab')
+         .step(key='mKx0d7qZ7mUMM', desc='新增预收款')
+         .step(key='j6lFrJfPhcMqP', desc='供应商')
+         .custom(lambda: self.down_enter())
+         .step(key='It0J1zJRwsvWb', value=13, action='input', desc='金额')
+         .step(key='F1qFvkrVfcK0l', desc='预收账户')
+         .custom(lambda: self.down_enter())
+         .step(key='uHMAaw9Nd3DvR', value=self.date_time, action='input', desc='日期')
+         .custom(lambda: self.enter())
+         .step(key='Yq8sNXdkYmoPu', desc='经办人')
+         .custom(lambda: self.down_enter())
+         .step(key='Ho8pZnrfF8vyr', value=self.serial, action='input', desc='备注')
+         .step(key='Ja7QXgxdUzwmD', desc='确定')
          .wait())
         return self
 
     @reset_after_execution
-    @doc(f_add_received_export)
-    def add_received_export(self):
+    @doc(yCZnY4hUPXHhgriGFZFe)
+    def yCZnY4hUPXHhgriGFZFe(self):
         self.menu_manage()
-        (self.step(key='procurement_info', desc='预收tab')
-         .step(key='scan_receive_btn', desc='导出')
+        (self.step(key='lGb5IVZpk4SyZ', desc='预收tab')
+         .step(key='pCMPaL16IKRc1', desc='导出')
          .wait())
         return self

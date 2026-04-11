@@ -6,40 +6,41 @@ from common.base_api import BaseApi
 from common.base_params import InitializeParams
 from common.import_desc import *
 
-class PurchaseAddRequest(InitializeParams):
+
+class ZTKvMx4gs4(InitializeParams):
     """商品采购|采购管理|新增采购单"""
 
-    @doc(p_new_purchase_order_paid_warehouse)
+    @doc(Iv2a1sAnyG1YRbkyU84V)
     @BaseApi.timing_decorator
-    def new_purchase_order_paid_warehouse(self, nocheck=False):
+    def Iv2a1sAnyG1YRbkyU84V(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        jd = self.jd
-        imei = self.imei
+        sf = self.sf
         data = {
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
             "state": "4",
             "purchaseUserId": INFO['main_purchase_user_id'],
             "purchaseUserName": INFO['main_purchase_user_name'],
-            "logisticsNo": jd,
+            "logisticsNo": sf,
             "payState": "1",
             "purchaseSource": "2",
             "logisticsPrice": "11",
             "userId": INFO['main_user_id'],
             "purchaseTime": self.get_formatted_datetime(),
-            "warehouseId": INFO['main_item_warehouse_id'],
+            "warehouseId": 490,
             "remark": "备注",
             "quickOperation": 0,
             "orderPayInfoList": [
                 {
                     "accountNo": INFO['main_account_no'],
-                    "voucherImg": "https://erp-imgfiles.oss-cn-hangzhou.aliyuncs.com//erp-imgfiles/%2Fepbox-erp/20250821/WIehcT%2B7sg/I4FjLToJM%2Bw%3D%3D.jpg",
+                    "voucherImg": "",
                     "payPrice": 10,
-                    "accountName": INFO['main_account_name'],
+                    "accountName": INFO['main_account_name']
                 }
             ],
             "purchaseOrdersArticlesDTO": {
                 "articlesNoList": [
+                    None,
                     None
                 ],
                 "createBy": "",
@@ -49,58 +50,225 @@ class PurchaseAddRequest(InitializeParams):
             },
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "imei": imei,
-                    "serialNo": self.serial_number,
-                    "articlesRemake": self.serial,
-                    "purchasePrice": 10,
-                    "platformArticlesNo": self.serial,
-                    "logisticsNo": jd,
-                    "warehouseId": INFO['main_item_warehouse_id'],
-                    "platformOrderNo": self.serial,
+                    "imei": self.imei,
+                    "articlesRemake": "描述",
+                    "purchasePrice": "100",
+                    "logisticsNo": sf,
+                    "warehouseId": 490,
+                    "supplyType": 1,
+                    "supplyTypeDesc": "A",
                     "purchaseArticlesInfoDTO": {
                         "brandId": 1,
                         "brandName": "苹果",
-                        "modelId": 7695,
-                        "modelName": "iPhone 6S Plus",
+                        "modelId": 17569,
+                        "modelName": "iPhone 16 Pro Max",
                         "articlesTypeId": 1,
                         "articlesTypeName": "手机",
-                        "imei": imei,
-                        "articlesRemake": self.serial,
-                        "purchasePrice": 11,
-                        "romId": "",
-                        "romName": "",
+                        "imei": self.imei,
+                        "articlesRemake": "描述",
+                        "purchasePrice": "100",
+                        "romId": 41,
+                        "romName": "256G",
                         "ramId": "",
                         "ramName": "",
-                        "colorId": "",
-                        "colorName": "",
-                        "num": "",
-                        "platformArticlesNo": self.serial,
-                        "platformOrderNo": self.serial,
-                        "serialNo": self.serial_number,
-                        "skuInfo": "",
-                        "smallModelId": "",
-                        "smallModelName": "",
-                        "buyChannelId": "",
-                        "buyChannelName": "",
-                        "batteryHealthId": "",
-                        "batteryHealthName": "",
-                        "warrantyDurationId": "",
-                        "warrantyDurationName": "",
-                        "machineTypeId": "",
-                        "machineTypeName": "",
-                        "finenessId": "",
-                        "finenessName": "",
-                        "id": time
+                        "colorId": 1712,
+                        "colorName": "黑色钛金属",
+                        "num": "10",
+                        "skuInfo": "苹果小型号:A3297;购买渠道:国行;颜色:黑色钛金属;ROM容量:256G;电池健康度:电池健康度100%;苹果保修情况:保修时长≥330天;商品来源:二手优品;成色:99新;",
+                        "smallModelId": 1743,
+                        "smallModelName": "A3297",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "batteryHealthId": 23024,
+                        "batteryHealthName": "电池健康度100%",
+                        "warrantyDurationId": 23005,
+                        "warrantyDurationName": "保修时长≥330天",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 2,
+                        "finenessName": "99新",
+                        "id": time,
+                        "_X_ROW_KEY": "row_43"
+                    }
+                },
+                {
+                    "imei": self.imei,
+                    "articlesRemake": "描述",
+                    "purchasePrice": "100",
+                    "logisticsNo": sf,
+                    "warehouseId": 490,
+                    "supplyType": 1,
+                    "supplyTypeDesc": "A",
+                    "purchaseArticlesInfoDTO": {
+                        "brandId": 1,
+                        "brandName": "苹果",
+                        "modelId": 17569,
+                        "modelName": "iPhone 16 Pro Max",
+                        "articlesTypeId": 1,
+                        "articlesTypeName": "手机",
+                        "imei": self.imei,
+                        "articlesRemake": "描述",
+                        "purchasePrice": "100",
+                        "romId": 41,
+                        "romName": "256G",
+                        "ramId": "",
+                        "ramName": "",
+                        "colorId": 1712,
+                        "colorName": "黑色钛金属",
+                        "num": "10",
+                        "skuInfo": "苹果小型号:A3297;购买渠道:国行;颜色:黑色钛金属;ROM容量:256G;电池健康度:电池健康度100%;苹果保修情况:保修时长≥330天;商品来源:二手优品;成色:99新;",
+                        "smallModelId": 1743,
+                        "smallModelName": "A3297",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "batteryHealthId": 23024,
+                        "batteryHealthName": "电池健康度100%",
+                        "warrantyDurationId": 23005,
+                        "warrantyDurationName": "保修时长≥330天",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 2,
+                        "finenessName": "99新",
+                        "id": time,
+                        "_X_ROW_KEY": "row_44"
                     }
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'km9X0jSmr', data, 'main', nocheck)
 
-        return self._make_request('post', 'item_new_purchase_order', data, 'main', nocheck)
-
-    @doc(p_new_purchase_order_has_not_been_shipped)
+    @doc(W8Tva7jFU0AkEqegXRnE)
     @BaseApi.timing_decorator
-    def new_purchase_order_has_not_been_shipped(self, nocheck=False):
+    def W8Tva7jFU0AkEqegXRnE(self, nocheck=False):
+        time = self.get_current_timestamp_ms()
+        sf = self.sf
+        data = {
+            "supplierId": INFO['main_supplier_id'],
+            "supplierName": INFO['main_supplier_name'],
+            "state": "4",
+            "purchaseUserId": INFO['main_purchase_user_id'],
+            "purchaseUserName": INFO['main_purchase_user_name'],
+            "logisticsNo": sf,
+            "payState": "1",
+            "purchaseSource": "2",
+            "logisticsPrice": "11",
+            "userId": INFO['main_user_id'],
+            "purchaseTime": self.get_formatted_datetime(),
+            "warehouseId": 490,
+            "remark": "备注",
+            "quickOperation": 0,
+            "orderPayInfoList": [
+                {
+                    "accountNo": INFO['main_account_no'],
+                    "voucherImg": "",
+                    "payPrice": 100,
+                    "accountName": INFO['main_account_name']
+                }
+            ],
+            "purchaseOrdersArticlesDTO": {
+                "articlesNoList": [
+                    None,
+                    None
+                ],
+                "createBy": "",
+                "type": "",
+                "userId": "",
+                "remark": ""
+            },
+            "purchaseOrdersArticlesDTOList": [
+                {
+                    "imei": self.imei,
+                    "articlesRemake": "描述",
+                    "purchasePrice": "100",
+                    "logisticsNo": sf,
+                    "warehouseId": 490,
+                    "supplyType": 1,
+                    "supplyTypeDesc": "A",
+                    "purchaseArticlesInfoDTO": {
+                        "brandId": 1,
+                        "brandName": "苹果",
+                        "modelId": 17569,
+                        "modelName": "iPhone 16 Pro Max",
+                        "articlesTypeId": 1,
+                        "articlesTypeName": "手机",
+                        "imei": self.imei,
+                        "articlesRemake": "描述",
+                        "purchasePrice": "100",
+                        "romId": 41,
+                        "romName": "256G",
+                        "ramId": "",
+                        "ramName": "",
+                        "colorId": 1712,
+                        "colorName": "黑色钛金属",
+                        "num": "10",
+                        "skuInfo": "苹果小型号:A3297;购买渠道:国行;颜色:黑色钛金属;ROM容量:256G;电池健康度:电池健康度100%;苹果保修情况:保修时长≥330天;商品来源:二手优品;成色:99新;",
+                        "smallModelId": 1743,
+                        "smallModelName": "A3297",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "batteryHealthId": 23024,
+                        "batteryHealthName": "电池健康度100%",
+                        "warrantyDurationId": 23005,
+                        "warrantyDurationName": "保修时长≥330天",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 2,
+                        "finenessName": "99新",
+                        "id": time,
+                        "_X_ROW_KEY": "row_43"
+                    }
+                },
+                {
+                    "imei": self.imei,
+                    "articlesRemake": "描述",
+                    "purchasePrice": "100",
+                    "logisticsNo": sf,
+                    "warehouseId": 490,
+                    "supplyType": 1,
+                    "supplyTypeDesc": "A",
+                    "purchaseArticlesInfoDTO": {
+                        "brandId": 1,
+                        "brandName": "苹果",
+                        "modelId": 17569,
+                        "modelName": "iPhone 16 Pro Max",
+                        "articlesTypeId": 1,
+                        "articlesTypeName": "手机",
+                        "imei": self.imei,
+                        "articlesRemake": "描述",
+                        "purchasePrice": "100",
+                        "romId": 41,
+                        "romName": "256G",
+                        "ramId": "",
+                        "ramName": "",
+                        "colorId": 1712,
+                        "colorName": "黑色钛金属",
+                        "num": "10",
+                        "skuInfo": "苹果小型号:A3297;购买渠道:国行;颜色:黑色钛金属;ROM容量:256G;电池健康度:电池健康度100%;苹果保修情况:保修时长≥330天;商品来源:二手优品;成色:99新;",
+                        "smallModelId": 1743,
+                        "smallModelName": "A3297",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "batteryHealthId": 23024,
+                        "batteryHealthName": "电池健康度100%",
+                        "warrantyDurationId": 23005,
+                        "warrantyDurationName": "保修时长≥330天",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 2,
+                        "finenessName": "99新",
+                        "id": time,
+                        "_X_ROW_KEY": "row_44"
+                    }
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'km9X0jSmr', data, 'main', nocheck)
+
+    @doc(UXWWtbpIHPQ9A7QMbtc9)
+    @BaseApi.timing_decorator
+    def UXWWtbpIHPQ9A7QMbtc9(self, nocheck=False):
         time = self.get_current_timestamp_ms()
         imei = self.imei
         data = {
@@ -122,7 +290,7 @@ class PurchaseAddRequest(InitializeParams):
             "purchaseOrdersArticlesDTOList": [
                 {
                     "imei": imei,
-                    "serialNo": self.serial_number,
+                    "serialNo": self.mixed_random(),
                     "articlesRemake": self.serial,
                     "purchasePrice": "11",
                     "platformArticlesNo": self.serial,
@@ -148,7 +316,7 @@ class PurchaseAddRequest(InitializeParams):
                         "num": "",
                         "platformArticlesNo": self.serial,
                         "platformOrderNo": self.serial,
-                        "serialNo": self.serial_number,
+                        "serialNo": self.mixed_random(),
                         "skuInfo": "",
                         "smallModelId": "",
                         "smallModelName": "",
@@ -168,12 +336,12 @@ class PurchaseAddRequest(InitializeParams):
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'km9X0jSmr', data, 'main', nocheck)
 
-        return self._make_request('post', 'item_new_purchase_order', data, 'main', nocheck)
-
-    @doc(p_new_purchase_order_unpaid_journey)
+    @doc(LTMkAl3mr9wdiYoATjak)
     @BaseApi.timing_decorator
-    def new_purchase_order_unpaid_journey(self, nocheck=False):
+    def LTMkAl3mr9wdiYoATjak(self, nocheck=False):
         time = self.get_current_timestamp_ms()
         jd = self.jd
         imei = self.imei
@@ -238,11 +406,12 @@ class PurchaseAddRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_new_purchase_order', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'km9X0jSmr', data, 'main', nocheck)
 
-    @doc(p_new_purchase_order_unpaid_warehouse)
+    @doc(N4CQUFEbAhA6O3SqB3ap)
     @BaseApi.timing_decorator
-    def new_purchase_order_unpaid_warehouse(self, nocheck=False):
+    def N4CQUFEbAhA6O3SqB3ap(self, nocheck=False):
         time = self.get_current_timestamp_ms()
         jd = self.jd
         imei = self.imei
@@ -273,7 +442,7 @@ class PurchaseAddRequest(InitializeParams):
             "purchaseOrdersArticlesDTOList": [
                 {
                     "imei": imei,
-                    "serialNo": self.serial_number,
+                    "serialNo": self.mixed_random(),
                     "articlesRemake": self.serial,
                     "purchasePrice": '200',
                     "platformArticlesNo": self.serial,
@@ -299,7 +468,7 @@ class PurchaseAddRequest(InitializeParams):
                         "num": "",
                         "platformArticlesNo": self.serial,
                         "platformOrderNo": self.serial,
-                        "serialNo": self.serial_number,
+                        "serialNo": self.mixed_random(),
                         "skuInfo": "苹果小型号:其他型号;购买渠道:国行;颜色:黑色钛金属;ROM容量:256G;电池健康度:电池健康度≤81%;苹果保修情况:保修时长≥330天;商品来源:二手优品;成色:全新仅拆封;",
                         "smallModelId": 72,
                         "smallModelName": "其他型号",
@@ -318,11 +487,12 @@ class PurchaseAddRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_new_purchase_order', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'km9X0jSmr', data, 'main', nocheck)
 
-    @doc(p_create_and_transfer_order)
+    @doc(K2g9gJbSU76WxYKMFL1A)
     @BaseApi.timing_decorator
-    def create_and_transfer_order(self, nocheck=False):
+    def K2g9gJbSU76WxYKMFL1A(self, nocheck=False):
         time = self.get_current_timestamp_ms()
         jd = self.jd
         imei = self.imei
@@ -406,82 +576,122 @@ class PurchaseAddRequest(InitializeParams):
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'km9X0jSmr', data, 'main', nocheck)
 
-        return self._make_request('post', 'item_new_purchase_order', data, 'main', nocheck)
 
-
-class PurchaseUnsendListRequest(InitializeParams):
+class GVdV4FYYC3(InitializeParams):
     """商品采购|采购管理|未发货订单列表"""
 
-    @doc(p_unsend_order_by_supplier)
+    @doc(uXCn7JV8wWVKBqpjkPz1)
     @BaseApi.timing_decorator
-    def unsend_order_by_supplier(self):
-        ParamCache.cache_object({"supplierId": INFO['main_supplier_id']}, 'practical.json')
+    def uXCn7JV8wWVKBqpjkPz1(self, nocheck=False):
+        obj = self.pc.Y6hDdvp1tY9uk0H51cn91()
+        ParamCache.cache_object({'i': obj[0]['purchaseNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "supplierId": INFO['main_supplier_id'],
+            "supplierId": INFO['main_supplier_id']
         }
-        return self._make_request('post', 'un_shipped_order', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'NQuaSyCwg', data, 'main', nocheck)
 
-    @doc(p_unsend_order_by_platform_order_no)
+    @doc(NApBGCWJXaD8TCr8oG0O)
     @BaseApi.timing_decorator
-    def unsend_order_by_platform_order_no(self):
-        res = self.pc.purchase_unsend_order_list()
-        obj = res[0]['platformOrderNo']
-        ParamCache.cache_object({"platformOrderNo": obj}, 'practical.json')
+    def NApBGCWJXaD8TCr8oG0O(self, nocheck=False):
+        obj = self.pc.Y6hDdvp1tY9uk0H51cn91()
+        ParamCache.cache_object({'i': obj[0]['platformOrderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "platformOrderNo": obj,
+            "platformOrderNo": obj[0]['platformOrderNo']
         }
-        return self._make_request('post', 'un_shipped_order', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'NQuaSyCwg', data, 'main', nocheck)
 
-    @doc(p_unsend_order_by_platform_articles_no)
+    @doc(gEvHUJODc2blQ0T3B8vs)
     @BaseApi.timing_decorator
-    def unsend_order_by_platform_articles_no(self):
-        res = self.pc.purchase_unsend_order_list()
-        obj = res[0]['platformArticlesNo']
-        ParamCache.cache_object({"platformArticlesNo": obj}, 'practical.json')
+    def gEvHUJODc2blQ0T3B8vs(self, nocheck=False):
+        obj = self.pc.Y6hDdvp1tY9uk0H51cn91()
+        ParamCache.cache_object({'i': obj[0]['platformArticlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "platformArticlesNo": obj,
+            "platformArticlesNo": obj[0]['platformArticlesNo']
         }
-        return self._make_request('post', 'un_shipped_order', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'NQuaSyCwg', data, 'main', nocheck)
 
-    @doc(p_unsend_order_by_platform_imei)
+    @doc(tg0itP0B1fKeUwbew3bL)
     @BaseApi.timing_decorator
-    def unsend_order_by_platform_imei(self):
-        res = self.pc.purchase_unsend_order_list()
-        obj = res[0]['imei']
-        ParamCache.cache_object({"imei": obj}, 'practical.json')
+    def tg0itP0B1fKeUwbew3bL(self, nocheck=False):
+        obj = self.pc.Y6hDdvp1tY9uk0H51cn91()
+        ParamCache.cache_object({'i': obj[0]['imei']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "imei": obj,
+            "imei": obj[0]['imei']
         }
-        return self._make_request('post', 'un_shipped_order', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'NQuaSyCwg', data, 'main', nocheck)
 
-    @doc(p_unsend_order_by_platform_date)
+    @doc(DntxwTAfuSnkVqrNwSV9)
     @BaseApi.timing_decorator
-    def unsend_order_by_platform_date(self):
+    def DntxwTAfuSnkVqrNwSV9(self, nocheck=False):
+        obj = self.pc.Y6hDdvp1tY9uk0H51cn91()
+        ParamCache.cache_object({'i': obj[0]['imei']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "dateFrom": self.get_the_date(-1),
-            "dateTo": self.get_the_date()
+            "dateFrom": self.get_the_date(),
+            "dateTo": self.get_the_date(days=1),
         }
-        return self._make_request('post', 'un_shipped_order', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'NQuaSyCwg', data, 'main', nocheck)
 
 
-class PurchaseArrivalListRequest(InitializeParams):
+class HMBSFfGhqc(InitializeParams):
     """商品采购|采购管理|到货通知单列表"""
 
-    @doc(p_arrival_list_by_supplier)
+    @doc(EY8ajeO8hDESQhWV9p4d)
     @BaseApi.timing_decorator
-    def arrival_list_by_supplier(self):
-        ParamCache.cache_object({"supplierId": INFO['main_supplier_id']}, 'practical.json')
+    def EY8ajeO8hDESQhWV9p4d(self, nocheck=False):
+        obj = self.pc.THtT7YW545kAG73W2gHDj()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "stateList": [
+                2,
+                3
+            ],
+            "orderNo": obj[0]['orderNo'],
+            "pageNum": 1,
+            "pageSize": 10
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'LDvQ06cIg', data, 'main', nocheck)
+
+    @doc(yUfJVOWNNm8e1oZ0AOli)
+    @BaseApi.timing_decorator
+    def yUfJVOWNNm8e1oZ0AOli(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({'i': obj[0]['logisticsNoList'][0]})
+        data = {
+            "stateList": [
+                2,
+                3
+            ],
+            "logisticsNo": obj[0]['logisticsNoList'][0],
+            "pageNum": 1,
+            "pageSize": 10
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'LDvQ06cIg', data, 'main', nocheck)
+
+    @doc(KbYnHWYarqIZt0JaCFuZ)
+    @BaseApi.timing_decorator
+    def KbYnHWYarqIZt0JaCFuZ(self, nocheck=False):
+        obj = self.pc.THtT7YW545kAG73W2gHDj()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
         data = {
             "stateList": [
                 2,
@@ -491,61 +701,39 @@ class PurchaseArrivalListRequest(InitializeParams):
             "pageNum": 1,
             "pageSize": 10
         }
-        return self._make_request('post', 'arrival_notices', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'LDvQ06cIg', data, 'main', nocheck)
 
-    @doc(p_arrival_list_by_platform_logistics_no)
+    @doc(W62QpkNGF7aGdL8UtHlh)
     @BaseApi.timing_decorator
-    def arrival_list_by_platform_logistics_no(self):
-        res = self.pc.purchase_arrival_list()
-        obj = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": obj}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "logisticsNo": obj,
-        }
-        return self._make_request('post', 'arrival_notices', data, 'main')
-
-    @doc(p_arrival_list_by_platform_order_no)
-    @BaseApi.timing_decorator
-    def arrival_list_by_platform_order_no(self):
-        res = self.pc.purchase_arrival_list()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "orderNo": obj,
-        }
-        return self._make_request('post', 'arrival_notices', data, 'main')
-
-    @doc(p_arrival_list_by_platform_date)
-    @BaseApi.timing_decorator
-    def arrival_list_by_platform_date(self):
+    def W62QpkNGF7aGdL8UtHlh(self, nocheck=False):
+        obj = self.pc.THtT7YW545kAG73W2gHDj()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
         data = {
             "stateList": [
                 2,
                 3
             ],
-            "supplierId": INFO['main_supplier_id'],
+            "creatTimeStart": self.get_the_date(),
+            "creatTimeEnd": self.get_the_date(days=1),
             "pageNum": 1,
-            "pageSize": 10,
-            "creatTimeStart": self.get_the_date(-1),
-            "creatTimeEnd": self.get_the_date()
+            "pageSize": 10
         }
-        return self._make_request('post', 'arrival_notices', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'LDvQ06cIg', data, 'main', nocheck)
 
 
-class PurchaseAfterSaleListRequest(InitializeParams):
+class N47ymrezM8(InitializeParams):
     """商品采购|采购售后管理|采购售后列表"""
 
-    @doc(p_purchase_refund_single)
+    @doc(phfsqPqFesHVfgjiWNer)
     @BaseApi.timing_decorator
-    def purchase_refund_single(self, nocheck=False):
-        res = self.pc.purchase_after_sales_list_data()
+    def phfsqPqFesHVfgjiWNer(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['id']})
         data = {
             "ids": [
-                res[0]['id']
+                obj[0]['id']
             ],
             "saleState": 1,
             "receiveState": 1,
@@ -553,16 +741,37 @@ class PurchaseAfterSaleListRequest(InitializeParams):
             "payState": "2",
             "remark": "备注"
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'xGS6K1sGm', data, 'main', nocheck)
 
-        return self._make_request('put', 'purchase_aftermarket_order_details', data, 'main', nocheck)
-
-    @doc(p_purchase_refuse_route)
+    @doc(jVgd53LQsvnwXfUXRRgq)
     @BaseApi.timing_decorator
-    def purchase_refuse_route(self, nocheck=False):
-        res = self.pc.purchase_after_sales_list_data()
+    def jVgd53LQsvnwXfUXRRgq(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['id']})
         data = {
             "ids": [
-                res[0]['id']
+                obj[0]['id']
+            ],
+            "saleState": 1,
+            "receiveState": 1,
+            "purchaseDeliveryTime": self.get_formatted_datetime(),
+            "payState": "1",
+            "accountNo": INFO['main_account_no'],
+            "accountName": "系统默认账户",
+            "remark": "备注"
+        }
+        self.validate_request_data(data)
+        return self._make_request('put', 'xGS6K1sGm', data, 'main', nocheck)
+
+    @doc(Z4SuqHs6Y2LaV2QZa5Ir)
+    @BaseApi.timing_decorator
+    def Z4SuqHs6Y2LaV2QZa5Ir(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['id']})
+        data = {
+            "ids": [
+                obj[0]['id']
             ],
             "saleState": 2,
             "receiveState": 1,
@@ -570,123 +779,35 @@ class PurchaseAfterSaleListRequest(InitializeParams):
             "remark": "备注",
             "logisticsNo": self.jd
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'xGS6K1sGm', data, 'main', nocheck)
 
-        return self._make_request('put', 'purchase_aftermarket_order_details', data, 'main', nocheck)
-
-    @doc(p_purchase_refuse_warehousing)
+    @doc(pHj61cDnzOd8FgCqMVW5)
     @BaseApi.timing_decorator
-    def purchase_refuse_warehousing(self, nocheck=False):
-        res = self.pc.purchase_after_sales_list_data()
+    def pHj61cDnzOd8FgCqMVW5(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['id']})
         data = {
             "ids": [
-                res[0]['id']
+                obj[0]['id']
             ],
             "saleState": 2,
             "receiveState": 2,
             "purchaseDeliveryTime": self.get_formatted_datetime(),
             "warehouseId": INFO['main_item_in_warehouse_id']
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'xGS6K1sGm', data, 'main', nocheck)
 
-        return self._make_request('put', 'purchase_aftermarket_order_details', data, 'main', nocheck)
-
-    @doc(p_purchase_after_list_search_by_imei)
+    @doc(tTRW133mzbKPeCd8m40H)
     @BaseApi.timing_decorator
-    def purchase_after_list_search_by_imei(self):
-        res = self.pc.purchase_after_sales_list_data()
-        imei = res[0]['imei']
-        ParamCache.cache_object({"imei": imei}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "imei": imei,
-            "type": "1"
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_after_list_search_by_supplier_id)
-    @BaseApi.timing_decorator
-    def purchase_after_list_search_by_supplier_id(self):
-        ParamCache.cache_object({"supplierId": INFO['main_supplier_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "supplierId": INFO['main_supplier_id'],
-            "type": "1"
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_after_list_search_by_platform_articles_no)
-    @BaseApi.timing_decorator
-    def purchase_after_list_search_by_platform_articles_no(self):
-        res = self.pc.purchase_after_sales_list_data()
-        ParamCache.cache_object({"platformArticlesNo": res[0]['platformArticlesNo']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "supplierId": res[0]['platformArticlesNo'],
-            "type": "1"
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_after_list_search_by_sale_state)
-    @BaseApi.timing_decorator
-    def purchase_after_list_search_by_sale_state(self):
-        res = self.pc.purchase_after_sales_list_data()
-        ParamCache.cache_object({"saleState": res[0]['saleState']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleState": res[0]['saleState'],
-            "type": "1"
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_after_list_search_by_sale_no)
-    @BaseApi.timing_decorator
-    def purchase_after_list_search_by_sale_no(self):
-        res = self.pc.purchase_after_sales_list_data()
-        ParamCache.cache_object({"saleNo": res[0]['saleNo']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "saleNo": res[0]['saleNo'],
-            "type": "1"
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_after_list_search_by_logistics_no)
-    @BaseApi.timing_decorator
-    def purchase_after_list_search_by_logistics_no(self):
-        res = self.pc.purchase_after_sales_list_data()
-        ParamCache.cache_object({"logisticsNo": res[0]['logisticsNo']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "warehouseLogisticsOrderNo": res[0]['logisticsNo'],
-            "type": "1"
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_after_list_search_by_date)
-    @BaseApi.timing_decorator
-    def purchase_after_list_search_by_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "type": "1",
-            "erpStartTime": self.get_the_date(-1),
-            "erpEndTime": self.get_the_date()
-        }
-        return self._make_request('post', 'purchase_after_sales_list', data, 'main')
-
-    @doc(p_purchase_barter_route)
-    @BaseApi.timing_decorator
-    def purchase_barter_route(self, nocheck=False):
-        res = self.pc.purchase_after_sales_list_data()
+    def tTRW133mzbKPeCd8m40H(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['id']})
         imei = self.imei
         data = {
             "ids": [
-                res[0]['id']
+                obj[0]['id'],
             ],
             "saleState": 3,
             "receiveState": 1,
@@ -695,36 +816,43 @@ class PurchaseAfterSaleListRequest(InitializeParams):
             "logisticsNo": self.jd,
             "buildExchangeList": [
                 {
-                    "saleArticlesRelevanceId": res[0]['id'],
-                    "skuInfo": res[0]['skuInfo'],
+                    "saleArticlesRelevanceId": obj[0]['id'],
+                    "skuInfo": obj[0]['skuInfo'],
                     "purchaseArticlesInfoDTO": {
                         "articlesTypeId": 1,
-                        "brandId": res[0]['brandId'],
-                        "modelId": res[0]['modelId'],
+                        "brandId": 1,
+                        "modelId": 17569,
                         "imei": imei,
-                        "purchasePrice": "100",
+                        "purchasePrice": "299",
                         "articlesRemake": "",
                         "remark": "",
-                        "sourcePurchasePrice": res[0]['purchasePrice'],
-                        "modelName": res[0]['modelName'],
+                        "sourcePurchasePrice": 200,
+                        "modelName": "iPhone 16 Pro Max",
+                        "colorId": 1712,
+                        "colorName": "黑色钛金属",
+                        "finenessId": 2,
+                        "finenessName": "99新"
                     },
                     "imei": imei,
-                    "purchasePrice": "100",
-                    "articlesRemake": ""
+                    "purchasePrice": "299",
+                    "articlesRemake": "",
+                    "supplyType": 2,
+                    "supplyTypeDesc": "C"
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'xGS6K1sGm', data, 'main', nocheck)
 
-        return self._make_request('put', 'purchase_aftermarket_order_details', data, 'main', nocheck)
-
-    @doc(p_purchase_barter_warehousing)
+    @doc(J5gqPGgMCU66iUGcjVkX)
     @BaseApi.timing_decorator
-    def purchase_barter_warehousing(self, nocheck=False):
-        res = self.pc.purchase_after_sales_list_data()
+    def J5gqPGgMCU66iUGcjVkX(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['id']})
         imei = self.imei
         data = {
             "ids": [
-                res[0]['id']
+                obj[0]['id']
             ],
             "saleState": 3,
             "receiveState": 2,
@@ -733,54 +861,270 @@ class PurchaseAfterSaleListRequest(InitializeParams):
             "warehouseId": INFO['main_item_warehouse_id'],
             "buildExchangeList": [
                 {
-                    "saleArticlesRelevanceId": res[0]['id'],
-                    "skuInfo": res[0]['skuInfo'],
+                    "saleArticlesRelevanceId": obj[0]['id'],
+                    "skuInfo": obj[0]['skuInfo'],
                     "purchaseArticlesInfoDTO": {
                         "articlesTypeId": 1,
-                        "brandId": res[0]['brandId'],
-                        "modelId": res[0]['modelId'],
+                        "brandId": 1,
+                        "modelId": 17569,
                         "imei": imei,
-                        "purchasePrice": "100",
+                        "purchasePrice": "828",
                         "articlesRemake": "",
                         "remark": "",
-                        "sourcePurchasePrice": res[0]['purchasePrice'],
-                        "modelName": res[0]['modelName'],
+                        "sourcePurchasePrice": obj[0]['purchasePrice'],
+                        "modelName": "iPhone 16 Pro Max",
+                        "finenessId": 2,
+                        "finenessName": "99新"
                     },
                     "imei": imei,
-                    "purchasePrice": "100",
-                    "articlesRemake": ""
+                    "purchasePrice": "828",
+                    "articlesRemake": "",
+                    "supplyType": 2,
+                    "supplyTypeDesc": "C"
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'xGS6K1sGm', data, 'main', nocheck)
 
-        return self._make_request('put', 'purchase_aftermarket_order_details', data, 'main', nocheck)
+    @doc(Bht5FveIIJwsO1nzrSou)
+    @BaseApi.timing_decorator
+    def Bht5FveIIJwsO1nzrSou(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=1)
+        ParamCache.cache_object({"i": obj[0]['imei']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "imei": obj[0]['imei'],
+            "type": "1"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(CfF5rsovr6q1eXvK89E3)
+    @BaseApi.timing_decorator
+    def CfF5rsovr6q1eXvK89E3(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['imei']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "imei": obj[0]['imei'],
+            "type": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(k39WRkcNXmAaALC0Vslr)
+    @BaseApi.timing_decorator
+    def k39WRkcNXmAaALC0Vslr(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=1)
+        ParamCache.cache_object({"i": obj[0]['imei']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "supplierId": ['main_supplier_id'],
+            "type": "1"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(NqFHiIZhsGNUUdvC6h2P)
+    @BaseApi.timing_decorator
+    def NqFHiIZhsGNUUdvC6h2P(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['imei']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "supplierId": ['main_supplier_id'],
+            "type": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(WGIFhMXGjLDYNdHFNmZ6)
+    @BaseApi.timing_decorator
+    def WGIFhMXGjLDYNdHFNmZ6(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=1)
+        ParamCache.cache_object({"i": obj[0]['platformArticlesNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "platformArticlesNo": obj[0]['platformArticlesNo'],
+            "type": "1"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(nwM5r4G3gxMKFkY7vCkS)
+    @BaseApi.timing_decorator
+    def nwM5r4G3gxMKFkY7vCkS(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['platformArticlesNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "platformArticlesNo": obj[0]['platformArticlesNo'],
+            "type": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(SdxPSZvsxDBQFJmoq0sn)
+    @BaseApi.timing_decorator
+    def SdxPSZvsxDBQFJmoq0sn(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=1)
+        ParamCache.cache_object({"i": obj[0]['billNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "saleNo": obj[0]['billNo'],
+            "type": "1"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(xKOkW569Bn2xL0RXmnEZ)
+    @BaseApi.timing_decorator
+    def xKOkW569Bn2xL0RXmnEZ(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['saleNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "saleNo": obj[0]['saleNo'],
+            "type": "2"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(XEQ3tAQnMxJ6mC5Z3zSu)
+    @BaseApi.timing_decorator
+    def XEQ3tAQnMxJ6mC5Z3zSu(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=1)
+        ParamCache.cache_object({"i": obj[0]['billNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "type": "1",
+            "erpStartTime": self.get_the_date(),
+            "erpEndTime": self.get_the_date()
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(PhchxOyoBh6ZBZxAR8B5)
+    @BaseApi.timing_decorator
+    def PhchxOyoBh6ZBZxAR8B5(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['saleNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "type": "2",
+            "erpStartTime": self.get_the_date(),
+            "erpEndTime": self.get_the_date()
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(cJyOkQvyQsMExyu5Vt45)
+    @BaseApi.timing_decorator
+    def cJyOkQvyQsMExyu5Vt45(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=1)
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "type": "1",
+            "warehouseLogisticsOrderNo": obj[0]['logisticsNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(y4THlC3ekhRh4iae3DtD)
+    @BaseApi.timing_decorator
+    def y4THlC3ekhRh4iae3DtD(self, nocheck=False):
+        obj = self.pc.Jz32tuIMNM7geguh5D8TF(i=2)
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "type": "2",
+            "warehouseLogisticsOrderNo": obj[0]['logisticsNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
+
+    @doc(dhBbO6TlYXaCCyMti4Sf)
+    @BaseApi.timing_decorator
+    def dhBbO6TlYXaCCyMti4Sf(self, nocheck=False, status=None):
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "type": "2",
+            "saleState": status
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'y03duzqXb', data, 'main', nocheck)
 
 
-class PurchaseAwaitAfterSaleListRequest(InitializeParams):
+class WdU75jpBUw(InitializeParams):
     """商品采购|采购售后管理|待售后列表"""
 
-    @doc(p_purchase_refund_difference_not_settled)
+    @doc(iWItsJtwj5CLc0GYimGA)
     @BaseApi.timing_decorator
-    def purchase_refund_difference_not_settled(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def iWItsJtwj5CLc0GYimGA(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[1]['articlesNo']})
         data = {
             "payState": "2",
             "purchaseArticlesSaleInfoList": [
                 {
                     "saleState": "7",
-                    "articlesNo": res[0]['articlesNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "newPurchasePrice": 20,
+                    "supplierName": INFO['main_supplier_name'],
+                    "supplierId": INFO['main_supplier_id']
+                },
+                {
+                    "saleState": "7",
+                    "articlesNo": obj[1]['articlesNo'],
                     "newPurchasePrice": 20,
                     "supplierName": INFO['main_supplier_name'],
                     "supplierId": INFO['main_supplier_id']
                 }
             ]
         }
-        return self._make_request('post', 'after_sale_operate', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'MgU31VbHk', data, 'main', nocheck)
 
-    @doc(p_purchase_refund_difference_settled)
+    @doc(Zd7znz6pdWwciZ4zhv18)
     @BaseApi.timing_decorator
-    def purchase_refund_difference_settled(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def Zd7znz6pdWwciZ4zhv18(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
+        data = {
+            "payState": "2",
+            "purchaseArticlesSaleInfoList": [
+                {
+                    "saleState": "7",
+                    "articlesNo": obj[0]['articlesNo'],
+                    "newPurchasePrice": 20,
+                    "supplierName": INFO['main_supplier_name'],
+                    "supplierId": INFO['main_supplier_id']
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'MgU31VbHk', data, 'main', nocheck)
+
+    @doc(Mlllk8zWuMbryTvo07YA)
+    @BaseApi.timing_decorator
+    def Mlllk8zWuMbryTvo07YA(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "payState": "1",
             "accountNo": INFO['main_account_no'],
@@ -788,19 +1132,21 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "purchaseArticlesSaleInfoList": [
                 {
                     "saleState": "7",
-                    "articlesNo": res[0]['articlesNo'],
+                    "articlesNo": obj[0]['articlesNo'],
                     "newPurchasePrice": 50,
                     "supplierName": INFO['main_supplier_name'],
                     "supplierId": INFO['main_supplier_id']
                 }
             ]
         }
-        return self._make_request('post', 'after_sale_operate', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'MgU31VbHk', data, 'main', nocheck)
 
-    @doc(p_after_sales_delivery)
+    @doc(mtmZ9ns5g8nanblESlTR)
     @BaseApi.timing_decorator
-    def after_sales_delivery(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def mtmZ9ns5g8nanblESlTR(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": 5,
             "offExpressage": "0",
@@ -810,9 +1156,9 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
                     "purchasePrice": 10,
                     "saleRemake": "备注"
                 }
@@ -820,7 +1166,7 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id']
                 ],
                 "saleState": 0,
                 "receiveState": 1,
@@ -833,12 +1179,68 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": ""
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_after_sales_outbound_return_refund_unsettled)
+    @doc(gXtFuS2Icw1FTTfLvWC0)
     @BaseApi.timing_decorator
-    def after_sales_outbound_return_refund_unsettled(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def gXtFuS2Icw1FTTfLvWC0(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
+        data = {
+            "saleState": 5,
+            "offExpressage": "1",
+            "logisticsNoPrice": 10,
+            "supplierId": INFO['main_supplier_id'],
+            "supplierName": INFO['main_supplier_name'],
+            "purchaseOrdersArticlesDTOList": [
+                {
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
+                    "purchasePrice": 10,
+                    "saleRemake": "备注"
+                }
+            ],
+            "deliveryTime": self.get_formatted_datetime(),
+            "walletAccountNo": INFO['main_wallet_account_no'],
+            "payWay": 2,
+            "pickUpType": 1,
+            "logisticsCompanyType": 1,
+            "userAddressId": 559,
+            "purchaseOrdersSaleInfoDTO": {
+                "ids": [
+                    obj[0]['id']
+                ],
+                "saleState": 0,
+                "receiveState": 1,
+                "purchaseDeliveryTime": self.get_formatted_datetime(),
+                "payState": "",
+                "accountNo": "",
+                "accountName": "",
+                "remark": "",
+                "warehouseId": "",
+                "logisticsNo": ""
+            }
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
+
+    @doc(nFSWCuNM4gli2yRB2dwD)
+    @BaseApi.timing_decorator
+    def nFSWCuNM4gli2yRB2dwD(self, nocheck=False):
+        obj = self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2, j=3)
+        data = {
+            "queryNo": obj[0]['articlesNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'RoVc0CTIT', data, 'main', nocheck)
+
+    @doc(uq01dOZeO9ByThGMfj4w)
+    @BaseApi.timing_decorator
+    def uq01dOZeO9ByThGMfj4w(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[1]['articlesNo']})
         data = {
             "saleState": 5,
             "offExpressage": "0",
@@ -848,9 +1250,16 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
+                    "purchasePrice": 10,
+                    "saleRemake": "备注"
+                },
+                {
+                    "purchaseNo": obj[1]['purchaseNo'],
+                    "articlesNo": obj[1]['articlesNo'],
+                    "id": obj[1]['id'],
                     "purchasePrice": 10,
                     "saleRemake": "备注"
                 }
@@ -858,7 +1267,48 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id'],
+                    obj[1]['id']
+                ],
+                "saleState": 0,
+                "receiveState": 1,
+                "purchaseDeliveryTime": self.get_formatted_datetime(),
+                "payState": "",
+                "accountNo": "",
+                "accountName": "",
+                "remark": "",
+                "warehouseId": "",
+                "logisticsNo": ""
+            }
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
+
+    @doc(EXJN6Kfs99I6kkD0lNX2)
+    @BaseApi.timing_decorator
+    def EXJN6Kfs99I6kkD0lNX2(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
+        data = {
+            "saleState": 5,
+            "offExpressage": "0",
+            "logisticsNoPrice": 11,
+            "logisticsOrder": self.jd,
+            "supplierName": INFO['main_supplier_name'],
+            "supplierId": INFO['main_supplier_id'],
+            "purchaseOrdersArticlesDTOList": [
+                {
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
+                    "purchasePrice": 10,
+                    "saleRemake": "备注"
+                }
+            ],
+            "deliveryTime": self.get_formatted_datetime(),
+            "purchaseOrdersSaleInfoDTO": {
+                "ids": [
+                    obj[0]['id']
                 ],
                 "saleState": 1,
                 "receiveState": 1,
@@ -871,12 +1321,14 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": ""
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_after_sales_outbound_return_refund_settled)
+    @doc(r3no6VL2SjqT3qCMSXsF)
     @BaseApi.timing_decorator
-    def after_sales_outbound_return_refund_settled(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def r3no6VL2SjqT3qCMSXsF(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": 5,
             "offExpressage": "0",
@@ -885,9 +1337,9 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
                     "purchasePrice": 10,
                     "saleRemake": "备注"
                 }
@@ -895,7 +1347,7 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id']
                 ],
                 "saleState": 1,
                 "receiveState": 1,
@@ -908,12 +1360,14 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": ""
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_after_sales_delivery_refusal_to_return_in_transit)
+    @doc(WCIspC62VSOcHhuvk6oH)
     @BaseApi.timing_decorator
-    def after_sales_delivery_refusal_to_return_in_transit(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def WCIspC62VSOcHhuvk6oH(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": 5,
             "offExpressage": "0",
@@ -922,9 +1376,9 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
                     "purchasePrice": 10,
                     "saleRemake": "备注"
                 }
@@ -932,7 +1386,7 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id']
                 ],
                 "saleState": 2,
                 "receiveState": 1,
@@ -945,12 +1399,14 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": self.jd
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_after_sales_outbound_refuse_to_return_warehousing)
+    @doc(bRT8qBZ1qzcsOegIVUiL)
     @BaseApi.timing_decorator
-    def after_sales_outbound_refuse_to_return_warehousing(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def bRT8qBZ1qzcsOegIVUiL(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "saleState": 5,
             "offExpressage": "0",
@@ -959,9 +1415,9 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
                     "purchasePrice": 10,
                     "saleRemake": "备注"
                 }
@@ -969,7 +1425,7 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id']
                 ],
                 "saleState": 2,
                 "receiveState": 2,
@@ -982,12 +1438,14 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": ""
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_after_sales_delivery_exchange_in_transit)
+    @doc(p2NxayPBZqnmytlhtjEy)
     @BaseApi.timing_decorator
-    def after_sales_delivery_exchange_in_transit(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def p2NxayPBZqnmytlhtjEy(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         imei = self.imei
         data = {
             "saleState": 5,
@@ -998,17 +1456,17 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierName": INFO['main_supplier_name'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
-                    "purchasePrice": res[0]['purchasePrice'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
+                    "purchasePrice": obj[0]['purchasePrice'],
                     "saleRemake": "备注"
                 }
             ],
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id']
                 ],
                 "saleState": 3,
                 "receiveState": 2,
@@ -1021,18 +1479,18 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": "",
                 "buildExchangeList": [
                     {
-                        "saleArticlesRelevanceId": res[0]['id'],
-                        "skuInfo": res[0]['skuInfo'],
+                        "saleArticlesRelevanceId": obj[0]['id'],
+                        "skuInfo": obj[0]['skuInfo'],
                         "purchaseArticlesInfoDTO": {
                             "articlesTypeId": 1,
-                            "brandId": res[0]['brandId'],
-                            "modelId": res[0]['modelId'],
+                            "brandId": obj[0]['brandId'],
+                            "modelId": obj[0]['modelId'],
                             "imei": imei,
                             "purchasePrice": "100",
                             "articlesRemake": "",
                             "remark": "",
-                            "sourcePurchasePrice": res[0]['purchasePrice'],
-                            "modelName": res[0]['modelName'],
+                            "sourcePurchasePrice": obj[0]['purchasePrice'],
+                            "modelName": obj[0]['modelName'],
                         },
                         "imei": imei,
                         "purchasePrice": "100",
@@ -1041,12 +1499,14 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 ]
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_after_sales_outbound_replacement_warehousing)
+    @doc(HR074UMjBJ9KgEckp0hD)
     @BaseApi.timing_decorator
-    def after_sales_outbound_replacement_warehousing(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def HR074UMjBJ9KgEckp0hD(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         imei = self.imei
         data = {
             "saleState": 5,
@@ -1056,17 +1516,17 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
             "supplierId": INFO['main_supplier_id'],
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['purchaseNo'],
-                    "articlesNo": res[0]['articlesNo'],
-                    "id": res[0]['id'],
-                    "purchasePrice": res[0]['purchasePrice'],
+                    "purchaseNo": obj[0]['purchaseNo'],
+                    "articlesNo": obj[0]['articlesNo'],
+                    "id": obj[0]['id'],
+                    "purchasePrice": obj[0]['purchasePrice'],
                     "saleRemake": "备注"
                 }
             ],
             "deliveryTime": self.get_formatted_datetime(),
             "purchaseOrdersSaleInfoDTO": {
                 "ids": [
-                    res[0]['id']
+                    obj[0]['id']
                 ],
                 "saleState": 3,
                 "receiveState": 2,
@@ -1079,18 +1539,18 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 "logisticsNo": "",
                 "buildExchangeList": [
                     {
-                        "saleArticlesRelevanceId": res[0]['id'],
-                        "skuInfo": res[0]['skuInfo'],
+                        "saleArticlesRelevanceId": obj[0]['id'],
+                        "skuInfo": obj[0]['skuInfo'],
                         "purchaseArticlesInfoDTO": {
                             "articlesTypeId": 1,
-                            "brandId": res[0]['brandId'],
-                            "modelId": res[0]['modelId'],
+                            "brandId": obj[0]['brandId'],
+                            "modelId": obj[0]['modelId'],
                             "imei": imei,
                             "purchasePrice": "100",
                             "articlesRemake": "",
                             "remark": "",
-                            "sourcePurchasePrice": res[0]['purchasePrice'],
-                            "modelName": res[0]['modelName'],
+                            "sourcePurchasePrice": obj[0]['purchasePrice'],
+                            "modelName": obj[0]['modelName'],
                         },
                         "imei": imei,
                         "purchasePrice": "100",
@@ -1099,322 +1559,400 @@ class PurchaseAwaitAfterSaleListRequest(InitializeParams):
                 ]
             }
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
-    @doc(p_search_by_imei)
+    @doc(AObSRgmEGYVIgbuCw6h4)
     @BaseApi.timing_decorator
-    def search_by_imei(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
+    def AObSRgmEGYVIgbuCw6h4(self, nocheck=False):
+        obj = self.pc.XHVW0IhQgPnb63fnaqTdN()
         data = {
-            "remark": "test",
-            "articlesNo": res[0]['articlesNo']
+            "remark": "备注",
+            "articlesNo": obj[0]['articlesNo']
         }
-        return self._make_request('put', 'after_sale_cancel', data, 'main', nocheck)
-
-    @doc(p_cancel_purchase_after_sale)
-    @BaseApi.timing_decorator
-    def cancel_purchase_after_sale(self, nocheck=False):
-        res = self.pc.purchase_post_sale_list_data()
-        data = {
-            "remark": "test",
-            "articlesNo": res[0]['articlesNo']
-        }
-        return self._make_request('put', 'after_sale_cancel', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('put', 'BegcMvuP1', data, 'main', nocheck)
 
 
-class PurchaseGoodsReceivedRequest(InitializeParams):
+class LZnv9DokCX(InitializeParams):
     """商品采购|采购售后管理|待接收物品"""
 
-    @doc(p_goods_received)
+    @doc(kDYL6B67bVRYqDohXGBm)
     @BaseApi.timing_decorator
-    def goods_received(self, nocheck=False):
-        res = self.pc.purchase_items_to_be_received_data()
+    def kDYL6B67bVRYqDohXGBm(self, nocheck=False):
+        obj = self.pc.Rwpqef340gYUd4Hgkbq8l()
+        ParamCache.cache_object({"i": obj[0]['articlesNo']})
         data = {
             "articlesNoList": [
-                res[0]['articlesNo']
+                obj[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'receive_item_receive', data, 'main', nocheck)
+        self.validate_request_data(data)
+        return self._make_request('post', 'WpZgDxZLH', data, 'main', nocheck)
 
-    @doc(p_search_by_imei)
+    @doc(gXbPXTa8tODEWzcuCWKK)
     @BaseApi.timing_decorator
-    def search_by_imei(self):
-        res = self.pc.purchase_items_to_be_received_data()
-        obj = res[0]['imei']
-        ParamCache.cache_object({"imei": obj}, 'practical.json')
+    def gXbPXTa8tODEWzcuCWKK(self, nocheck=False):
+        obj = self.pc.Rwpqef340gYUd4Hgkbq8l()
+        ParamCache.cache_object({"i": obj[0]['imei']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNo": obj,
+            "articlesNo": obj[0]['imei'],
             "articlesState": 10,
             "articlesType": 1
         }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'BbtJmNsWL', data, 'main', nocheck)
 
-    @doc(p_search_by_date)
+    @doc(GK9UcuLcY440l6QirME6)
     @BaseApi.timing_decorator
-    def search_by_date(self):
+    def GK9UcuLcY440l6QirME6(self, nocheck=False):
+        obj = self.pc.Rwpqef340gYUd4Hgkbq8l()
+        ParamCache.cache_object({"i": obj[0]['imei']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "articlesState": 10,
-            "articlesType": 1,
-            "erpStartTime": self.get_the_date(-1),
+            "erpStartTime": self.get_the_date(),
             "erpEndTime": self.get_the_date(),
+            "articlesType": 1
         }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'BbtJmNsWL', data, 'main', nocheck)
 
 
-class PurchaseOrderListRequest(InitializeParams):
+class G4EaCouJoJ(InitializeParams):
     """商品采购|采购管理|采购订单列表"""
 
-    @doc(p_new_purchase_order_refund)
+    @doc(V3OaBTTJgYrJQyoMmypY)
     @BaseApi.timing_decorator
-    def new_purchase_order_refund(self, nocheck=False):
-        res = self.pc.purchase_order_list_data()
+    def V3OaBTTJgYrJQyoMmypY(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['articlesNoList'][0]})
         data = {
-            "articlesNo": res[0]['articlesNoList'][0],
+            "articlesNo": obj[0]['articlesNoList'][0],
             "remark": "备注"
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'R7HA7rwAV', data, 'main', nocheck)
 
-        return self._make_request('post', 'purchases_are_refundable_only', data, 'main', nocheck)
-
-    @doc(p_logistics_delivery)
+    @doc(FxIuRXAgm25KpkG1vYdL)
     @BaseApi.timing_decorator
-    def logistics_delivery(self, nocheck=False):
-        res = self.pc.purchase_order_list_data()
+    def FxIuRXAgm25KpkG1vYdL(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['articlesNoList'][0]})
         data = {
             "logisticsNo": self.jd,
             "purchaseOrdersArticlesDTOList": [
                 {
-                    "purchaseNo": res[0]['orderNo'],
-                    "articlesNo": res[0]['articlesNoList'][0],
+                    "purchaseNo": obj[0]['orderNo'],
+                    "articlesNo": obj[0]['articlesNoList'][0],
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'iUOg847fP', data, 'main', nocheck)
 
-        return self._make_request('post', 'logistics_delivery', data, 'main', nocheck)
-
-    @doc(p_order_list_search_by_purchase_number)
+    @doc(X9AzyILbQOMXUGnTTHIW)
     @BaseApi.timing_decorator
-    def order_list_search_by_purchase_number(self):
-        res = self.pc.purchase_order_list_data()
-        obj = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": obj}, 'practical.json')
+    def X9AzyILbQOMXUGnTTHIW(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['articlesNoList'][0]})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "orderNo": obj,
-            "articlesType": 1,
+            "articlesNoOrImei": obj[0]['articlesNoList'][0],
+            "articlesType": 1
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-    @doc(p_order_list_search_by_supplier)
+    @doc(UBQunveHStNfKk7VC1MY)
     @BaseApi.timing_decorator
-    def order_list_search_by_supplier(self):
-        ParamCache.cache_object({"supplierId": INFO['main_supplier_id']}, 'practical.json')
+    def UBQunveHStNfKk7VC1MY(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "orderNo": obj[0]['orderNo'],
+            "articlesType": 1
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
+
+    @doc(CIlgrf4csxjqTWz7KBW8)
+    @BaseApi.timing_decorator
+    def CIlgrf4csxjqTWz7KBW8(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
             "supplierId": INFO['main_supplier_id'],
-            "articlesType": 1,
+            "articlesType": 1
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-
-    @doc(p_order_list_search_by_order_state)
+    @doc(SEQRfhZPQLSks8OIHSUp)
     @BaseApi.timing_decorator
-    def order_list_search_by_order_state(self, state_str, state_str_):
-        ParamCache.cache_object({"stateStr": state_str_}, 'practical.json')
+    def SEQRfhZPQLSks8OIHSUp(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "state": state_str,
-            "articlesType": 1,
+            "state": status,
+            "articlesType": 1
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-    @doc(p_order_list_search_by_imei)
+    @doc(RHW76Y60nHIiwxzfeZNR)
     @BaseApi.timing_decorator
-    def order_list_search_by_imei(self):
-        res = self.pc.purchase_order_list_data()
-        obj = res[0]['articlesNoList'][0]
-        ParamCache.cache_object({"articlesNoList": obj}, 'practical.json')
+    def RHW76Y60nHIiwxzfeZNR(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['logisticsNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "articlesNoOrImei": obj,
-            "articlesType": 1,
+            "logisticsNo": obj[0]['logisticsNo'],
+            "articlesType": 1
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-    @doc(p_order_list_search_by_logistics_no)
+    @doc(ZQ8ruPTDvW7q2hXTRV77)
     @BaseApi.timing_decorator
-    def order_list_search_by_logistics_no(self):
-        res = self.pc.purchase_order_list_data()
-        obj = res[0]['logisticsNo'][0]
-        ParamCache.cache_object({"logisticsNo": obj}, 'practical.json')
+    def ZQ8ruPTDvW7q2hXTRV77(self, nocheck=False, status=None):
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "logisticsNo": obj,
-            "articlesType": 1,
+            "payState": status,
+            "articlesType": 1
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-    @doc(p_order_list_search_by_pay_state)
+    @doc(gwoujeJsaB3onqINz3vL)
     @BaseApi.timing_decorator
-    def order_list_search_by_pay_state(self):
-        ParamCache.cache_object({"payStateStr": '未付款'}, 'practical.json')
+    def gwoujeJsaB3onqINz3vL(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "payState": 2,
             "articlesType": 1,
+            "erpStartTime": self.get_the_date(),
+            "erpEndTime": self.get_the_date()
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-    @doc(p_order_list_search_by_purchase_uid)
+    @doc(JB7S4POKRpjesx1Q32J0)
     @BaseApi.timing_decorator
-    def order_list_search_by_purchase_uid(self):
-        ParamCache.cache_object({"purchaseUserId": INFO['main_purchase_user_id']}, 'practical.json')
+    def JB7S4POKRpjesx1Q32J0(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        ParamCache.cache_object({"i": obj[0]['orderNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "purchaseUserId": INFO['main_purchase_user_id'],
-            "supplierId": INFO['main_supplier_id'],
             "articlesType": 1,
-        }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
-
-    @doc(p_order_list_search_by_uid)
-    @BaseApi.timing_decorator
-    def order_list_search_by_uid(self):
-        ParamCache.cache_object({"userId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
             "userId": INFO['main_user_id'],
-            "articlesType": 1,
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
-    @doc(p_order_list_search_by_date)
+    @doc(FysimTUmjHi3FisKVbsM)
     @BaseApi.timing_decorator
-    def order_list_search_by_date(self):
+    def FysimTUmjHi3FisKVbsM(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        obj_2 = self.pc.Z6BEKs3GvdIWf6a1Dj2uP(data='a')
+        ParamCache.cache_object({"i": obj_2[0]['platformArticlesNo']})
         data = {
             "pageNum": 1,
             "pageSize": 10,
-            "erpEndTime": self.get_the_date(),
-            "erpStartTime": self.get_the_date(-1),
-            "articlesType": 1,
+            "purchaseNo": obj[0]['orderNo'],
+            "platformArticlesNo": obj_2[0]['platformArticlesNo']
         }
-        return self._make_request('post', 'purchase_order_list', data, 'main')
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
+
+    @doc(KjmhjLfM7YrFQNE6NiZG)
+    @BaseApi.timing_decorator
+    def KjmhjLfM7YrFQNE6NiZG(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP(data='a')
+        ParamCache.cache_object({"i": obj[0]['imei']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "purchaseNo": obj[0]['orderNo'],
+            "articlesNoOrImei": obj[0]['imei']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
+
+    @doc(D1M3VTxNoTROnlErwIkd)
+    @BaseApi.timing_decorator
+    def D1M3VTxNoTROnlErwIkd(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP(data='a')
+        ParamCache.cache_object({"i": obj[0]['platformOrderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "purchaseNo": obj[0]['orderNo'],
+            "platformOrderNo": obj[0]['platformOrderNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
+
+    @doc(Nu2xob41mVQX0Uwyv77c)
+    @BaseApi.timing_decorator
+    def Nu2xob41mVQX0Uwyv77c(self, nocheck=False):
+        obj = self.pc.Z6BEKs3GvdIWf6a1Dj2uP()
+        obj_2 = self.pc.Z6BEKs3GvdIWf6a1Dj2uP(data='a')
+        ParamCache.cache_object({"i": obj_2[0]['serialNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "purchaseNo": obj[0]['orderNo'],
+            "serialNo": obj_2[0]['serialNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'k90OkSeBm', data, 'main', nocheck)
 
 
-class PurchaseSupplierManageRequest(InitializeParams):
+class FYDICk4EbP(InitializeParams):
     """商品采购|供应商管理"""
 
-    @doc(p_new_supplier)
+    @doc(h0V1zMfjLKSd4odY9NU2)
     @BaseApi.timing_decorator
-    def new_supplier(self, nocheck=False):
+    def h0V1zMfjLKSd4odY9NU2(self, nocheck=False):
         data = {
-            "createTime": self.get_formatted_datetime(),
-            "pageSize": 10,
-            "pageNum": 1,
-            "orderByColumn": "create_time",
-            "isAsc": "desc",
-            "id": INFO['main_supplier_id'],
-            "supplierName": INFO['main_supplier_name'],
-            "phone": INFO['receiving_phone'],
-            "accountNo": INFO['main_account_no'],
-            "level": 0,
-            "provinceId": INFO['shipping_province_id'],
-            "provinceName": INFO['shipping_province_name'],
-            "cityId": INFO['shipping_city_id'],
-            "cityName": INFO['shipping_city_name'],
-            "countyId": INFO['shipping_county_id'],
-            "countyName": INFO['shipping_county_name'],
-            "address": INFO['shipping_detailed_address'],
-            "userId": INFO['main_user_id'],
-            "tenantId": INFO['merchant_id'],
-            "isInit": 1,
-            "isDelete": 0,
+            "supplierName": '供应商' + self.serial,
+            "phone": self.phone,
+            "accountNo": INFO['idle_account_sno'],
+            "level": 1,
+            "provinceName": "北京",
+            "provinceId": 1100,
+            "cityName": "北京市",
+            "cityId": 11010,
+            "countyName": "崇文区",
+            "countyId": 1105,
+            "address": "爱心路" + self.serial,
+            "userId": 953,
             "supplierType": 1,
             "defaultStatus": 0,
+            "supplyType": 1,
             "type": 2,
-            "businessType": 1,
-            "supplyType": "1"
+            "supplyTypeDesc": "A"
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Gw9nFt0kw', data, 'idle', nocheck)
 
-        return self._make_request('post', 'supplier_add', data, 'idle', nocheck)
-
-    @doc(p_edit_supplier)
+    @doc(VUZzvXlURvWP4b43uTRg)
     @BaseApi.timing_decorator
-    def edit_supplier(self, nocheck=False):
-        res = self.pc.purchase_supplier_manage_data()
+    def VUZzvXlURvWP4b43uTRg(self, nocheck=False):
         data = {
-            "createTime": res[0]['createTime'],
-            "updateBy": res[0]['updateBy'],
+            "supplierName": '供应商' + self.serial,
+            "phone": self.phone,
+            "accountNo": INFO['idle_account_sno'],
+            "level": 1,
+            "provinceName": "北京",
+            "provinceId": 1100,
+            "cityName": "北京市",
+            "cityId": 11010,
+            "countyName": "崇文区",
+            "countyId": 1105,
+            "address": "爱心路" + self.serial,
+            "userId": 953,
+            "supplierType": 2,
+            "defaultStatus": 1,
+            "supplyType": 1,
+            "type": 2,
+            "supplyTypeDesc": "A"
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'Gw9nFt0kw', data, 'idle', nocheck)
+
+    @doc(ZwXnGe8s67ZogrbVkpxf)
+    @BaseApi.timing_decorator
+    def ZwXnGe8s67ZogrbVkpxf(self, nocheck=False):
+        obj = self.pc.UCpwX0dlRXRmKVzfDX5dd()
+        data = {
+            "createTime": obj[0]['createTime'],
+            "updateBy": obj[0]['updateBy'],
             "updateTime": self.get_formatted_datetime(),
             "pageSize": 10,
             "pageNum": 1,
             "orderByColumn": "create_time",
-            "isAsc": res[0]['isAsc'],
-            "id": res[0]['id'],
-            "supplierName": res[0]['supplierName'],
+            "isAsc": obj[0]['isAsc'],
+            "id": obj[0]['id'],
+            "supplierName": '供应商' + self.serial,
             "phone": self.phone,
-            "accountNo": res[0]['accountNo'],
-            "level": res[0]['level'],
-            "provinceId": INFO['province_id'],
-            "provinceName": INFO['province_name'],
-            "cityId": INFO['city_id'],
-            "cityName": INFO['city_name'],
-            "countyId": INFO['county_id'],
-            "countyName": INFO['county_name'],
-            "address": INFO['detailed_address'],
-            "userId": res[0]['userId'],
-            "tenantId": res[0]['tenantId'],
+            "accountNo": INFO['idle_account_sno'],
+            "level": 0,
+            "provinceId": 2900,
+            "provinceName": "广东",
+            "cityId": 29020,
+            "cityName": "广州市",
+            "countyId": 54386,
+            "countyName": "黄埔区",
+            "address": "开创大道2565号生生广场",
+            "userId": INFO['idle_user_id'],
+            "tenantId": obj[0]['tenantId'],
             "isInit": 1,
             "isDelete": 0,
             "supplierType": 1,
             "defaultStatus": 0,
             "type": 2,
             "businessType": 1,
-            "supplyType": "2"
+            "supplyType": 2,
+            "supplyTypeDesc": "C"
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'qYK5c6Rpi', data, 'idle', nocheck)
 
-        return self._make_request('put', 'supplier_edit', data, 'idle', nocheck)
+    @doc(AO2AZxYBELIUmcGqLQlG)
+    @BaseApi.timing_decorator
+    def AO2AZxYBELIUmcGqLQlG(self, nocheck=False):
+        data = {
+            "supplierName": INFO['main_supplier_name'],
+            "type": 2,
+            "pageNum": 1,
+            "pageSize": 10
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'jj0Esnp8n', data, 'idle', nocheck)
 
 
-class PurchaseWorkOrderRequest(InitializeParams):
+class EE20RTANF9(InitializeParams):
     """商品采购|采购管理|采购工单"""
 
-    @doc(p_work_order_add)
+    @doc(rfP03M51AR6P1V5a2zV9)
     @BaseApi.timing_decorator
-    def work_order_add(self, nocheck=False):
-        res = self.pc.system_work_order_setting_data()
-        res_2 = self.pc.system_work_order_setting_data(data='a')
-        start_time = self.get_formatted_datetime()
-        end_time = self.get_formatted_datetime(days=1)
+    def rfP03M51AR6P1V5a2zV9(self, nocheck=False):
+        obj = self.pc.WziJGBshZjou10L8PleRe()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='工序')
         data = {
             "workNum": 1,
-            "workStartTime": start_time,
-            "workEndTime": end_time,
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
             "supplierId": INFO['main_supplier_id'],
             "supplierName": INFO['main_supplier_name'],
             "processList": [
                 {
-                    "processId": res_2[0]['id'],
+                    "processId": obj_2[0]['id'],
                     "processNum": 1,
                     "callType": 1,
-                    "processStartTime": start_time,
-                    "processEndTime": end_time,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
                     "processUserIdList": [
                         INFO['main_user_id']
                     ],
                     "defectIdList": [
-                        res[0]['id']
+                        obj[0]['id'],
+                        obj[1]['id']
                     ],
                     "remark": None,
                     "id": None,
@@ -1429,79 +1967,952 @@ class PurchaseWorkOrderRequest(InitializeParams):
             "modelName": "iPhone 5S",
             "skuInfo": "苹果 iPhone 5S "
         }
+        self.validate_request_data(data)
+        return self._make_request('post', 'IMz1mtWm1', data, 'main', nocheck)
 
-        return self._make_request('post', 'work_order_add', data, 'main', nocheck)
-
-    @doc(p_work_order_edit)
+    @doc(plgZg761v9pgtz1l53NY)
     @BaseApi.timing_decorator
-    def work_order_edit(self, nocheck=False):
-        res = self.pc.purchase_work_order_data()
-        res_2 = self.pc.system_work_order_setting_data()
-        res_3 = self.pc.system_work_order_setting_data(data='a')
-        res_4 = self.post_api.purchase_work_order.get_task_id()
-        start_time = self.get_formatted_datetime()
-        end_time = self.get_formatted_datetime(days=1)
+    def plgZg761v9pgtz1l53NY(self, nocheck=False):
+        obj = self.pc.WziJGBshZjou10L8PleRe()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='工序')
         data = {
-            "id": res[0]['id'],
-            "workNum": 2,
-            "workStartTime": start_time,
-            "workEndTime": end_time,
+            "workNum": 1,
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
             "supplierId": INFO['main_supplier_id'],
-            "supplierName": "壹站收",
+            "supplierName": INFO['main_supplier_name'],
             "processList": [
                 {
-                    "processId": res_3[0]['id'],
-                    "processNum": 2,
-                    "callType": 1,
-                    "processStartTime": start_time,
-                    "processEndTime": end_time,
+                    "processId": obj_2[0]['id'],
+                    "processNum": 1,
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
                     "processUserIdList": [
                         INFO['main_user_id']
                     ],
                     "defectIdList": [
-                        res_2[0]['id'],
+                        obj[0]['id'],
+                        obj[1]['id']
                     ],
                     "remark": None,
-                    "id": res_4,
+                    "id": None,
+                    "sort": 1
+                }
+            ],
+            "articlesTypeId": 1,
+            "articlesTypeName": "手机",
+            "brandId": 1,
+            "brandName": "苹果",
+            "modelId": 7692,
+            "modelName": "iPhone 5S",
+            "skuInfo": "苹果 iPhone 5S "
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'IMz1mtWm1', data, 'main', nocheck)
+
+    @doc(H7QZrgxeJPrgyVASQvUy)
+    @BaseApi.timing_decorator
+    def H7QZrgxeJPrgyVASQvUy(self, nocheck=False):
+        obj = self.pc.WziJGBshZjou10L8PleRe()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='工序')
+        obj_3 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='报价')
+        obj_4 = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj_4[0]['orderNo']})
+        data = {
+            "id": obj_4[0]['id'],
+            "workNum": 1,
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+            "supplierId": INFO['main_supplier_id'],
+            "supplierName": INFO['main_supplier_name'],
+            "processList": [
+                {
+                    "processId": obj_2[0]['id'],
+                    "processNum": 1,
+                    "callType": 1,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": obj_4[0]['taskProgressList'][0]['id'],
+                    "sort": 1
+                },
+                {
+                    "processId": obj_3[0]['id'],
+                    "processNum": "",
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": None,
+                    "sort": 2
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('put', 'Evx1QWKUp', data, 'main', nocheck)
+
+    @doc(hsFfIhIFCLXHb4x2J1CC)
+    @BaseApi.timing_decorator
+    def hsFfIhIFCLXHb4x2J1CC(self, nocheck=False):
+        obj = self.pc.WziJGBshZjou10L8PleRe()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='工序')
+        obj_3 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='报价')
+        obj_4 = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        obj_5 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='退货')
+        ParamCache.cache_object({'i': obj_4[0]['orderNo']})
+        data = {
+            "id": obj_4[0]['id'],
+            "workNum": 1,
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+            "supplierId": INFO['main_supplier_id'],
+            "supplierName": INFO['main_supplier_name'],
+            "processList": [
+                {
+                    "processId": obj_2[0]['id'],
+                    "processNum": 1,
+                    "callType": 1,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": obj_4[0]['taskProgressList'][0]['id'],
+                    "sort": 1
+                },
+                {
+                    "processId": obj_3[0]['id'],
+                    "processNum": "",
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": obj_4[0]['taskProgressList'][1]['id'],
+                    "sort": 2
+                },
+                {
+                    "processId": obj_5[0]['id'],
+                    "processNum": "",
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": None,
+                    "sort": 3
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('put', 'Evx1QWKUp', data, 'main', nocheck)
+
+    @doc(LrMhNar9BE7bRoEWOGFt)
+    @BaseApi.timing_decorator
+    def LrMhNar9BE7bRoEWOGFt(self, nocheck=False):
+        obj = self.pc.WziJGBshZjou10L8PleRe()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='工序')
+        obj_3 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='报价')
+        obj_4 = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        obj_5 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='退货')
+        obj_6 = self.pc.WziJGBshZjou10L8PleRe(data='a', i='付款')
+        ParamCache.cache_object({'i': obj_4[0]['orderNo']})
+        data = {
+            "id": obj_4[0]['id'],
+            "workNum": 1,
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+            "supplierId": INFO['main_supplier_id'],
+            "supplierName": INFO['main_supplier_name'],
+            "processList": [
+                {
+                    "processId": obj_2[0]['id'],
+                    "processNum": 1,
+                    "callType": 1,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": obj_4[0]['taskProgressList'][0]['id'],
+                    "sort": 1
+                },
+                {
+                    "processId": obj_3[0]['id'],
+                    "processNum": "",
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": obj_4[0]['taskProgressList'][1]['id'],
+                    "sort": 2
+                },
+                {
+                    "processId": obj_5[0]['id'],
+                    "processNum": "",
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": obj_4[0]['taskProgressList'][2]['id'],
+                    "sort": 3
+                },
+                {
+                    "processId": obj_6[0]['id'],
+                    "processNum": "",
+                    "callType": 2,
+                    "processStartTime": self.get_formatted_datetime(),
+                    "processEndTime": self.get_formatted_datetime(days=1),
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj[0]['id'],
+                        obj[1]['id']
+                    ],
+                    "remark": None,
+                    "id": None,
+                    "sort": 4
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('put', 'Evx1QWKUp', data, 'main', nocheck)
+
+    @doc(v7dp0gZaBk5c5dnae7G3)
+    @BaseApi.timing_decorator
+    def v7dp0gZaBk5c5dnae7G3(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = [
+            obj[0]['id']
+        ]
+        self.validate_request_data(data)
+        return self._make_request('post', 'ZlYpQhYLf', data, 'main', nocheck)
+
+    @doc(RB3GNQ8IJqAeegDYmA32)
+    @BaseApi.timing_decorator
+    def RB3GNQ8IJqAeegDYmA32(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = [
+            obj[0]['id']
+        ]
+        self.validate_request_data(data)
+        return self._make_request('post', 'ZlYpQhYLf', data, 'main', nocheck)
+
+    @doc(FNyrgjsFJzK3B4902iHy)
+    @BaseApi.timing_decorator
+    def FNyrgjsFJzK3B4902iHy(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = [
+            obj[0]['id']
+        ]
+        self.validate_request_data(data)
+        return self._make_request('post', 'ZlYpQhYLf', data, 'main', nocheck)
+
+    @doc(q7pI3tL3zRqZ67pGHnxf)
+    @BaseApi.timing_decorator
+    def q7pI3tL3zRqZ67pGHnxf(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        data = [
+            obj[0]['id'],
+        ]
+        self.validate_request_data(data)
+        return self._make_request('post', 'NSoJocsGm', data, 'main', nocheck)
+
+    @doc(HTjf6RsIbsSIfYSwsXzv)
+    @BaseApi.timing_decorator
+    def HTjf6RsIbsSIfYSwsXzv(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "orderNo": obj[0]['orderNo'],
+            "processId": obj[0]['taskProgressList'][0]['id'],
+            "state": "2",
+            "workDuration": 24,
+            "userId": INFO['main_user_id'],
+            "workQualifiedNum": 100,
+            "workDefectsNum": 0,
+            "remark": "备注",
+            "workId": obj[0]['id'],
+            "workDefectList": [
+                {
+                    "num": 0,
+                    "defectId": obj_2[0]['id']
+                },
+                {
+                    "num": 0,
+                    "defectId": obj_2[1]['id']
+                }
+            ],
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'p3u6vvLZS', data, 'main', nocheck)
+
+    @doc(sruAfwpM3knh3URDgVTd)
+    @BaseApi.timing_decorator
+    def sruAfwpM3knh3URDgVTd(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "orderNo": obj[0]['orderNo'],
+            "processId": obj[0]['taskProgressList'][1]['id'],
+            "state": "2",
+            "workDuration": 24,
+            "userId": INFO['main_user_id'],
+            "workQualifiedNum": 0,
+            "workDefectsNum": 0,
+            "remark": "备注",
+            "price": 88.88,
+            "workId": obj[0]['id'],
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'p3u6vvLZS', data, 'main', nocheck)
+
+    @doc(IBx6SkNmcqoSeAqgrxkF)
+    @BaseApi.timing_decorator
+    def IBx6SkNmcqoSeAqgrxkF(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "orderNo": obj[0]['orderNo'],
+            "processId": obj[0]['taskProgressList'][2]['id'],
+            "state": "2",
+            "workDuration": 24,
+            "userId": INFO['main_user_id'],
+            "workQualifiedNum": 5,
+            "workDefectsNum": 0,
+            "remark": "备注",
+            "workNum": 5,
+            "workId": obj[0]['id'],
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'p3u6vvLZS', data, 'main', nocheck)
+
+    @doc(vkKizyCO3AYcLb15f5j2)
+    @BaseApi.timing_decorator
+    def vkKizyCO3AYcLb15f5j2(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "orderNo": obj[0]['orderNo'],
+            "processId": obj[0]['taskProgressList'][3]['id'],
+            "state": "2",
+            "workDuration": 24,
+            "userId": INFO['main_user_id'],
+            "workQualifiedNum": 0,
+            "workDefectsNum": 0,
+            "remark": "备注",
+            "price": 23.43,
+            "workId": obj[0]['id'],
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'p3u6vvLZS', data, 'main', nocheck)
+
+    @doc(pQejvS83KhwLmhztGkIZ)
+    @BaseApi.timing_decorator
+    def pQejvS83KhwLmhztGkIZ(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        obj_2 = self.pc.WziJGBshZjou10L8PleRe()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "id": obj[0]['id'],
+            "workNum": 1,
+            "workStartTime": obj[0]['workStartTime'],
+            "workEndTime": obj[0]['workEndTime'],
+            "supplierId": INFO['main_supplier_id'],
+            "supplierName": INFO['main_supplier_name'],
+            "processList": [
+                {
+                    "processId": obj[0]['taskProgressList'][0]['processId'],
+                    "processNum": 1,
+                    "callType": 1,
+                    "processStartTime": obj[0]['workStartTime'],
+                    "processEndTime": obj[0]['workEndTime'],
+                    "processUserIdList": [
+                        INFO['main_user_id']
+                    ],
+                    "defectIdList": [
+                        obj_2[0]['id'],
+                        obj_2[1]['id'],
+                    ],
+                    "remark": None,
+                    "id": obj[0]['taskProgressList'][0]['id'],
                     "sort": 1
                 }
             ]
         }
+        self.validate_request_data(data)
+        return self._make_request('put', 'Evx1QWKUp', data, 'main', nocheck)
 
-        return self._make_request('put', 'work_order_add', data, 'main', nocheck)
-
-    @doc(p_work_order_to_start_the_task)
+    @doc(KOF9RCucwpiZtv3KYptu)
     @BaseApi.timing_decorator
-    def work_order_to_start_the_task(self, nocheck=False):
-        res = self.pc.purchase_work_order_data()
-        data = [
-            res[0]['id']
-        ]
-        return self._make_request('post', 'the_work_order_starts_the_task', data, 'main', nocheck)
+    def KOF9RCucwpiZtv3KYptu(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "orderNo": obj[0]['orderNo'],
+            "pageNum": 1,
+            "pageSize": 10
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'zaz3DUWFs', data, 'main', nocheck)
 
-    @doc(p_work_order_ends_the_task)
+    @doc(D198Z7vIR4WbkTl36hHI)
     @BaseApi.timing_decorator
-    def work_order_ends_the_task(self):
-        self.work_order_to_start_the_task()
+    def D198Z7vIR4WbkTl36hHI(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "pageNum": 1,
+            "pageSize": 10,
+            "workStartTime": self.get_formatted_datetime(),
+            "workEndTime": self.get_formatted_datetime(days=1),
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'zaz3DUWFs', data, 'main', nocheck)
 
-    @doc(p_work_order_resumes_tasks)
+    @doc(GlZThKYcHMLtYtD6WFjf)
     @BaseApi.timing_decorator
-    def work_order_resumes_tasks(self):
-        self.work_order_to_start_the_task()
+    def GlZThKYcHMLtYtD6WFjf(self, nocheck=False):
+        obj = self.pc.WmKG9OkI9OlJlOENUzgNu()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "supplierId": INFO['main_supplier_id'],
+            "pageNum": 1,
+            "pageSize": 10
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'zaz3DUWFs', data, 'main', nocheck)
 
-    @doc(p_work_order_del)
+    @doc(ZfNPiUkcpGxXUTMsfG0n)
     @BaseApi.timing_decorator
-    def work_order_del(self, nocheck=False):
-        res = self.pc.purchase_work_order_data()
-        data = [
-            res[0]['id'],
-        ]
+    def ZfNPiUkcpGxXUTMsfG0n(self, nocheck=False, state=None):
+        data = {
+            "state": state,
+            "pageNum": 1,
+            "pageSize": 10
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'zaz3DUWFs', data, 'main', nocheck)
 
-        return self._make_request('put', 'work_order_del', data, 'main', nocheck)
+
+class SDhYvjpFxu(InitializeParams):
+    """商品采购|采购任务"""
+
+    @doc(tuGormTpYPA2aELsOzkM)
+    @BaseApi.timing_decorator
+    def tuGormTpYPA2aELsOzkM(self, nocheck=False):
+        data = {
+            "name": "采购任务" + self.serial,
+            "userId": INFO['main_user_id'],
+            "startTime": self.get_the_date(),
+            "endTime": self.get_the_date(days=1),
+            "remark": "备注",
+            "taskSuppliers": [
+                {
+                    "supplierId": INFO['main_supplier_id'],
+                    "supplierName": INFO['main_supplier_name']
+                }
+            ],
+            "infos": [
+                {
+                    "articlesTypeId": 1,
+                    "articlesTypeName": "手机",
+                    "brandId": 1,
+                    "brandName": "苹果",
+                    "modelId": 7692,
+                    "modelName": "iPhone 5S",
+                    "taskNum": 1,
+                    "skuJsonObject": {
+                        "articlesTypeId": 1,
+                        "articlesTypeName": "手机",
+                        "brandName": "苹果",
+                        "brandId": 1,
+                        "modelId": 7692,
+                        "modelName": "iPhone 5S",
+                        "skuInfo": "苹果小型号:A1530;购买渠道:国行;颜色:金色;ROM容量:16G;电池健康度:电池健康度100%;苹果保修情况:保修时长≥330天;商品来源:二手优品;成色:全新仅拆封;",
+                        "smallModelId": 94,
+                        "smallModelName": "A1530",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "colorId": 49,
+                        "colorName": "金色",
+                        "romId": 37,
+                        "romName": "16G",
+                        "batteryHealthId": 23024,
+                        "batteryHealthName": "电池健康度100%",
+                        "warrantyDurationId": 23005,
+                        "warrantyDurationName": "保修时长≥330天",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 1,
+                        "finenessName": "全新仅拆封"
+                    },
+                    "successNum": 0
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'OeEzn1U3T', data, 'main', nocheck)
+
+    @doc(Vax4XBiddBZJvUZ7eKdV)
+    @BaseApi.timing_decorator
+    def Vax4XBiddBZJvUZ7eKdV(self, nocheck=False):
+        data = {
+            "name": "采购任务" + self.serial,
+            "userId": INFO['main_user_id'],
+            "startTime": self.get_the_date(),
+            "endTime": self.get_the_date(days=1),
+            "remark": "备注",
+            "taskSuppliers": [
+                {
+                    "supplierId": INFO['main_supplier_id'],
+                    "supplierName": INFO['main_supplier_name']
+                }
+            ],
+            "infos": [
+                {
+                    "articlesTypeId": 3,
+                    "articlesTypeName": "平板电脑",
+                    "brandId": 8,
+                    "brandName": "华为",
+                    "modelId": 17792,
+                    "modelName": "Hi MatePad 11.5寸 2024款 柔光版",
+                    "taskNum": 1,
+                    "skuJsonObject": {
+                        "articlesTypeId": 3,
+                        "articlesTypeName": "平板电脑",
+                        "brandName": "华为",
+                        "brandId": 8,
+                        "modelId": 17792,
+                        "modelName": "Hi MatePad 11.5寸 2024款 柔光版",
+                        "skuInfo": "购买渠道:国行;RAM（运存）:8G;ROM容量:128G;网络制式:WIFI;商品来源:二手优品;成色:全新仅拆封;",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "ramId": 35,
+                        "ramName": "8G",
+                        "romId": 40,
+                        "romName": "128G",
+                        "networkStandardId": 68,
+                        "networkStandardName": "WIFI",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 1,
+                        "finenessName": "全新仅拆封"
+                    },
+                    "successNum": 0
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'OeEzn1U3T', data, 'main', nocheck)
+
+    @doc(XBHUgvj186aUw4Sixsaa)
+    @BaseApi.timing_decorator
+    def XBHUgvj186aUw4Sixsaa(self, nocheck=False):
+        data = {
+            "name": "采购任务" + self.serial,
+            "userId": INFO['main_user_id'],
+            "startTime": self.get_the_date(),
+            "endTime": self.get_the_date(days=1),
+            "remark": "备注",
+            "taskSuppliers": [
+                {
+                    "supplierId": INFO['main_supplier_id'],
+                    "supplierName": INFO['main_supplier_name']
+                }
+            ],
+            "infos": [
+                {
+                    "articlesTypeId": 4,
+                    "articlesTypeName": "笔记本电脑",
+                    "brandId": 8,
+                    "brandName": "华为",
+                    "modelId": 12612,
+                    "modelName": "MateBook D 14 SE 2023款",
+                    "taskNum": 1,
+                    "skuJsonObject": {
+                        "articlesTypeId": 4,
+                        "articlesTypeName": "笔记本电脑",
+                        "brandName": "华为",
+                        "brandId": 8,
+                        "modelId": 12612,
+                        "modelName": "MateBook D 14 SE 2023款",
+                        "skuInfo": "RAM（运存）:16GB;固态硬盘:不含固态硬盘;机械硬盘:不含机械硬盘;显卡:核芯/集成显卡;处理器:Intel Core i5 12代;商品来源:二手优品;成色:全新仅拆封;",
+                        "ramId": 812,
+                        "ramName": "16GB",
+                        "ssdId": 526,
+                        "ssdName": "不含固态硬盘",
+                        "mechanicalHardDriveId": 514,
+                        "mechanicalHardDriveName": "不含机械硬盘",
+                        "graphicsCardModelId": 712,
+                        "graphicsCardModelName": "核芯/集成显卡",
+                        "processorId": 842,
+                        "processorName": "Intel Core i5 12代",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 1,
+                        "finenessName": "全新仅拆封"
+                    },
+                    "successNum": 0
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'OeEzn1U3T', data, 'main', nocheck)
+
+    @doc(IlyTw4WbHlrGhJIXjQNt)
+    @BaseApi.timing_decorator
+    def IlyTw4WbHlrGhJIXjQNt(self, nocheck=False):
+        data = {
+            "name": "采购任务" + self.serial,
+            "userId": INFO['main_user_id'],
+            "startTime": self.get_the_date(),
+            "endTime": self.get_the_date(days=1),
+            "remark": "备注",
+            "taskSuppliers": [
+                {
+                    "supplierId": INFO['main_supplier_id'],
+                    "supplierName": INFO['main_supplier_name']
+                }
+            ],
+            "infos": [
+                {
+                    "articlesTypeId": 5,
+                    "articlesTypeName": "智能手表",
+                    "brandId": 8,
+                    "brandName": "华为",
+                    "modelId": 13352,
+                    "modelName": "Watch GT 4",
+                    "taskNum": 1,
+                    "skuJsonObject": {
+                        "articlesTypeId": 5,
+                        "articlesTypeName": "智能手表",
+                        "brandName": "华为",
+                        "brandId": 8,
+                        "modelId": 13352,
+                        "modelName": "Watch GT 4",
+                        "skuInfo": "表壳材质:不锈钢+高分子纤维复合材料;连接:GPS;购买渠道:国行;表壳尺寸:41毫米;商品来源:二手优品;成色:全新仅拆封;",
+                        "caseMaterialId": 1790,
+                        "caseMaterialName": "不锈钢+高分子纤维复合材料",
+                        "connectId": 374,
+                        "connectName": "GPS",
+                        "buyChannelId": 16,
+                        "buyChannelName": "国行",
+                        "caseSizeId": 368,
+                        "caseSizeName": "41毫米",
+                        "machineTypeId": 862,
+                        "machineTypeName": "二手优品",
+                        "finenessId": 1,
+                        "finenessName": "全新仅拆封"
+                    },
+                    "successNum": 0
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'OeEzn1U3T', data, 'main', nocheck)
+
+    @doc(Jo3v4QXhq0GyXeDDjAG8)
+    @BaseApi.timing_decorator
+    def Jo3v4QXhq0GyXeDDjAG8(self, nocheck=False):
+        obj = self.pc.ZzpxfXbO9fEmLG1gxxzjP(data='a')
+        ParamCache.cache_object({'i': obj[0]['taskOrderNo']})
+        data = {
+            "purchaseTaskInfoList": [
+                {
+                    "id": obj[0]['id'],
+                    "ids": None,
+                    "taskOrderNo": obj[0]['taskOrderNo'],
+                    "supplierId": INFO['main_supplier_id'],
+                    "supplierIds": None,
+                    "supplierName": INFO['main_supplier_name'],
+                    "articlesTypeId": obj[0]['articlesTypeId'],
+                    "articlesTypeName": obj[0]['articlesTypeName'],
+                    "brandId": obj[0]['brandId'],
+                    "brandName": obj[0]['brandName'],
+                    "modelId": obj[0]['modelId'],
+                    "modelName": obj[0]['modelName'],
+                    "skuJsonObject": {
+                        "createBy": None,
+                        "createTime": None,
+                        "updateBy": None,
+                        "updateTime": None,
+                        "remark": None,
+                        "pageSize": 10,
+                        "pageNum": 1,
+                        "orderByColumn": "create_time",
+                        "isAsc": "desc",
+                        "erpStartTime": None,
+                        "erpEndTime": None,
+                        "id": None,
+                        "articlesNo": None,
+                        "articlesNoList": None,
+                        "imei": None,
+                        "articlesTypeId": obj[0]['skuJsonObject']['articlesTypeId'],
+                        "articlesTypeName": obj[0]['skuJsonObject']['articlesTypeName'],
+                        "brandId": obj[0]['skuJsonObject']['brandId'],
+                        "brandName": obj[0]['skuJsonObject']['brandName'],
+                        "modelId": obj[0]['skuJsonObject']['modelId'],
+                        "modelName": obj[0]['skuJsonObject']['modelName'],
+                        "romId": obj[0]['skuJsonObject']['romId'],
+                        "romName": obj[0]['skuJsonObject']['romName'],
+                        "ramId": None,
+                        "ramName": None,
+                        "colorId": obj[0]['skuJsonObject']['colorId'],
+                        "colorName": obj[0]['skuJsonObject']['colorName'],
+                        "buyChannelId": obj[0]['skuJsonObject']['buyChannelId'],
+                        "buyChannelName": obj[0]['skuJsonObject']['buyChannelName'],
+                        "smallModelId": obj[0]['skuJsonObject']['smallModelId'],
+                        "smallModelName": obj[0]['skuJsonObject']['smallModelName'],
+                        "serialNo": None,
+                        "detailId": None,
+                        "warrantyDurationId": obj[0]['skuJsonObject']['warrantyDurationId'],
+                        "warrantyDurationName": obj[0]['skuJsonObject']['warrantyDurationName'],
+                        "machineTypeId": obj[0]['skuJsonObject']['machineTypeId'],
+                        "machineTypeName": obj[0]['skuJsonObject']['machineTypeName'],
+                        "batteryHealthId": obj[0]['skuJsonObject']['batteryHealthId'],
+                        "batteryHealthName": obj[0]['skuJsonObject']['batteryHealthName'],
+                        "finenessId": obj[0]['skuJsonObject']['finenessId'],
+                        "finenessName": obj[0]['skuJsonObject']['finenessName'],
+                        "networkStandardId": None,
+                        "networkStandardName": None,
+                        "mobileNetworkId": None,
+                        "mobileNetworkName": None,
+                        "unicomNetworkId": None,
+                        "unicomNetworkName": None,
+                        "telecomNetworkId": None,
+                        "telecomNetworkName": None,
+                        "ssdId": None,
+                        "ssdName": None,
+                        "caseSizeId": None,
+                        "caseSizeName": None,
+                        "mechanicalHardDriveId": None,
+                        "mechanicalHardDriveName": None,
+                        "processorId": None,
+                        "processorName": None,
+                        "graphicsCardModelId": None,
+                        "graphicsCardModelName": None,
+                        "caseMaterialId": None,
+                        "caseMaterialName": None,
+                        "connectId": None,
+                        "connectName": None,
+                        "isDelete": None,
+                        "assessParam": None,
+                        "assessTitle": None,
+                        "warehouseId": None
+                    },
+                    "skuJson": obj[0]['skuJson'],
+                    "skuInfo": obj[0]['skuInfo'],
+                    "taskNum": 1,
+                    "deliveryNum": 30,
+                    "qualifiedNum": 10,
+                    "successNum": 0,
+                    "remark": "备注",
+                    "skuTaskNum": None,
+                    "purchaseNum": None
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'qJGogY0tt', data, 'main', nocheck)
+
+    @doc(e65OsVYsAZfUdtju3ktx)
+    @BaseApi.timing_decorator
+    def e65OsVYsAZfUdtju3ktx(self, nocheck=False):
+        obj = self.pc.ZzpxfXbO9fEmLG1gxxzjP(data='b')
+        ParamCache.cache_object({'i': obj[0]['taskOrderNo']})
+        data = {
+            "payState": "2",
+            "taskOrderNo": obj[0]['taskOrderNo'],
+            "purchaseTime": self.get_formatted_datetime(),
+            "supplierName": INFO['main_supplier_name'],
+            "supplierId": INFO['main_supplier_id'],
+            "userId": INFO['main_user_id'],
+            "userName": INFO['main_manager'],
+            "warehouseId": INFO['main_item_warehouse_id'],
+            "purchaseOrdersArticlesDTOList": [
+                {
+                    "imei": self.imei,
+                    "warehouseId": INFO['main_item_warehouse_id'],
+                    "purchasePrice": 500,
+                    "purchaseArticlesInfoDTO": {
+                        "createBy": None,
+                        "createTime": None,
+                        "updateBy": None,
+                        "updateTime": None,
+                        "remark": None,
+                        "pageSize": 10,
+                        "pageNum": 1,
+                        "orderByColumn": "create_time",
+                        "isAsc": "desc",
+                        "erpStartTime": None,
+                        "erpEndTime": None,
+                        "id": None,
+                        "articlesNo": None,
+                        "articlesNoList": None,
+                        "imei": None,
+                        "articlesTypeId": obj[0]['skuJsonObject']['articlesTypeId'],
+                        "articlesTypeName": obj[0]['skuJsonObject']['articlesTypeName'],
+                        "brandId": obj[0]['skuJsonObject']['brandId'],
+                        "brandName": obj[0]['skuJsonObject']['brandName'],
+                        "modelId": obj[0]['skuJsonObject']['modelId'],
+                        "modelName": obj[0]['skuJsonObject']['modelName'],
+                        "romId": obj[0]['skuJsonObject']['romId'],
+                        "romName": obj[0]['skuJsonObject']['romName'],
+                        "ramId": None,
+                        "ramName": None,
+                        "colorId": obj[0]['skuJsonObject']['colorId'],
+                        "colorName": obj[0]['skuJsonObject']['colorName'],
+                        "buyChannelId": obj[0]['skuJsonObject']['buyChannelId'],
+                        "buyChannelName": obj[0]['skuJsonObject']['buyChannelName'],
+                        "smallModelId": obj[0]['skuJsonObject']['smallModelId'],
+                        "smallModelName": obj[0]['skuJsonObject']['smallModelName'],
+                        "serialNo": None,
+                        "detailId": None,
+                        "warrantyDurationId": obj[0]['skuJsonObject']['warrantyDurationId'],
+                        "warrantyDurationName": obj[0]['skuJsonObject']['warrantyDurationName'],
+                        "machineTypeId": obj[0]['skuJsonObject']['machineTypeId'],
+                        "machineTypeName": obj[0]['skuJsonObject']['machineTypeName'],
+                        "batteryHealthId": obj[0]['skuJsonObject']['batteryHealthId'],
+                        "batteryHealthName": obj[0]['skuJsonObject']['batteryHealthName'],
+                        "finenessId": obj[0]['skuJsonObject']['finenessId'],
+                        "finenessName": obj[0]['skuJsonObject']['finenessName'],
+                        "networkStandardId": None,
+                        "networkStandardName": None,
+                        "mobileNetworkId": None,
+                        "mobileNetworkName": None,
+                        "unicomNetworkId": None,
+                        "unicomNetworkName": None,
+                        "telecomNetworkId": None,
+                        "telecomNetworkName": None,
+                        "ssdId": None,
+                        "ssdName": None,
+                        "caseSizeId": None,
+                        "caseSizeName": None,
+                        "mechanicalHardDriveId": None,
+                        "mechanicalHardDriveName": None,
+                        "processorId": None,
+                        "processorName": None,
+                        "graphicsCardModelId": None,
+                        "graphicsCardModelName": None,
+                        "caseMaterialId": None,
+                        "caseMaterialName": None,
+                        "connectId": None,
+                        "connectName": None,
+                        "isDelete": None,
+                        "assessParam": None,
+                        "assessTitle": None,
+                        "warehouseId": None
+                    },
+                    "infoId": "2039639142114267137",
+                    "supplyType": 2,
+                    "supplyTypeDesc": "C"
+                }
+            ]
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'CSwjLDWyD', data, 'main', nocheck)
+
+    @doc(QlWxSfpR4xrTDauwyHLD)
+    @BaseApi.timing_decorator
+    def QlWxSfpR4xrTDauwyHLD(self, nocheck=False):
+        obj = self.pc.ZzpxfXbO9fEmLG1gxxzjP()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "supplierId": INFO['main_supplier_id'],
+            "returnNum": 1,
+            "logisticsNo": self.sf,
+            "isLogistics": 0,
+            "returnTime": self.get_formatted_datetime(),
+            "supplierName": "壹站收",
+            "taskOrderNo": obj[0]['orderNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'IZyPme0A0', data, 'main', nocheck)
+
+    @doc(WYBiBGE7VdR3njn7NPom)
+    @BaseApi.timing_decorator
+    def WYBiBGE7VdR3njn7NPom(self, nocheck=False):
+        obj = self.pc.ZzpxfXbO9fEmLG1gxxzjP()
+        ParamCache.cache_object({'i': obj[0]['orderNo']})
+        data = {
+            "supplierId": INFO['main_supplier_id'],
+            "returnNum": 1,
+            "logisticsNo": self.sf,
+            "isLogistics": 0,
+            "returnTime": self.get_formatted_datetime(),
+            "supplierName": "壹站收",
+            "taskOrderNo": obj[0]['orderNo']
+        }
+        self.validate_request_data(data)
+        return self._make_request('post', 'IZyPme0A0', data, 'main', nocheck)
 
 
 if __name__ == '__main__':
-    api = PurchaseAddRequest()
-    result = api.new_purchase_order_paid_warehouse()
-    # print(json.dumps(result, indent=4, ensure_ascii=False))
-
+    api = ()
+    result = api
+    print(json.dumps(result, indent=4, ensure_ascii=False))

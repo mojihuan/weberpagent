@@ -23,8 +23,8 @@ class BaseAssert:
         res_dt = datetime.strptime(res, "%Y-%m-%d %H:%M:%S")
         now_dt = datetime.now()
         # 正确的±1分钟范围应该是基于当前真实时间
-        min_dt = now_dt - timedelta(minutes=5)
-        max_dt = now_dt + timedelta(minutes=5)
+        min_dt = now_dt - timedelta(minutes=1)
+        max_dt = now_dt + timedelta(minutes=1)
         assert min_dt <= res_dt <= max_dt, \
             f"预期时间在 [{min_dt.strftime('%Y-%m-%d %H:%M:%S')}, {max_dt.strftime('%Y-%m-%d %H:%M:%S')}] " \
             f"范围内，实际时间为: {res_dt.strftime('%Y-%m-%d %H:%M:%S')} ({desc})"

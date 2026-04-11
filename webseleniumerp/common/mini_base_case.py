@@ -2,11 +2,12 @@ import subprocess
 import platform
 import logging
 import unittest
+from common.base_api import BaseApi
 from config.settings import DATA_PATHS
 from common.base_dynamic_attr_mixin import DynamicAttrMixin
 
 
-class MiniBaseCase(DynamicAttrMixin, unittest.TestCase):
+class MiniBaseCase(DynamicAttrMixin, unittest.TestCase, BaseApi):
     """测试用例基类，提供通用的前置条件方法"""
 
     DATA_PATHS = DATA_PATHS

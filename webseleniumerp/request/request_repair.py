@@ -2,45 +2,45 @@
 import json
 import random
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.import_desc import *
 from config.user_info import INFO
 
 
-class RepairAuditListRequest(InitializeParams):
+class QSG3XpHrLa(InitializeParams):
     """维修管理|维修审核列表"""
 
-    @doc(r_the_maintenance_audit_passed)
+    @doc(InAnaHvFTy76b32mumFp)
     @BaseApi.timing_decorator
-    def the_maintenance_audit_passed(self, nocheck=False):
-        res = self.pc.repair_review_list_data(i=1)
+    def InAnaHvFTy76b32mumFp(self, nocheck=False):
+        res = self.pc.ZdhlTgRrRPGEMOegDrOfk(i=1)
         data = {
             "auditStatus": "2",
             "auditRemark": self.serial,
             "id": res[0]['id']
         }
 
-        return self._make_request('post', 'repair_review_submission', data, 'main', nocheck)
+        return self._make_request('post', 'gpadtMTQH', data, 'main', nocheck)
 
-    @doc(r_audit_rejection)
+    @doc(oxfkjSLPMvxmooiko075)
     @BaseApi.timing_decorator
-    def audit_rejection(self, nocheck=False):
-        res = self.pc.repair_review_list_data(i=1)
+    def oxfkjSLPMvxmooiko075(self, nocheck=False):
+        res = self.pc.ZdhlTgRrRPGEMOegDrOfk(i=1)
         data = {
             "auditStatus": "3",
             "auditRemark": self.serial,
             "id": res[0]['id']
         }
-        return self._make_request('post', 'repair_review_submission', data, 'main', nocheck)
+        return self._make_request('post', 'gpadtMTQH', data, 'main', nocheck)
 
 
-class RepairCentreItemRequest(InitializeParams):
+class W0EPs560MV(InitializeParams):
     """维修管理|维修中物品"""
 
-    @doc(r_submit_the_maintenance_results)
+    @doc(PYrzOPhQBEGaXo51nyaY)
     @BaseApi.timing_decorator
-    def submit_the_maintenance_results(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='7')
+    def PYrzOPhQBEGaXo51nyaY(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='7')
         data = {
             "status": "3",
             "sendTitle": "6",
@@ -52,12 +52,12 @@ class RepairCentreItemRequest(InitializeParams):
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'submit_the_maintenance_results', data, 'main', nocheck)
+        return self._make_request('post', 'QIDYpUMKK', data, 'main', nocheck)
 
-    @doc(r_purpose_of_transfer_repair)
+    @doc(i1XbL2CrIPwi6h2C6y1T)
     @BaseApi.timing_decorator
-    def purpose_of_transfer_repair(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='7')
+    def i1XbL2CrIPwi6h2C6y1T(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='7')
         data = {
             "status": "3",
             "sendTitle": "2",
@@ -69,12 +69,12 @@ class RepairCentreItemRequest(InitializeParams):
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'submit_the_maintenance_results', data, 'main', nocheck)
+        return self._make_request('post', 'QIDYpUMKK', data, 'main', nocheck)
 
-    @doc(r_purpose_of_transfer_sales)
+    @doc(XZsjWIGPtCtyCOxtxlJo)
     @BaseApi.timing_decorator
-    def purpose_of_transfer_sales(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='7')
+    def XZsjWIGPtCtyCOxtxlJo(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='7')
         data = {
             "status": "3",
             "sendTitle": "4",
@@ -86,12 +86,12 @@ class RepairCentreItemRequest(InitializeParams):
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'submit_the_maintenance_results', data, 'main', nocheck)
+        return self._make_request('post', 'QIDYpUMKK', data, 'main', nocheck)
 
-    @doc(r_unrepaired_handover)
+    @doc(FzCP5d1Cyk04Rg7XdXWW)
     @BaseApi.timing_decorator
-    def unrepaired_handover(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='7')
+    def FzCP5d1Cyk04Rg7XdXWW(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='7')
         data = {
             "type": "6",
             "userId": INFO['idle_user_id'],
@@ -100,14 +100,14 @@ class RepairCentreItemRequest(InitializeParams):
             ],
             "createBy": INFO['customer_name']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(r_add_accessories_submit_repair_results)
+    @doc(kFFewUiXptz4lRt4hmYw)
     @BaseApi.timing_decorator
-    def add_accessories_submit_repair_results(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='7')
-        res_2 = self.pc.attachment_inventory_list_data(i='2')
-        res_3 = self.pc.repair_project_list_data()
+    def kFFewUiXptz4lRt4hmYw(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='7')
+        res_2 = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i='2')
+        res_3 = self.pc.Gv7PVAqUJKoyfROzOacmx()
         data = {
             "status": "3",
             "sendTitle": "6",
@@ -125,12 +125,12 @@ class RepairCentreItemRequest(InitializeParams):
                 res[0]['articlesNo'],
             ]
         }
-        return self._make_request('post', 'submit_the_maintenance_results', data, 'main', nocheck)
+        return self._make_request('post', 'QIDYpUMKK', data, 'main', nocheck)
 
-    @doc(r_submit_maintenance_and_disassembly_parts)
+    @doc(XaqAzFHNZ0oHiACVcagS)
     @BaseApi.timing_decorator
-    def submit_maintenance_and_disassembly_parts(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='7')
+    def XaqAzFHNZ0oHiACVcagS(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='7')
         data = {
             "apartInfoList": [
                 {
@@ -159,16 +159,16 @@ class RepairCentreItemRequest(InitializeParams):
                 res[0]['articlesNo'],
             ]
         }
-        return self._make_request('post', 'item_disassembly_submission', data, 'main', nocheck)
+        return self._make_request('post', 'NfqIj1tge', data, 'main', nocheck)
 
 
-class RepairProjectListRequest(InitializeParams):
+class KHgN9h3KO8(InitializeParams):
     """维修管理|维修项目列表"""
 
-    @doc(r_new_maintenance_items_iphone)
+    @doc(otRpL7YRWiPq6A7gGbBE)
     @BaseApi.timing_decorator
-    def new_maintenance_items_iphone(self, nocheck=False):
-        res = self.pc.repair_project_list_data(i=1)
+    def otRpL7YRWiPq6A7gGbBE(self, nocheck=False):
+        res = self.pc.Gv7PVAqUJKoyfROzOacmx(i=1)
         data = {
             "name": "手机" + self.serial,
             "defaultPrice": 7,
@@ -181,12 +181,12 @@ class RepairProjectListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'project_list_add', data, 'idle', nocheck)
+        return self._make_request('post', 'FevaUyYbn', data, 'idle', nocheck)
 
-    @doc(r_add_maintenance_items_flat)
+    @doc(SMnvY0RuPqjFoUNE8XAA)
     @BaseApi.timing_decorator
-    def add_maintenance_items_flat(self, nocheck=False):
-        res = self.pc.repair_project_list_data()
+    def SMnvY0RuPqjFoUNE8XAA(self, nocheck=False):
+        res = self.pc.Gv7PVAqUJKoyfROzOacmx()
         data = {
             "name": "平板电脑" + self.serial,
             "defaultPrice": 0,
@@ -199,12 +199,12 @@ class RepairProjectListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'project_list_add', data, 'idle', nocheck)
+        return self._make_request('post', 'FevaUyYbn', data, 'idle', nocheck)
 
-    @doc(r_add_maintenance_items_book)
+    @doc(Io7zWL7mncGGiczqV0j9)
     @BaseApi.timing_decorator
-    def add_maintenance_items_book(self, nocheck=False):
-        res = self.pc.repair_project_list_data()
+    def Io7zWL7mncGGiczqV0j9(self, nocheck=False):
+        res = self.pc.Gv7PVAqUJKoyfROzOacmx()
         data = {
             "name": "笔记本电脑" + self.serial,
             "defaultPrice": 0,
@@ -217,12 +217,12 @@ class RepairProjectListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'project_list_add', data, 'idle', nocheck)
+        return self._make_request('post', 'FevaUyYbn', data, 'idle', nocheck)
 
-    @doc(r_add_maintenance_items_watch)
+    @doc(A8HudpWpzF5s1INr3oER)
     @BaseApi.timing_decorator
-    def add_maintenance_items_watch(self, nocheck=False):
-        res = self.pc.repair_project_list_data()
+    def A8HudpWpzF5s1INr3oER(self, nocheck=False):
+        res = self.pc.Gv7PVAqUJKoyfROzOacmx()
         data = {
             "name": "智能手表" + self.serial,
             "defaultPrice": 0,
@@ -235,32 +235,32 @@ class RepairProjectListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'project_list_add', data, 'idle', nocheck)
+        return self._make_request('post', 'FevaUyYbn', data, 'idle', nocheck)
 
-    @doc(r_editor_maintenance_items)
+    @doc(A3huxJD5Z6IGUspl0I6d)
     @BaseApi.timing_decorator
-    def editor_maintenance_items(self, nocheck=False):
-        res = self.pc.repair_project_list_data()
+    def A3huxJD5Z6IGUspl0I6d(self, nocheck=False):
+        res = self.pc.Gv7PVAqUJKoyfROzOacmx()
         data = {
             "name": res['tableData'][0]['name'],
             "defaultPrice": 0,
             "id": res['tableData'][0]['id'],
             "categoryId": res['tableData'][0]['typeId'],
         }
-        return self._make_request('put', 'project_list_edit', data, 'idle', nocheck)
+        return self._make_request('put', 'ncfR4CLDE', data, 'idle', nocheck)
 
-    @doc(r_delete_maintenance_items)
+    @doc(z6Fij1duyB9APTQsy7SW)
     @BaseApi.timing_decorator
-    def delete_maintenance_items(self, nocheck=False):
-        res = self.pc.repair_project_list_data()
+    def z6Fij1duyB9APTQsy7SW(self, nocheck=False):
+        res = self.pc.Gv7PVAqUJKoyfROzOacmx()
         data = [
             res['tableData'][0]['id'],
         ]
-        return self._make_request('put', 'project_list_delete', data, 'idle', nocheck)
+        return self._make_request('put', 'KZAoy8YVw', data, 'idle', nocheck)
 
-    @doc(r_new_model_configuration)
+    @doc(V0LveJcsirDBPkbnoy5r)
     @BaseApi.timing_decorator
-    def new_model_configuration(self, nocheck=False):
+    def V0LveJcsirDBPkbnoy5r(self, nocheck=False):
         model_names = ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16", "iPhone 16 Plus"]
         model_id = [17569, 17568, 17567, 17566]
         data = {
@@ -271,7 +271,7 @@ class RepairProjectListRequest(InitializeParams):
             "articlesTypeId": "1",
             "articlesTypeName": "手机"
         }
-        return self._make_request('post', 'added_model_config', data, 'idle', nocheck)
+        return self._make_request('post', 'CPWdm3YYp', data, 'idle', nocheck)
 
 
 if __name__ == '__main__':

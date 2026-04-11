@@ -4,12 +4,12 @@ from common.base_case import BaseCase
 from common.import_case import *
 
 
-class TestLogin(BaseCase, unittest.TestCase):
+class TestoZJweI3h(BaseCase, unittest.TestCase):
     """登录|密码登录"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return login_r.LoginRequest()
+            return login_r.HdH5D8EWBQ()
         else:
             return login_p.LoginPages(self.driver)
 
@@ -20,7 +20,7 @@ class TestLogin(BaseCase, unittest.TestCase):
         """[登录]-登录主账号"""
         case = self.common_operations()
         case.login_main()
-        res = [lambda: self.pc.user_info_assert(nickName='杰克')]
+        res = [lambda: self.pc.MGvDr5(nickName='杰克')]
         self.assert_all(*res)
         self.clear_browser_cache()
 

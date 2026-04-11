@@ -207,37 +207,57 @@ class BaseRandomMixin:
             self._generated_serial.add(final_serial)
             return final_serial
 
-    @property
-    def mixed_random(self):
+    def mixed_random(self, length=6):
         """
-        动态生成6位数字+字母的随机字符串，确保唯一性
+        动态生成指定位数的数字 + 字母的随机字符串，确保唯一性，字母开头
+        :param length: 随机字符串的长度，默认为 6 位
+        :return: 指定长度的随机字符串（字母开头）
         """
-        # 数字和字母
+        # 26 个英文字母（用于首字符，确保永远是字母）
+        letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        # 数字和字母（用于后续字符）
         digits_letters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
         with self._mixed_lock:
             counter = getattr(self, '_mixed_counter', 0)
             setattr(self, '_mixed_counter', counter + 1)
 
-            max_attempts = 1000  # 最大尝试次数
+            max_attempts = 10000  # 最大尝试次数
             for _ in range(max_attempts):
-                # 随机选择6个字符组成字符串
-                result = ''.join(random.choices(digits_letters, k=6))
+                # 【核心逻辑】第一个字符固定从 26 个字母中随机，后面的 length-1 位从数字 + 字母中随机
+                first_char = random.choice(letters)
+                rest_chars = ''.join(random.choices(digits_letters, k=length - 1))
+                result = first_char + rest_chars
 
                 # 检查是否已存在
                 if result not in self._generated_mixed:
                     self._generated_mixed.add(result)
                     return result
 
-            # 如果尝试次数用尽，使用更复杂的方法生成
-            # 结合时间戳、计数器和随机字符
-            timestamp_part = str(int(time.time() * 1000000))[-3:]
-            counter_with_offset = str((counter + self._random_offset) % 1000).zfill(3)
-            random_part = ''.join(random.choices(digits_letters, k=6 - len(timestamp_part) - len(counter_with_offset)))
+            # 如果尝试次数用尽，使用 fallback 方案
+            # 第一步：强制首字符为字母（只从 letters 变量获取）
+            first_fallback_char = random.choice(letters)
 
-            fallback_result = timestamp_part + counter_with_offset + random_part
+            # 第二步：生成剩余的 length-1 个字符（从 digits_letters 中随机）
+            remaining_length = length - 1
+
+            # 使用时间戳 + 计数器 + 随机字符组合，确保唯一性
+            timestamp_part = str(int(time.time() * 1000000))[-min(6, remaining_length):] if remaining_length > 0 else ""
+            counter_part = str((counter + self._random_offset) % (10 ** min(5, remaining_length))).zfill(min(5, remaining_length)) if remaining_length > 0 else ""
+
+            # 计算还需要多少个随机字符
+            random_needed = remaining_length - len(timestamp_part) - len(counter_part)
+            random_part = ''.join(random.choices(digits_letters, k=random_needed)) if random_needed > 0 else ""
+
+            # 组合剩余部分并截断到正确长度
+            remaining_chars = (timestamp_part + counter_part + random_part)[:remaining_length]
+
+            # 第三步：组合最终结果（首字母 + 剩余部分）
+            fallback_result = first_fallback_char + remaining_chars
+
             self._generated_mixed.add(fallback_result)
             return fallback_result
+
 
     @classmethod
     def clear_generated_data(cls):

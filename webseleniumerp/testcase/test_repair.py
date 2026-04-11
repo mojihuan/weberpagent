@@ -4,314 +4,307 @@ from common.base_case import BaseCase
 from common.import_case import *
 
 
-class TestRepairAuditList(BaseCase, unittest.TestCase):
+class TestTYjeCNx3(BaseCase, unittest.TestCase):
     """维修管理|维修审核列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return repair_r.RepairAuditListRequest()
+            return repair_r.QSG3XpHrLa()
         else:
-            return repair_p.RepairAuditListPages(self.driver)
+            return repair_p.Ssjg8hIuEBI(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0the_maintenance_audit_passed(self):
+    def test_0InAnaHvFTy76b32mumFp(self):
         """[审核]-审核已通过"""
-        self.pre.operations(data=['FA1', 'HC5', 'MA1'])
+        self.pre.operations(data=['ekBx', 'LrYx', 'OAU3'])
         case = self.common_operations(login='main')
-        case.the_maintenance_audit_passed()
-        res = [lambda: self.pc.repair_review_list_assert(auditTime='now', auditStatusStr='已通过')]
+        case.InAnaHvFTy76b32mumFp()
+        res = [lambda: self.pc.zyw2kH(auditTime='now', auditStatusStr='已通过')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_audit_rejection(self):
+    def test_oxfkjSLPMvxmooiko075(self):
         """[审核]-审核未通过"""
-        self.pre.operations(data=['FA1', 'HC5', 'MA1'])
+        self.pre.operations(data=['ekBx', 'LrYx', 'OAU3'])
         case = self.common_operations()
-        case.audit_rejection()
-        res = [lambda: self.pc.repair_review_list_assert(auditTime='now', auditStatusStr='未通过')]
+        case.oxfkjSLPMvxmooiko075()
+        res = [lambda: self.pc.zyw2kH(auditTime='now', auditStatusStr='未通过')]
         self.assert_all(*res)
 
 
-class TestRepairCentreItem(BaseCase, unittest.TestCase):
+class TestBLR6KqnP(BaseCase, unittest.TestCase):
     """维修管理|维修中物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return repair_r.RepairCentreItemRequest()
+            return repair_r.W0EPs560MV()
         else:
-            return repair_p.RepairCentreItemPages(self.driver)
+            return repair_p.HDrV92hc5GF(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0submit_the_maintenance_results(self):
+    def test_0PYrzOPhQBEGaXo51nyaY(self):
         """[提交维修结果]-移交库存"""
-        self.pre.operations(data=['FA1', 'HC5'])
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations(login='main')
-        case.submit_the_maintenance_results()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        case.PYrzOPhQBEGaXo51nyaY()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
-
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_fast_submit_repair_results(self):
+    def test_bmPmqA7zguunIKgYInWf(self):
         """[快速维修]-移交库存"""
-        self.pre.operations(data=['FA1'])
+        self.pre.operations(data=['ekBx'])
         case = self.common_operations()
-        case.fast_submit_repair_results()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        case.bmPmqA7zguunIKgYInWf()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
 
+    @BaseCase.auto('all')
+    @BaseCase.author('Jack')
+    @BaseCase.retry_with()
+    def test_kFFewUiXptz4lRt4hmYw(self):
+        """[提交维修结果]-添加配件-移交库存"""
+        self.pre.operations(data=['ekBx', 'LrYx'])
+        case = self.common_operations()
+        case.kFFewUiXptz4lRt4hmYw()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
+        self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_add_accessories_submit_repair_results(self):
-        """[提交维修结果]-添加单个配件-移交库存"""
-        self.pre.operations(data=['FA1', 'HC5'])
+    def test_Xbfhk0aSUEnYlIVthPdi(self):
+        """[提交维修结果]-扫码添加配件-移交库存"""
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations()
-        case.add_accessories_submit_repair_results()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        case.Xbfhk0aSUEnYlIVthPdi()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
-
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_scan_the_code_to_add_accessories(self):
-        """[提交维修结果]-扫码添加单个配件-移交库存"""
-        self.pre.operations(data=['FA1', 'HC5'])
-        case = self.common_operations()
-        case.scan_the_code_to_add_accessories()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
-        self.assert_all(*res)
-
-
-    @BaseCase.auto('ui')
-    @BaseCase.author('Jack')
-    @BaseCase.retry_with()
-    def test_fast_submit_repair_bulk_submission(self):
+    def test_TwCDg8NuDSsEnMf1GPPT(self):
         """[批量提交维修结果]-移交库存"""
-        self.pre.operations(data=['FA1', 'HC5'])
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations()
-        case.fast_submit_repair_bulk_submission()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        case.TwCDg8NuDSsEnMf1GPPT()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
-
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_unrepaired_handover(self):
+    def test_FzCP5d1Cyk04Rg7XdXWW(self):
         """[未修移交]-移交库存"""
-        self.pre.operations(data=['FA1', 'HC5'])
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations()
-        case.unrepaired_handover()
+        case.FzCP5d1Cyk04Rg7XdXWW()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='待接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_scan_unverified_handover(self):
+    def test_Nk6CFDyXMFV3sMEXwPOA(self):
         """[扫码精确未修移交]-移交库存"""
-        self.pre.operations(data=['FA1', 'HC4'])
+        self.pre.operations(data=['ekBx', 'QKxH'])
         case = self.common_operations()
-        case.scan_unverified_handover()
+        case.Nk6CFDyXMFV3sMEXwPOA()
         res = [lambda: self.pc.inventory_handover_record_assert(statusStr='待接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purpose_of_transfer_repair(self):
+    def test_i1XbL2CrIPwi6h2C6y1T(self):
         """[提交维修结果]-移交维修"""
-        self.pre.operations(data=['FA1', 'HC5'])
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations()
-        case.purpose_of_transfer_repair()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        case.i1XbL2CrIPwi6h2C6y1T()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
-
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_purpose_of_transfer_sales(self):
+    def test_XZsjWIGPtCtyCOxtxlJo(self):
         """[提交维修结果]-移交销售"""
-        self.pre.operations(data=['FA1', 'HC5'])
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations()
-        case.purpose_of_transfer_sales()
-        res = [lambda: self.pc.repair_items_assert(auditStatusStr='待审核', consignerTime='now')]
+        case.XZsjWIGPtCtyCOxtxlJo()
+        res = [lambda: self.pc.aP7LrV(auditStatusStr='待审核', consignerTime='now')]
         self.assert_all(*res)
-
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_submit_maintenance_and_disassembly_parts(self):
+    def test_XaqAzFHNZ0oHiACVcagS(self):
         """[物品拆件]-添加物品确认"""
-        self.pre.operations(data=['FA1', 'HC5'])
+        self.pre.operations(data=['ekBx', 'LrYx'])
         case = self.common_operations()
-        case.submit_maintenance_and_disassembly_parts()
-        res = [lambda: self.pc.repair_parts_manage_assert(apartNo='CJ', apartTime='now')]
+        case.XaqAzFHNZ0oHiACVcagS()
+        res = [lambda: self.pc.tqIszF(apartNo='CJ', apartTime='now')]
         self.assert_all(*res)
 
 
-class TestRepairDataStatistics(BaseCase, unittest.TestCase):
+class TesttmuGCB3b(BaseCase, unittest.TestCase):
     """维修管理|维修数据统计"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
             return None
         else:
-            return repair_p.RepairDataStatisticsPages(self.driver)
+            return repair_p.A0lyjFxl9Cw(self.driver)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0derived_data(self):
+    def test_0jgkToL04qhtLIicYNjr2(self):
         """[导出]"""
         case = self.common_operations(login='main')
-        case.derived_data()
-        res = [lambda: self.pc.system_export_list_assert(name='维修数据统计导出', state=2, createTime='now')]
+        case.jgkToL04qhtLIicYNjr2()
+        res = [lambda: self.pc.T241Se(name='维修数据统计导出', state=2, createTime='now')]
         self.assert_all(*res)
 
 
-class TestPurchaseGoodsReceived(BaseCase, unittest.TestCase):
+class TestuSf4PpKJ(BaseCase, unittest.TestCase):
     """维修管理|待接收物品"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
             return None
         else:
-            return repair_p.RepairGoodsReceivedPages(self.driver)
+            return repair_p.ZdRLslkrxnz(self.driver)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0goods_received(self):
-        """[接收]-单个物品接收"""
-        self.pre.operations(data=['FA1', 'HC4'])
+    def test_0dtMnLD99xu70O75WPpZI(self):
+        """[接收]-物品接收"""
+        self.pre.operations(data=['ekBx', 'QKxH'])
         case = self.common_operations(login='special')
-        case.goods_received()
+        case.dtMnLD99xu70O75WPpZI()
         res = [lambda: self.pc.handover_record(statusStr='待接收', createTime='now')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_scan_goods_received(self):
-        """[扫码精确接收]-单个物品接收"""
-        self.pre.operations(data=['FA1', 'HC4'])
+    def test_Do71TcM8aJhiO9BlM30Q(self):
+        """[扫码精确接收]-物品接收"""
+        self.pre.operations(data=['ekBx', 'QKxH'])
         case = self.common_operations()
-        case.scan_goods_received()
+        case.Do71TcM8aJhiO9BlM30Q()
         res = [lambda: self.pc.handover_record(statusStr='已接收', createTime='now')]
         self.assert_all(*res)
 
 
-class TestRepairProjectList(BaseCase, unittest.TestCase):
+class Testui2fP2rG(BaseCase, unittest.TestCase):
     """维修管理|维修项目列表"""
 
     def get_instantiation(self):
         if self.auto_type == 'api':
-            return repair_r.RepairProjectListRequest()
+            return repair_r.KHgN9h3KO8()
         else:
-            return repair_p.RepairProjectListPages(self.driver)
+            return repair_p.HAJk7yhq6D2(self.driver)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with(clear_cache=True)
-    def test_0new_maintenance_items_iphone(self):
+    def test_0otRpL7YRWiPq6A7gGbBE(self):
         """[手机tab]-新增维修项目-品类手机"""
         case = self.common_operations(login='idle')
-        case.new_maintenance_items_iphone()
-        res = [lambda: self.pc.repair_project_list_assert(i=1, headers='idle')]
+        case.otRpL7YRWiPq6A7gGbBE()
+        res = [lambda: self.pc.DkaFca(i=1, headers='idle')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_new_maintenance_items_ipa(self):
+    def test_SMnvY0RuPqjFoUNE8XAA(self):
         """[手机tab]-新增维修项目-品类平板电脑"""
         case = self.common_operations()
-        case.add_maintenance_items_flat()
-        res = [lambda: self.pc.repair_project_list_assert(i=3, headers='idle')]
+        case.SMnvY0RuPqjFoUNE8XAA()
+        res = [lambda: self.pc.DkaFca(i=3, headers='idle')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_editor_maintenance_items(self):
+    def test_A3huxJD5Z6IGUspl0I6d(self):
         """[手机tab]-编辑-修改信息保存"""
         case = self.common_operations()
-        case.editor_maintenance_items()
-        res = [lambda: self.pc.repair_project_list_assert(i=1, headers='idle')]
+        case.A3huxJD5Z6IGUspl0I6d()
+        res = [lambda: self.pc.DkaFca(i=1, headers='idle')]
         self.assert_all(*res)
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_delete_maintenance_items(self):
+    def test_z6Fij1duyB9APTQsy7SW(self):
         """[手机tab]-删除"""
         case = self.common_operations()
-        case.delete_maintenance_items()
+        case.z6Fij1duyB9APTQsy7SW()
 
     @BaseCase.auto('all')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_new_model_configuration(self):
+    def test_V0LveJcsirDBPkbnoy5r(self):
         """[手机tab]-机型配置-新增品牌型号"""
         case = self.common_operations()
-        case.new_model_configuration()
-        res = [lambda: self.pc.repair_project_list_assert(i=1, headers='idle')]
+        case.V0LveJcsirDBPkbnoy5r()
+        res = [lambda: self.pc.DkaFca(i=1, headers='idle')]
         self.assert_all(*res)
 
     @BaseCase.auto('ui')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_delete_model_configuration(self):
+    def test_Q8t9eC7T5nzs0GLMTihp(self):
         """[手机tab]-机型配置-删除"""
-        self.pre.operations(data=['MB1'])
+        self.pre.operations(data=['cVtB'])
         case = self.common_operations()
-        case.delete_model_configuration()
+        case.Q8t9eC7T5nzs0GLMTihp()
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_add_maintenance_items_flat(self):
+    def test_jCLIGsFOwpQqsIwpnxNc(self):
         """[平板电脑tab]-新增维修项目-品类平板电脑"""
-        self.pre.operations(data=['MB1'])
+        self.pre.operations(data=['cVtB'])
         case = self.common_operations()
-        case.add_maintenance_items_flat()
-        res = [lambda: self.pc.repair_project_list_assert(headers='idle')]
+        case.jCLIGsFOwpQqsIwpnxNc()
+        res = [lambda: self.pc.DkaFca(headers='idle')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_add_maintenance_items_book(self):
+    def test_Io7zWL7mncGGiczqV0j9(self):
         """[笔记本电脑tab]-新增维修项目-品类笔记本电脑"""
-        self.pre.operations(data=['MB1'])
+        self.pre.operations(data=['cVtB'])
         case = self.common_operations()
-        case.add_maintenance_items_book()
-        res = [lambda: self.pc.repair_project_list_assert(headers='idle')]
+        case.Io7zWL7mncGGiczqV0j9()
+        res = [lambda: self.pc.DkaFca(headers='idle')]
         self.assert_all(*res)
 
     @BaseCase.auto('api')
     @BaseCase.author('Jack')
     @BaseCase.retry_with()
-    def test_add_maintenance_items_watch(self):
+    def test_A8HudpWpzF5s1INr3oER(self):
         """[智能手表tab]-新增维修项目-品类智能手表"""
-        self.pre.operations(data=['MB1'])
+        self.pre.operations(data=['cVtB'])
         case = self.common_operations()
-        case.add_maintenance_items_watch()
-        res = [lambda: self.pc.repair_project_list_assert(headers='idle')]
+        case.A8HudpWpzF5s1INr3oER()
+        res = [lambda: self.pc.DkaFca(headers='idle')]
         self.assert_all(*res)
 
 

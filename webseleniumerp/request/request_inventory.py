@@ -1,18 +1,18 @@
 # coding: utf-8
 import json
 from common.base_api import BaseApi
-from common.base_params import InitializeParams, is_performance_close
+from common.base_params import InitializeParams
 from common.file_cache_manager import ParamCache
 from common.import_desc import *
 from config.user_info import INFO
 
 
-class InventoryAddressManageRequest(InitializeParams):
+class MTI16ub3xa(InitializeParams):
     """库存管理|出库管理|地址管理"""
 
-    @doc(i_add_address)
+    @doc(SJlFNv1wjIprgodoi79t)
     @BaseApi.timing_decorator
-    def add_address(self, nocheck=False):
+    def SJlFNv1wjIprgodoi79t(self, nocheck=False):
         data = {
             "detailMsg": "和平路" + self.serial + "号",
             "deliverName": "杰克" + self.serial,
@@ -23,12 +23,12 @@ class InventoryAddressManageRequest(InitializeParams):
             "countyId": 1104,
             "offDefault": 0
         }
-        return self._make_request('post', 'address_manage_add', data, 'idle', nocheck)
+        return self._make_request('post', 'uyaeF0TZA', data, 'idle', nocheck)
 
-    @doc(i_edit_address)
+    @doc(VqptzJXhFGbWdaK6jWAT)
     @BaseApi.timing_decorator
-    def edit_address(self, nocheck=False):
-        res = self.pc.inventory_address_manage_data()
+    def VqptzJXhFGbWdaK6jWAT(self, nocheck=False):
+        res = self.pc.Ie1Dlx6hKL0xHjTgV7J4p()
         data = {
             "createBy": res[0]['createBy'],
             "createTime": res[0]['createTime'],
@@ -54,111 +54,29 @@ class InventoryAddressManageRequest(InitializeParams):
             "editBool": "false",
             "offDefault": 0
         }
-        return self._make_request('put', 'address_manage_add', data, 'idle', nocheck)
+        return self._make_request('put', 'uyaeF0TZA', data, 'idle', nocheck)
 
-    @doc(i_delete_address)
+    @doc(CLneoMv0agHMlOvAteqD)
     @BaseApi.timing_decorator
-    def delete_address(self, nocheck=False):
-        res = self.pc.inventory_address_manage_data()
+    def CLneoMv0agHMlOvAteqD(self, nocheck=False):
+        res = self.pc.Ie1Dlx6hKL0xHjTgV7J4p()
         data = [
             res[0]['id']
         ]
-        return self._make_request('post', 'address_manage_delete', data, 'idle', nocheck)
+        return self._make_request('post', 'IrUQf3u3u', data, 'idle', nocheck)
 
 
-class InventoryHandOverGoodsRecordsRequest(InitializeParams):
+class G8bx2b1n15(InitializeParams):
     """库存管理|移交接收管理|移交记录"""
 
-    @doc(i_hand_over_records_search_by_imei)
-    @BaseApi.timing_decorator
-    def hand_over_records_search_by_imei(self):
-        res = self.pc.inventory_receive_records_data(data='a')
-        imei = res[0]['imei']
-        ParamCache.cache_object({"imei": imei}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesNo": imei,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'handover_records_list', data, 'main')
 
-    @doc(i_hand_over_records_search_by_order_no)
-    @BaseApi.timing_decorator
-    def hand_over_records_search_by_order_no(self):
-        res = self.pc.inventory_receive_records_data()
-        order_no = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": order_no}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "orderNo": order_no,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'handover_records_list', data, 'main')
-
-    @doc(i_hand_over_records_search_by_status)
-    @BaseApi.timing_decorator
-    def hand_over_records_search_by_status(self, status=None):
-        if status is None:
-            res = self.pc.inventory_receive_records_data(data='a')
-            status = res[0]['status']
-        ParamCache.cache_object({"status": status}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "status": status,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'handover_records_list', data, 'main')
-
-    @doc(i_hand_over_records_search_by_reason_type)
-    @BaseApi.timing_decorator
-    def hand_over_records_search_by_reason_type(self, reason_type=None):
-        if reason_type is None:
-            res = self.pc.inventory_receive_records_data(data='a')
-            reason_type = res[0]['reasonType']
-        ParamCache.cache_object({"reasonType": reason_type}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "reasonType": reason_type,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'handover_records_list', data, 'main')
-
-    @doc(i_hand_over_records_search_by_person)
-    @BaseApi.timing_decorator
-    def hand_over_records_search_by_person(self):
-        ParamCache.cache_object({"distributorId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "distributorId": INFO['main_user_id'],
-            "articlesType": 1
-        }
-        return self._make_request('post', 'handover_records_list', data, 'main')
-
-    @doc(i_hand_over_records_search_by_receive_id)
-    @BaseApi.timing_decorator
-    def hand_over_records_search_by_receive_id(self):
-        ParamCache.cache_object({"receiveId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "userId": INFO['main_user_id'],
-            "articlesType": 1
-        }
-        return self._make_request('post', 'handover_records_list', data, 'main')
-
-
-class InventoryHandOverGoodsRequest(InitializeParams):
+class Lm0iuO4IIK(InitializeParams):
     """库存管理|移交接收管理|移交物品"""
 
-    @doc(i_hand_over_goods)
+    @doc(fcMGsTQ8oTnZfsCSP4CV)
     @BaseApi.timing_decorator
-    def hand_over_goods(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def fcMGsTQ8oTnZfsCSP4CV(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "6",
             "userId": INFO['main_user_id'],
@@ -167,16 +85,16 @@ class InventoryHandOverGoodsRequest(InitializeParams):
             ],
             "createBy": INFO['super_admin_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
 
-class InventoryItemSignWarehousingRequest(InitializeParams):
+class TbhHz8UAvI(InitializeParams):
     """库存管理|入库管理|物品签收入库"""
 
-    @doc(i_sign_for_receipt)
+    @doc(cDYaPc16prs1VtJEU8mr)
     @BaseApi.timing_decorator
-    def sign_for_receipt(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='1')
+    def cDYaPc16prs1VtJEU8mr(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='1')
         data = {
             "warehouseId": INFO['main_item_warehouse_id'],
             "articlesList": [
@@ -195,16 +113,16 @@ class InventoryItemSignWarehousingRequest(InitializeParams):
                 "userId": ""
             }
         }
-        return self._make_request('post', 'not_hand_over', data, 'main', nocheck)
+        return self._make_request('post', 'Ufjrec0ya', data, 'main', nocheck)
 
 
-class InventoryListRequest(InitializeParams):
+class HSA1BkiNHU(InitializeParams):
     """库存管理|库存列表"""
 
-    @doc(i_inventory_transfer_sell_special)
+    @doc(BqEQ0BTtXXYnqUFLxnUK)
     @BaseApi.timing_decorator
-    def inventory_transfer_sell_special(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def BqEQ0BTtXXYnqUFLxnUK(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "4",
             "userId": INFO['special_user_id'],
@@ -214,12 +132,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['special_account_name']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_repair_special)
+    @doc(D3dsNkrEsGlGWkoAbUvn)
     @BaseApi.timing_decorator
-    def inventory_transfer_repair_special(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def D3dsNkrEsGlGWkoAbUvn(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "2",
             "userId": INFO['special_user_id'],
@@ -229,12 +147,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['special_account_name']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_purchase_special)
+    @doc(n6qVaJNnhR6yKFZDvMpU)
     @BaseApi.timing_decorator
-    def inventory_transfer_purchase_special(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def n6qVaJNnhR6yKFZDvMpU(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "5",
             "userId": INFO['special_user_id'],
@@ -244,12 +162,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['special_account_name']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_quality_special)
+    @doc(wWBLmKauWABXgA16zGq5)
     @BaseApi.timing_decorator
-    def inventory_transfer_quality_special(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def wWBLmKauWABXgA16zGq5(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "1",
             "userId": INFO['special_user_id'],
@@ -259,12 +177,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['special_account_name']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_send_special)
+    @doc(xrzuFX14hLZb53t2Dpl4)
     @BaseApi.timing_decorator
-    def inventory_transfer_send_special(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def xrzuFX14hLZb53t2Dpl4(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "3",
             "userId": INFO['special_user_id'],
@@ -274,12 +192,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['special_account_name']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_purchase_main)
+    @doc(ELzKzsnP7DBzS58RhuRV)
     @BaseApi.timing_decorator
-    def inventory_transfer_purchase_main(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def ELzKzsnP7DBzS58RhuRV(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "5",
             "userId": INFO['main_user_id'],
@@ -289,12 +207,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['main_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_sell_main)
+    @doc(cZDVh5eyHxStC2Mli9DI)
     @BaseApi.timing_decorator
-    def inventory_transfer_sell_main(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def cZDVh5eyHxStC2Mli9DI(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "4",
             "userId": INFO['main_user_id'],
@@ -304,12 +222,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['main_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_quality_main)
+    @doc(yPtmSmB6LgGBHuYKQex9)
     @BaseApi.timing_decorator
-    def inventory_transfer_quality_main(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def yPtmSmB6LgGBHuYKQex9(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "1",
             "userId": INFO['main_user_id'],
@@ -319,12 +237,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['main_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_repair_main)
+    @doc(cQRfPcjML2Pxryt529f9)
     @BaseApi.timing_decorator
-    def inventory_transfer_repair_main(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def cQRfPcjML2Pxryt529f9(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "type": "2",
             "userId": INFO['main_user_id'],
@@ -334,12 +252,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['main_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_transfer_send_main)
+    @doc(OAvKjuICy5p7SX9qfvX4)
     @BaseApi.timing_decorator
-    def inventory_transfer_send_main(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='13')
+    def OAvKjuICy5p7SX9qfvX4(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "type": "3",
             "userId": INFO['main_user_id'],
@@ -349,131 +267,12 @@ class InventoryListRequest(InitializeParams):
             "remark": "备注",
             "createBy": INFO['main_account']
         }
-        return self._make_request('post', 'item_inventory_transfer', data, 'main', nocheck)
+        return self._make_request('post', 'ShqXAnyJL', data, 'main', nocheck)
 
-    @doc(i_inventory_list_search_by_imei)
+    @doc(vwwTH7A96EyxcdnCteFb)
     @BaseApi.timing_decorator
-    def inventory_list_search_by_imei(self):
-        res = self.pc.inventory_list_data(i='2', j='3')
-        imei = res[0]['imei']
-        ParamCache.cache_object({"imei": imei}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "inventoryStatus": "2",
-            "articlesNoOrImei": imei
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_supplier)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_supplier(self):
-        ParamCache.cache_object({"supplierId": INFO['main_supplier_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "supplierId": INFO['main_supplier_id'],
-            "inventoryStatus": "2"
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_purchaser)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_purchaser(self):
-        ParamCache.cache_object({"purchaseId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "purchaseId": INFO['main_user_id'],
-            "inventoryStatus": "2"
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_type_id)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_type_id(self, articles_type_id):
-        ParamCache.cache_object({"articlesTypeId": articles_type_id}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesTypeId": articles_type_id
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_purchase_date)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_purchase_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "inventoryStatus": "2",
-            "purchaseStartTime": self.get_the_date(),
-            "purchaseEndTime": self.get_the_date()
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_saler)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_saler(self):
-        ParamCache.cache_object({"belongId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "salesId": INFO['main_user_id'],
-            "inventoryStatus": "2"
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_sale_custom)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_sale_custom(self):
-        ParamCache.cache_object({"salesChannelNo": INFO['main_sale_supplier_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "salesChannelNo": INFO['main_sale_supplier_id'],
-            "inventoryStatus": "2"
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_articles_state)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_articles_state(self, articles_state):
-        ParamCache.cache_object({"articlesState": articles_state}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesState": articles_state,
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_inventory_status)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_inventory_status(self, inventory_status):
-        ParamCache.cache_object({"inventoryStatus": inventory_status}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "inventoryStatus": inventory_status
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_inventory_list_search_by_warehouse_id)
-    @BaseApi.timing_decorator
-    def inventory_list_search_by_warehouse_id(self):
-        ParamCache.cache_object({"warehouseId": INFO['main_item_warehouse_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "warehouseId": INFO['main_item_warehouse_id'],
-            "inventoryStatus": "2",
-        }
-        return self._make_request('post', 'item_inventory_list', data, 'main')
-
-    @doc(i_sale_out_of_warehouse_has)
-    @BaseApi.timing_decorator
-    def sale_out_of_warehouse_has(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='13')
+    def vwwTH7A96EyxcdnCteFb(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "offExpressage": "0",
             "saleType": "1",
@@ -510,12 +309,12 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(i_sale_out_of_warehouse_not)
+    @doc(ZUfg9nnQSfSaV9zvenlZ)
     @BaseApi.timing_decorator
-    def sale_out_of_warehouse_not(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='13')
+    def ZUfg9nnQSfSaV9zvenlZ(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "offExpressage": "0",
             "saleType": "1",
@@ -552,13 +351,13 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(i_return_after_sale_has)
+    @doc(YyjrBFFVlBe4IC7IrZyD)
     @BaseApi.timing_decorator
-    def return_after_sale_has(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.inventory_list_data(data='b')
+    def YyjrBFFVlBe4IC7IrZyD(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
         data = {
             "status": 2,
             "newSalePrice": 0,
@@ -576,13 +375,37 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(i_return_after_sale_not)
+    @doc(AAfxCTv9LmUzH4gFJKoE)
     @BaseApi.timing_decorator
-    def return_after_sale_not(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.inventory_list_data(data='b')
+    def AAfxCTv9LmUzH4gFJKoE(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
+        data = {
+            "status": 2,
+            "newSalePrice": 0,
+            "warehouseId": INFO['main_item_warehouse_id'],
+            "saleType": "1",
+            "returnType": 2,
+            "sellSaleOrderArticlesDTOList": [
+                {
+                    "accessoryNoList": [],
+                    "articlesNo": res[0]['articlesNo'],
+                    "newSalePrice": 0,
+                    "imei": res[0]['imei'],
+                    "saleOrderNo": res[0]['salesOrder'],
+                    "saleSettlePrice": res_2[0]['saleOrderInfo']['salePrice'],
+                }
+            ]
+        }
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
+
+    @doc(kzLjwWovXH0gNxfbTWCC)
+    @BaseApi.timing_decorator
+    def kzLjwWovXH0gNxfbTWCC(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
         data = {
             "status": 1,
             "newSalePrice": 0,
@@ -601,13 +424,37 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(i_return_only_parts_has)
+    @doc(SyHpEVSfWeSWPDH9hcUa)
     @BaseApi.timing_decorator
-    def return_only_parts_has(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.inventory_list_data(data='b')
+    def SyHpEVSfWeSWPDH9hcUa(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
+        data = {
+            "status": 1,
+            "newSalePrice": 0,
+            "saleType": "1",
+            "returnType": 2,
+            "remark": "备注",
+            "sellSaleOrderArticlesDTOList": [
+                {
+                    "accessoryNoList": [],
+                    "articlesNo": res[0]['articlesNo'],
+                    "newSalePrice": 0,
+                    "imei": res[0]['imei'],
+                    "saleOrderNo": res[0]['salesOrder'],
+                    "saleSettlePrice": res_2[0]['saleOrderInfo']['salePrice'],
+                }
+            ]
+        }
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
+
+    @doc(VCS0Uc7dtvSPIuHtNbaI)
+    @BaseApi.timing_decorator
+    def VCS0Uc7dtvSPIuHtNbaI(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
         data = {
             "status": 2,
             "newSalePrice": 20,
@@ -643,13 +490,13 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(i_return_only_parts_not)
+    @doc(HNDvVgQsF5uXmqKb3obN)
     @BaseApi.timing_decorator
-    def return_only_parts_not(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.inventory_list_data(data='b')
+    def HNDvVgQsF5uXmqKb3obN(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
         data = {
             "status": 1,
             "newSalePrice": 30,
@@ -686,13 +533,13 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(i_price_adjustment_after_sales)
+    @doc(Nk7bVBssIb2JEsWwVc2R)
     @BaseApi.timing_decorator
-    def price_adjustment_after_sales(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='3', j='9')
-        res_2 = self.pc.inventory_list_data(data='b')
+    def Nk7bVBssIb2JEsWwVc2R(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='9')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='b')
         data = {
             "status": 2,
             "newSalePrice": 50,
@@ -710,22 +557,22 @@ class InventoryListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'sales_after_sales_list', data, 'main', nocheck)
+        return self._make_request('post', 'NeFj1qYw3', data, 'main', nocheck)
 
-    @doc(i_refund_only_after_purchase)
+    @doc(D60ATnrNOPRjZtH7QJQv)
     @BaseApi.timing_decorator
-    def refund_only_after_purchase(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='1')
+    def D60ATnrNOPRjZtH7QJQv(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='1')
         data = {
             "articlesNo": res[0]['articlesNo'],
             "remark": "备注"
         }
-        return self._make_request('post', 'purchases_are_refundable_only', data, 'main', nocheck)
+        return self._make_request('post', 'R7HA7rwAV', data, 'main', nocheck)
 
-    @doc(i_item_info_edit)
+    @doc(KgeXqOhDT97S9ajhSDxB)
     @BaseApi.timing_decorator
-    def item_info_edit(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def KgeXqOhDT97S9ajhSDxB(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "id": res[0]['id'],
             "articlesNo": res[0]['articlesNo'],
@@ -755,110 +602,20 @@ class InventoryListRequest(InitializeParams):
                 "finenessName": "全新仅拆封"
             }
         }
-        return self._make_request('post', 'inventory_list_edit', data, 'main', nocheck)
+        return self._make_request('post', 'R31Db9DLe', data, 'main', nocheck)
 
 
-class InventoryLogisticsListRequest(InitializeParams):
+class M1swfi30oc(InitializeParams):
     """库存管理|入库管理|物流列表"""
 
-    @doc(i_logistics_list_search_by_logistics_no)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_logistics_no(self):
-        res = self.pc.inventory_logistics_list_data()
-        logistics_no = res[0]['logisticsNo']
-        ParamCache.cache_object({"logisticsNo": logistics_no}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "logisticsNo": logistics_no
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
 
-    @doc(i_logistics_list_search_by_imei)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_imei(self):
-        res = self.pc.inventory_logistics_list_data(data='a')
-        articlesNo = res[0]['articlesNo']
-        ParamCache.cache_object({"articlesNo": articlesNo}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesNoOrImei": articlesNo
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
-
-    @doc(i_logistics_list_search_by_platform_articles_no)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_platform_articles_no(self):
-        res = self.pc.inventory_logistics_list_data(data='a')
-        platformArticlesNo = res[0]['platformArticlesNo']
-        logisticsNo = res[0]['logisticsNo']
-        ParamCache.cache_object({"platformArticlesNo": platformArticlesNo}, 'practical.json')
-        ParamCache.cache_object({"logisticsNo": logisticsNo}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "platformArticlesNo": platformArticlesNo
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
-
-    @doc(i_logistics_list_search_by_business_no)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_business_no(self):
-        res = self.pc.inventory_logistics_list_data(data='a')
-        businessNo = res[0]['businessNo']
-        ParamCache.cache_object({"businessNo": businessNo}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "businessNo": businessNo
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
-
-    @doc(i_logistics_list_search_by_sortation_status)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_sortation_status(self, status=None):
-        res = self.pc.inventory_logistics_list_data(k=status)
-        status = res[0]['status']
-        ParamCache.cache_object({"status": status}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "sortationStatus": status
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
-
-    @doc(i_logistics_list_search_by_sortation_id)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_sortation_id(self):
-        userName = INFO['customer_name']
-        ParamCache.cache_object({"userName": userName}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "sortationId": INFO['main_user_id']
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
-
-    @doc(i_logistics_list_search_by_date)
-    @BaseApi.timing_decorator
-    def logistics_list_search_by_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "sortationStartTime": self.get_the_date(),
-            "sortationEndTime": self.get_the_date()
-        }
-        return self._make_request('post', 'material_flow_list', data, 'main')
-
-
-class InventoryNewItemRequest(InitializeParams):
+class IPBU7G33xP(InitializeParams):
     """库存管理|入库管理|物流签收入库"""
 
-    @doc(i_logistics_signature_for_receipt)
+    @doc(Jv79uDAMnGFSvRHesu0B)
     @BaseApi.timing_decorator
-    def logistics_signature_for_receipt(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='1')
+    def Jv79uDAMnGFSvRHesu0B(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='1')
         data = {
             "warehouseId": INFO['main_item_warehouse_id'],
             "articlesList": [
@@ -879,12 +636,12 @@ class InventoryNewItemRequest(InitializeParams):
                 "remark": ""
             }
         }
-        return self._make_request('post', 'sign_receipt_store', data, 'main', nocheck)
+        return self._make_request('post', 'DYbHAZqxU', data, 'main', nocheck)
 
-    @doc(i_help_sell_logistics_signature_for_receipt)
+    @doc(hhbi3Grk7w3kXVnHxfNE)
     @BaseApi.timing_decorator
-    def help_sell_logistics_signature_for_receipt(self, nocheck=False):
-        res = self.pc.help_sell_the_list_of_goods_data()
+    def hhbi3Grk7w3kXVnHxfNE(self, nocheck=False):
+        res = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "warehouseId": INFO['main_item_warehouse_id'],
             "articlesList": [
@@ -903,17 +660,17 @@ class InventoryNewItemRequest(InitializeParams):
                 "remark": ""
             }
         }
-        return self._make_request('post', 'sign_receipt_store', data, 'vice', nocheck)
+        return self._make_request('post', 'DYbHAZqxU', data, 'vice', nocheck)
 
 
-class InventoryOutboundOrdersListRequest(InitializeParams):
+class MLkZRHOuRf(InitializeParams):
     """库存管理|出库管理|仅出库订单列表"""
 
-    @doc(i_return_outgoing_items_warehousing)
+    @doc(e2AnAaVdqHxAw7jEV92t)
     @BaseApi.timing_decorator
-    def return_outgoing_items_warehousing(self, nocheck=False):
-        res = self.pc.inventory_outbound_orders_list_data()
-        res_2 = self.pc.inventory_outbound_orders_list_data(data='a')
+    def e2AnAaVdqHxAw7jEV92t(self, nocheck=False):
+        res = self.pc.QYSFzOWmZ2zYnize8ppKN()
+        res_2 = self.pc.QYSFzOWmZ2zYnize8ppKN(data='a')
         data = {
             "returnMethod": "1",
             "logisticsOrder": self.jd,
@@ -926,13 +683,13 @@ class InventoryOutboundOrdersListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'out_warehouse_back', data, 'main', nocheck)
+        return self._make_request('post', 'gNp2tTkFA', data, 'main', nocheck)
 
-    @doc(i_return_outgoing_items_route)
+    @doc(M04F4OTZMxDuTL4I0abo)
     @BaseApi.timing_decorator
-    def return_outgoing_items_route(self, nocheck=False):
-        res = self.pc.inventory_outbound_orders_list_data()
-        res_2 = self.pc.inventory_outbound_orders_list_data(data='a')
+    def M04F4OTZMxDuTL4I0abo(self, nocheck=False):
+        res = self.pc.QYSFzOWmZ2zYnize8ppKN()
+        res_2 = self.pc.QYSFzOWmZ2zYnize8ppKN(data='a')
         data = {
             "returnMethod": "2",
             "logisticsOrder": self.jd,
@@ -944,14 +701,14 @@ class InventoryOutboundOrdersListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'out_warehouse_back', data, 'main', nocheck)
+        return self._make_request('post', 'gNp2tTkFA', data, 'main', nocheck)
 
-    @doc(i_outbound_sales_only_received)
+    @doc(AfpbFoR3N3DHrELC3fyQ)
     @BaseApi.timing_decorator
-    def outbound_sales_only_received(self, nocheck=False):
-        res = self.pc.inventory_outbound_orders_list_data()
-        res_2 = self.pc.inventory_outbound_orders_list_data(data='a')
-        res_3 = self.pc.inventory_list_data(i='3', j='18')
+    def AfpbFoR3N3DHrELC3fyQ(self, nocheck=False):
+        res = self.pc.QYSFzOWmZ2zYnize8ppKN()
+        res_2 = self.pc.QYSFzOWmZ2zYnize8ppKN(data='a')
+        res_3 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='18')
         data = {
             "saleType": "1",
             "clientId": INFO['main_sale_supplier_id'],
@@ -972,14 +729,14 @@ class InventoryOutboundOrdersListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'out_warehouse_sell', data, 'main', nocheck)
+        return self._make_request('post', 'AXLzdlBvg', data, 'main', nocheck)
 
-    @doc(i_outbound_sales_only_uncollected)
+    @doc(x4yuI0I1abq0vQb0mI6o)
     @BaseApi.timing_decorator
-    def outbound_sales_only_uncollected(self, nocheck=False):
-        res = self.pc.inventory_outbound_orders_list_data()
-        res_2 = self.pc.inventory_outbound_orders_list_data(data='a')
-        res_3 = self.pc.inventory_list_data(i='3', j='18')
+    def x4yuI0I1abq0vQb0mI6o(self, nocheck=False):
+        res = self.pc.QYSFzOWmZ2zYnize8ppKN()
+        res_2 = self.pc.QYSFzOWmZ2zYnize8ppKN(data='a')
+        res_3 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='3', j='18')
         data = {
             "saleType": "1",
             "clientId": INFO['main_sale_supplier_id'],
@@ -998,13 +755,13 @@ class InventoryOutboundOrdersListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'out_warehouse_sell', data, 'main', nocheck)
+        return self._make_request('post', 'AXLzdlBvg', data, 'main', nocheck)
 
-    @doc(i_create_an_outbound_only_order)
+    @doc(ZUdNkyxThIMbrQMjq4A0)
     @BaseApi.timing_decorator
-    def create_an_outbound_only_order(self, nocheck=False):
+    def ZUdNkyxThIMbrQMjq4A0(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data()
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp()
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "4",
@@ -1041,16 +798,63 @@ class InventoryOutboundOrdersListRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'create_a_new_order', data, 'main', nocheck)
+        return self._make_request('post', 'hgftWOpCZ', data, 'main', nocheck)
+
+    @doc(qawEHf7WaxftnDj1QxYR)
+    @BaseApi.timing_decorator
+    def qawEHf7WaxftnDj1QxYR(self, nocheck=False):
+        time = self.get_current_timestamp_ms()
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp()
+        data = {
+            "saleTime": self.get_formatted_datetime(),
+            "saleType": "4",
+            "clientId": INFO['main_sale_supplier_id'],
+            "clientName": INFO['vice_sales_customer_name'],
+            "accountNo": INFO['main_account_no'],
+            "accountName": INFO['main_account_name'],
+            "userId": INFO['main_user_id'],
+            "deliveryId": INFO['main_user_id'],
+            "deliveryTime": self.get_formatted_datetime(),
+            "status": 1,
+            "logisticsNoPrice": 10,
+            "walletAccountNo": INFO['main_wallet_account_no'],
+            "remark": "备注",
+            "isEexpress": "1",
+            "payWay": 2,
+            "pickUpType": 1,
+            "logisticsCompanyType": 1,
+            "userAddressId": INFO['main_user_address_id'],
+            "offExpressage": "1",
+            "purchaseOrdersArticlesDTOList": [
+                {
+                    "id": res[0]['id'],
+                    "imei": res[0]['imei'],
+                    "articlesNo": res[0]['articlesNo'],
+                    "articlesState": 3,
+                    "salePrice": None,
+                    "platformArticlesNo": res[0]['platformArticlesNo'],
+                    "platformOrderNo": None,
+                    "remark": "备注",
+                    "finenessId": 2,
+                    "articlesInfoId": time,
+                    "purchaseArticlesInfoDTO": {
+                        "finenessId": 2,
+                        "id": time
+                    },
+                    "saleSettlePrice": ""
+                }
+            ]
+        }
+        return self._make_request('post', 'hgftWOpCZ', data, 'main', nocheck)
 
 
-class InventoryPurchaseAndSellOutRequest(InitializeParams):
+class GrqUVUXI3u(InitializeParams):
     """库存管理|出库管理|采购售后出库"""
 
-    @doc(i_purchase_after_sales_warehouse)
+    @doc(DZpllRLFofze0dkHhqfW)
     @BaseApi.timing_decorator
-    def purchase_after_sales_warehouse(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='10')
+    def DZpllRLFofze0dkHhqfW(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='10')
         data = {
             "saleState": 5,
             "offExpressage": "0",
@@ -1069,251 +873,49 @@ class InventoryPurchaseAndSellOutRequest(InitializeParams):
             ],
             "deliveryTime": self.get_formatted_datetime(),
         }
-        return self._make_request('post', 'purchase_after_sales_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'TDNsMZDYJ', data, 'main', nocheck)
 
 
-class InventoryReceiveItemRequest(InitializeParams):
+class XmR5kBz1S1(InitializeParams):
     """库存管理|移交接收管理|接收物品"""
 
-    @doc(i_item_acceptance_repair_status)
-    def item_acceptance_repair_status(self, nocheck=False):
-        res = self.pc.inventory_receive_items_data(i='6')
+    @doc(Xj9FgGV65jL0Oi7nZXWg)
+    def Xj9FgGV65jL0Oi7nZXWg(self, nocheck=False):
+        res = self.pc.LWT9dymUmXdvWqLk1qEeA(i='6')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'receive_item_receive', data, 'main', nocheck)
+        return self._make_request('post', 'WpZgDxZLH', data, 'main', nocheck)
 
-    @doc(i_inventory_receive_item_search_by_imei)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_imei(self):
-        res = self.pc.inventory_receive_items_data()
-        imei = res[0]['imei']
-        ParamCache.cache_object({"imei": imei}, 'practical.json')
+    @doc(GvUiJ1UCIayox4CCu44j)
+    def GvUiJ1UCIayox4CCu44j(self, nocheck=False):
+        res = self.pc.LWT9dymUmXdvWqLk1qEeA(i='6')
         data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesNo": imei,
-            "articlesType": 1
+            "articlesNoList": [
+                res[0]['articlesNo']
+            ]
         }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_articles_type_id)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_articles_type_id(self, articles_type_id):
-        ParamCache.cache_object({"articlesType": articles_type_id}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesTypeId": articles_type_id,
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_brand_id)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_brand_id(self):
-        ParamCache.cache_object({"brandName": '苹果'}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesTypeId": "1",
-            "brandId": 1,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_model_name)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_model_name(self):
-        ParamCache.cache_object({"modelName": 'iPhone 16 Pro Max'}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesTypeId": "1",
-            "brandId": 1,
-            "modelId": 17569,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_articles_state)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_articles_state(self, articles_state, articles_state_str):
-        ParamCache.cache_object({"articlesStateStr": articles_state_str}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "articlesState": articles_state,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_hand_over_person)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_hand_over_person(self):
-        ParamCache.cache_object({"operateName": INFO['customer_name']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "distributorId": INFO['main_user_id'],
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_receive_person)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_receive_person(self):
-        ParamCache.cache_object({"reUserName": INFO['special_account_name']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "userId": INFO['special_user_id'],
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_reason_type)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_reason_type(self, reason_type):
-        ParamCache.cache_object({"reasonType": reason_type}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "reasonType": reason_type,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_reason_time)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_reason_time(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "erpStartTime": self.get_the_date(-1),
-            "erpEndTime": self.get_the_date(),
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_item_search_by_receive_order_no)
-    @BaseApi.timing_decorator
-    def inventory_receive_item_search_by_receive_order_no(self):
-        res = self.pc.inventory_receive_items_data()
-        order_no = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": order_no}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "orderNo": order_no,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'inventory_receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_imei)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_imei(self):
-        res = self.pc.inventory_receive_items_data(data='b')
-        order_no = res[0]['orderNo']
-        ParamCache.cache_object({"imei": res[0]['imei']}, 'practical.json')
-        data = {
-            "orderNo": order_no,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_order_no)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_order_no(self):
-        res = self.pc.inventory_receive_items_data(data='a')
-        order_no = res[0]['orderNo']
-        ParamCache.cache_object({"orderNo": order_no}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "orderNo": order_no,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_status)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_status(self):
-        ParamCache.cache_object({"status": 1}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "status": "1",
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_reason_type)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_reason_type(self, reason_type):
-        ParamCache.cache_object({"reasonType": reason_type}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "reasonType": reason_type,
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_distributor)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_distributor(self):
-        ParamCache.cache_object({"distributorId": INFO['main_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "distributorId": INFO['main_user_id'],
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_user_id)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_user_id(self):
-        ParamCache.cache_object({"receiveId": INFO['special_user_id']}, 'practical.json')
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "userId": INFO['special_user_id'],
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
-
-    @doc(i_inventory_receive_order_no_search_by_date)
-    @BaseApi.timing_decorator
-    def inventory_receive_order_no_search_by_date(self):
-        data = {
-            "pageNum": 1,
-            "pageSize": 10,
-            "erpStartTime": self.get_the_date(),
-            "erpEndTime": self.get_the_date(),
-            "articlesType": 1
-        }
-        return self._make_request('post', 'receive_items', data, 'main')
+        return self._make_request('post', 'WpZgDxZLH', data, 'main', nocheck)
 
 
-class InventorySaleOutWarehouseRequest(InitializeParams):
+class XwUhCCnV8j(InitializeParams):
     """库存管理|出库管理|销售出库"""
 
     def item_number(self, nocheck=False):
-        res = self.pc.sell_items_for_sale_data()
+        res = self.pc.XTk41pUDr28xCf1YL17uR()
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'set_articles_no', data, 'main', nocheck)
+        return self._make_request('post', 'QBZVuqz0S', data, 'main', nocheck)
 
-    @doc(i_sales_out_warehouse_received)
-    def sales_out_warehouse_received(self, nocheck=False):
+    @doc(sX84nolF0TRL5RWSl6zx)
+    def sX84nolF0TRL5RWSl6zx(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(i='2', j='13')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -1357,12 +959,12 @@ class InventorySaleOutWarehouseRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(i_sales_out_warehouse_not_received)
-    def sales_out_warehouse_not_received(self, nocheck=False):
+    @doc(cuv4NM82E2Es3yAJkvoi)
+    def cuv4NM82E2Es3yAJkvoi(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(i='2', j='13')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -1398,13 +1000,13 @@ class InventorySaleOutWarehouseRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(i_sales_out_warehouse_help_sell)
-    def sales_out_warehouse_help_sell(self, nocheck=False):
+    @doc(P7mmCcwk64F1knIdDObr)
+    def P7mmCcwk64F1knIdDObr(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(data='a', i='2', j='13')
-        res_2 = self.pc.help_sell_the_list_of_goods_data()
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(data='a', i='2', j='13')
+        res_2 = self.pc.Jc9Odo2T6JqvbWDRSsDXy()
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -1440,13 +1042,13 @@ class InventorySaleOutWarehouseRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'vice', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'vice', nocheck)
 
-    @doc(i_sell_distribution)
-    def sell_distribution(self, nocheck=False):
+    @doc(B79xRAooA8OFtgTSsB20)
+    def B79xRAooA8OFtgTSsB20(self, nocheck=False):
         self.item_number()
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(i='2', j='13')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "3",
@@ -1482,12 +1084,12 @@ class InventorySaleOutWarehouseRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(i_sell_advance_sale)
-    def sell_advance_sale(self, nocheck=False):
+    @doc(Qimx5yME2xvTwfpxXDWH)
+    def Qimx5yME2xvTwfpxXDWH(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(i='2', j='13')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "5",
@@ -1523,13 +1125,13 @@ class InventorySaleOutWarehouseRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
-    @doc(i_sell_outbound_accessories)
-    def sell_outbound_accessories(self, nocheck=False):
+    @doc(RbCSsdTsnVGk7P77B8ca)
+    def RbCSsdTsnVGk7P77B8ca(self, nocheck=False):
         time = self.get_current_timestamp_ms()
-        res = self.pc.inventory_list_data(i='2', j='13')
-        res_2 = self.pc.attachment_inventory_list_data(i='2')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='13')
+        res_2 = self.pc.CtRBRcFNn2LnUPfJF5Yhu(i='2')
         data = {
             "saleTime": self.get_formatted_datetime(),
             "saleType": "1",
@@ -1568,28 +1170,28 @@ class InventorySaleOutWarehouseRequest(InitializeParams):
                 }
             ]
         }
-        return self._make_request('post', 'item_inventory_sell', data, 'main', nocheck)
+        return self._make_request('post', 'JKSmt0DQk', data, 'main', nocheck)
 
 
-class InventorySellAfterSaleDeliveryRequest(InitializeParams):
+class HKYbWELZop(InitializeParams):
     """库存管理|出库管理|销售售后出库"""
 
     @BaseApi.timing_decorator
     def item_number(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='15')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
         data = {
             "articlesNoList": [
                 res[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'set_articles_no', data, 'main', nocheck)
+        return self._make_request('post', 'QBZVuqz0S', data, 'main', nocheck)
 
-    @doc(i_sell_get_out)
+    @doc(A9xC9JwOkl75SfoIqlTM)
     @BaseApi.timing_decorator
-    def sell_get_out(self, nocheck=False):
+    def A9xC9JwOkl75SfoIqlTM(self, nocheck=False):
         self.item_number()
-        res = self.pc.inventory_list_data(i='2', j='15')
-        res_2 = self.pc.inventory_list_data(i='2', j='3')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "saleUserId": INFO['main_sale_supplier_id'],
             "offExpressage": "0",
@@ -1614,13 +1216,13 @@ class InventorySellAfterSaleDeliveryRequest(InitializeParams):
             },
             "isSaleType": True
         }
-        return self._make_request('post', 'sell_after_sale_out_stock', data, 'main', nocheck)
+        return self._make_request('post', 'zuYSO5V1e', data, 'main', nocheck)
 
-    @doc(i_sell_after_sale_refusal_return)
+    @doc(FUNbZmjhH4ul2nZkvDV2)
     @BaseApi.timing_decorator
-    def sell_after_sale_refusal_return(self, nocheck=False):
+    def FUNbZmjhH4ul2nZkvDV2(self, nocheck=False):
         self.item_number()
-        res = self.pc.inventory_list_data(i='2', j='15')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
         data = {
             "saleUserId": INFO['main_sale_supplier_id'],
             "logisticsNo": self.jd,
@@ -1644,13 +1246,13 @@ class InventorySellAfterSaleDeliveryRequest(InitializeParams):
             },
             "isSaleType": True
         }
-        return self._make_request('post', 'sell_after_sale_out_stock', data, 'main', nocheck)
+        return self._make_request('post', 'zuYSO5V1e', data, 'main', nocheck)
 
-    @doc(i_sell_after_sale_repair)
+    @doc(teC3vcKAJkMnapeaIQEH)
     @BaseApi.timing_decorator
-    def sell_after_sale_repair(self, nocheck=False):
+    def teC3vcKAJkMnapeaIQEH(self, nocheck=False):
         self.item_number()
-        res = self.pc.inventory_list_data(i='2', j='15')
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='15')
         data = {
             "logisticsNo": self.jd,
             "logisticsPrice": "40",
@@ -1674,16 +1276,16 @@ class InventorySellAfterSaleDeliveryRequest(InitializeParams):
             },
             "isSaleType": True
         }
-        return self._make_request('post', 'sell_after_sale_out_stock', data, 'main', nocheck)
+        return self._make_request('post', 'zuYSO5V1e', data, 'main', nocheck)
 
 
-class InventorySendOutRepairRequest(InitializeParams):
+class S9pHfGlZA1(InitializeParams):
     """库存管理|出库管理|送修出库"""
 
-    @doc(i_send_out_the_warehouse)
+    @doc(Qp71Bn8xqI3rvwuJ9xCr)
     @BaseApi.timing_decorator
-    def send_out_the_warehouse(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='16')
+    def Qp71Bn8xqI3rvwuJ9xCr(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='16')
         data = {
             "saleState": 13,
             "offExpressage": "0",
@@ -1707,53 +1309,53 @@ class InventorySendOutRepairRequest(InitializeParams):
             ],
             "deliveryTime": self.get_formatted_datetime(),
         }
-        return self._make_request('post', 'send_out_the_warehouse', data, 'main', nocheck)
+        return self._make_request('post', 'MQ0HvcES5', data, 'main', nocheck)
 
 
-class InventoryStockCountRequest(InitializeParams):
+class F0teh65lah(InitializeParams):
     """库存管理|库存盘点"""
 
-    @doc(i_completed_inventory_count)
+    @doc(completed_inventory_count)
     @BaseApi.timing_decorator
     def add_inventory_count(self, nocheck=False):
         data = {
             "stockUserId": INFO['main_user_id']
         }
-        return self._make_request('post', 'add_inventory_count', data, 'main', nocheck)
+        return self._make_request('post', 'HZAtPzJab', data, 'main', nocheck)
 
-    @doc(i_completed_inventory_count)
+    @doc(completed_inventory_count)
     @BaseApi.timing_decorator
     def submit_inventory_count(self, nocheck=False):
-        res = self.pc.inventory_count_data()
-        res_2 = self.pc.inventory_list_data(i=2)
+        res = self.pc.Ux7lF2b6qktEytPTzyaQW()
+        res_2 = self.pc.UYV6mZaVwDk4HHhyuWRRp(i=2)
         data = {
             "stockNo": res[0]['stockNo'],
             "articlesNoList": [
                 res_2[0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'submit_inventory_count', data, 'main', nocheck)
+        return self._make_request('post', 'w7tDFnhQH', data, 'main', nocheck)
 
-    @doc(i_completed_inventory_count)
+    @doc(yfkRUCxXwAxP0gqU85sU)
     @BaseApi.timing_decorator
-    def completed_inventory_count(self, nocheck=False):
+    def yfkRUCxXwAxP0gqU85sU(self, nocheck=False):
         self.add_inventory_count()
         self.submit_inventory_count()
-        res = self.pc.inventory_count_data()
+        res = self.pc.Ux7lF2b6qktEytPTzyaQW()
         data = {
             "stockNo": res[0]['stockNo'],
             "remark": "备注"
         }
-        return self._make_request('post', 'completed_inventory_count', data, 'main', nocheck)
+        return self._make_request('post', 'pFdaHkDL4', data, 'main', nocheck)
 
 
-class InventoryStoreTransferRequest(InitializeParams):
+class InLEWxc2tL(InitializeParams):
     """库存管理|库存调拨"""
 
-    @doc(i_new_allocation)
+    @doc(TkJYyYtSzad1UKsgz33u)
     @BaseApi.timing_decorator
-    def new_allocation(self, nocheck=False):
-        res = self.pc.inventory_list_data(i='2', j='3')
+    def TkJYyYtSzad1UKsgz33u(self, nocheck=False):
+        res = self.pc.UYV6mZaVwDk4HHhyuWRRp(i='2', j='3')
         data = {
             "outWarehouseId": INFO['main_item_warehouse_id'],
             "inWarehouseId": INFO['main_item_in_warehouse_id'],
@@ -1772,13 +1374,13 @@ class InventoryStoreTransferRequest(InitializeParams):
                 "expressNo": self.jd
             }
         }
-        return self._make_request('post', 'item_new_allocation', data, 'main', nocheck)
+        return self._make_request('post', 'xqlOfxcj4', data, 'main', nocheck)
 
-    @doc(i_receive)
+    @doc(paab2hqQQJLuUeP31Y4e)
     @BaseApi.timing_decorator
-    def receive(self, nocheck=False):
-        res = self.pc.inventory_warehouse_allocation_data()
-        res_2 = self.pc.inventory_warehouse_allocation_data(data='a')
+    def paab2hqQQJLuUeP31Y4e(self, nocheck=False):
+        res = self.pc.XHyhIffDlKvRSMGo6DlG2()
+        res_2 = self.pc.XHyhIffDlKvRSMGo6DlG2(data='a')
         data = {
             "id": res[0]['id'],
             "quickOperation": 0,
@@ -1791,23 +1393,23 @@ class InventoryStoreTransferRequest(InitializeParams):
                 "remark": None
             }
         }
-        return self._make_request('post', 'item_allocation_receive', data, 'main', nocheck)
+        return self._make_request('post', 'E0q5Zy8t6', data, 'main', nocheck)
 
-    @doc(i_cancel)
+    @doc(xurEsLRqBkTUszD8mRjE)
     @BaseApi.timing_decorator
-    def cancel(self, nocheck=False):
-        res = self.pc.inventory_warehouse_allocation_data()
-        res_2 = self.pc.inventory_warehouse_allocation_data(data='a')
+    def xurEsLRqBkTUszD8mRjE(self, nocheck=False):
+        res = self.pc.XHyhIffDlKvRSMGo6DlG2()
+        res_2 = self.pc.XHyhIffDlKvRSMGo6DlG2(data='a')
         data = {
             "id": res[0]['id'],
             "articlesNoList": [
                 res_2['itemList'][0]['articlesNo']
             ]
         }
-        return self._make_request('post', 'item_allocation_revoke', data, 'main', nocheck)
+        return self._make_request('post', 'kvtboyOVX', data, 'main', nocheck)
 
 
 if __name__ == '__main__':
-    api = InventoryListRequest()
-    result = api.inventory_transfer_purchase_special()
+    api = ()
+    result = api
     print(json.dumps(result, indent=4, ensure_ascii=False))
