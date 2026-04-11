@@ -4,8 +4,6 @@ Tests cover all 6 methods (cache, cached, has, all, clear, delete),
 bidirectional deepcopy guarantees, and D-05/D-06 edge cases.
 """
 
-import copy
-
 import pytest
 
 from backend.core.cache_service import CacheService
