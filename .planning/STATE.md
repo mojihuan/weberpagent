@@ -1,24 +1,25 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.9.0
-milestone_name: Excel 批量导入功能开发
-status: Milestone shipped
-last_updated: "2026-04-09T10:00:00.000Z"
+milestone: v0.9.1
+milestone_name: ERP 全面集成重构
+status: Ready to execute
+stopped_at: Completed 74-01-PLAN.md
+last_updated: "2026-04-11T02:57:40.467Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-09)
+See: .planning/PROJECT.md (updated 2026-04-11)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 74 — cacheservice-contextwrapper
 
 ## Last Shipped
 
@@ -33,9 +34,17 @@ See: .planning/PROJECT.md (updated 2026-04-09)
 
 ## Current Position
 
-Phase: None (milestone shipped)
-Plan: None
-Next: /gsd:new-milestone
+Phase: 74 (cacheservice-contextwrapper) — EXECUTING
+Plan: 2 of 2
+
+## Performance Metrics
+
+**Velocity:**
+
+- Total plans completed: 0 (this milestone)
+- Previous milestone (v0.9.0): 8 plans across 4 phases
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -44,11 +53,32 @@ Next: /gsd:new-milestone
 Key decisions moved to PROJECT.md Key Decisions table.
 v0.9.0 decisions archived in milestones/v0.9.0-ROADMAP.md.
 
+Recent decisions affecting current work:
+
+- v0.9.1: CacheService 用 Python dict 而非 Redis — 单进程部署，内存足够
+- v0.9.1: AccountInfo frozen dataclass — 不可变性保证，无需 Pydantic
+- v0.9.1: login_role nullable 列 — 向后兼容，现有任务不受影响
+- [Phase 74]: Bidirectional deepcopy: copy.deepcopy on both cache() store and cached() retrieve for full immutability isolation
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-- SQLite WAL 模式下并发写锁竞争 — busy_timeout 30s 需实测高并发
-- 前端 apiClient 默认 Content-Type: application/json，FormData 上传需绕过
+- Jinja2 StrictUndefined 对 {{cached:key}} — 需在 regex 替换后再传 Jinja2，否则 UndefinedError
+- ContextWrapper split-brain — 必须在 run_agent_background 顶部创建唯一 CacheService 实例
+- Excel 模板列变更兼容性 — 新增 login_role 列可能影响旧模板导入
+
+### Source-Verified Facts (2026-04-11)
+
+- user_info.py: 7 种 UI 登录角色 (main/special/vice/camera/platform/super/idle)，bot 角色使用 phone+wechatId 登录不适用
+- api_login.py: platform 角色密码字段为 INFO['password']（非 super_admin_password）
+- base_params.py: PcImport.CtRBRcFNn2LnUPfJF5Yhu(i=2) 返回 list[dict]，包含 imei/articlesNo 字段
+- base_url.py: 登录接口 CDQ3XEEfT = {ENV}/auth/login，测试环境 erptest.epbox.cn
+
+## Session Continuity
+
+Last session: 2026-04-11T02:57:40.465Z
+Stopped at: Completed 74-01-PLAN.md
+Resume file: None

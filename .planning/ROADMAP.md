@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v0.9.1 ERP 全面集成重构** — Phases 74-78 (in progress)
 - ✅ **v0.9.0 Excel 批量导入功能开发** — Phases 70-73 (shipped 2026-04-09)
 - ✅ **v0.8.4 基于 v0.8.3 的研究优化** — Phases 67-69 (shipped 2026-04-07)
 - ✅ **v0.8.3 分析报告差距对表格填写影响** — Phases 65-66 (shipped 2026-04-06)
@@ -97,14 +98,112 @@
 
 </details>
 
+### 🚧 v0.9.1 ERP 全面集成重构 (In Progress)
+
+**Milestone Goal:** 跑通「Excel导入 → 前置API(含缓存) → AI执行UI → 断言(含缓存验证)」完整链路
+
+- [ ] **Phase 74: CacheService + ContextWrapper** — 内存KV缓存基础层，绑定 Run 生命周期
+- [ ] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置
+- [ ] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉
+- [ ] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言
+- [ ] **Phase 78: E2E Verification** — 销售出库场景端到端验证
+
+## Phase Details
+
+### Phase 74: CacheService + ContextWrapper
+**Goal**: QA 测试用例可以通过 CacheService 在步骤间传递参数，缓存数据在 Run 结束后自动清理
+**Depends on**: Nothing (foundation layer for v0.9.1)
+**Requirements**: CACHE-01, CACHE-02, CACHE-03
+**Success Criteria** (what must be TRUE):
+  1. CacheService.cache("order_no", "SO-2026-001") 后调用 cached("order_no") 返回 "SO-2026-001"
+  2. cached() 返回的数据是原始值的深拷贝，外部修改不影响缓存内部状态
+  3. ContextWrapper.context.cache() 和 context.cached() 正确委托到 CacheService
+  4. 同一个 CacheService 实例的所有缓存数据在 clear() 调用后全部清除
+**Plans:** 1/2 plans executed
+
+Plans:
+- [x] 74-01-PLAN.md — CacheService class with bidirectional deepcopy + unit tests
+- [ ] 74-02-PLAN.md — ContextWrapper cache/cached delegation + integration tests
+
+### Phase 75: AccountService + Settings
+**Goal**: 系统能根据角色名称解析出对应的 ERP 登录凭据和登录 URL，供后续自动登录使用
+**Depends on**: Nothing (independent of Phase 74, can run in parallel)
+**Requirements**: ACCT-01, ACCT-02, ACCT-03
+**Success Criteria** (what must be TRUE):
+  1. AccountService.resolve("main") 返回包含正确 account、password、role 的不可变 AccountInfo 对象
+  2. 对不存在的角色名称调用 resolve() 抛出明确的错误信息，列出所有可用角色
+  3. 登录 URL 从 settings.py ERP_LOGIN_URL 配置读取，不在任何 Excel 或前端代码中硬编码
+  4. AccountInfo 是 frozen dataclass，创建后无法修改字段值
+**Plans**: TBD
+
+**源码验证修正 (2026-04-11):**
+  - ROLE_MAP 中 platform 角色密码字段为 `password`（非 `super_admin_password`），已通过 `api_login.py:100-103` 确认
+  - bot 角色使用完全不同的登录方式（phone/wechatId/miniOpenid 等 9 字段 + 不同 URL），不适用 UI 自动登录注入，从 ROLE_MAP 中排除
+  - 有效 UI 登录角色为 7 种：main, special, vice, camera, platform, super, idle
+  - 所有角色的 INFO 字段映射已通过 `user_info.py` 和 `api_login.py` 双重验证
+
+Plans:
+- [ ] 75-01: AccountService 角色解析 (7 种 UI 登录角色) + AccountInfo frozen dataclass + 单元测试
+- [ ] 75-02: ERP_LOGIN_URL 配置项 + Settings 集成
+
+### Phase 76: DB Migration + Excel + Frontend
+**Goal**: Task 模型、Excel 导入导出和前端表单三端一致支持 login_role 字段，QA 可以为任务指定登录角色
+**Depends on**: Nothing (data layer, independent of Phases 74-75)
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05
+**Success Criteria** (what must be TRUE):
+  1. Task 表新增 login_role VARCHAR(20) nullable 列，现有 Task 数据不受影响（login_role 为 NULL）
+  2. 通过 API 创建 Task 时传入 login_role="main" 能正确存储，GET 响应中包含 login_role 字段
+  3. 导出的 Excel 模板第二列为「登录角色」，带有 7 种角色的下拉验证（排除 bot）
+  4. 导入含 login_role 的 Excel 文件能正确创建带角色的 Task
+  5. 前端任务表单显示 login_role 下拉选择器，列出 7 种中文角色名称
+**UI hint**: yes
+**Plans**: TBD
+
+Plans:
+- [ ] 76-01: Task 模型 login_role 字段 + Pydantic schema 更新 + DB migration
+- [ ] 76-02: Excel 模板 TEMPLATE_COLUMNS 更新 + 解析器映射 + 前端 login_role 下拉
+
+### Phase 77: TestFlowService + runs.py Integration
+**Goal**: 指定了 login_role 的任务自动走完整编排流程：登录 → 前置条件(含缓存) → 变量替换 → Agent执行 → 断言，未指定角色的任务走现有流程不变
+**Depends on**: Phase 74, Phase 75, Phase 76
+**Requirements**: FLOW-01, FLOW-02, FLOW-03, FLOW-04, CACHE-04, CACHE-05, ACCT-04
+**Success Criteria** (what must be TRUE):
+  1. 设置 login_role 的任务执行时自动注入登录步骤（打开URL → 输入账号 → 输入密码 → 点击登录），无需手动编写登录操作
+  2. 任务描述中的 {{cached:key}} 语法被正确替换为缓存中的实际值，不会触发 Jinja2 UndefinedError
+  3. 前置条件中 cache 类型 JSON 配置调用外部数据方法后，提取的字段值可通过 cached() 在后续步骤读取
+  4. 同一 Run 的前置条件阶段和断言阶段共享同一个 CacheService 实例，前置缓存的数据在断言中可访问
+  5. 未设置 login_role 的任务完全走现有执行路径，行为与 v0.9.0 一致，无回归
+**Plans**: TBD
+
+Plans:
+- [ ] 77-01: TestFlowService 编排框架（resolve account → create cache → preconditions → build description → assertions）
+- [ ] 77-02: 两阶段变量替换（regex {{cached:key}} + Jinja2 {{variable}}）+ cache 类型前置条件
+- [ ] 77-03: runs.py login_role 分支 + 共享 CacheService 实例 + 集成测试
+
+### Phase 78: E2E Verification
+**Goal**: 销售出库完整场景从 Excel 导入到报告生成端到端跑通，验证缓存传递、自动登录、断言验证全部协同工作
+**Depends on**: Phase 77
+**Requirements**: (no new requirements — validates CACHE-01 through FLOW-04)
+**Success Criteria** (what must be TRUE):
+  1. 通过 Excel 导入含 login_role="admin" 的销售出库任务，系统自动注入登录步骤并成功登录 ERP
+  2. 前置条件获取的数据（如订单号）通过 CacheService 传递到 AI 执行步骤中，Agent 正确使用缓存值填写表单
+  3. 任务执行完成后生成的报告包含完整步骤记录，登录步骤和业务步骤顺序正确
+  4. 未设置 login_role 的任务在 v0.9.1 版本中执行结果与 v0.9.0 一致，无回归
+**Plans**: TBD
+
+Plans:
+- [ ] 78-01: 销售出库场景 E2E 验证（Excel导入 → 自动登录 → 缓存传递 → 报告生成）
+- [ ] 78-02: 回归验证（无 login_role 任务 + 批量执行 + 已有 Excel 模板兼容）
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 70. Excel 模版设计 | v0.9.0 | 2/2 | Complete | 2026-04-08 |
-| 71. 批量导入工作流 | v0.9.0 | 2/2 | Complete | 2026-04-08 |
-| 72. 批量执行引擎 | v0.9.0 | 2/2 | Complete | 2026-04-09 |
-| 73. 批量进度 UI | v0.9.0 | 2/2 | Complete | 2026-04-09 |
+| 74. CacheService + ContextWrapper | v0.9.1 | 1/2 | In Progress|  |
+| 75. AccountService + Settings | v0.9.1 | 0/2 | Not started | - |
+| 76. DB Migration + Excel + Frontend | v0.9.1 | 0/2 | Not started | - |
+| 77. TestFlowService + runs.py | v0.9.1 | 0/3 | Not started | - |
+| 78. E2E Verification | v0.9.1 | 0/2 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-09 — v0.9.0 shipped*
+*Roadmap updated: 2026-04-11 — Phase 74 plans finalized*
