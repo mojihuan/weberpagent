@@ -1,5 +1,6 @@
-import { Globe, Hash, Clock, Calendar } from 'lucide-react'
+import { Globe, Hash, Clock, Calendar, UserCircle } from 'lucide-react'
 import type { Task } from '../../types'
+import { ROLE_LABELS } from '../../constants/roleLabels'
 
 interface TaskInfoProps {
   task: Task
@@ -17,6 +18,11 @@ function formatDate(dateStr: string): string {
 
 export function TaskInfo({ task }: TaskInfoProps) {
   const infoItems = [
+    {
+      icon: UserCircle,
+      label: '登录角色',
+      value: task.login_role ? ROLE_LABELS[task.login_role] || task.login_role : '未指定',
+    },
     { icon: Globe, label: '目标 URL', value: task.target_url },
     { icon: Hash, label: '最大步数', value: task.max_steps.toString() },
     { icon: Calendar, label: '创建时间', value: formatDate(task.created_at) },

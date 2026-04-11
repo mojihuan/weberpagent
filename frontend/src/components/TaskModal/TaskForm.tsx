@@ -6,6 +6,7 @@ import { DataMethodSelector } from './DataMethodSelector'
 import { AssertionSelector } from './AssertionSelector'
 import { externalOperationsApi } from '../../api/externalOperations'
 import { externalDataMethodsApi } from '../../api/externalDataMethods'
+import { ROLE_LABELS } from '../../constants/roleLabels'
 
 interface TaskFormProps {
   initialData?: Task
@@ -22,6 +23,7 @@ interface FormData {
   max_steps: number
   preconditions: string[]
   assertions: AssertionConfig[]
+  login_role: string | null
 }
 
 interface FormErrors {
@@ -37,6 +39,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
     max_steps: initialData?.max_steps || 20,
     preconditions: initialData?.preconditions || [''],
     assertions: initialData?.assertions || [],
+    login_role: initialData?.login_role || null,
   })
   const [errors, setErrors] = useState<FormErrors>({})
 
@@ -66,6 +69,7 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
         max_steps: initialData.max_steps,
         preconditions: initialData.preconditions || [''],
         assertions: initialData.assertions || [],
+        login_role: initialData.login_role || null,
       })
     }
   }, [initialData])
@@ -267,6 +271,25 @@ export function TaskForm({ initialData, onSubmit, onCancel, loading, mode }: Tas
           }`}
         />
         {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          登录角色 <span className="text-gray-400 text-xs">(可选)</span>
+        </label>
+        <select
+          value={formData.login_role || ''}
+          onChange={e => setFormData(prev => ({
+            ...prev,
+            login_role: e.target.value || null
+          }))}
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">未指定</option>
+          {Object.entries(ROLE_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
       </div>
 
       <div>

@@ -7,6 +7,7 @@ export interface Task {
   max_steps: number
   preconditions?: string[]
   assertions?: AssertionConfig[]
+  login_role?: string | null
   status: 'draft' | 'ready'
   created_at: string
   updated_at: string
@@ -20,6 +21,7 @@ export interface CreateTaskDto {
   max_steps: number
   preconditions?: string[]
   assertions?: AssertionConfig[]
+  login_role?: string | null
 }
 
 // UpdateTaskDto 更新任务请求
@@ -31,6 +33,7 @@ export interface UpdateTaskDto {
   status?: 'draft' | 'ready'
   preconditions?: string[]
   assertions?: AssertionConfig[]
+  login_role?: string | null
 }
 
 // RunStatus 执行状态
