@@ -122,3 +122,71 @@ class TestAssertionResultResponse:
                 created_at=datetime.now(),
             )
             assert response.status == status
+
+
+class TestTaskLoginRole:
+    """Tests for login_role field in Task schemas."""
+
+    def test_task_create_with_login_role(self):
+        from backend.db.schemas import TaskCreate
+
+        tc = TaskCreate(name="Test", description="Desc", login_role="main")
+        assert tc.login_role == "main"
+
+    def test_task_create_without_login_role(self):
+        from backend.db.schemas import TaskCreate
+
+        tc = TaskCreate(name="Test", description="Desc")
+        assert tc.login_role is None
+
+    def test_task_update_login_role(self):
+        from backend.db.schemas import TaskUpdate
+
+        tu = TaskUpdate(login_role="special")
+        assert tu.login_role == "special"
+
+    def test_task_update_login_role_clear(self):
+        from backend.db.schemas import TaskUpdate
+
+        tu = TaskUpdate(login_role=None)
+        assert tu.login_role is None
+
+    def test_task_response_from_orm_includes_login_role(self):
+        from backend.db.schemas import TaskResponse
+        from datetime import datetime
+
+        class MockTask:
+            id = "test1234"
+            name = "Test"
+            description = "Desc"
+            target_url = ""
+            max_steps = 10
+            status = "draft"
+            created_at = datetime(2026, 4, 11)
+            updated_at = datetime(2026, 4, 11)
+            preconditions = None
+            external_assertions = None
+            login_role = "main"
+
+        response = TaskResponse.model_validate(MockTask())
+        assert response.login_role == "main"
+
+    def test_task_response_from_orm_login_role_none(self):
+        from backend.db.schemas import TaskResponse
+        from datetime import datetime
+
+        class MockTask:
+            id = "test1234"
+            name = "Test"
+            description = "Desc"
+            target_url = ""
+            max_steps = 10
+            status = "draft"
+            created_at = datetime(2026, 4, 11)
+            updated_at = datetime(2026, 4, 11)
+            preconditions = None
+            external_assertions = None
+            login_role = None
+
+        response = TaskResponse.model_validate(MockTask())
+        assert response.login_role is None

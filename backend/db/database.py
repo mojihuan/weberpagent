@@ -61,3 +61,9 @@ async def init_db():
         columns = [row[1] for row in result]
         if "batch_id" not in columns:
             await conn.execute(text("ALTER TABLE runs ADD COLUMN batch_id VARCHAR(8)"))
+
+        # Phase 76: Add login_role column to tasks if missing
+        result = await conn.execute(text("PRAGMA table_info(tasks)"))
+        columns = [row[1] for row in result]
+        if "login_role" not in columns:
+            await conn.execute(text("ALTER TABLE tasks ADD COLUMN login_role VARCHAR(20)"))

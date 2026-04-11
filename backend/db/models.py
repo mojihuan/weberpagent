@@ -30,6 +30,8 @@ class Task(Base):
     preconditions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # 外部断言配置（JSON 字符串数组）Phase 25
     external_assertions: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # 登录角色（main/special/vice/camera/platform/super/idle）
+    login_role: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
 
     # 关系
     runs: Mapped[List["Run"]] = relationship("Run", back_populates="task")

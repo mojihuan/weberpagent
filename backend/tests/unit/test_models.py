@@ -289,3 +289,24 @@ def test_step_loop_intervention_stores_json():
     parsed = json.loads(step.loop_intervention)
     assert parsed["stagnation"] == 5
     assert parsed["intervention_triggered"] is True
+
+
+# ============================================================================
+# Task login_role field tests (Phase 76, DATA-01)
+# ============================================================================
+
+
+def test_task_login_role_field_exists():
+    """Task model has login_role VARCHAR(20) nullable column."""
+    from sqlalchemy import inspect
+
+    mapper = inspect(Task)
+    assert "login_role" in mapper.columns
+    col = mapper.columns["login_role"]
+    assert col.nullable is True
+
+
+def test_task_login_role_default_none():
+    """Task login_role defaults to None when not specified."""
+    task = Task(name="Test", description="Test desc")
+    assert task.login_role is None

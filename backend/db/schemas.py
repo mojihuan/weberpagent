@@ -16,6 +16,7 @@ class TaskBase(BaseModel):
     max_steps: int = Field(default=10, ge=1, le=100)
     preconditions: Optional[List[str]] = Field(default=None, description="前置条件代码列表")
     assertions: Optional[List[dict[str, Any]]] = Field(default=None, description="业务断言配置列表")
+    login_role: Optional[str] = Field(default=None, max_length=20, description="登录角色")
 
 
 class TaskCreate(TaskBase):
@@ -32,6 +33,7 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = Field(None, pattern="^(draft|ready)$")
     preconditions: Optional[List[str]] = Field(None, description="前置条件代码列表")
     assertions: Optional[List[dict[str, Any]]] = Field(None, description="业务断言配置列表")
+    login_role: Optional[str] = Field(None, max_length=20)
 
 
 class TaskResponse(BaseModel):
@@ -46,6 +48,7 @@ class TaskResponse(BaseModel):
     updated_at: datetime
     preconditions: Optional[List[str]] = None
     assertions: Optional[List[dict[str, Any]]] = None
+    login_role: Optional[str] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -64,6 +67,7 @@ class TaskResponse(BaseModel):
                 'updated_at': data.updated_at,
                 'preconditions': data.preconditions,
                 'assertions': data.external_assertions,  # 从 external_assertions 读取
+                'login_role': data.login_role,
             }
             return result
         return data
