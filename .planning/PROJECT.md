@@ -17,7 +17,19 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 **最新版本:** v0.9.0 Excel 批量导入功能开发 (shipped 2026-04-09)
 **Server online**: 121.40.191.49
-**当前进度:** Planning next milestone
+**当前进度:** v0.9.1 ERP 全面集成重构 — Phase 75 complete (AccountService + Settings)
+
+## Current Milestone: v0.9.1 ERP 全面集成重构
+
+**Goal:** 跑通「Excel导入 → 前置API(含缓存) → AI执行UI → 断言(含缓存验证)」完整链路
+
+**Target features:**
+- CacheService — 内存KV缓存，替代JSON文件方案，Run 级生命周期
+- AccountService — 多账号管理，从 user_info.py 读取，支持 8 种角色
+- TestFlowService — 流程编排，串联缓存+账号+前置+Agent+断言
+- Excel 模板更新 — 新增登录角色列，前置条件支持 cache 类型 JSON
+- DB migration — Task 增加 login_role 字段
+- 前端 login_role 下拉选择
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -85,6 +97,15 @@ v0.1-v0.4.2 核心功能:
 - ✓ DIFF-03: 分析 browser-use 版本变化和 API 差异 — Phase 63
 - ✓ DIFF-04: 分析 agent_service.py 中 Agent/Browser 配置演变 — Phase 63
 - ✓ RPT-01: 输出分析报告（完整技术版 + 精简摘要版）— Phase 64
+
+### Validated (v0.9.1)
+
+- ✓ CACHE-01: CacheService.cache() + cached() 基本存取 — Phase 74
+- ✓ CACHE-02: cached() 返回深拷贝，外部修改不影响缓存 — Phase 74
+- ✓ CACHE-03: ContextWrapper.cache()/cached() 委托到 CacheService — Phase 74
+- ✓ ACCT-01: AccountService.resolve("main") 返回不可变 AccountInfo — Phase 75
+- ✓ ACCT-02: resolve() 未知角色抛出 ValueError 列出所有可用角色 — Phase 75
+- ✓ ACCT-03: get_login_url() 从 settings.erp_base_url 组合 URL — Phase 75
 
 ### Validated (v0.9.0)
 
@@ -174,4 +195,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-09 after v0.9.0 milestone*
+*Last updated: 2026-04-11 after Phase 75 completion*

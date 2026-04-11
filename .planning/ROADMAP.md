@@ -103,7 +103,7 @@
 **Milestone Goal:** 跑通「Excel导入 → 前置API(含缓存) → AI执行UI → 断言(含缓存验证)」完整链路
 
 - [x] **Phase 74: CacheService + ContextWrapper** — 内存KV缓存基础层，绑定 Run 生命周期 (completed 2026-04-11)
-- [ ] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置
+- [x] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置 (completed 2026-04-11)
 - [ ] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉
 - [ ] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言
 - [ ] **Phase 78: E2E Verification** — 销售出库场景端到端验证
@@ -134,7 +134,7 @@ Plans:
   2. 对不存在的角色名称调用 resolve() 抛出明确的错误信息，列出所有可用角色
   3. 登录 URL 从 settings.py ERP_LOGIN_URL 配置读取，不在任何 Excel 或前端代码中硬编码
   4. AccountInfo 是 frozen dataclass，创建后无法修改字段值
-**Plans**: TBD
+**Plans:** 1/1 plans complete
 
 **源码验证修正 (2026-04-11):**
   - ROLE_MAP 中 platform 角色密码字段为 `password`（非 `super_admin_password`），已通过 `api_login.py:100-103` 确认
@@ -143,8 +143,7 @@ Plans:
   - 所有角色的 INFO 字段映射已通过 `user_info.py` 和 `api_login.py` 双重验证
 
 Plans:
-- [ ] 75-01: AccountService 角色解析 (7 种 UI 登录角色) + AccountInfo frozen dataclass + 单元测试
-- [ ] 75-02: ERP_LOGIN_URL 配置项 + Settings 集成
+- [ ] 75-01-PLAN.md — AccountService (ROLE_MAP + resolve + get_login_url) + AccountInfo frozen dataclass + TDD unit tests (ACCT-01, ACCT-02, ACCT-03)
 
 ### Phase 76: DB Migration + Excel + Frontend
 **Goal**: Task 模型、Excel 导入导出和前端表单三端一致支持 login_role 字段，QA 可以为任务指定登录角色
@@ -157,11 +156,11 @@ Plans:
   4. 导入含 login_role 的 Excel 文件能正确创建带角色的 Task
   5. 前端任务表单显示 login_role 下拉选择器，列出 7 种中文角色名称
 **UI hint**: yes
-**Plans**: TBD
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 76-01: Task 模型 login_role 字段 + Pydantic schema 更新 + DB migration
-- [ ] 76-02: Excel 模板 TEMPLATE_COLUMNS 更新 + 解析器映射 + 前端 login_role 下拉
+- [x] 76-01-PLAN.md — Task model login_role + Pydantic schemas + DB migration (DATA-01, DATA-02)
+- [ ] 76-02-PLAN.md — Excel template/parser + frontend login_role dropdown (DATA-03, DATA-04, DATA-05)
 
 ### Phase 77: TestFlowService + runs.py Integration
 **Goal**: 指定了 login_role 的任务自动走完整编排流程：登录 → 前置条件(含缓存) → 变量替换 → Agent执行 → 断言，未指定角色的任务走现有流程不变
@@ -199,11 +198,11 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 74. CacheService + ContextWrapper | v0.9.1 | 2/2 | Complete   | 2026-04-11 |
-| 75. AccountService + Settings | v0.9.1 | 0/2 | Not started | - |
-| 76. DB Migration + Excel + Frontend | v0.9.1 | 0/2 | Not started | - |
+| 74. CacheService + ContextWrapper | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
+| 75. AccountService + Settings | v0.9.1 | 0/1 | Complete    | 2026-04-11 |
+| 76. DB Migration + Excel + Frontend | v0.9.1 | 1/2 | In Progress|  |
 | 77. TestFlowService + runs.py | v0.9.1 | 0/3 | Not started | - |
 | 78. E2E Verification | v0.9.1 | 0/2 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-11 — Phase 74 plans finalized*
+*Roadmap updated: 2026-04-11 — Phase 76 plans finalized*
