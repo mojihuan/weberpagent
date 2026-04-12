@@ -104,7 +104,7 @@
 
 - [x] **Phase 74: CacheService + ContextWrapper** — 内存KV缓存基础层，绑定 Run 生命周期 (completed 2026-04-11)
 - [x] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置 (completed 2026-04-11)
-- [ ] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉
+- [x] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉 (completed 2026-04-11)
 - [ ] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言
 - [ ] **Phase 78: E2E Verification** — 销售出库场景端到端验证
 
@@ -143,7 +143,7 @@ Plans:
   - 所有角色的 INFO 字段映射已通过 `user_info.py` 和 `api_login.py` 双重验证
 
 Plans:
-- [ ] 75-01-PLAN.md — AccountService (ROLE_MAP + resolve + get_login_url) + AccountInfo frozen dataclass + TDD unit tests (ACCT-01, ACCT-02, ACCT-03)
+- [x] 75-01-PLAN.md — AccountService (ROLE_MAP + resolve + get_login_url) + AccountInfo frozen dataclass + TDD unit tests (ACCT-01, ACCT-02, ACCT-03)
 
 ### Phase 76: DB Migration + Excel + Frontend
 **Goal**: Task 模型、Excel 导入导出和前端表单三端一致支持 login_role 字段，QA 可以为任务指定登录角色
@@ -156,11 +156,11 @@ Plans:
   4. 导入含 login_role 的 Excel 文件能正确创建带角色的 Task
   5. 前端任务表单显示 login_role 下拉选择器，列出 7 种中文角色名称
 **UI hint**: yes
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 76-01-PLAN.md — Task model login_role + Pydantic schemas + DB migration (DATA-01, DATA-02)
-- [ ] 76-02-PLAN.md — Excel template/parser + frontend login_role dropdown (DATA-03, DATA-04, DATA-05)
+- [x] 76-02-PLAN.md — Excel template/parser + frontend login_role dropdown (DATA-03, DATA-04, DATA-05)
 
 ### Phase 77: TestFlowService + runs.py Integration
 **Goal**: 指定了 login_role 的任务自动走完整编排流程：登录 → 前置条件(含缓存) → 变量替换 → Agent执行 → 断言，未指定角色的任务走现有流程不变
@@ -172,12 +172,11 @@ Plans:
   3. 前置条件中 cache 类型 JSON 配置调用外部数据方法后，提取的字段值可通过 cached() 在后续步骤读取
   4. 同一 Run 的前置条件阶段和断言阶段共享同一个 CacheService 实例，前置缓存的数据在断言中可访问
   5. 未设置 login_role 的任务完全走现有执行路径，行为与 v0.9.0 一致，无回归
-**Plans**: TBD
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 77-01: TestFlowService 编排框架（resolve account → create cache → preconditions → build description → assertions）
-- [ ] 77-02: 两阶段变量替换（regex {{cached:key}} + Jinja2 {{variable}}）+ cache 类型前置条件
-- [ ] 77-03: runs.py login_role 分支 + 共享 CacheService 实例 + 集成测试
+- [x] 77-01-PLAN.md — TestFlowService (build_login_prefix + _build_description with two-phase substitution) + TDD unit tests (FLOW-01, FLOW-02, CACHE-05, ACCT-04)
+- [ ] 77-02-PLAN.md — runs.py login_role branch + shared CacheService + batches.py integration + integration tests (FLOW-03, FLOW-04, CACHE-04)
 
 ### Phase 78: E2E Verification
 **Goal**: 销售出库完整场景从 Excel 导入到报告生成端到端跑通，验证缓存传递、自动登录、断言验证全部协同工作
@@ -199,10 +198,10 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 74. CacheService + ContextWrapper | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
-| 75. AccountService + Settings | v0.9.1 | 0/1 | Complete    | 2026-04-11 |
-| 76. DB Migration + Excel + Frontend | v0.9.1 | 1/2 | In Progress|  |
-| 77. TestFlowService + runs.py | v0.9.1 | 0/3 | Not started | - |
+| 75. AccountService + Settings | v0.9.1 | 1/1 | Complete    | 2026-04-11 |
+| 76. DB Migration + Excel + Frontend | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
+| 77. TestFlowService + runs.py | v0.9.1 | 1/2 | In Progress|  |
 | 78. E2E Verification | v0.9.1 | 0/2 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-11 — Phase 76 plans finalized*
+*Roadmap updated: 2026-04-11 — Phase 77 plans finalized*
