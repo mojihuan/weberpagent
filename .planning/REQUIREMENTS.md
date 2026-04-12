@@ -11,7 +11,7 @@
 - [x] **CACHE-01**: CacheService 提供 cache(key, value) 存储和 cached(key) 读取，返回不可变副本
 - [x] **CACHE-02**: CacheService 生命周期绑定单个 Run，Run 结束自动销毁
 - [x] **CACHE-03**: ContextWrapper 新增 cache/cached 方法委托到 CacheService
-- [ ] **CACHE-04**: 前置条件支持 cache 类型 JSON 配置，调用外部数据方法并缓存提取字段
+- [x] **CACHE-04**: 前置条件支持 cache 类型 JSON 配置，调用外部数据方法并缓存提取字段
 - [x] **CACHE-05**: 任务描述中 {{cached:key}} 语法引用缓存值
 
 ### Account（多账号登录）
@@ -25,8 +25,8 @@
 
 - [x] **FLOW-01**: TestFlowService 编排完整流程：解析角色 → 创建缓存 → 执行前置 → 构建描述 → Agent执行 → 断言
 - [x] **FLOW-02**: 两阶段变量替换：regex 处理 {{cached:key}}，Jinja2 处理 {{variable}}
-- [ ] **FLOW-03**: run_agent_background 通过 task.login_role 分支：有值走新流程，无值走现有流程
-- [ ] **FLOW-04**: 共享 CacheService 实例贯穿前置条件和断言阶段
+- [x] **FLOW-03**: run_agent_background 通过 task.login_role 分支：有值走新流程，无值走现有流程
+- [x] **FLOW-04**: 共享 CacheService 实例贯穿前置条件和断言阶段
 
 ### Data（数据层）
 
@@ -74,7 +74,7 @@
 | CACHE-01 | Phase 74 | Complete |
 | CACHE-02 | Phase 74 | Complete |
 | CACHE-03 | Phase 74 | Complete |
-| CACHE-04 | Phase 77 | Pending |
+| CACHE-04 | Phase 77 | Complete |
 | CACHE-05 | Phase 77 | Complete |
 | ACCT-01 | Phase 75 | Pending |
 | ACCT-02 | Phase 75 | Pending |
@@ -82,8 +82,8 @@
 | ACCT-04 | Phase 77 | Complete |
 | FLOW-01 | Phase 77 | Complete |
 | FLOW-02 | Phase 77 | Complete |
-| FLOW-03 | Phase 77 | Pending |
-| FLOW-04 | Phase 77 | Pending |
+| FLOW-03 | Phase 77 | Complete |
+| FLOW-04 | Phase 77 | Complete |
 | DATA-01 | Phase 76 | Complete |
 | DATA-02 | Phase 76 | Complete |
 | DATA-03 | Phase 76 | Pending |

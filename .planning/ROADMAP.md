@@ -105,7 +105,7 @@
 - [x] **Phase 74: CacheService + ContextWrapper** — 内存KV缓存基础层，绑定 Run 生命周期 (completed 2026-04-11)
 - [x] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置 (completed 2026-04-11)
 - [x] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉 (completed 2026-04-11)
-- [ ] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言
+- [x] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言 (completed 2026-04-12)
 - [ ] **Phase 78: E2E Verification** — 销售出库场景端到端验证
 
 ## Phase Details
@@ -172,11 +172,11 @@ Plans:
   3. 前置条件中 cache 类型 JSON 配置调用外部数据方法后，提取的字段值可通过 cached() 在后续步骤读取
   4. 同一 Run 的前置条件阶段和断言阶段共享同一个 CacheService 实例，前置缓存的数据在断言中可访问
   5. 未设置 login_role 的任务完全走现有执行路径，行为与 v0.9.0 一致，无回归
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 77-01-PLAN.md — TestFlowService (build_login_prefix + _build_description with two-phase substitution) + TDD unit tests (FLOW-01, FLOW-02, CACHE-05, ACCT-04)
-- [ ] 77-02-PLAN.md — runs.py login_role branch + shared CacheService + batches.py integration + integration tests (FLOW-03, FLOW-04, CACHE-04)
+- [x] 77-02-PLAN.md — runs.py login_role branch + shared CacheService + batches.py integration + integration tests (FLOW-03, FLOW-04, CACHE-04)
 
 ### Phase 78: E2E Verification
 **Goal**: 销售出库完整场景从 Excel 导入到报告生成端到端跑通，验证缓存传递、自动登录、断言验证全部协同工作
@@ -200,7 +200,7 @@ Plans:
 | 74. CacheService + ContextWrapper | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
 | 75. AccountService + Settings | v0.9.1 | 1/1 | Complete    | 2026-04-11 |
 | 76. DB Migration + Excel + Frontend | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
-| 77. TestFlowService + runs.py | v0.9.1 | 1/2 | In Progress|  |
+| 77. TestFlowService + runs.py | v0.9.1 | 2/2 | Complete   | 2026-04-12 |
 | 78. E2E Verification | v0.9.1 | 0/2 | Not started | - |
 
 ---

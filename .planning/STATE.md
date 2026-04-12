@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.9.1
 milestone_name: ERP 全面集成重构
-status: Ready to execute
-stopped_at: Completed 77-01-PLAN.md
-last_updated: "2026-04-11T16:27:51.466Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 77-02-PLAN.md
+last_updated: "2026-04-12T00:30:13.247Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -65,6 +65,9 @@ Recent decisions affecting current work:
 - [Phase 77]: Regex phase before Jinja2 phase in _build_description -- prevents StrictUndefined crash on {{cached:xxx}}
 - [Phase 77]: Missing cache keys produce empty string + warning log, not KeyError -- graceful degradation per D-05
 - [Phase 77]: Jinja2 UndefinedError caught gracefully -- returns original text with warning log
+- [Phase 77]: login_role=None default ensures zero regression for existing tasks
+- [Phase 77]: Lazy imports inside if login_role block avoid circular dependencies, keep non-login path unchanged
+- [Phase 77]: Shared CacheService created once at function top, threaded through PreconditionService and assertion ContextWrapper
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-11T16:27:51.464Z
-Stopped at: Completed 77-01-PLAN.md
+Last session: 2026-04-12T00:30:13.245Z
+Stopped at: Completed 77-02-PLAN.md
 Resume file: None
