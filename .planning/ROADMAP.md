@@ -179,19 +179,19 @@ Plans:
 - [x] 77-02-PLAN.md — runs.py login_role branch + shared CacheService + batches.py integration + integration tests (FLOW-03, FLOW-04, CACHE-04)
 
 ### Phase 78: E2E Verification
-**Goal**: 销售出库完整场景从 Excel 导入到报告生成端到端跑通，验证缓存传递、自动登录、断言验证全部协同工作
+**Goal**: Mock 集成测试验证 v0.9.1 完整集成链路（缓存传递、自动登录、变量替换、断言验证），核心回归确保零回归
 **Depends on**: Phase 77
 **Requirements**: (no new requirements — validates CACHE-01 through FLOW-04)
 **Success Criteria** (what must be TRUE):
-  1. 通过 Excel 导入含 login_role="admin" 的销售出库任务，系统自动注入登录步骤并成功登录 ERP
-  2. 前置条件获取的数据（如订单号）通过 CacheService 传递到 AI 执行步骤中，Agent 正确使用缓存值填写表单
-  3. 任务执行完成后生成的报告包含完整步骤记录，登录步骤和业务步骤顺序正确
+  1. 通过 Mock 集成测试验证 login_role="main" 的销售出库完整链路：登录注入 → 缓存传递 → 变量替换 → Agent 执行 → 断言缓存读取 (per D-01, corrected from "admin" to "main")
+  2. 前置条件获取的数据（如订单号）通过 CacheService 传递到 AI 执行步骤中，{{cached:key}} 被正确替换为缓存值
+  3. 任务执行完成后生成的报告步骤顺序正确，登录步骤出现在业务步骤之前
   4. 未设置 login_role 的任务在 v0.9.1 版本中执行结果与 v0.9.0 一致，无回归
-**Plans**: TBD
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 78-01: 销售出库场景 E2E 验证（Excel导入 → 自动登录 → 缓存传递 → 报告生成）
-- [ ] 78-02: 回归验证（无 login_role 任务 + 批量执行 + 已有 Excel 模板兼容）
+- [x] 78-01-PLAN.md — Mock 集成测试：销售出库完整链路（login injection + cache transfer + variable substitution + assertion cache read）
+- [ ] 78-02-PLAN.md — 核心回归测试（login_role=None 现有路径 + 报告步骤顺序验证）
 
 ## Progress
 
@@ -200,8 +200,8 @@ Plans:
 | 74. CacheService + ContextWrapper | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
 | 75. AccountService + Settings | v0.9.1 | 1/1 | Complete    | 2026-04-11 |
 | 76. DB Migration + Excel + Frontend | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
-| 77. TestFlowService + runs.py | v0.9.1 | 2/2 | Complete   | 2026-04-12 |
-| 78. E2E Verification | v0.9.1 | 0/2 | Not started | - |
+| 77. TestFlowService + runs.py | v0.9.1 | 2/2 | Complete    | 2026-04-12 |
+| 78. E2E Verification | v0.9.1 | 1/2 | In Progress|  |
 
 ---
-*Roadmap updated: 2026-04-11 — Phase 77 plans finalized*
+*Roadmap updated: 2026-04-12 — Phase 78 plans finalized*

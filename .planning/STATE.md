@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.9.1
 milestone_name: ERP 全面集成重构
-status: In progress
-stopped_at: Completed 78-CONTEXT.md
-last_updated: "2026-04-12T01:15:00.000Z"
+status: Ready to execute
+stopped_at: Completed 78-01-PLAN.md
+last_updated: "2026-04-12T02:57:49.608Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-04-11)
 
 ## Current Position
 
-Phase: 78
-Plan: Not started
+Phase: 78 (e2e-verification) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Recent decisions affecting current work:
 - [Phase 77]: login_role=None default ensures zero regression for existing tasks
 - [Phase 77]: Lazy imports inside if login_role block avoid circular dependencies, keep non-login path unchanged
 - [Phase 77]: Shared CacheService created once at function top, threaded through PreconditionService and assertion ContextWrapper
+- [Phase 78]: Inline mock setup instead of helper with tuple unpacking (Python 3.11 does not support *args in with statement)
 
 ### Pending Todos
 
@@ -88,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-12T01:15:00.000Z
-Stopped at: Completed 78-CONTEXT.md
+Last session: 2026-04-12T02:57:49.605Z
+Stopped at: Completed 78-01-PLAN.md
 Resume file: None
