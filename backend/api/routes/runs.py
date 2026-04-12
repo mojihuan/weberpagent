@@ -61,6 +61,7 @@ async def run_agent_background(
     preconditions: list[str] | None = None,
     external_assertions: list[dict] | None = None,
     target_url: str | None = None,
+    login_role: str | None = None,
 ):
     """后台执行 agent 任务"""
     logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
@@ -72,6 +73,19 @@ async def run_agent_background(
     # 获取外部模块路径配置
     settings = get_settings()
     external_module_path = settings.erp_api_module_path
+
+    # Resolve login credentials if login_role is set (per D-14, D-15)
+    account_info = None
+    login_url = None
+    shared_cache = None
+    if login_role:
+        from backend.core.account_service import account_service
+        from backend.core.cache_service import CacheService
+
+        account_info = account_service.resolve(login_role)
+        login_url = account_service.get_login_url()
+        shared_cache = CacheService()
+        logger.info(f"[{run_id}] 登录角色: {login_role}, 账号: {account_info.account}")
 
     async with async_session() as session:
         run_repo = RunRepository(session)
@@ -86,7 +100,7 @@ async def run_agent_background(
         context: dict[str, Any] = {}
 
         if preconditions:
-            precondition_service = PreconditionService(external_module_path=external_module_path)
+            precondition_service = PreconditionService(external_module_path=external_module_path, cache=shared_cache)
 
             for i, code in enumerate(preconditions):
                 if not code.strip():
@@ -144,6 +158,22 @@ async def run_agent_background(
             # 替换 task_description 中的变量
             task_description = PreconditionService.substitute_variables(task_description, context)
             logger.info(f"[{run_id}] 变量替换后的任务描述: {task_description[:100]}...")
+
+        # Build full description with login prefix if login_role is set (per D-01, D-03)
+        if account_info and login_url:
+            from backend.core.test_flow_service import TestFlowService
+
+            flow = TestFlowService()
+            cache_values = shared_cache.all() if shared_cache else {}
+            task_description = flow._build_description(
+                task_description=task_description,
+                login_url=login_url,
+                account=account_info.account,
+                password=account_info.password,
+                context=context if isinstance(context, dict) else {},
+                cache_values=cache_values,
+            )
+            logger.info(f"[{run_id}] 注入登录步骤后的任务描述: {task_description[:150]}...")
 
         # === 前置条件执行结束 ===
 
@@ -211,13 +241,14 @@ async def run_agent_background(
 
         try:
             logger.info(f"[{run_id}] 开始执行 agent_service.run_with_cleanup...")
+            effective_target_url = None if login_role else target_url
             result = await agent_service.run_with_cleanup(
                 task=task_description,
                 run_id=run_id,
                 on_step=on_step,
                 max_steps=max_steps,
                 llm_config=llm_config,
-                target_url=target_url,
+                target_url=effective_target_url,
             )
             logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
 
@@ -265,7 +296,7 @@ async def run_agent_background(
 
                 # Create context wrapper if not already created
                 if not isinstance(context, ContextWrapper):
-                    context_wrapper = ContextWrapper()
+                    context_wrapper = ContextWrapper(cache=shared_cache)
                     context_wrapper._data = context.copy() if context else {}
                 else:
                     context_wrapper = context
@@ -469,6 +500,7 @@ async def create_run(
         preconditions,
         external_assertions,  # Phase 25: external assertions
         task.target_url,  # 目标 URL
+        task.login_role,  # Login role for ERP integration (per D-15)
     )
 
     return run

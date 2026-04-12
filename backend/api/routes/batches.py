@@ -72,6 +72,7 @@ async def create_batch(request: BatchCreateRequest):
                 "preconditions": preconditions,
                 "external_assertions": external_assertions,
                 "target_url": task.target_url,
+                "login_role": task.login_role,
             })
 
         # Start batch execution in background (fire-and-forget)

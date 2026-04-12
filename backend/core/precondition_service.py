@@ -209,14 +209,15 @@ class PreconditionService:
     通过 context['变量名'] 存储结果供后续步骤使用。
     """
 
-    def __init__(self, external_module_path: str | None = None):
+    def __init__(self, external_module_path: str | None = None, *, cache: CacheService | None = None):
         """初始化服务
 
         Args:
             external_module_path: 外部 API 模块路径（可选）
+            cache: External CacheService instance to share across phases (keyword-only per D-08)
         """
         self.external_module_path = external_module_path
-        self.context: ContextWrapper = ContextWrapper()
+        self.context: ContextWrapper = ContextWrapper(cache=cache)
 
     def _setup_execution_env(self) -> dict:
         """创建执行环境
