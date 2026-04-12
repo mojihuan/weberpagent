@@ -106,7 +106,7 @@
 - [x] **Phase 75: AccountService + Settings** — 多角色账号解析与登录URL配置 (completed 2026-04-11)
 - [x] **Phase 76: DB Migration + Excel + Frontend** — 数据层变更：login_role 字段、Excel模板、前端下拉 (completed 2026-04-11)
 - [x] **Phase 77: TestFlowService + runs.py Integration** — 流程编排层，串联缓存+账号+前置+Agent+断言 (completed 2026-04-12)
-- [ ] **Phase 78: E2E Verification** — 销售出库场景端到端验证
+- [x] **Phase 78: E2E Verification** — 销售出库场景端到端验证 (completed 2026-04-12)
 
 ## Phase Details
 
@@ -187,11 +187,11 @@ Plans:
   2. 前置条件获取的数据（如订单号）通过 CacheService 传递到 AI 执行步骤中，{{cached:key}} 被正确替换为缓存值
   3. 任务执行完成后生成的报告步骤顺序正确，登录步骤出现在业务步骤之前
   4. 未设置 login_role 的任务在 v0.9.1 版本中执行结果与 v0.9.0 一致，无回归
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 78-01-PLAN.md — Mock 集成测试：销售出库完整链路（login injection + cache transfer + variable substitution + assertion cache read）
-- [ ] 78-02-PLAN.md — 核心回归测试（login_role=None 现有路径 + 报告步骤顺序验证）
+- [x] 78-02-PLAN.md — 核心回归测试（login_role=None 现有路径 + 报告步骤顺序验证）
 
 ## Progress
 
@@ -201,7 +201,7 @@ Plans:
 | 75. AccountService + Settings | v0.9.1 | 1/1 | Complete    | 2026-04-11 |
 | 76. DB Migration + Excel + Frontend | v0.9.1 | 2/2 | Complete    | 2026-04-11 |
 | 77. TestFlowService + runs.py | v0.9.1 | 2/2 | Complete    | 2026-04-12 |
-| 78. E2E Verification | v0.9.1 | 1/2 | In Progress|  |
+| 78. E2E Verification | v0.9.1 | 2/2 | Complete   | 2026-04-12 |
 
 ---
 *Roadmap updated: 2026-04-12 — Phase 78 plans finalized*
