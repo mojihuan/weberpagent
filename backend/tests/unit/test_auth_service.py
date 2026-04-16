@@ -78,7 +78,7 @@ async def test_fetch_token_timeout():
 
     error_msg = str(exc_info.value)
     assert "main" in error_msg
-    assert "timeout" in error_msg.lower()
+    assert "超时" in error_msg
 
 
 @pytest.mark.asyncio
@@ -116,7 +116,7 @@ async def test_fetch_token_missing_data():
             await service.fetch_token("Y59800075", "secret", role="main")
 
     error_msg = str(exc_info.value)
-    assert "access_token" in error_msg.lower()
+    assert "响应格式异常" in error_msg
 
 
 # ---------------------------------------------------------------------------
