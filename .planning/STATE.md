@@ -1,48 +1,49 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.9.1
-milestone_name: ERP 全面集成重构
+milestone: v0.9.2
+milestone_name: Cookie 预注入免登录
 status: Phase complete — ready for verification
-stopped_at: Completed 78-02-PLAN.md
-last_updated: "2026-04-12T03:08:08.741Z"
+stopped_at: Completed 79-01-PLAN.md
+last_updated: "2026-04-16T14:48:09.902Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-11)
+See: .planning/PROJECT.md (updated 2026-04-16)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 78 — e2e-verification
+**Current focus:** Phase 79 — Token 获取与 Storage State 构造
 
 ## Last Shipped
 
-**v0.9.0 Excel 批量导入功能开发** (2026-04-09)
+**v0.9.1 ERP 全面集成重构** (2026-04-12)
 
-- Phase 70: Excel 模版设计 — TEMPLATE_COLUMNS + generate_template() + ExcelParser
-- Phase 71: 批量导入工作流 — ImportModal 三步状态机 + 原子批量创建
-- Phase 72: 批量执行引擎 — Semaphore 并发控制 + BatchExecutionService
-- Phase 73: 批量进度 UI — 2s 轮询 + 任务卡片 + 点击导航
+- Phase 74: CacheService + ContextWrapper — 内存KV缓存基础层
+- Phase 75: AccountService + Settings — 多角色账号解析
+- Phase 76: DB Migration + Excel + Frontend — login_role 字段
+- Phase 77: TestFlowService + runs.py Integration — 流程编排层
+- Phase 78: E2E Verification — Mock 集成测试验证
 
 **Server online**: 121.40.191.49
 
 ## Current Position
 
-Phase: 78 (e2e-verification) — EXECUTING
-Plan: 2 of 2
+Phase: 79 (Token 获取与 Storage State 构造) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
 **Velocity:**
 
 - Total plans completed: 0 (this milestone)
-- Previous milestone (v0.9.0): 8 plans across 4 phases
+- Previous milestone (v0.9.1): 9 plans across 5 phases
 
 *Updated after each plan completion*
 
@@ -51,25 +52,16 @@ Plan: 2 of 2
 ### Decisions
 
 Key decisions moved to PROJECT.md Key Decisions table.
-v0.9.0 decisions archived in milestones/v0.9.0-ROADMAP.md.
 
 Recent decisions affecting current work:
 
-- v0.9.1: CacheService 用 Python dict 而非 Redis — 单进程部署，内存足够
-- v0.9.1: AccountInfo frozen dataclass — 不可变性保证，无需 Pydantic
-- v0.9.1: login_role nullable 列 — 向后兼容，现有任务不受影响
-- [Phase 74]: Bidirectional deepcopy: copy.deepcopy on both cache() store and cached() retrieve for full immutability isolation
-- [Phase 74]: Keyword-only cache parameter prevents positional argument breakage across 15+ call sites
-- [Phase 76]: login_role nullable VARCHAR(20) -- backward compatible, existing tasks unaffected
-- [Phase 76]: login_role in from_orm_model() result dict -- prevents API silently omitting the field
-- [Phase 77]: Regex phase before Jinja2 phase in _build_description -- prevents StrictUndefined crash on {{cached:xxx}}
-- [Phase 77]: Missing cache keys produce empty string + warning log, not KeyError -- graceful degradation per D-05
-- [Phase 77]: Jinja2 UndefinedError caught gracefully -- returns original text with warning log
-- [Phase 77]: login_role=None default ensures zero regression for existing tasks
-- [Phase 77]: Lazy imports inside if login_role block avoid circular dependencies, keep non-login path unchanged
-- [Phase 77]: Shared CacheService created once at function top, threaded through PreconditionService and assertion ContextWrapper
-- [Phase 78]: Inline mock setup instead of helper with tuple unpacking (Python 3.11 does not support *args in with statement)
-- [Phase 78]: Inline mock setup in each test (no helper) to avoid Python 3.11 tuple unpacking limitation in with statements
+- v0.9.2: Cookie 预注入方案 — HTTP API 预获取 token -> 注入 BrowserSession -> 跳过 5 步登录
+- v0.9.2: 失败回退 — Cookie 注入失败自动回退到现有文字登录指令
+- v0.9.2: 批量执行 — 每个任务独立获取 token 并注入，不复用浏览器实例
+- v0.9.2: 3-phase structure — Auth infra (79) -> Flow integration (80) -> Batch + compat (81)
+- [Phase 79]: httpx.AsyncClient with 10s timeout for ERP token fetch
+- [Phase 79]: storage_state dict passed directly to BrowserSession, no file I/O
+- [Phase 79]: TokenFetchError propagates from factory, caller handles fallback
 
 ### Pending Todos
 
@@ -77,19 +69,20 @@ None.
 
 ### Blockers/Concerns
 
-- Jinja2 StrictUndefined 对 {{cached:key}} — 需在 regex 替换后再传 Jinja2，否则 UndefinedError
-- ContextWrapper split-brain — 必须在 run_agent_background 顶部创建唯一 CacheService 实例
-- Excel 模板列变更兼容性 — 新增 login_role 列可能影响旧模板导入
+- ERP Web 认证机制需确认 — Cookie 还是 localStorage 存储 token，影响 storage_state 构造策略 (Phase 79 must resolve)
+- browser-use storage_state 格式需验证 — 是否兼容 Playwright 的 storage_state JSON 格式 (Phase 79 must verify)
 
-### Source-Verified Facts (2026-04-11)
+### Source-Verified Facts (2026-04-16)
 
-- user_info.py: 7 种 UI 登录角色 (main/special/vice/camera/platform/super/idle)，bot 角色使用 phone+wechatId 登录不适用
-- api_login.py: platform 角色密码字段为 INFO['password']（非 super_admin_password）
-- base_params.py: PcImport.CtRBRcFNn2LnUPfJF5Yhu(i=2) 返回 list[dict]，包含 imei/articlesNo 字段
-- base_url.py: 登录接口 CDQ3XEEfT = {ENV}/auth/login，测试环境 erptest.epbox.cn
+- external_precondition_bridge.py: LoginApi 使用 HTTP POST 获取 access_token，非 Playwright 浏览器操作
+- agent_service.py: create_browser_session() 每次创建全新 BrowserSession，headless=True
+- test_flow_service.py: 5 步登录指令是纯文本注入，AI Agent 在同一浏览器会话中执行全部步骤
+- browser-use BrowserProfile 支持 storage_state 参数预加载 Cookie/localStorage
+- browser-use BrowserSession 支持 export_storage_state() 导出认证状态
+- v0.9.1 AccountService 已支持 7 种 UI 角色解析，Phase 79 可直接复用
 
 ## Session Continuity
 
-Last session: 2026-04-12T03:08:08.739Z
-Stopped at: Completed 78-02-PLAN.md
+Last session: 2026-04-16T14:48:09.901Z
+Stopped at: Completed 79-01-PLAN.md
 Resume file: None
