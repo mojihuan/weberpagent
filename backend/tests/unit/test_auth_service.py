@@ -191,3 +191,104 @@ def test_extract_origin_no_path():
     """_extract_origin returns URL unchanged when no path."""
     result = AuthService._extract_origin("https://erp.example.com")
     assert result == "https://erp.example.com"
+
+
+# ---------------------------------------------------------------------------
+# create_authenticated_session tests (auth_session_factory)
+# ---------------------------------------------------------------------------
+
+
+SAMPLE_STORAGE_STATE = {
+    "cookies": [],
+    "origins": [
+        {
+            "origin": "https://erptest.epbox.cn",
+            "localStorage": [
+                {"name": "Admin-Token", "value": "test-jwt"},
+                {"name": "Admin-Expires-In", "value": "720"},
+            ],
+        }
+    ],
+}
+
+
+@pytest.mark.asyncio
+async def test_create_authenticated_session_success():
+    """create_authenticated_session creates BrowserSession with storage_state."""
+    mock_session = MagicMock()
+
+    with (
+        patch(
+            "backend.core.auth_session_factory.auth_service"
+        ) as mock_auth_svc,
+        patch(
+            "backend.core.auth_session_factory.BrowserSession",
+            return_value=mock_session,
+        ) as mock_bs_cls,
+    ):
+        mock_auth_svc.get_storage_state_for_role = AsyncMock(
+            return_value=SAMPLE_STORAGE_STATE
+        )
+
+        from backend.core.auth_session_factory import create_authenticated_session
+
+        result = await create_authenticated_session("main")
+
+    assert result is mock_session
+    mock_auth_svc.get_storage_state_for_role.assert_awaited_once_with("main")
+    mock_bs_cls.assert_called_once()
+    call_kwargs = mock_bs_cls.call_args.kwargs
+    assert call_kwargs["storage_state"] == SAMPLE_STORAGE_STATE
+
+
+@pytest.mark.asyncio
+async def test_create_authenticated_session_preserves_browser_args():
+    """create_authenticated_session uses SERVER_BROWSER_ARGS and ViewportSize."""
+    mock_session = MagicMock()
+
+    with (
+        patch(
+            "backend.core.auth_session_factory.auth_service"
+        ) as mock_auth_svc,
+        patch(
+            "backend.core.auth_session_factory.BrowserSession",
+            return_value=mock_session,
+        ) as mock_bs_cls,
+        patch(
+            "backend.core.auth_session_factory.SERVER_BROWSER_ARGS",
+            ["--no-sandbox", "--disable-gpu"],
+        ),
+    ):
+        mock_auth_svc.get_storage_state_for_role = AsyncMock(
+            return_value=SAMPLE_STORAGE_STATE
+        )
+
+        from backend.core.auth_session_factory import create_authenticated_session
+
+        await create_authenticated_session("main")
+
+    call_kwargs = mock_bs_cls.call_args.kwargs
+    assert call_kwargs["args"] == ["--no-sandbox", "--disable-gpu"]
+    viewport = call_kwargs["viewport"]
+    assert viewport.width == 1920
+    assert viewport.height == 1080
+
+
+@pytest.mark.asyncio
+async def test_create_authenticated_session_auth_failure():
+    """create_authenticated_session propagates TokenFetchError (no catch)."""
+    from backend.core.auth_service import TokenFetchError
+
+    with patch(
+        "backend.core.auth_session_factory.auth_service"
+    ) as mock_auth_svc:
+        mock_auth_svc.get_storage_state_for_role = AsyncMock(
+            side_effect=TokenFetchError(role="main", reason="请求超时 (>10s)")
+        )
+
+        from backend.core.auth_session_factory import create_authenticated_session
+
+        with pytest.raises(TokenFetchError) as exc_info:
+            await create_authenticated_session("main")
+
+    assert "main" in str(exc_info.value)
