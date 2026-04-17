@@ -116,7 +116,7 @@
 
 - [x] **Phase 79: Token 获取与 Storage State 构造** — LoginApi HTTP 获取 token，构造 browser-use 可用的 storage_state (completed 2026-04-16)
 - [x] **Phase 80: 执行流程集成** — Cookie 注入成功跳过登录、失败自动回退 + warning 日志 (completed 2026-04-17)
-- [ ] **Phase 81: 批量执行与兼容性验证** — 批量任务独立注入、7 种角色覆盖、零回归保证
+- [x] **Phase 81: 批量执行与兼容性验证** — 批量任务独立注入、7 种角色覆盖、零回归保证 (completed 2026-04-17)
 
 ## Phase Details
 
@@ -161,7 +161,7 @@ Plans:
 
 Plans:
 - [x] 81-01-PLAN.md — Fix browser-use dict storage_state bug + E2E test infrastructure + 7-role verification (COMPAT-02)
-- [ ] 81-02-PLAN.md — Batch independent injection E2E tests + no-role regression tests (FLOW-03, COMPAT-01)
+- [x] 81-02-PLAN.md — Batch independent injection E2E tests + no-role regression tests (FLOW-03, COMPAT-01)
 
 ## Progress
 
@@ -172,7 +172,7 @@ Phases execute in numeric order: 79 -> 80 -> 81
 |-------|-----------|----------------|--------|-----------|
 | 79. Token 获取与 Storage State 构造 | v0.9.2 | 1/1 | Complete    | 2026-04-16 |
 | 80. 执行流程集成 | v0.9.2 | 1/1 | Complete    | 2026-04-17 |
-| 81. 批量执行与兼容性验证 | v0.9.2 | 1/2 | In Progress|  |
+| 81. 批量执行与兼容性验证 | v0.9.2 | 2/2 | Complete   | 2026-04-17 |
 
 ---
 *Roadmap updated: 2026-04-17 — Phase 81 planned (2 plans, waves 1-2)*

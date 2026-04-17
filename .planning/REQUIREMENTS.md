@@ -15,11 +15,11 @@
 
 - [x] **FLOW-01**: Cookie 预注入成功时，跳过 TestFlowService 的 5 步登录文字指令，Agent 直接从 ERP 首页开始业务操作
 - [x] **FLOW-02**: Cookie 预注入失败时（API 超时/网络错误/返回异常），自动回退到现有 5 步文字登录流程，并记录 warning 日志
-- [ ] **FLOW-03**: 批量执行时，每个任务独立获取 token 并注入到新 BrowserSession，不跨任务复用浏览器实例
+- [x] **FLOW-03**: 批量执行时，每个任务独立获取 token 并注入到新 BrowserSession，不跨任务复用浏览器实例
 
 ### COMPAT (兼容性)
 
-- [ ] **COMPAT-01**: 无 login_role 的任务执行路径完全不变，行为与 v0.9.1 一致
+- [x] **COMPAT-01**: 无 login_role 的任务执行路径完全不变，行为与 v0.9.1 一致
 - [x] **COMPAT-02**: 支持 v0.9.1 定义的全部 7 种 UI 角色 (main/special/vice/camera/platform/super/idle)
 
 ## v2 Requirements
@@ -48,8 +48,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-02 | Phase 79 | Complete |
 | FLOW-01 | Phase 80 | Complete |
 | FLOW-02 | Phase 80 | Complete |
-| FLOW-03 | Phase 81 | Pending |
-| COMPAT-01 | Phase 81 | Pending |
+| FLOW-03 | Phase 81 | Complete |
+| COMPAT-01 | Phase 81 | Complete |
 | COMPAT-02 | Phase 81 | Complete |
 
 **Coverage:**
