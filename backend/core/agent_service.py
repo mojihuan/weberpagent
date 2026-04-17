@@ -142,6 +142,7 @@ class AgentService:
         max_steps: int = 10,
         llm_config: dict | None = None,
         target_url: str | None = None,
+        browser_session: BrowserSession | None = None,
     ) -> Any:
         """带流式回调的执行
 
@@ -152,6 +153,7 @@ class AgentService:
             max_steps: 最大执行步数
             llm_config: LLM 配置
             target_url: 目标 URL（执行前先导航到此页面）
+            browser_session: Optional pre-authenticated BrowserSession
 
         Returns:
             Agent 执行历史
@@ -160,8 +162,9 @@ class AgentService:
         llm = create_llm(llm_config)
         logger.info(f"[{run_id}] LLM 创建成功: type={type(llm).__name__}, model={getattr(llm, 'model_name', 'unknown')}")
 
-        # 创建本地浏览器会话
-        browser_session = create_browser_session()
+        # Use provided session or create default
+        if browser_session is None:
+            browser_session = create_browser_session()
 
         # 存储引用供 step_callback 访问 (Phase 42, D-01)
         self._browser_session = browser_session
@@ -431,6 +434,7 @@ class AgentService:
         max_steps: int = 10,
         llm_config: dict | None = None,
         target_url: str | None = None,
+        browser_session: BrowserSession | None = None,
     ) -> Any:
         """Execute task with guaranteed cleanup logging
 
@@ -447,6 +451,7 @@ class AgentService:
             max_steps: Maximum execution steps
             llm_config: LLM configuration
             target_url: Target URL to navigate to before execution
+            browser_session: Optional pre-authenticated BrowserSession
 
         Returns:
             Agent execution history
@@ -463,6 +468,7 @@ class AgentService:
                 max_steps=max_steps,
                 llm_config=llm_config,
                 target_url=target_url,
+                browser_session=browser_session,
             )
             logger.info(f"[{run_id}] Execution completed successfully")
             return result

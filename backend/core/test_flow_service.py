@@ -122,6 +122,23 @@ class TestFlowService:
 
         return self._CACHED_PATTERN.sub(_replacer, text)
 
+    def replace_cached_variables_only(
+        self, task_description: str, cache_values: dict[str, Any]
+    ) -> str:
+        """Replace {{cached:KEY}} patterns without login prefix or step offset.
+
+        Used when cookie pre-injection succeeds and the Agent should
+        receive only business steps with cached variables resolved.
+
+        Args:
+            task_description: Task description with potential {{cached:KEY}} patterns.
+            cache_values: Dict of cached key-value pairs from CacheService.
+
+        Returns:
+            Description with {{cached:KEY}} patterns replaced.
+        """
+        return self._replace_cached_variables(task_description, cache_values)
+
     def _replace_context_variables(
         self, text: str, context: dict[str, Any]
     ) -> str:
