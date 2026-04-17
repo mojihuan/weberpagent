@@ -214,7 +214,7 @@ SAMPLE_STORAGE_STATE = {
 
 @pytest.mark.asyncio
 async def test_create_authenticated_session_success():
-    """create_authenticated_session creates BrowserSession with storage_state."""
+    """create_authenticated_session writes storage_state to temp file and passes path."""
     mock_session = MagicMock()
 
     with (
@@ -238,7 +238,22 @@ async def test_create_authenticated_session_success():
     mock_auth_svc.get_storage_state_for_role.assert_awaited_once_with("main")
     mock_bs_cls.assert_called_once()
     call_kwargs = mock_bs_cls.call_args.kwargs
-    assert call_kwargs["storage_state"] == SAMPLE_STORAGE_STATE
+
+    # storage_state is now a temp file path (string), not a dict
+    storage_state_path = call_kwargs["storage_state"]
+    assert isinstance(storage_state_path, str)
+    assert storage_state_path.endswith(".json")
+    assert "auth_state_main_" in storage_state_path
+
+    # Verify the temp file contains the correct storage_state JSON
+    import os
+    assert os.path.exists(storage_state_path)
+    with open(storage_state_path) as f:
+        loaded = json.load(f)
+    assert loaded == SAMPLE_STORAGE_STATE
+
+    # Clean up temp file
+    os.unlink(storage_state_path)
 
 
 @pytest.mark.asyncio
