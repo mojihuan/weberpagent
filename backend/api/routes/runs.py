@@ -159,21 +159,51 @@ async def run_agent_background(
             task_description = PreconditionService.substitute_variables(task_description, context)
             logger.info(f"[{run_id}] 变量替换后的任务描述: {task_description[:100]}...")
 
-        # Build full description with login prefix if login_role is set (per D-01, D-03)
-        if account_info and login_url:
-            from backend.core.test_flow_service import TestFlowService
+        # Pre-injection branch: try cookie injection, fallback to text login (D-07, D-08, D-09)
+        authenticated_session = None
+        effective_target_url = None if login_role else target_url
 
-            flow = TestFlowService()
-            cache_values = shared_cache.all() if shared_cache else {}
-            task_description = flow._build_description(
-                task_description=task_description,
-                login_url=login_url,
-                account=account_info.account,
-                password=account_info.password,
-                context=context if isinstance(context, dict) else {},
-                cache_values=cache_values,
-            )
-            logger.info(f"[{run_id}] 注入登录步骤后的任务描述: {task_description[:150]}...")
+        if login_role:
+            from backend.core.auth_session_factory import create_authenticated_session
+            from backend.core.auth_service import TokenFetchError
+
+            # Try cookie pre-injection
+            try:
+                authenticated_session = await create_authenticated_session(login_role)
+            except TokenFetchError as e:
+                logger.warning(
+                    "Cookie预注入失败，回退到文字登录 | 角色=%s | 原因=%s",
+                    e.role, e.reason,
+                )
+
+            if authenticated_session:
+                # Pre-injection success (D-08): cached variable replacement only, no login prefix
+                from backend.core.test_flow_service import TestFlowService
+
+                flow = TestFlowService()
+                cache_values = shared_cache.all() if shared_cache else {}
+                task_description = flow.replace_cached_variables_only(
+                    task_description, cache_values
+                )
+                # Use ERP homepage URL, not login page (D-01)
+                effective_target_url = settings.erp_base_url.rstrip("/")
+                logger.info(f"[{run_id}] Cookie预注入成功，跳过登录步骤")
+            else:
+                # Pre-injection failure (D-09): existing full login flow
+                from backend.core.test_flow_service import TestFlowService
+
+                flow = TestFlowService()
+                cache_values = shared_cache.all() if shared_cache else {}
+                task_description = flow._build_description(
+                    task_description=task_description,
+                    login_url=login_url,
+                    account=account_info.account,
+                    password=account_info.password,
+                    context=context if isinstance(context, dict) else {},
+                    cache_values=cache_values,
+                )
+                effective_target_url = None
+                logger.info(f"[{run_id}] 注入登录步骤后的任务描述: {task_description[:150]}...")
 
         # === 前置条件执行结束 ===
 
@@ -241,7 +271,6 @@ async def run_agent_background(
 
         try:
             logger.info(f"[{run_id}] 开始执行 agent_service.run_with_cleanup...")
-            effective_target_url = None if login_role else target_url
             result = await agent_service.run_with_cleanup(
                 task=task_description,
                 run_id=run_id,
@@ -249,6 +278,7 @@ async def run_agent_background(
                 max_steps=max_steps,
                 llm_config=llm_config,
                 target_url=effective_target_url,
+                browser_session=authenticated_session,
             )
             logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
 

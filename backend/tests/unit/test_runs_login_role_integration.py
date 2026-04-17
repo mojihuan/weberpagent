@@ -114,12 +114,14 @@ async def test_run_agent_background_no_login_role_existing_path():
 
 # ---------------------------------------------------------------------------
 # Test 3: login_role="main" triggers account resolution and login prefix
+# (Pre-injection fails, falls back to text login)
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_run_agent_background_with_login_role_injects_login():
-    """When login_role is set, account resolution happens and login prefix injected."""
+    """When login_role is set and pre-injection fails, login prefix is injected."""
     from backend.api.routes.runs import run_agent_background
     from backend.core.account_service import AccountInfo
+    from backend.core.auth_service import TokenFetchError
 
     mock_run_repo = MagicMock()
     mock_run_repo.update_status = AsyncMock()
@@ -139,6 +141,7 @@ async def test_run_agent_background_with_login_role_injects_login():
         patch("backend.api.routes.runs.event_manager") as mock_em,
         patch("backend.core.account_service.account_service.resolve") as mock_resolve,
         patch("backend.core.account_service.account_service.get_login_url") as mock_url,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
     ):
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_session)
@@ -167,6 +170,8 @@ async def test_run_agent_background_with_login_role_injects_login():
 
         mock_resolve.return_value = mock_account_info
         mock_url.return_value = "https://erp.example.com/login"
+        # Pre-injection fails, triggering fallback to text login
+        mock_auth_session.side_effect = TokenFetchError(role="main", reason="HTTP 500")
 
         await run_agent_background(
             run_id="test-run-2",
@@ -181,7 +186,7 @@ async def test_run_agent_background_with_login_role_injects_login():
         # Verify account resolution was called
         mock_resolve.assert_called_once_with("main")
 
-        # Verify run_with_cleanup was called and task contains login prefix
+        # Verify run_with_cleanup was called and task contains login prefix (fallback)
         call_kwargs = mock_agent.run_with_cleanup.call_args
         task_text = call_kwargs.kwargs.get("task") or call_kwargs.args[0]
         assert "打开" in task_text
@@ -283,12 +288,14 @@ async def test_shared_cache_between_precondition_and_assertion():
 
 # ---------------------------------------------------------------------------
 # Test 5: target_url is suppressed (None) when login_role is set
+# (Pre-injection fails, falls back to text login with target_url=None)
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_target_url_suppressed_with_login_role():
-    """When login_role is set, target_url passed to agent is None."""
+    """When login_role is set and pre-injection fails, target_url passed to agent is None."""
     from backend.api.routes.runs import run_agent_background
     from backend.core.account_service import AccountInfo
+    from backend.core.auth_service import TokenFetchError
 
     mock_account_info = AccountInfo(
         account="Y59800075", password="Aa123456", role="main"
@@ -304,6 +311,7 @@ async def test_target_url_suppressed_with_login_role():
         patch("backend.api.routes.runs.event_manager") as mock_em,
         patch("backend.core.account_service.account_service.resolve") as mock_resolve,
         patch("backend.core.account_service.account_service.get_login_url") as mock_url,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
     ):
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_session)
@@ -332,6 +340,8 @@ async def test_target_url_suppressed_with_login_role():
 
         mock_resolve.return_value = mock_account_info
         mock_url.return_value = "https://erp.example.com/login"
+        # Pre-injection fails, triggering fallback
+        mock_auth_session.side_effect = TokenFetchError(role="main", reason="HTTP 500")
 
         await run_agent_background(
             run_id="test-run-4",
@@ -343,7 +353,7 @@ async def test_target_url_suppressed_with_login_role():
             login_role="main",
         )
 
-        # Verify target_url was suppressed to None
+        # Verify target_url was suppressed to None (fallback path)
         call_kwargs = mock_agent.run_with_cleanup.call_args
         assert call_kwargs.kwargs.get("target_url") is None
 
@@ -372,7 +382,7 @@ async def test_preinjection_success_skips_login():
         patch("backend.api.routes.runs.event_manager") as mock_em,
         patch("backend.core.account_service.account_service.resolve") as mock_resolve,
         patch("backend.core.account_service.account_service.get_login_url") as mock_url,
-        patch("backend.api.routes.runs.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
     ):
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_session)
@@ -446,7 +456,7 @@ async def test_preinjection_success_target_url_is_homepage():
         patch("backend.api.routes.runs.event_manager") as mock_em,
         patch("backend.core.account_service.account_service.resolve") as mock_resolve,
         patch("backend.core.account_service.account_service.get_login_url") as mock_url,
-        patch("backend.api.routes.runs.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
         patch("backend.api.routes.runs.get_settings") as mock_get_settings,
     ):
         mock_session = AsyncMock()
@@ -520,7 +530,7 @@ async def test_preinjection_success_passes_browser_session():
         patch("backend.api.routes.runs.event_manager") as mock_em,
         patch("backend.core.account_service.account_service.resolve") as mock_resolve,
         patch("backend.core.account_service.account_service.get_login_url") as mock_url,
-        patch("backend.api.routes.runs.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
     ):
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_session)
@@ -589,7 +599,7 @@ async def test_preinjection_failure_logs_warning_and_fallback():
         patch("backend.api.routes.runs.event_manager") as mock_em,
         patch("backend.core.account_service.account_service.resolve") as mock_resolve,
         patch("backend.core.account_service.account_service.get_login_url") as mock_url,
-        patch("backend.api.routes.runs.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
     ):
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_session)
@@ -666,7 +676,7 @@ async def test_no_login_role_no_preinjection():
         patch("backend.api.routes.runs.AssertionResultRepository") as mock_ar_repo,
         patch("backend.api.routes.runs.PreconditionResultRepository") as mock_pr_repo,
         patch("backend.api.routes.runs.event_manager") as mock_em,
-        patch("backend.api.routes.runs.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
+        patch("backend.core.auth_session_factory.create_authenticated_session", new_callable=AsyncMock) as mock_auth_session,
     ):
         mock_session = AsyncMock()
         mock_session_ctx.return_value.__aenter__ = AsyncMock(return_value=mock_session)
