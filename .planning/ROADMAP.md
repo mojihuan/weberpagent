@@ -115,7 +115,7 @@
 **Milestone Goal:** 通过 HTTP API 预先获取登录 token 并注入浏览器，让 browser-use Agent 跳过 5 步登录直接执行业务操作，失败时自动回退
 
 - [x] **Phase 79: Token 获取与 Storage State 构造** — LoginApi HTTP 获取 token，构造 browser-use 可用的 storage_state (completed 2026-04-16)
-- [ ] **Phase 80: 执行流程集成** — Cookie 注入成功跳过登录、失败自动回退 + warning 日志
+- [x] **Phase 80: 执行流程集成** — Cookie 注入成功跳过登录、失败自动回退 + warning 日志 (completed 2026-04-17)
 - [ ] **Phase 81: 批量执行与兼容性验证** — 批量任务独立注入、7 种角色覆盖、零回归保证
 
 ## Phase Details
@@ -143,10 +143,10 @@ Plans:
   2. Cookie 预注入失败（API 超时/网络错误/返回异常）时，任务自动回退到现有 5 步文字登录流程，任务不会因注入失败而中断
   3. 预注入失败时日志中出现包含角色名称和失败原因的 warning 级别日志，便于排查问题
   4. runs.py 执行单个任务时，先尝试预注入，再决定是否跳过登录步骤，整个过程对 QA 用户透明
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 80-01: runs.py 预认证步骤 + TestFlowService 条件跳过登录
+- [x] 80-01-PLAN.md — Cookie 预注入分支逻辑 + TestFlowService 解耦 + AgentService 外部 session (FLOW-01, FLOW-02)
 
 ### Phase 81: 批量执行与兼容性验证
 **Goal**: 批量执行时每个任务独立获取 token 并注入，无 login_role 的任务行为与 v0.9.1 完全一致，全部 7 种 UI 角色均可正常使用
@@ -157,10 +157,11 @@ Plans:
   2. login_role 为 None 的任务执行路径与 v0.9.1 完全一致 — 不调用 token 获取、不尝试注入、走现有 5 步文字登录
   3. 7 种 UI 角色（main/special/vice/camera/platform/super/idle）均可成功获取 token 并构造 storage_state，不出现角色不支持错误
   4. 批量执行中部分任务注入失败时，失败任务回退到文字登录，其他任务不受影响继续执行
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 81-01: batches.py 批量注入 + 兼容性验证
+- [ ] 81-01-PLAN.md — Fix browser-use dict storage_state bug + E2E test infrastructure + 7-role verification (COMPAT-02)
+- [ ] 81-02-PLAN.md — Batch independent injection E2E tests + no-role regression tests (FLOW-03, COMPAT-01)
 
 ## Progress
 
@@ -169,9 +170,9 @@ Phases execute in numeric order: 79 -> 80 -> 81
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 79. Token 获取与 Storage State 构造 | v0.9.2 | 1/1 | Complete   | 2026-04-16 |
-| 80. 执行流程集成 | v0.9.2 | 0/? | Not started | - |
-| 81. 批量执行与兼容性验证 | v0.9.2 | 0/? | Not started | - |
+| 79. Token 获取与 Storage State 构造 | v0.9.2 | 1/1 | Complete    | 2026-04-16 |
+| 80. 执行流程集成 | v0.9.2 | 1/1 | Complete    | 2026-04-17 |
+| 81. 批量执行与兼容性验证 | v0.9.2 | 0/2 | Planned | - |
 
 ---
-*Roadmap updated: 2026-04-16 — Phase 79 planned (1 plan, wave 1)*
+*Roadmap updated: 2026-04-17 — Phase 81 planned (2 plans, waves 1-2)*

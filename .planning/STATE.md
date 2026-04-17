@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.9.2
 milestone_name: Cookie 预注入免登录
 status: Phase complete — ready for verification
-stopped_at: Completed 79-01-PLAN.md
-last_updated: "2026-04-16T14:48:09.902Z"
+stopped_at: Completed 80-01-PLAN.md
+last_updated: "2026-04-17T01:25:06.920Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-16)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 79 — Token 获取与 Storage State 构造
+**Current focus:** Phase 80 — execution-flow-integration
 
 ## Last Shipped
 
@@ -35,7 +35,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 
 ## Current Position
 
-Phase: 79 (Token 获取与 Storage State 构造) — EXECUTING
+Phase: 80 (execution-flow-integration) — EXECUTING
 Plan: 1 of 1
 
 ## Performance Metrics
@@ -62,6 +62,7 @@ Recent decisions affecting current work:
 - [Phase 79]: httpx.AsyncClient with 10s timeout for ERP token fetch
 - [Phase 79]: storage_state dict passed directly to BrowserSession, no file I/O
 - [Phase 79]: TokenFetchError propagates from factory, caller handles fallback
+- [Phase 80]: Pre-injection branch: try cookie injection first, fallback to text login on failure
 
 ### Pending Todos
 
@@ -83,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:48:09.901Z
-Stopped at: Completed 79-01-PLAN.md
+Last session: 2026-04-17T01:25:06.918Z
+Stopped at: Completed 80-01-PLAN.md
 Resume file: None
