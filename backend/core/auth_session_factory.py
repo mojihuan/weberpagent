@@ -67,6 +67,7 @@ async def create_authenticated_session(role: str) -> BrowserSession:
 
     session = BrowserSession(
         storage_state=tmp.name,
+        user_data_dir=None,
         headless=True,
         args=SERVER_BROWSER_ARGS,
         viewport=ViewportSize(width=1920, height=1080),
