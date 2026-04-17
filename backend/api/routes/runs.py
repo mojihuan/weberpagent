@@ -185,8 +185,12 @@ async def run_agent_background(
                 task_description = flow.replace_cached_variables_only(
                     task_description, cache_values
                 )
-                # Use ERP homepage URL, not login page (D-01)
-                effective_target_url = settings.erp_base_url.rstrip("/")
+                # Use ERP frontend homepage URL, not API base URL
+                # erp_base_url may include API subpath (e.g. /epbox_erp),
+                # but the browser should navigate to the SPA root.
+                from urllib.parse import urlparse
+                parsed = urlparse(settings.erp_base_url)
+                effective_target_url = f"{parsed.scheme}://{parsed.netloc}"
                 logger.info(f"[{run_id}] Cookie预注入成功，跳过登录步骤")
             else:
                 # Pre-injection failure (D-09): existing full login flow

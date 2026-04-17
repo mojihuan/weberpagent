@@ -503,7 +503,8 @@ async def test_preinjection_success_target_url_is_homepage():
         )
 
         call_kwargs = mock_agent.run_with_cleanup.call_args
-        assert call_kwargs.kwargs.get("target_url") == "https://erp.example.com/epbox_erp"
+        # Cookie injection target_url should be the SPA frontend (origin only), not API base
+        assert call_kwargs.kwargs.get("target_url") == "https://erp.example.com"
 
 
 # ---------------------------------------------------------------------------
