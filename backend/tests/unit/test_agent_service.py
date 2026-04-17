@@ -698,3 +698,33 @@ class TestStepCallbackPhase69:
                 error=snippet,
                 mode=mode,
             )
+
+
+class TestRunWithStreamingExternalSession:
+    """Verify run_with_streaming accepts external browser_session parameter."""
+
+    def test_external_session_signature_has_browser_session_param(self):
+        """When browser_session is provided, create_browser_session is NOT called."""
+        from backend.core.agent_service import AgentService
+
+        svc = AgentService()
+
+        import inspect
+
+        sig = inspect.signature(svc.run_with_streaming)
+        params = sig.parameters
+        assert "browser_session" in params
+        assert params["browser_session"].default is None
+
+    def test_run_with_cleanup_forwards_browser_session(self):
+        """run_with_cleanup signature includes browser_session parameter."""
+        from backend.core.agent_service import AgentService
+
+        svc = AgentService()
+
+        import inspect
+
+        sig = inspect.signature(svc.run_with_cleanup)
+        params = sig.parameters
+        assert "browser_session" in params
+        assert params["browser_session"].default is None

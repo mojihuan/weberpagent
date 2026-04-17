@@ -207,3 +207,47 @@ def test_build_description_empty_login_url():
     # 5 login steps + at least 1 user step
     assert len(lines) >= 6
     assert "步骤6：" in result
+
+
+# ---------------------------------------------------------------------------
+# Test 11: replace_cached_variables_only replaces {{cached:KEY}} patterns
+# ---------------------------------------------------------------------------
+def test_replace_cached_variables_only_replaces_pattern():
+    svc = TestFlowService()
+    result = svc.replace_cached_variables_only(
+        "步骤1：输入{{cached:item_id}}", {"item_id": "123"}
+    )
+    assert "123" in result
+    assert "{{cached:item_id}}" not in result
+
+
+# ---------------------------------------------------------------------------
+# Test 12: replace_cached_variables_only does NOT add login prefix
+# ---------------------------------------------------------------------------
+def test_replace_cached_variables_only_no_login_prefix():
+    svc = TestFlowService()
+    result = svc.replace_cached_variables_only("步骤1：点击按钮", {})
+    # No login URL, no account, no password should appear
+    assert "打开" not in result
+    assert "登录" not in result
+
+
+# ---------------------------------------------------------------------------
+# Test 13: replace_cached_variables_only does NOT shift step numbers
+# ---------------------------------------------------------------------------
+def test_replace_cached_variables_only_no_step_offset():
+    svc = TestFlowService()
+    result = svc.replace_cached_variables_only("步骤1：点击按钮", {})
+    assert "步骤1：" in result
+    assert "步骤6：" not in result
+
+
+# ---------------------------------------------------------------------------
+# Test 14: replace_cached_variables_only missing key -> empty string
+# ---------------------------------------------------------------------------
+def test_replace_cached_variables_only_missing_key_empty():
+    svc = TestFlowService()
+    result = svc.replace_cached_variables_only(
+        "步骤1：输入{{cached:missing}}", {}
+    )
+    assert "{{cached:missing}}" not in result
