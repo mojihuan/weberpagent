@@ -160,7 +160,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 81-01-PLAN.md — Fix browser-use dict storage_state bug + E2E test infrastructure + 7-role verification (COMPAT-02)
+- [x] 81-01-PLAN.md — Fix browser-use dict storage_state bug + E2E test infrastructure + 7-role verification (COMPAT-02)
 - [ ] 81-02-PLAN.md — Batch independent injection E2E tests + no-role regression tests (FLOW-03, COMPAT-01)
 
 ## Progress
@@ -172,7 +172,7 @@ Phases execute in numeric order: 79 -> 80 -> 81
 |-------|-----------|----------------|--------|-----------|
 | 79. Token 获取与 Storage State 构造 | v0.9.2 | 1/1 | Complete    | 2026-04-16 |
 | 80. 执行流程集成 | v0.9.2 | 1/1 | Complete    | 2026-04-17 |
-| 81. 批量执行与兼容性验证 | v0.9.2 | 0/2 | Planned | - |
+| 81. 批量执行与兼容性验证 | v0.9.2 | 1/2 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-04-17 — Phase 81 planned (2 plans, waves 1-2)*

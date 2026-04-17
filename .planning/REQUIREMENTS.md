@@ -20,7 +20,7 @@
 ### COMPAT (兼容性)
 
 - [ ] **COMPAT-01**: 无 login_role 的任务执行路径完全不变，行为与 v0.9.1 一致
-- [ ] **COMPAT-02**: 支持 v0.9.1 定义的全部 7 种 UI 角色 (main/special/vice/camera/platform/super/idle)
+- [x] **COMPAT-02**: 支持 v0.9.1 定义的全部 7 种 UI 角色 (main/special/vice/camera/platform/super/idle)
 
 ## v2 Requirements
 
@@ -50,7 +50,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLOW-02 | Phase 80 | Complete |
 | FLOW-03 | Phase 81 | Pending |
 | COMPAT-01 | Phase 81 | Pending |
-| COMPAT-02 | Phase 81 | Pending |
+| COMPAT-02 | Phase 81 | Complete |
 
 **Coverage:**
 - v1 requirements: 7 total
