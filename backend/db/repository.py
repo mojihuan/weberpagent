@@ -155,6 +155,13 @@ class RunRepository:
         await self.session.commit()
         return run
 
+    async def update_generated_code_path(self, run_id: str, path: str) -> None:
+        """更新生成代码路径 (Phase 82, CODE-01)"""
+        run = await self.get(run_id)
+        if run:
+            run.generated_code_path = path
+            await self.session.commit()
+
     async def add_step(self, run_id: str, step_data: dict) -> Step:
         """Add a step to a run.
 

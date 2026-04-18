@@ -65,6 +65,8 @@ class Run(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     # 外部断言执行结果（JSON 字符串）Phase 25
     external_assertion_results: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # 生成代码路径 (Phase 82, CODE-01)
+    generated_code_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")
