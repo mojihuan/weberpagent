@@ -276,3 +276,176 @@ class TestGenerateAndSave:
             with open(code_path) as f:
                 content = f.read()
             ast.parse(content)
+
+
+# ---------------------------------------------------------------------------
+# 回退定位器代码生成测试 (Phase 83 Plan 02)
+# ---------------------------------------------------------------------------
+
+
+def _make_fallback_actions() -> list[TranslatedAction]:
+    """创建包含 try-except 回退代码的翻译操作列表。"""
+    return [
+        TranslatedAction(
+            code='    page.goto("https://erp.example.com")',
+            action_type="navigate",
+            is_comment=False,
+            has_locator=False,
+        ),
+        TranslatedAction(
+            code=(
+                "    try:\n"
+                '        page.locator("xpath=/html/body/div[2]/form/button").click()\n'
+                "    except Exception as _e1:\n"
+                '        _healer.warning("定位器回退: xpath=.../button 失败, 尝试 id=submit")\n'
+                "        try:\n"
+                '            page.locator("[id=\'submit\']").click()\n'
+                "        except Exception as _e2:\n"
+                '            _healer.error("定位器全部失败 [click_element]: ...")\n'
+                '            raise HealerError(action_type="click_element", '
+                'locators=("..."), original_error=str(_e2))'
+            ),
+            action_type="click_element",
+            is_comment=False,
+            has_locator=True,
+            locators=(
+                'page.locator("xpath=/html/body/div[2]/form/button")',
+                "page.locator(\"[id='submit']\")",
+            ),
+        ),
+        TranslatedAction(
+            code="    page.mouse.wheel(0, 1000)",
+            action_type="scroll",
+            is_comment=False,
+            has_locator=False,
+        ),
+    ]
+
+
+def _make_no_fallback_actions() -> list[TranslatedAction]:
+    """创建不含回退的操作列表 (所有 locators 为空)。"""
+    return [
+        TranslatedAction(
+            code='    page.goto("https://erp.example.com")',
+            action_type="navigate",
+            is_comment=False,
+            has_locator=False,
+        ),
+        TranslatedAction(
+            code='    page.locator("xpath=/html/body/button").click()',
+            action_type="click_element",
+            is_comment=False,
+            has_locator=True,
+        ),
+    ]
+
+
+class TestFallbackCodeGeneration:
+    """Phase 83 Plan 02: 回退定位器在完整文件中的代码生成测试。"""
+
+    def test_logging_import_present_when_locators_nonempty(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """当 actions 中有 TranslatedAction.locators 非空时，生成文件包含 import logging。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb01",
+            task_name="回退测试",
+            task_id="t_fb01",
+            actions=actions,
+        )
+        assert "import logging" in code
+
+    def test_healer_logger_present_when_locators_nonempty(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """当 actions 中有 locators 非空时，函数体包含 _healer = logging.getLogger("healer")。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb02",
+            task_name="回退测试",
+            task_id="t_fb02",
+            actions=actions,
+        )
+        assert '_healer = logging.getLogger("healer")' in code
+
+    def test_no_logging_when_all_locators_empty(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """当所有 locators 为空时，不包含 logging 相关代码（保持 Phase 82 格式）。"""
+        actions = _make_no_fallback_actions()
+        code = generator.generate(
+            run_id="fb03",
+            task_name="无回退测试",
+            task_id="t_fb03",
+            actions=actions,
+        )
+        assert "import logging" not in code
+        assert "_healer" not in code
+
+    def test_multiline_code_preserved_in_body(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """多行 try-except 代码在 _build_body 中保留缩进和换行。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb04",
+            task_name="多行测试",
+            task_id="t_fb04",
+            actions=actions,
+        )
+        # try-except 代码应包含缩进结构
+        assert "    try:" in code
+        assert "    except Exception as _e1:" in code
+
+    def test_mixed_actions_file_parses(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """混合单行和多行 code 的 actions 列表生成的文件通过 ast.parse() 语法检查。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb05",
+            task_name="混合测试",
+            task_id="t_fb05",
+            actions=actions,
+        )
+        tree = ast.parse(code)
+        func_defs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
+        assert len(func_defs) == 1
+
+    def test_fallback_complete_file_parses(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """包含 try-except 回退的完整文件通过 ast.parse() 语法检查。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb06",
+            task_name="完整回退",
+            task_id="t_fb06",
+            actions=actions,
+        )
+        ast.parse(code)
+
+    def test_body_blank_line_separator_preserved(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """_build_body 在不同操作类型间仍插入空行分隔（现有行为不变）。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb07",
+            task_name="分隔测试",
+            task_id="t_fb07",
+            actions=actions,
+        )
+        # navigate 和 click_element 之间应有空行
+        # scroll 和 click_element 之间应有空行
+        lines = code.split("\n")
+        # 找到 page.goto 行
+        goto_idx = None
+        for i, line in enumerate(lines):
+            if "page.goto" in line:
+                goto_idx = i
+                break
+        assert goto_idx is not None
+        # goto 后面应有空行（navigate -> click_element 类型变化）
+        assert lines[goto_idx + 1] == ""
