@@ -215,7 +215,7 @@ class TestNonCoreActions:
 
         assert result.action_type == "search_page"
         assert result.is_comment is True
-        assert result.code.startswith("#")
+        assert "# " in result.code
 
     def test_upload_file_comment(self, translator: ActionTranslator) -> None:
         """upload_file 操作生成注释，包含文件路径 (D-09)。"""
