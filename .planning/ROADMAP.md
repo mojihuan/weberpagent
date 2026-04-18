@@ -2,7 +2,8 @@
 
 ## Milestones
 
-- 🚧 **v0.9.2 Cookie 预注入免登录** — Phases 79-81 (in progress)
+- 🚧 **v0.10.0 Agent 执行速度优化** — Phases 82-85 (in progress)
+- ✅ **v0.9.2 Cookie 预注入免登录** — Phases 79-81 (shipped 2026-04-17)
 - ✅ **v0.9.1 ERP 全面集成重构** — Phases 74-78 (shipped 2026-04-12)
 - ✅ **v0.9.0 Excel 批量导入功能开发** — Phases 70-73 (shipped 2026-04-09)
 - ✅ **v0.8.4 基于 v0.8.3 的研究优化** — Phases 67-69 (shipped 2026-04-07)
@@ -163,16 +164,86 @@ Plans:
 - [x] 81-01-PLAN.md — Fix browser-use dict storage_state bug + E2E test infrastructure + 7-role verification (COMPAT-02)
 - [x] 81-02-PLAN.md — Batch independent injection E2E tests + no-role regression tests (FLOW-03, COMPAT-01)
 
+### v0.10.0 Agent 执行速度优化 (In Progress)
+
+**Milestone Goal:** Agent 执行完成后自动生成可运行的 Playwright Python 测试代码，实现三层自愈管线（定位器回退 → LLM 修复 → Agent 重执行）
+
+- [x] **Phase 82: 代码生成基础** — ActionTranslator 翻译 6 种核心操作 + PlaywrightCodeGenerator 组装完整测试文件 + 管线集成 (completed 2026-04-18)
+- [x] **Phase 83: 定位器回退** — 主定位器失效时自动尝试备选定位器链（XPath → CSS → text），提高生成代码鲁棒性 (completed 2026-04-18)
+- [ ] **Phase 84: LLM 修复** — 定位器全部失败时 LLM 分析当前页面 DOM，自动生成修复后的定位器和代码
+- [ ] **Phase 85: Agent 重执行** — 修复后代码自动重跑验证，通过后替换原始代码，形成完整自愈闭环
+
+## Phase Details
+
+### Phase 82: 代码生成基础
+**Goal**: Agent 执行完成后，系统自动从 browser-use model_actions() 历史生成可运行的 Playwright Python 测试代码文件
+**Requirements**: CODE-01, CODE-06
+**Success Criteria** (what must be TRUE):
+  1. ActionTranslator 处理 6 种核心操作类型（click, input, navigate, scroll, send_keys, go_back）为正确 Playwright API 调用
+  2. 缺失 interacted_element 生成占位符而非崩溃
+  3. PlaywrightCodeGenerator 生成语法有效的 Python 测试文件（含元数据头部、import、test 函数）
+  4. 代码生成在 Agent 执行后自动触发，失败不阻塞管线
+  5. 生成代码路径存入数据库 Run 记录
+
+Plans:
+- [x] 82-01-PLAN.md — ActionTranslator: browser-use 操作翻译为 Playwright 代码 (CODE-06)
+- [x] 82-02-PLAN.md — PlaywrightCodeGenerator + DB 迁移 + 管线集成 (CODE-01)
+
+### Phase 83: 定位器回退
+**Goal**: 生成的 Playwright 代码执行时，主定位器失效自动尝试备选定位器链，提高代码在页面变更下的鲁棒性
+**Depends on**: Phase 82
+**Requirements**: HEAL-01
+**Success Criteria** (what must be TRUE):
+  1. Playwright 代码生成时为每个操作附带多个备选定位器（主 XPath + CSS + text），形成定位器链
+  2. 执行生成的代码时，主定位器失败后自动尝试下一个备选定位器，无需人工干预
+  3. 定位器回退过程记录日志，包含失败的定位器和最终成功的定位器
+  4. 所有备选定位器都失败时，抛出明确的 HealerError 而非 Playwright 原生超时错误
+**Plans**: 2 plans
+
+Plans:
+- [ ] 83-01-PLAN.md — LocatorChainBuilder + HealerError + ActionTranslator 多定位器回退 (HEAL-01)
+- [ ] 83-02-PLAN.md — PlaywrightCodeGenerator logging 集成 + 完整文件语法验证 (HEAL-01)
+
+### Phase 84: LLM 修复
+**Goal**: 定位器全部失败时，LLM 分析当前页面 DOM 结构，自动生成修复后的定位器和代码
+**Depends on**: Phase 83
+**Requirements**: HEAL-02
+**Success Criteria** (what must be TRUE):
+  1. 定位器链全部失败时，系统自动捕获当前页面 HTML/DOM 快照和失败的操作描述
+  2. LLM 接收页面快照 + 失败上下文，返回修复后的定位器和代码片段
+  3. LLM 修复结果经过语法校验后才应用，不引入无效代码
+  4. LLM 修复失败或超时时，记录原始错误信息，不阻塞后续操作
+**Plans**: 2 plans
+
+Plans:
+- [x] 84-01-PLAN.md — LLMHealer class: LLM 调用 + DOM 分析 + ast.parse 验证 + 超时处理 (HEAL-02)
+- [ ] 84-02-PLAN.md — ActionTranslator 4th fallback layer + PlaywrightCodeGenerator LLM 集成 + runs.py 传参 (HEAL-02)
+
+### Phase 85: Agent 重执行
+**Goal**: 修复后的代码自动重跑验证，通过后存入数据库替换原始代码，形成完整的自愈闭环
+**Depends on**: Phase 84
+**Requirements**: HEAL-03
+**Success Criteria** (what must be TRUE):
+  1. LLM 修复后生成的代码自动重跑 Playwright 执行验证
+  2. 验证通过后，修复后的代码路径存入数据库替换原始生成代码
+  3. 验证失败时，记录失败原因并支持最多 2 次重试（LLM 修复 → 重跑）
+  4. 自愈管线整体状态（尝试次数、最终结果）可在前端查看
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 79 -> 80 -> 81
+Phases execute in numeric order: 79 -> 80 -> 81 -> 82 -> 83 -> 84 -> 85
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 79. Token 获取与 Storage State 构造 | v0.9.2 | 1/1 | Complete    | 2026-04-16 |
-| 80. 执行流程集成 | v0.9.2 | 1/1 | Complete    | 2026-04-17 |
+| 80. 执行流程集成 | v0.9.2 | 1/1 | Complete | 2026-04-17 |
 | 81. 批量执行与兼容性验证 | v0.9.2 | 2/2 | Complete   | 2026-04-17 |
+| 82. 代码生成基础 | v0.10.0 | 2/2 | Complete   | 2026-04-18 |
+| 83. 定位器回退 | v0.10.0 | 0/2 | Complete    | 2026-04-18 |
+| 84. LLM 修复 | v0.10.0 | 1/2 | In Progress|  |
+| 85. Agent 重执行 | v0.10.0 | 0/? | Pending | |
 
 ---
-*Roadmap updated: 2026-04-17 — Phase 81 planned (2 plans, waves 1-2)*
+*Roadmap updated: 2026-04-18 — Phase 84 plans created (LLM healing)*
