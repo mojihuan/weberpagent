@@ -62,6 +62,7 @@ class PlaywrightCodeGenerator:
         # 条件 logging import (per D-08): 有回退定位器时添加
         if needs_logging:
             parts.append("import logging")
+            parts.append("from backend.core.healer_error import HealerError")
 
         parts.append("")
         parts.append(f"def {func_name}(page: Page) -> None:")

@@ -356,6 +356,32 @@ class TestFallbackCodeGeneration:
         )
         assert "import logging" in code
 
+    def test_healer_error_import_present_when_locators_nonempty(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """当 actions 中有 locators 非空时，生成文件包含 HealerError import。"""
+        actions = _make_fallback_actions()
+        code = generator.generate(
+            run_id="fb01b",
+            task_name="回退测试",
+            task_id="t_fb01b",
+            actions=actions,
+        )
+        assert "from backend.core.healer_error import HealerError" in code
+
+    def test_no_healer_error_import_when_all_locators_empty(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """当所有 locators 为空时，不包含 HealerError import。"""
+        actions = _make_no_fallback_actions()
+        code = generator.generate(
+            run_id="fb01c",
+            task_name="无回退测试",
+            task_id="t_fb01c",
+            actions=actions,
+        )
+        assert "HealerError" not in code
+
     def test_healer_logger_present_when_locators_nonempty(
         self, generator: PlaywrightCodeGenerator
     ) -> None:
