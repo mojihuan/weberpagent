@@ -54,6 +54,9 @@ interface ReportDetailApiResponse extends ReportApiResponse {
   pass_rate?: string
   precondition_results?: PreconditionResultApiResponse[]
   timeline_items?: ReportTimelineItem[]
+  healing_status?: string
+  healing_attempts?: number
+  healing_error?: string | null
 }
 
 interface ReportsListApiResponse {
@@ -134,6 +137,9 @@ export interface ReportDetailResponse extends Report {
   pass_rate?: string
   precondition_results?: PreconditionResult[]
   timeline_items?: ReportTimelineItem[]
+  healing_status?: string
+  healing_attempts?: number
+  healing_error?: string | null
 }
 
 export async function listReports(params?: ReportsListParams): Promise<{ reports: Report[]; total: number; page: number; page_size: number }> {
@@ -165,5 +171,8 @@ export async function getReport(reportId: string): Promise<ReportDetailResponse>
     pass_rate: response.pass_rate,
     precondition_results: response.precondition_results,
     timeline_items: response.timeline_items,
+    healing_status: response.healing_status,
+    healing_attempts: response.healing_attempts,
+    healing_error: response.healing_error,
   }
 }

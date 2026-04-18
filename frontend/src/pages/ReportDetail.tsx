@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { Layers, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { ReportHeader, SummaryCard, TimelineItemCard } from '../components/Report'
+import { StatusBadge, type Status } from '../components/shared/StatusBadge'
 import { getReport, type ReportDetailResponse } from '../api/reports'
 
 export function ReportDetail() {
@@ -27,6 +28,14 @@ export function ReportDetail() {
     if (ms < 1000) return `${ms}ms`
     if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
     return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`
+  }
+
+  const healingStatusMap: Record<string, string> = {
+    pending: 'healing_pending',
+    healing: 'healing',
+    passed: 'healing_passed',
+    failed: 'healing_failed',
+    skipped: 'healing_skipped',
   }
 
   if (loading) {
@@ -71,6 +80,22 @@ export function ReportDetail() {
           value={formatDuration(data.duration_ms)}
         />
       </div>
+
+      {/* 自愈状态 (Phase 85, HEAL-03, per D-10) */}
+      {data.healing_status && data.healing_status !== 'pending' && (
+        <div className="flex items-center gap-2 mb-6 px-4 py-2 bg-gray-50 rounded-lg">
+          <span className="text-sm text-gray-600">自愈状态:</span>
+          <StatusBadge status={(healingStatusMap[data.healing_status] || 'healing_pending') as Status} />
+          {data.healing_attempts != null && data.healing_attempts > 0 && (
+            <span className="text-xs text-gray-500">尝试 {data.healing_attempts} 次</span>
+          )}
+          {data.healing_error && (
+            <span className="text-xs text-red-500 truncate max-w-md" title={data.healing_error}>
+              {data.healing_error}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* 统一时间线 */}
       <div className="space-y-3">

@@ -55,6 +55,10 @@ export interface Run {
     failed: number
     errors: number
   }
+  // 自愈状态 (Phase 85, HEAL-03, per D-10)
+  healing_status?: 'pending' | 'healing' | 'passed' | 'failed' | 'skipped'
+  healing_attempts?: number
+  healing_error?: string | null
 }
 
 // Assertion 断言定义
