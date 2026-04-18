@@ -54,16 +54,22 @@ class PlaywrightCodeGenerator:
         header = self._build_header(run_id, task_name, task_id)
         func_name = self._sanitize_function_name(task_name)
         body = self._build_body(actions)
+        needs_logging = self._needs_logging(actions)
 
-        parts = [
-            header,
-            "",
-            "from playwright.sync_api import Page",
-            "",
-            "",
-            f"def {func_name}(page: Page) -> None:",
-            f'    """Auto-generated test from agent execution: {task_name}"""',
-        ]
+        parts = [header, ""]
+        parts.append("from playwright.sync_api import Page")
+
+        # 条件 logging import (per D-08): 有回退定位器时添加
+        if needs_logging:
+            parts.append("import logging")
+
+        parts.append("")
+        parts.append(f"def {func_name}(page: Page) -> None:")
+        parts.append(f'    """Auto-generated test from agent execution: {task_name}"""')
+
+        # 条件 healer logger 初始化 (per D-08)
+        if needs_logging:
+            parts.append('    _healer = logging.getLogger("healer")')
 
         if body:
             parts.append(body)
@@ -99,6 +105,11 @@ class PlaywrightCodeGenerator:
         result_path = str(output_path)
         logger.info(f"[{run_id}] 生成 Playwright 代码: {result_path}")
         return result_path
+
+    @staticmethod
+    def _needs_logging(actions: list[TranslatedAction]) -> bool:
+        """检查操作列表中是否有需要 logging 的回退代码。"""
+        return any(action.locators for action in actions)
 
     def _sanitize_function_name(self, task_name: str) -> str:
         """将任务名称转换为合法的 Python 函数名 (per D-03)。
