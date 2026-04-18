@@ -228,7 +228,7 @@ class TestAllCommentActions:
 class TestGenerateAndSave:
     """generate_and_save 文件写入测试。"""
 
-    def test_generate_and_save_creates_file(self, generator: PlaywrightCodeGenerator) -> None:
+    async def test_generate_and_save_creates_file(self, generator: PlaywrightCodeGenerator) -> None:
         """generate_and_save 应创建文件并返回路径。"""
         # 模拟 AgentHistoryList 的 model_actions()
         mock_history = MagicMock()
@@ -238,7 +238,7 @@ class TestGenerateAndSave:
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            code_path = generator.generate_and_save(
+            code_path = await generator.generate_and_save(
                 run_id="save_test",
                 task_name="保存测试",
                 task_id="t_save",
@@ -258,13 +258,13 @@ class TestGenerateAndSave:
             assert "save_test" in code_path
             assert "generated" in code_path
 
-    def test_generate_and_save_empty_actions(self, generator: PlaywrightCodeGenerator) -> None:
+    async def test_generate_and_save_empty_actions(self, generator: PlaywrightCodeGenerator) -> None:
         """model_actions() 返回空列表时应生成空函数文件。"""
         mock_history = MagicMock()
         mock_history.model_actions.return_value = []
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            code_path = generator.generate_and_save(
+            code_path = await generator.generate_and_save(
                 run_id="empty_save",
                 task_name="空操作",
                 task_id="t_empty_save",
