@@ -228,7 +228,11 @@ Plans:
   2. 验证通过后，修复后的代码路径存入数据库替换原始生成代码
   3. 验证失败时，记录失败原因并支持最多 2 次重试（LLM 修复 → 重跑）
   4. 自愈管线整体状态（尝试次数、最终结果）可在前端查看
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 85-01-PLAN.md — Data layer + SelfHealingRunner service + unit tests (HEAL-03)
+- [ ] 85-02-PLAN.md — runs.py pipeline integration + frontend healing badge (HEAL-03)
 
 ## Progress
 
@@ -243,7 +247,7 @@ Phases execute in numeric order: 79 -> 80 -> 81 -> 82 -> 83 -> 84 -> 85
 | 82. 代码生成基础 | v0.10.0 | 2/2 | Complete   | 2026-04-18 |
 | 83. 定位器回退 | v0.10.0 | 0/2 | Complete    | 2026-04-18 |
 | 84. LLM 修复 | v0.10.0 | 2/2 | Complete   | 2026-04-18 |
-| 85. Agent 重执行 | v0.10.0 | 0/? | Pending | |
+| 85. Agent 重执行 | v0.10.0 | 1/2 | In Progress|  |
 
 ---
-*Roadmap updated: 2026-04-18 — Phase 84 plans created (LLM healing)*
+*Roadmap updated: 2026-04-18 — Phase 85 plans created (Agent re-execution)*

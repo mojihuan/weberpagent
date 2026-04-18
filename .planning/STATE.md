@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Agent 执行速度优化
-status: Phase complete — ready for verification
-stopped_at: Completed 84-02-PLAN.md
-last_updated: "2026-04-18T12:46:39.163Z"
+status: Ready to execute
+stopped_at: Completed 85-01-PLAN.md
+last_updated: "2026-04-18T14:40:54.765Z"
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-18)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 84 — LLM修复
+**Current focus:** Phase 85 — Agent重执行
 
 ## Last Shipped
 
@@ -33,7 +33,7 @@ See: .planning/PROJECT.md (updated 2026-04-18)
 
 ## Current Position
 
-Phase: 84 (LLM修复) — EXECUTING
+Phase: 85 (Agent重执行) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -64,6 +64,9 @@ Recent decisions affecting current work:
 - [Phase 84]: [Phase 84-02]: translate_with_llm() separate method preserves backward compatibility
 - [Phase 84]: [Phase 84-02]: _build_llm_only_code() handles elem=None + llm_snippet case
 - [Phase 84]: [Phase 84-02]: llm_config parameter on generate_and_save() avoids circular import
+- [Phase 85]: SelfHealingRunner uses asyncio.to_thread for subprocess pytest execution to avoid blocking event loop — async event loop cannot await synchronous subprocess.run directly
+- [Phase 85]: Max 3 iterations (1 initial + 2 LLM retries) per D-07 for bounded healing attempts — Prevents infinite LLM repair loops while allowing meaningful retry
+- [Phase 85]: conftest.py injects storage_state via browser_context_args session-scoped fixture — Playwright pytest-playwright standard pattern for pre-authenticated browser contexts
 
 ### Pending Todos
 
@@ -85,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T12:46:39.161Z
-Stopped at: Completed 84-02-PLAN.md
+Last session: 2026-04-18T14:40:54.762Z
+Stopped at: Completed 85-01-PLAN.md
 Resume file: None

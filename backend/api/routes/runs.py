@@ -459,6 +459,47 @@ async def run_agent_background(
             except Exception as e:
                 logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
 
+            # === Self-Healing Re-execution (Phase 85, HEAL-03) ===
+            try:
+                # 获取生成的代码路径（可能在上面的代码生成块中已设置）
+                run_obj = await run_repo.get(run_id)
+                if run_obj and run_obj.generated_code_path:
+                    from backend.core.self_healing_runner import SelfHealingRunner
+                    healing_runner = SelfHealingRunner(get_llm_config())
+                    healing_result = await healing_runner.run(
+                        run_id=run_id,
+                        test_file_path=run_obj.generated_code_path,
+                        login_role=login_role,
+                        base_dir="outputs",
+                    )
+                    await run_repo.update_healing_status(
+                        run_id=run_id,
+                        status=healing_result.final_status,
+                        attempts=healing_result.attempts,
+                        error=healing_result.error_message or None,
+                        code_path=healing_result.repaired_code_path or None,
+                    )
+                    logger.info(
+                        f"[{run_id}] 自愈结果: status={healing_result.final_status}, "
+                        f"attempts={healing_result.attempts}"
+                    )
+                else:
+                    # 无生成代码，标记跳过
+                    await run_repo.update_healing_status(
+                        run_id=run_id, status="skipped", attempts=0,
+                    )
+                    logger.info(f"[{run_id}] 无生成代码，跳过自愈")
+            except Exception as e:
+                # 自愈失败不阻塞主流程
+                logger.error(f"[{run_id}] 自愈执行失败（非阻塞）: {e}")
+                try:
+                    await run_repo.update_healing_status(
+                        run_id=run_id, status="failed", attempts=0,
+                        error=str(e)[:2000],
+                    )
+                except Exception:
+                    pass  # 即使更新状态失败也不阻塞
+
         except Exception as e:
             logger.error(f"[{run_id}] 执行失败: {e}")
             logger.error(f"[{run_id}] 异常堆栈:\n{traceback.format_exc()}")
