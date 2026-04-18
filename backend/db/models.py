@@ -69,6 +69,10 @@ class Run(Base):
     external_assertion_results: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     # 生成代码路径 (Phase 82, CODE-01)
     generated_code_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    # 自愈状态字段 (Phase 85, HEAL-03, per D-09)
+    healing_status: Mapped[str] = mapped_column(String(20), default="pending")
+    healing_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    healing_error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")

@@ -111,6 +111,10 @@ class RunResponse(BaseModel):
     steps_count: int = 0
     # 外部断言执行摘要（Phase 25）
     external_assertion_summary: Optional[dict[str, Any]] = None
+    # 自愈状态字段 (Phase 85, HEAL-03, per D-10)
+    healing_status: str = "pending"
+    healing_attempts: int = 0
+    healing_error: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -162,6 +162,24 @@ class RunRepository:
             run.generated_code_path = path
             await self.session.commit()
 
+    async def update_healing_status(
+        self,
+        run_id: str,
+        status: str,
+        attempts: int,
+        error: str | None = None,
+        code_path: str | None = None,
+    ) -> None:
+        """更新自愈状态 (Phase 85, HEAL-03)"""
+        run = await self.get(run_id)
+        if run:
+            run.healing_status = status
+            run.healing_attempts = attempts
+            run.healing_error = error
+            if code_path is not None:
+                run.generated_code_path = code_path
+            await self.session.commit()
+
     async def add_step(self, run_id: str, step_data: dict) -> Step:
         """Add a step to a run.
 

@@ -170,7 +170,7 @@ Plans:
 
 - [x] **Phase 82: 代码生成基础** — ActionTranslator 翻译 6 种核心操作 + PlaywrightCodeGenerator 组装完整测试文件 + 管线集成 (completed 2026-04-18)
 - [x] **Phase 83: 定位器回退** — 主定位器失效时自动尝试备选定位器链（XPath → CSS → text），提高生成代码鲁棒性 (completed 2026-04-18)
-- [ ] **Phase 84: LLM 修复** — 定位器全部失败时 LLM 分析当前页面 DOM，自动生成修复后的定位器和代码
+- [x] **Phase 84: LLM 修复** — 定位器全部失败时 LLM 分析当前页面 DOM，自动生成修复后的定位器和代码 (completed 2026-04-18)
 - [ ] **Phase 85: Agent 重执行** — 修复后代码自动重跑验证，通过后替换原始代码，形成完整自愈闭环
 
 ## Phase Details
@@ -217,7 +217,7 @@ Plans:
 
 Plans:
 - [x] 84-01-PLAN.md — LLMHealer class: LLM 调用 + DOM 分析 + ast.parse 验证 + 超时处理 (HEAL-02)
-- [ ] 84-02-PLAN.md — ActionTranslator 4th fallback layer + PlaywrightCodeGenerator LLM 集成 + runs.py 传参 (HEAL-02)
+- [x] 84-02-PLAN.md — ActionTranslator 4th fallback layer + PlaywrightCodeGenerator LLM 集成 + runs.py 传参 (HEAL-02)
 
 ### Phase 85: Agent 重执行
 **Goal**: 修复后的代码自动重跑验证，通过后存入数据库替换原始代码，形成完整的自愈闭环
@@ -242,7 +242,7 @@ Phases execute in numeric order: 79 -> 80 -> 81 -> 82 -> 83 -> 84 -> 85
 | 81. 批量执行与兼容性验证 | v0.9.2 | 2/2 | Complete   | 2026-04-17 |
 | 82. 代码生成基础 | v0.10.0 | 2/2 | Complete   | 2026-04-18 |
 | 83. 定位器回退 | v0.10.0 | 0/2 | Complete    | 2026-04-18 |
-| 84. LLM 修复 | v0.10.0 | 1/2 | In Progress|  |
+| 84. LLM 修复 | v0.10.0 | 2/2 | Complete   | 2026-04-18 |
 | 85. Agent 重执行 | v0.10.0 | 0/? | Pending | |
 
 ---

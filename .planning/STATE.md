@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.0
 milestone_name: Agent 执行速度优化
-status: Ready to execute
-stopped_at: Completed 84-01-PLAN.md
-last_updated: "2026-04-18T12:35:53.723Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 84-02-PLAN.md
+last_updated: "2026-04-18T12:46:39.163Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -61,6 +61,9 @@ Recent decisions affecting current work:
 - [Phase 83]: LocatorChainBuilder separate class from ActionTranslator for SRP
 - [Phase 83]: _short_locator produces quote-free identifiers to avoid double-quote conflicts in generated log strings
 - [Phase 84]: LLMHealer uses create_llm() factory, 30s timeout, DOM truncation 5000 chars, Chinese system prompt for Qwen
+- [Phase 84]: [Phase 84-02]: translate_with_llm() separate method preserves backward compatibility
+- [Phase 84]: [Phase 84-02]: _build_llm_only_code() handles elem=None + llm_snippet case
+- [Phase 84]: [Phase 84-02]: llm_config parameter on generate_and_save() avoids circular import
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-18T12:35:53.721Z
-Stopped at: Completed 84-01-PLAN.md
+Last session: 2026-04-18T12:46:39.161Z
+Stopped at: Completed 84-02-PLAN.md
 Resume file: None

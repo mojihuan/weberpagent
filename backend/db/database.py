@@ -67,3 +67,19 @@ async def init_db():
         columns = [row[1] for row in result]
         if "login_role" not in columns:
             await conn.execute(text("ALTER TABLE tasks ADD COLUMN login_role VARCHAR(20)"))
+
+        # Phase 85: Add healing columns to runs if missing (HEAL-03)
+        result = await conn.execute(text("PRAGMA table_info(runs)"))
+        columns = [row[1] for row in result]
+        if "healing_status" not in columns:
+            await conn.execute(text(
+                "ALTER TABLE runs ADD COLUMN healing_status VARCHAR(20) DEFAULT 'pending'"
+            ))
+        if "healing_attempts" not in columns:
+            await conn.execute(text(
+                "ALTER TABLE runs ADD COLUMN healing_attempts INTEGER DEFAULT 0"
+            ))
+        if "healing_error" not in columns:
+            await conn.execute(text(
+                "ALTER TABLE runs ADD COLUMN healing_error TEXT"
+            ))
