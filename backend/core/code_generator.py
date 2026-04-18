@@ -6,6 +6,8 @@
 - Import 语句
 - def test_xxx(page: Page) -> None: 函数体
 - 每个操作为一行 Playwright API 调用
+
+Phase 84: 集成 LLMHealer，对弱步骤（elem=None 或 <=1 locator）进行 LLM 修复。
 """
 
 import ast
@@ -16,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.core.action_translator import ActionTranslator, TranslatedAction
+from backend.core.llm_healer import LLMHealer
 
 logger = logging.getLogger(__name__)
 
@@ -84,17 +87,31 @@ class PlaywrightCodeGenerator:
         task_id: str,
         agent_history: Any,
         base_dir: str = "outputs",
+        llm_config: dict | None = None,
     ) -> str:
         """从 agent 执行历史生成代码文件并保存到磁盘。
 
         Args:
             agent_history: AgentHistoryList 对象，有 model_actions() 方法
+            llm_config: 可选 LLM 配置，提供时启用 LLM 修复弱步骤
 
         Returns:
             生成文件的绝对路径。
         """
         raw_actions = agent_history.model_actions()
-        translated = [self._translator.translate(a) for a in raw_actions]
+
+        # Phase 84: LLM healing for weak steps
+        llm_snippets: dict[int, str] = {}
+        if llm_config is not None:
+            llm_snippets = await self._heal_weak_steps(
+                raw_actions, run_id, base_dir, llm_config
+            )
+
+        # 翻译所有操作，有 LLM snippet 的步骤使用 translate_with_llm
+        translated = [
+            self._translator.translate_with_llm(a, llm_snippets.get(i, ""))
+            for i, a in enumerate(raw_actions)
+        ]
         content = self.generate(run_id, task_name, task_id, translated)
 
         output_dir = Path(base_dir) / run_id / "generated"
@@ -106,6 +123,85 @@ class PlaywrightCodeGenerator:
         result_path = str(output_path)
         logger.info(f"[{run_id}] 生成 Playwright 代码: {result_path}")
         return result_path
+
+    async def _heal_weak_steps(
+        self,
+        raw_actions: list[dict],
+        run_id: str,
+        base_dir: str,
+        llm_config: dict,
+    ) -> dict[int, str]:
+        """识别弱步骤并调用 LLMHealer 修复。
+
+        弱步骤条件 (per D-07): elem=None 或 <=1 locator。
+        仅处理 click_element 和 input_text 操作。
+
+        Args:
+            raw_actions: model_actions() 返回的原始操作列表。
+            run_id: 执行记录 ID，用于日志和 DOM 路径。
+            base_dir: 输出基础目录，DOM snapshot 所在位置。
+            llm_config: LLM 配置，用于创建 LLMHealer 实例。
+
+        Returns:
+            字典: action index -> LLM code snippet。
+        """
+        healer = LLMHealer(llm_config)
+        llm_snippets: dict[int, str] = {}
+
+        for i, action in enumerate(raw_actions):
+            action_type = self._translator._identify_action_type(action)
+
+            # 仅处理 click/input (per D-07)
+            if action_type not in ("click_element", "input_text"):
+                continue
+
+            elem = action.get("interacted_element")
+
+            # 判断是否需要 healing
+            needs_healing = False
+            failed_locators: tuple[str, ...] = ()
+
+            if elem is None:
+                needs_healing = True
+            else:
+                locators = self._translator._chain_builder.extract(elem, action_type)
+                if len(locators) <= 1:
+                    needs_healing = True
+                    failed_locators = tuple(locators)
+
+            if not needs_healing:
+                continue
+
+            # 读取 DOM snapshot (1-indexed per RESEARCH Pitfall 2)
+            dom_path = Path(base_dir) / run_id / "dom" / f"step_{i + 1}.txt"
+            if not dom_path.exists():
+                logger.debug(
+                    f"[{run_id}] Step {i + 1} DOM snapshot missing, skip healing"
+                )
+                continue
+
+            dom_content = dom_path.read_text(encoding="utf-8")
+            action_params = action.get(action_type, {})
+
+            try:
+                result = await healer.heal(
+                    action_type, failed_locators, dom_content, action_params
+                )
+            except Exception as exc:
+                logger.warning(
+                    f"[{run_id}] Step {i + 1} LLM heal error: {exc}"
+                )
+                continue
+
+            if result.success:
+                llm_snippets[i] = result.code_snippet
+
+            logger.info(
+                f"[{run_id}] Step {i + 1} LLM 修复"
+                f"{'成功' if result.success else '失败'}"
+            )
+
+        return llm_snippets
 
     @staticmethod
     def _needs_logging(actions: list[TranslatedAction]) -> bool:

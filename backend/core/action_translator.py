@@ -164,6 +164,33 @@ class ActionTranslator:
             has_locator=False,
         )
 
+    @staticmethod
+    def _build_llm_only_code(action_type: str, llm_snippet: str) -> TranslatedAction:
+        """生成仅包含 LLM 修复代码的 TranslatedAction。
+
+        当 elem=None 或无定位器但有 LLM snippet 时使用。
+        将 LLM 代码包装在 try-except 中，失败时 raise HealerError。
+        """
+        escaped_snippet = llm_snippet.replace("\\", "\\\\").replace('"', '\\"')
+        code = (
+            f'    _healer.info("LLM 修复: {escaped_snippet[:80]}")\n'
+            f"    try:\n"
+            f"        {llm_snippet}\n"
+            f"    except Exception as _e:\n"
+            f'        _healer.error("LLM 修复失败 [{action_type}]")\n'
+            f'        raise HealerError('
+            f'action_type="{action_type}", '
+            f"locators=(), "
+            f"original_error=str(_e))"
+        )
+        return TranslatedAction(
+            code=code,
+            action_type=action_type,
+            is_comment=False,
+            has_locator=True,
+            locators=(),
+        )
+
     def _translate_click(
         self, params: dict, elem: Any, *, llm_snippet: str = ""
     ) -> TranslatedAction:
@@ -171,12 +198,17 @@ class ActionTranslator:
 
         有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
         当 llm_snippet 非空时，作为第 4 层 LLM 回退插入。
+        当 elem=None 但 llm_snippet 非空时，直接使用 LLM 代码。
         """
         if elem is None:
+            if llm_snippet:
+                return self._build_llm_only_code("click_element", llm_snippet)
             return self._build_placeholder("click_element")
 
         locators = self._chain_builder.extract(elem, "click_element")
         if not locators:
+            if llm_snippet:
+                return self._build_llm_only_code("click_element", llm_snippet)
             return self._build_placeholder("click_element")
 
         # 单定位器: 保持 Phase 82 格式 (per Pitfall 5)
@@ -208,12 +240,17 @@ class ActionTranslator:
 
         有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
         当 llm_snippet 非空时，作为第 4 层 LLM 回退插入。
+        当 elem=None 但 llm_snippet 非空时，直接使用 LLM 代码。
         """
         if elem is None:
+            if llm_snippet:
+                return self._build_llm_only_code("input_text", llm_snippet)
             return self._build_placeholder("input_text")
 
         locators = self._chain_builder.extract(elem, "input_text")
         if not locators:
+            if llm_snippet:
+                return self._build_llm_only_code("input_text", llm_snippet)
             return self._build_placeholder("input_text")
 
         text = params.get("text", "")

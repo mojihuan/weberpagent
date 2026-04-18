@@ -443,7 +443,7 @@ async def run_agent_background(
             await report_service.generate_report(run_id)
             logger.info(f"[{run_id}] 报告已生成")
 
-            # === Code Generation (Phase 82, CODE-01) ===
+            # === Code Generation (Phase 82, CODE-01 / Phase 84 LLM healing) ===
             try:
                 from backend.core.code_generator import PlaywrightCodeGenerator
                 code_generator = PlaywrightCodeGenerator()
@@ -452,6 +452,7 @@ async def run_agent_background(
                     task_name=task_name,
                     task_id=task_id,
                     agent_history=result,
+                    llm_config=get_llm_config(),
                 )
                 await run_repo.update_generated_code_path(run_id, code_path)
                 logger.info(f"[{run_id}] 生成 Playwright 代码: {code_path}")
