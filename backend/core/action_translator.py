@@ -88,6 +88,44 @@ class ActionTranslator:
         # 不应到达此处（已在 _CORE_TYPES 检查中过滤）
         return self._translate_unknown(action_type, params)
 
+    def translate_with_llm(
+        self, action: dict, llm_snippet: str = ""
+    ) -> TranslatedAction:
+        """翻译操作并插入 LLM 修复代码作为第 4 层回退。
+
+        与 translate() 行为一致，但 click/input 操作的多定位器回退代码
+        会额外插入 LLM 修复层。
+
+        Args:
+            action: model_actions() 返回的字典。
+            llm_snippet: LLM 生成的 Playwright 代码片段（空字符串 = 无 LLM 层）。
+
+        Returns:
+            TranslatedAction 包含生成的代码行和元数据。
+        """
+        action_type = self._identify_action_type(action)
+        params = action.get(action_type, {})
+
+        if action_type not in self._CORE_TYPES:
+            return self._translate_unknown(action_type, params)
+
+        elem = action.get("interacted_element")
+
+        if action_type == "click_element":
+            return self._translate_click(params, elem, llm_snippet=llm_snippet)
+        if action_type == "input_text":
+            return self._translate_input(params, elem, llm_snippet=llm_snippet)
+        if action_type == "navigate":
+            return self._translate_navigate(params)
+        if action_type == "scroll":
+            return self._translate_scroll(params)
+        if action_type == "send_keys":
+            return self._translate_send_keys(params)
+        if action_type == "go_back":
+            return self._translate_go_back()
+
+        return self._translate_unknown(action_type, params)
+
     # -- 私有方法 --------------------------------------------------------
 
     @staticmethod
@@ -127,11 +165,12 @@ class ActionTranslator:
         )
 
     def _translate_click(
-        self, params: dict, elem: Any
+        self, params: dict, elem: Any, *, llm_snippet: str = ""
     ) -> TranslatedAction:
         """click_element -> page.locator("xpath=...").click()
 
         有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
+        当 llm_snippet 非空时，作为第 4 层 LLM 回退插入。
         """
         if elem is None:
             return self._build_placeholder("click_element")
@@ -150,8 +189,10 @@ class ActionTranslator:
                 has_locator=True,
             )
 
-        # 多定位器: 生成 try-except 回退代码
-        code = self._build_fallback_code(locators, ".click()", "click_element")
+        # 多定位器: 生成 try-except 回退代码 (含可选 LLM 第 4 层)
+        code = self._build_fallback_code(
+            locators, ".click()", "click_element", llm_snippet=llm_snippet
+        )
         return TranslatedAction(
             code=code,
             action_type="click_element",
@@ -161,11 +202,12 @@ class ActionTranslator:
         )
 
     def _translate_input(
-        self, params: dict, elem: Any
+        self, params: dict, elem: Any, *, llm_snippet: str = ""
     ) -> TranslatedAction:
         """input_text -> page.locator("xpath=...").fill(text)
 
         有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
+        当 llm_snippet 非空时，作为第 4 层 LLM 回退插入。
         """
         if elem is None:
             return self._build_placeholder("input_text")
@@ -188,8 +230,10 @@ class ActionTranslator:
                 has_locator=True,
             )
 
-        # 多定位器: 生成 try-except 回退代码
-        code = self._build_fallback_code(locators, action_suffix, "input_text")
+        # 多定位器: 生成 try-except 回退代码 (含可选 LLM 第 4 层)
+        code = self._build_fallback_code(
+            locators, action_suffix, "input_text", llm_snippet=llm_snippet
+        )
         return TranslatedAction(
             code=code,
             action_type="input_text",
@@ -199,18 +243,24 @@ class ActionTranslator:
         )
 
     def _build_fallback_code(
-        self, locators: list[str], action_suffix: str, action_type: str
+        self,
+        locators: list[str],
+        action_suffix: str,
+        action_type: str,
+        *,
+        llm_snippet: str = "",
     ) -> str:
         """生成 try-except 回退代码 (per D-04/D-05).
 
         所有定位器失败时 raise HealerError (per D-07)。
         回退成功记录 warning 级别日志 (per D-08)。
+        当 llm_snippet 非空时，在 HealerError 之前插入 LLM 修复层 (Phase 84)。
         """
         lines: list[str] = []
         indent = "    "  # 函数体缩进
 
         if len(locators) == 2:
-            # 两级: 外层 try -> except (try 第二个) -> except (raise HealerError)
+            # 两级: 外层 try -> except (try 第二个) -> except (LLM 或 raise HealerError)
             lines.append(f"{indent}try:")
             lines.append(f"{indent}    {locators[0]}{action_suffix}")
             lines.append(f"{indent}except Exception as _e1:")
@@ -222,17 +272,20 @@ class ActionTranslator:
             lines.append(f"{indent}    try:")
             lines.append(f"{indent}        {locators[1]}{action_suffix}")
             lines.append(f"{indent}    except Exception as _e2:")
-            short_all = ", ".join(self._short_locator(l) for l in locators)
-            lines.append(
-                f'{indent}        _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
-            )
-            locators_repr = ", ".join(repr(l) for l in locators)
-            lines.append(
-                f"{indent}        raise HealerError("
-                f'action_type="{action_type}", '
-                f"locators=({locators_repr}), "
-                f"original_error=str(_e2))"
-            )
+            if llm_snippet:
+                self._append_llm_layer(lines, indent * 3, llm_snippet, action_type, locators, "_e3")
+            else:
+                short_all = ", ".join(self._short_locator(l) for l in locators)
+                lines.append(
+                    f'{indent}        _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
+                )
+                locators_repr = ", ".join(repr(l) for l in locators)
+                lines.append(
+                    f"{indent}        raise HealerError("
+                    f'action_type="{action_type}", '
+                    f"locators=({locators_repr}), "
+                    f"original_error=str(_e2))"
+                )
 
         elif len(locators) == 3:
             # 三级嵌套
@@ -255,19 +308,61 @@ class ActionTranslator:
             lines.append(f"{indent}        try:")
             lines.append(f"{indent}            {locators[2]}{action_suffix}")
             lines.append(f"{indent}        except Exception as _e3:")
-            short_all = ", ".join(self._short_locator(l) for l in locators)
-            lines.append(
-                f'{indent}            _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
-            )
-            locators_repr = ", ".join(repr(l) for l in locators)
-            lines.append(
-                f"{indent}            raise HealerError("
-                f'action_type="{action_type}", '
-                f"locators=({locators_repr}), "
-                f"original_error=str(_e3))"
-            )
+            if llm_snippet:
+                self._append_llm_layer(lines, indent * 4, llm_snippet, action_type, locators, "_e4")
+            else:
+                short_all = ", ".join(self._short_locator(l) for l in locators)
+                lines.append(
+                    f'{indent}            _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
+                )
+                locators_repr = ", ".join(repr(l) for l in locators)
+                lines.append(
+                    f"{indent}            raise HealerError("
+                    f'action_type="{action_type}", '
+                    f"locators=({locators_repr}), "
+                    f"original_error=str(_e3))"
+                )
 
         return "\n".join(lines)
+
+    def _append_llm_layer(
+        self,
+        lines: list[str],
+        base_indent: str,
+        llm_snippet: str,
+        action_type: str,
+        locators: list[str],
+        except_var: str,
+    ) -> None:
+        """向 lines 追加 LLM 修复 try-except 层。
+
+        Args:
+            lines: 当前正在构建的代码行列表。
+            base_indent: LLM 层的缩进（最内层 except 块内部）。
+            llm_snippet: LLM 生成的 Playwright 代码。
+            action_type: 操作类型。
+            locators: 已失败的定位器列表。
+            except_var: LLM 层的 except 变量名（如 "_e3", "_e4"）。
+        """
+        short_llm = self._escape_string(llm_snippet[:80])
+        short_all = ", ".join(self._short_locator(l) for l in locators)
+        locators_repr = ", ".join(repr(l) for l in locators)
+
+        lines.append(
+            f'{base_indent}_healer.info("LLM 修复: {short_llm}")'
+        )
+        lines.append(f"{base_indent}try:")
+        lines.append(f"{base_indent}    {llm_snippet}")
+        lines.append(f"{base_indent}except Exception as {except_var}:")
+        lines.append(
+            f'{base_indent}    _healer.error("定位器全部失败（含 LLM 修复）[{action_type}]: {short_all}")'
+        )
+        lines.append(
+            f"{base_indent}    raise HealerError("
+            f'action_type="{action_type}", '
+            f"locators=({locators_repr}), "
+            f"original_error=str({except_var}))"
+        )
 
     @staticmethod
     def _short_locator(locator: str) -> str:
