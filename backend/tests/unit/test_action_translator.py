@@ -1,14 +1,16 @@
 """ActionTranslator 单元测试 -- browser-use action 到 Playwright 代码翻译。
 
-覆盖 6 种核心操作类型 (D-08) + 边界情况 (D-06, D-09)。
+覆盖 6 种核心操作类型 (D-08) + 边界情况 (D-06, D-09) + 多定位器回退 (D-04/D-05)。
 所有测试使用 mock DOMInteractedElement，不依赖 browser-use 内部模块。
 """
 
+import ast
 from dataclasses import dataclass
 
 import pytest
 
 from backend.core.action_translator import ActionTranslator, TranslatedAction
+from backend.core.healer_error import HealerError
 
 
 # ---------------------------------------------------------------------------
@@ -247,3 +249,293 @@ class TestXPathExtraction:
 
         assert result.has_locator is True
         assert "/html/body/div[2]/form/button" in result.code
+
+
+# ---------------------------------------------------------------------------
+# 多定位器回退测试 (D-04/D-05)
+# ---------------------------------------------------------------------------
+
+
+class TestLocatorFallback:
+    """多定位器 try-except 回退代码生成测试。"""
+
+    def test_click_two_locators_generates_try_except(
+        self, translator: ActionTranslator
+    ) -> None:
+        """click 操作有 xpath + id 两个定位器时，生成 try-except 结构。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/div/button",
+                node_name="BUTTON",
+                attributes={"id": "submit-btn"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.has_locator is True
+        assert "try:" in result.code
+        assert "except" in result.code
+        assert ".click()" in result.code
+
+    def test_click_three_locators_generates_nested_try_except(
+        self, translator: ActionTranslator
+    ) -> None:
+        """click 操作有 3 个定位器时，生成两级嵌套 try-except。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/form/button",
+                node_name="BUTTON",
+                attributes={"id": "btn", "data-testid": "submit"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.has_locator is True
+        # 应有多行代码
+        assert "\n" in result.code
+        assert "try:" in result.code
+        # 两级嵌套: 外层 try + 内层 try
+        code_lines = result.code.split("\n")
+        try_count = sum(1 for line in code_lines if "try:" in line)
+        assert try_count >= 2
+
+    def test_click_single_locator_no_try_except(
+        self, translator: ActionTranslator
+    ) -> None:
+        """click 操作只有 1 个定位器时，不生成 try-except，保持单行格式。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/div/button",
+                node_name="BUTTON",
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.has_locator is True
+        assert "try:" not in result.code
+        assert 'page.locator("xpath=/html/body/div/button").click()' in result.code
+
+    def test_input_two_locators_generates_try_except(
+        self, translator: ActionTranslator
+    ) -> None:
+        """input_text 有多定位器时生成 try-except，每个定位器用 .fill(text)。"""
+        action = {
+            "input_text": {"index": 12, "text": "hello"},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/input",
+                node_name="INPUT",
+                attributes={"id": "name-input"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.has_locator is True
+        assert "try:" in result.code
+        assert ".fill(" in result.code
+        assert "hello" in result.code
+
+    def test_input_single_locator_no_try_except(
+        self, translator: ActionTranslator
+    ) -> None:
+        """input_text 只有 1 个定位器时不生成 try-except。"""
+        action = {
+            "input_text": {"index": 12, "text": "hello"},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/input",
+                node_name="INPUT",
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.has_locator is True
+        assert "try:" not in result.code
+
+    def test_final_except_contains_healer_error(
+        self, translator: ActionTranslator
+    ) -> None:
+        """try-except 最终 except 块包含 raise HealerError。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/button",
+                node_name="BUTTON",
+                attributes={"id": "btn"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert "raise HealerError" in result.code
+        assert "action_type" in result.code
+        assert "locators" in result.code
+        assert "original_error" in result.code
+
+    def test_non_final_except_contains_warning(
+        self, translator: ActionTranslator
+    ) -> None:
+        """非最终 except 块包含 warning 级别日志。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/button",
+                node_name="BUTTON",
+                attributes={"id": "btn"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert "_healer.warning" in result.code
+        assert "定位器回退" in result.code
+
+    def test_two_locator_scenario_has_healer_error(
+        self, translator: ActionTranslator
+    ) -> None:
+        """2-locator 场景的生成代码包含 raise HealerError。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/button",
+                node_name="BUTTON",
+                attributes={"id": "btn"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert "raise HealerError" in result.code
+
+    def test_three_locator_scenario_has_error_log_and_healer_error(
+        self, translator: ActionTranslator
+    ) -> None:
+        """3-locator 场景的生成代码包含 _healer.error 和 raise HealerError。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/form/button",
+                node_name="BUTTON",
+                attributes={"id": "btn", "data-testid": "submit"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert "_healer.error" in result.code
+        assert "raise HealerError" in result.code
+
+    def test_navigate_unchanged_with_fallback(
+        self, translator: ActionTranslator
+    ) -> None:
+        """navigate 操作的翻译结果不变 (per D-06)。"""
+        action = {
+            "navigate": {"url": "https://example.com"},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert "try:" not in result.code
+        assert "page.goto" in result.code
+
+    def test_scroll_unchanged_with_fallback(
+        self, translator: ActionTranslator
+    ) -> None:
+        """scroll 操作的翻译结果不变 (per D-06)。"""
+        action = {
+            "scroll": {"down": True, "pages": 1.0},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert "try:" not in result.code
+        assert "page.mouse.wheel" in result.code
+
+    def test_send_keys_unchanged_with_fallback(
+        self, translator: ActionTranslator
+    ) -> None:
+        """send_keys 操作的翻译结果不变 (per D-06)。"""
+        action = {
+            "send_keys": {"keys": "Enter"},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert "try:" not in result.code
+        assert "page.keyboard.press" in result.code
+
+    def test_go_back_unchanged_with_fallback(
+        self, translator: ActionTranslator
+    ) -> None:
+        """go_back 操作的翻译结果不变 (per D-06)。"""
+        action = {
+            "go_back": {},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert "try:" not in result.code
+        assert "page.go_back" in result.code
+
+    def test_interacted_element_none_still_placeholder(
+        self, translator: ActionTranslator
+    ) -> None:
+        """interacted_element 为 None 时仍生成占位符，不变。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.has_locator is False
+        assert "page.wait_for_timeout(1000)" in result.code
+        assert "# TODO: 定位器缺失" in result.code
+
+    def test_generated_try_except_is_valid_python(
+        self, translator: ActionTranslator
+    ) -> None:
+        """生成的 try-except 代码是合法 Python (ast.parse 通过)。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/form/button",
+                node_name="BUTTON",
+                attributes={"id": "btn", "data-testid": "submit"},
+            ),
+        }
+        result = translator.translate(action)
+
+        # 将生成的代码包装在函数体中以通过 ast.parse
+        wrapped = f"def test_func():\n{result.code}"
+        ast.parse(wrapped)
+
+    def test_locators_field_populated(
+        self, translator: ActionTranslator
+    ) -> None:
+        """TranslatedAction.locators 字段包含提取的定位器元数据。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/button",
+                node_name="BUTTON",
+                attributes={"id": "btn"},
+            ),
+        }
+        result = translator.translate(action)
+
+        assert len(result.locators) == 2
+        assert any("xpath=" in l for l in result.locators)
+        assert any("[id=" in l for l in result.locators)
+
+    def test_single_locator_has_empty_locators_metadata(
+        self, translator: ActionTranslator
+    ) -> None:
+        """单定位器时 locators 元数据为空（保持与 Phase 82 一致）。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/div/button",
+                node_name="BUTTON",
+            ),
+        }
+        result = translator.translate(action)
+
+        # 单定位器不使用 LocatorChainBuilder，保持原行为
+        assert result.has_locator is True
