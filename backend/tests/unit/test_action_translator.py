@@ -539,3 +539,145 @@ class TestLocatorFallback:
 
         # 单定位器不使用 LocatorChainBuilder，保持原行为
         assert result.has_locator is True
+
+
+# ---------------------------------------------------------------------------
+# LLM 第四层回退测试 (Phase 84 Plan 02)
+# ---------------------------------------------------------------------------
+
+
+class TestLLMFallbackLayer:
+    """Phase 84: _build_fallback_code() LLM 第四层回退代码生成测试。"""
+
+    def test_two_locators_with_llm_snippet(
+        self, translator: ActionTranslator
+    ) -> None:
+        """2 个定位器 + llm_snippet: LLM 代码作为最内层 try-except 插入 HealerError 之前。"""
+        locators = [
+            'page.locator("xpath=/html/body/div/button")',
+            'page.locator("[id=\\"btn\\"]")',
+        ]
+        llm_snippet = 'page.locator("button:has-text(\\"Submit\\")").click()'
+
+        code = translator._build_fallback_code(
+            locators=locators,
+            action_suffix=".click()",
+            action_type="click_element",
+            llm_snippet=llm_snippet,
+        )
+
+        # 外层 try 存在
+        assert "try:" in code
+        # 回退日志存在
+        assert "_healer.warning" in code
+        assert "定位器回退" in code
+        # LLM 修复日志
+        assert "_healer.info" in code
+        assert "LLM 修复" in code
+        # LLM 代码在 try 块中
+        assert llm_snippet in code
+        # LLM 失败的 except 包含 "含 LLM 修复"
+        assert "含 LLM 修复" in code
+        # 最终 raise HealerError
+        assert "raise HealerError" in code
+
+    def test_three_locators_with_llm_snippet(
+        self, translator: ActionTranslator
+    ) -> None:
+        """3 个定位器 + llm_snippet: LLM 代码在第三个定位器 except 之后。"""
+        locators = [
+            'page.locator("xpath=/html/body/form/button")',
+            'page.locator("[id=\\"btn\\"]")',
+            'page.get_by_test_id("submit")',
+        ]
+        llm_snippet = 'page.locator("button[type=submit]").click()'
+
+        code = translator._build_fallback_code(
+            locators=locators,
+            action_suffix=".click()",
+            action_type="click_element",
+            llm_snippet=llm_snippet,
+        )
+
+        # LLM 修复日志
+        assert "_healer.info" in code
+        assert "LLM 修复" in code
+        # LLM 代码嵌入
+        assert llm_snippet in code
+        # 含 LLM 修复的错误消息
+        assert "含 LLM 修复" in code
+        # 最终 raise HealerError
+        assert "raise HealerError" in code
+
+    def test_no_llm_snippet_backward_compatible(
+        self, translator: ActionTranslator
+    ) -> None:
+        """llm_snippet 为空时，输出与 Phase 83 完全相同（向后兼容）。"""
+        locators = [
+            'page.locator("xpath=/html/body/div/button")',
+            'page.locator("[id=\\"btn\\"]")',
+        ]
+
+        code_with_empty = translator._build_fallback_code(
+            locators=locators,
+            action_suffix=".click()",
+            action_type="click_element",
+            llm_snippet="",
+        )
+
+        code_without = translator._build_fallback_code(
+            locators=locators,
+            action_suffix=".click()",
+            action_type="click_element",
+        )
+
+        # 空字符串和未提供参数结果相同
+        assert code_with_empty == code_without
+        # 不包含 LLM 相关内容
+        assert "LLM" not in code_with_empty
+        assert "含 LLM 修复" not in code_with_empty
+
+    def test_translate_with_llm_click_flow(
+        self, translator: ActionTranslator
+    ) -> None:
+        """translate_with_llm() click 操作完整流程：2 个定位器 + LLM snippet。"""
+        action = {
+            "click_element": {"index": 5},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/div/button",
+                node_name="BUTTON",
+                attributes={"id": "btn"},
+            ),
+        }
+        llm_snippet = 'page.locator("button:has-text(\\"OK\\")").click()'
+
+        result = translator.translate_with_llm(action, llm_snippet=llm_snippet)
+
+        assert result.action_type == "click_element"
+        assert result.has_locator is True
+        # 应包含 LLM 层
+        assert "LLM 修复" in result.code
+        assert llm_snippet in result.code
+        # locators 元数据正确
+        assert len(result.locators) == 2
+
+    def test_llm_layer_code_valid_python(
+        self, translator: ActionTranslator
+    ) -> None:
+        """包含 LLM 层的生成代码通过 ast.parse() 语法检查。"""
+        locators = [
+            'page.locator("xpath=/html/body/div/button")',
+            'page.locator("[id=\\"btn\\"]")',
+        ]
+        llm_snippet = 'page.locator("button:has-text(\\"Submit\\")").click()'
+
+        code = translator._build_fallback_code(
+            locators=locators,
+            action_suffix=".click()",
+            action_type="click_element",
+            llm_snippet=llm_snippet,
+        )
+
+        # 包装在函数体中以通过 ast.parse
+        wrapped = f"def test_func():\n{code}"
+        ast.parse(wrapped)
