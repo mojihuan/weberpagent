@@ -443,6 +443,21 @@ async def run_agent_background(
             await report_service.generate_report(run_id)
             logger.info(f"[{run_id}] 报告已生成")
 
+            # === Code Generation (Phase 82, CODE-01) ===
+            try:
+                from backend.core.code_generator import PlaywrightCodeGenerator
+                code_generator = PlaywrightCodeGenerator()
+                code_path = await code_generator.generate_and_save(
+                    run_id=run_id,
+                    task_name=task_name,
+                    task_id=task_id,
+                    agent_history=result,
+                )
+                await run_repo.update_generated_code_path(run_id, code_path)
+                logger.info(f"[{run_id}] 生成 Playwright 代码: {code_path}")
+            except Exception as e:
+                logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
+
         except Exception as e:
             logger.error(f"[{run_id}] 执行失败: {e}")
             logger.error(f"[{run_id}] 异常堆栈:\n{traceback.format_exc()}")
