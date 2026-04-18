@@ -9,7 +9,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -475,3 +475,331 @@ class TestFallbackCodeGeneration:
         assert goto_idx is not None
         # goto 后面应有空行（navigate -> click_element 类型变化）
         assert lines[goto_idx + 1] == ""
+
+
+# ---------------------------------------------------------------------------
+# LLM Healing 集成测试 (Phase 84 Plan 02)
+# ---------------------------------------------------------------------------
+
+
+class TestLLMHealingIntegration:
+    """Phase 84: PlaywrightCodeGenerator + LLMHealer 集成测试。"""
+
+    @pytest.fixture
+    def mock_llm_healer(self) -> MagicMock:
+        """创建 mock LLMHealer。"""
+        with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+            mock_instance = MagicMock()
+            mock_cls.return_value = mock_instance
+            yield mock_instance
+
+    async def test_elem_none_triggers_healing(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """interacted_element=None 时触发 LLM healing。"""
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"click_element": {"index": 5}, "interacted_element": None},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_1"
+            # 创建 DOM snapshot 文件
+            dom_dir = Path(tmpdir) / run_id / "dom"
+            dom_dir.mkdir(parents=True, exist_ok=True)
+            (dom_dir / "step_1.txt").write_text("<html><button>Submit</button></html>")
+
+            llm_config = {"model": "test", "api_key": "test-key"}
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_instance.heal.return_value = MagicMock(
+                    success=True,
+                    code_snippet='page.locator("button").click()',
+                    raw_response="...",
+                    locator="button",
+                )
+                mock_cls.return_value = mock_instance
+
+                code_path = await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="修复测试",
+                    task_id="t_heal1",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config=llm_config,
+                )
+
+                mock_instance.heal.assert_called_once()
+
+    async def test_single_locator_triggers_healing(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """只有 1 个定位器（仅 XPath）时触发 healing。"""
+        mock_elem = MagicMock()
+        mock_elem.x_path = "/html/body/button"
+        mock_elem.node_name = "BUTTON"
+        mock_elem.attributes = {}
+        mock_elem.ax_name = None
+
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"click_element": {"index": 5}, "interacted_element": mock_elem},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_2"
+            dom_dir = Path(tmpdir) / run_id / "dom"
+            dom_dir.mkdir(parents=True, exist_ok=True)
+            (dom_dir / "step_1.txt").write_text("<html><button>OK</button></html>")
+
+            llm_config = {"model": "test", "api_key": "test-key"}
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_instance.heal.return_value = MagicMock(
+                    success=True,
+                    code_snippet='page.locator("button").click()',
+                    raw_response="...",
+                    locator="button",
+                )
+                mock_cls.return_value = mock_instance
+
+                await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="单定位器修复",
+                    task_id="t_heal2",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config=llm_config,
+                )
+
+                mock_instance.heal.assert_called_once()
+
+    async def test_two_plus_locators_skip_healing(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """2+ 个定位器的健康步骤不触发 healing。"""
+        mock_elem = MagicMock()
+        mock_elem.x_path = "/html/body/button"
+        mock_elem.node_name = "BUTTON"
+        mock_elem.attributes = {"id": "btn"}
+        mock_elem.ax_name = None
+
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"click_element": {"index": 5}, "interacted_element": mock_elem},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_3"
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_cls.return_value = mock_instance
+
+                await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="健康测试",
+                    task_id="t_heal3",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config={"model": "test", "api_key": "key"},
+                )
+
+                mock_instance.heal.assert_not_called()
+
+    async def test_navigate_skips_healing(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """navigate 操作不触发 healing。"""
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"navigate": {"url": "https://example.com"}, "interacted_element": None},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_4"
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_cls.return_value = mock_instance
+
+                await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="导航测试",
+                    task_id="t_heal4",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config={"model": "test", "api_key": "key"},
+                )
+
+                mock_instance.heal.assert_not_called()
+
+    async def test_healing_success_embeds_code(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """LLM 修复成功时，生成文件包含 LLM-healed 代码。"""
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"click_element": {"index": 5}, "interacted_element": None},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_5"
+            dom_dir = Path(tmpdir) / run_id / "dom"
+            dom_dir.mkdir(parents=True, exist_ok=True)
+            (dom_dir / "step_1.txt").write_text("<html><button>Submit</button></html>")
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_instance.heal.return_value = MagicMock(
+                    success=True,
+                    code_snippet='page.locator("button").click()',
+                    raw_response="...",
+                    locator="button",
+                )
+                mock_cls.return_value = mock_instance
+
+                code_path = await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="成功修复",
+                    task_id="t_heal5",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config={"model": "test", "api_key": "key"},
+                )
+
+                content = Path(code_path).read_text()
+                assert "LLM 修复" in content
+                assert 'page.locator("button").click()' in content
+
+    async def test_healing_failure_preserves_original(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """LLM 修复失败时，生成文件仍包含有效代码（原始占位符保留）。"""
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"click_element": {"index": 5}, "interacted_element": None},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_6"
+            dom_dir = Path(tmpdir) / run_id / "dom"
+            dom_dir.mkdir(parents=True, exist_ok=True)
+            (dom_dir / "step_1.txt").write_text("<html><button>Submit</button></html>")
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_instance.heal.return_value = MagicMock(
+                    success=False,
+                    code_snippet="",
+                    raw_response="timeout",
+                    locator="",
+                )
+                mock_cls.return_value = mock_instance
+
+                code_path = await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="失败修复",
+                    task_id="t_heal6",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config={"model": "test", "api_key": "key"},
+                )
+
+                content = Path(code_path).read_text()
+                # 文件仍是合法 Python
+                ast.parse(content)
+                # 包含原始占位符
+                assert "page.wait_for_timeout" in content or "TODO" in content
+
+    async def test_missing_dom_skips_healing(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """DOM snapshot 文件缺失时，跳过 healing 不报错。"""
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"click_element": {"index": 5}, "interacted_element": None},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_7"
+            # 不创建 DOM 文件
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+                mock_cls.return_value = mock_instance
+
+                code_path = await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="缺失DOM",
+                    task_id="t_heal7",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config={"model": "test", "api_key": "key"},
+                )
+
+                # heal 不被调用
+                mock_instance.heal.assert_not_called()
+                # 文件仍生成
+                assert os.path.exists(code_path)
+
+    async def test_full_file_with_mixed_healing(
+        self, generator: PlaywrightCodeGenerator
+    ) -> None:
+        """混合操作（部分需 healing）生成的文件通过 ast.parse()。"""
+        mock_elem = MagicMock()
+        mock_elem.x_path = "/html/body/input"
+        mock_elem.node_name = "INPUT"
+        mock_elem.attributes = {}
+        mock_elem.ax_name = None
+
+        mock_history = MagicMock()
+        mock_history.model_actions.return_value = [
+            {"navigate": {"url": "https://example.com"}, "interacted_element": None},
+            {"click_element": {"index": 5}, "interacted_element": None},
+            {"input_text": {"index": 12, "text": "hello"}, "interacted_element": mock_elem},
+            {"scroll": {"down": True, "pages": 1.0}, "interacted_element": None},
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_id = "heal_test_8"
+            dom_dir = Path(tmpdir) / run_id / "dom"
+            dom_dir.mkdir(parents=True, exist_ok=True)
+            (dom_dir / "step_1.txt").write_text("<html></html>")
+            (dom_dir / "step_2.txt").write_text("<html><button>Go</button></html>")
+            (dom_dir / "step_3.txt").write_text("<html><input /></html>")
+
+            with patch("backend.core.code_generator.LLMHealer") as mock_cls:
+                mock_instance = AsyncMock()
+
+                async def mock_heal(action_type, failed_locators, dom_snapshot, action_params):
+                    if action_type == "click_element":
+                        return MagicMock(
+                            success=True,
+                            code_snippet='page.locator("button").click()',
+                            raw_response="...",
+                            locator="button",
+                        )
+                    return MagicMock(
+                        success=False,
+                        code_snippet="",
+                        raw_response="fail",
+                        locator="",
+                    )
+
+                mock_instance.heal = mock_heal
+                mock_cls.return_value = mock_instance
+
+                code_path = await generator.generate_and_save(
+                    run_id=run_id,
+                    task_name="混合修复",
+                    task_id="t_heal8",
+                    agent_history=mock_history,
+                    base_dir=tmpdir,
+                    llm_config={"model": "test", "api_key": "key"},
+                )
+
+                content = Path(code_path).read_text()
+                ast.parse(content)
