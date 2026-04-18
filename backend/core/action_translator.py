@@ -2,21 +2,29 @@
 
 每个 model_actions() 条目翻译为一条 TranslatedAction，包含 Playwright API 调用字符串。
 处理 6 种核心操作类型 (per D-08)，其他类型生成注释 (per D-09)。
+
+Phase 83 扩展: click/input 操作支持多定位器 try-except 回退 (per D-04/D-05)。
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
+from typing import Any
+
+from backend.core.healer_error import HealerError
+from backend.core.locator_chain_builder import LocatorChainBuilder
 
 
 @dataclass(frozen=True)
 class TranslatedAction:
     """单个操作的 Playwright 翻译结果（不可变）。"""
 
-    code: str  # 生成的 Playwright 代码行
+    code: str  # 生成的 Playwright 代码行（可能是多行 try-except）
     action_type: str  # 原始操作类型
     is_comment: bool  # True 表示代码是注释（未翻译的操作）
-    has_locator: bool  # True 表示使用了 XPath 定位器
+    has_locator: bool  # True 表示使用了定位器
+    locators: tuple[str, ...] = ()  # 定位器链元数据，用于调试和 Phase 84
 
 
 class ActionTranslator:
@@ -26,6 +34,8 @@ class ActionTranslator:
     click_element, input_text, navigate, scroll, send_keys, go_back
 
     其他类型生成注释 (per D-09)。
+
+    Phase 83: click/input 操作支持多定位器 try-except 回退 (per D-04/D-05)。
     """
 
     VIEWPORT_HEIGHT: int = 1000  # 滚动像素计算基准 (per Pitfall 3)
@@ -38,6 +48,9 @@ class ActionTranslator:
         "send_keys",
         "go_back",
     })
+
+    def __init__(self) -> None:
+        self._chain_builder = LocatorChainBuilder()
 
     # -- 公共接口 --------------------------------------------------------
 
@@ -56,13 +69,13 @@ class ActionTranslator:
         if action_type not in self._CORE_TYPES:
             return self._translate_unknown(action_type, params)
 
-        xpath = self._extract_xpath(action)
+        elem = action.get("interacted_element")
 
         # 核心操作分派
         if action_type == "click_element":
-            return self._translate_click(params, xpath)
+            return self._translate_click(params, elem)
         if action_type == "input_text":
-            return self._translate_input(params, xpath)
+            return self._translate_input(params, elem)
         if action_type == "navigate":
             return self._translate_navigate(params)
         if action_type == "scroll":
@@ -114,34 +127,191 @@ class ActionTranslator:
         )
 
     def _translate_click(
-        self, params: dict, xpath: str | None
+        self, params: dict, elem: Any
     ) -> TranslatedAction:
-        """click_element -> page.locator("xpath=...").click()"""
-        if xpath is None:
+        """click_element -> page.locator("xpath=...").click()
+
+        有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
+        """
+        if elem is None:
             return self._build_placeholder("click_element")
-        escaped = self._escape_string(xpath)
+
+        locators = self._chain_builder.extract(elem, "click_element")
+        if not locators:
+            return self._build_placeholder("click_element")
+
+        # 单定位器: 保持 Phase 82 格式 (per Pitfall 5)
+        if len(locators) == 1:
+            escaped = self._escape_string(elem.x_path)
+            return TranslatedAction(
+                code=f'    page.locator("xpath={escaped}").click()',
+                action_type="click_element",
+                is_comment=False,
+                has_locator=True,
+            )
+
+        # 多定位器: 生成 try-except 回退代码
+        code = self._build_fallback_code(locators, ".click()", "click_element")
         return TranslatedAction(
-            code=f'    page.locator("xpath={escaped}").click()',
+            code=code,
             action_type="click_element",
             is_comment=False,
             has_locator=True,
+            locators=tuple(locators),
         )
 
     def _translate_input(
-        self, params: dict, xpath: str | None
+        self, params: dict, elem: Any
     ) -> TranslatedAction:
-        """input_text -> page.locator("xpath=...").fill(text)"""
-        if xpath is None:
+        """input_text -> page.locator("xpath=...").fill(text)
+
+        有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
+        """
+        if elem is None:
             return self._build_placeholder("input_text")
+
+        locators = self._chain_builder.extract(elem, "input_text")
+        if not locators:
+            return self._build_placeholder("input_text")
+
         text = params.get("text", "")
-        escaped_xpath = self._escape_string(xpath)
         escaped_text = self._escape_string(text)
+        action_suffix = f'.fill("{escaped_text}")'
+
+        # 单定位器: 保持 Phase 82 格式
+        if len(locators) == 1:
+            escaped_xpath = self._escape_string(elem.x_path)
+            return TranslatedAction(
+                code=f'    page.locator("xpath={escaped_xpath}").fill("{escaped_text}")',
+                action_type="input_text",
+                is_comment=False,
+                has_locator=True,
+            )
+
+        # 多定位器: 生成 try-except 回退代码
+        code = self._build_fallback_code(locators, action_suffix, "input_text")
         return TranslatedAction(
-            code=f'    page.locator("xpath={escaped_xpath}").fill("{escaped_text}")',
+            code=code,
             action_type="input_text",
             is_comment=False,
             has_locator=True,
+            locators=tuple(locators),
         )
+
+    def _build_fallback_code(
+        self, locators: list[str], action_suffix: str, action_type: str
+    ) -> str:
+        """生成 try-except 回退代码 (per D-04/D-05).
+
+        所有定位器失败时 raise HealerError (per D-07)。
+        回退成功记录 warning 级别日志 (per D-08)。
+        """
+        lines: list[str] = []
+        indent = "    "  # 函数体缩进
+
+        if len(locators) == 2:
+            # 两级: 外层 try -> except (try 第二个) -> except (raise HealerError)
+            lines.append(f"{indent}try:")
+            lines.append(f"{indent}    {locators[0]}{action_suffix}")
+            lines.append(f"{indent}except Exception as _e1:")
+            short0 = self._short_locator(locators[0])
+            short1 = self._short_locator(locators[1])
+            lines.append(
+                f'{indent}    _healer.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
+            )
+            lines.append(f"{indent}    try:")
+            lines.append(f"{indent}        {locators[1]}{action_suffix}")
+            lines.append(f"{indent}    except Exception as _e2:")
+            short_all = ", ".join(self._short_locator(l) for l in locators)
+            lines.append(
+                f'{indent}        _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
+            )
+            locators_repr = ", ".join(repr(l) for l in locators)
+            lines.append(
+                f"{indent}        raise HealerError("
+                f'action_type="{action_type}", '
+                f"locators=({locators_repr}), "
+                f"original_error=str(_e2))"
+            )
+
+        elif len(locators) == 3:
+            # 三级嵌套
+            lines.append(f"{indent}try:")
+            lines.append(f"{indent}    {locators[0]}{action_suffix}")
+            lines.append(f"{indent}except Exception as _e1:")
+            short0 = self._short_locator(locators[0])
+            short1 = self._short_locator(locators[1])
+            lines.append(
+                f'{indent}    _healer.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
+            )
+            lines.append(f"{indent}    try:")
+            lines.append(f"{indent}        {locators[1]}{action_suffix}")
+            lines.append(f"{indent}    except Exception as _e2:")
+            short1b = self._short_locator(locators[1])
+            short2 = self._short_locator(locators[2])
+            lines.append(
+                f'{indent}        _healer.warning("定位器回退: {short1b} 失败, 尝试 {short2}")'
+            )
+            lines.append(f"{indent}        try:")
+            lines.append(f"{indent}            {locators[2]}{action_suffix}")
+            lines.append(f"{indent}        except Exception as _e3:")
+            short_all = ", ".join(self._short_locator(l) for l in locators)
+            lines.append(
+                f'{indent}            _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
+            )
+            locators_repr = ", ".join(repr(l) for l in locators)
+            lines.append(
+                f"{indent}            raise HealerError("
+                f'action_type="{action_type}", '
+                f"locators=({locators_repr}), "
+                f"original_error=str(_e3))"
+            )
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _short_locator(locator: str) -> str:
+        """从完整定位器表达式提取简短描述用于日志。
+
+        返回不含双引号的简短描述，避免嵌入日志字符串时引号冲突。
+        使用单引号包裹标识符，确保日志字符串中的可读性。
+        """
+        # page.locator("xpath=...") -> xpath=...
+        xpath_match = re.search(r'page\.locator\("xpath=(.+?)"\)', locator)
+        if xpath_match:
+            return f"xpath={xpath_match.group(1)}"
+
+        # page.locator("[id='...']") -> id=...
+        id_match = re.search(r'page\.locator\("\[id=\\\\?"(.+?)\\\\?"\]"\)', locator)
+        if id_match:
+            return f"id={id_match.group(1)}"
+
+        # page.locator("[id=...]") 通用匹配
+        id_match2 = re.search(r'\[id=.+?"(.+?)".*?\]', locator)
+        if id_match2:
+            return f"id={id_match2.group(1)}"
+
+        # page.get_by_test_id("...") -> test_id=...
+        testid_match = re.search(r'page\.get_by_test_id\("(.+?)"\)', locator)
+        if testid_match:
+            return f"test_id={testid_match.group(1)}"
+
+        # page.get_by_role("...", name="...") -> role=button name=Submit
+        role_match = re.search(r'page\.get_by_role\("(.+?)"(?:,\s*name="(.+?)")?\)', locator)
+        if role_match:
+            role = role_match.group(1)
+            name = role_match.group(2)
+            if name:
+                return f"role={role} name={name}"
+            return f"role={role}"
+
+        # page.get_by_placeholder("...") -> placeholder=...
+        placeholder_match = re.search(r'page\.get_by_placeholder\("(.+?)"\)', locator)
+        if placeholder_match:
+            return f"placeholder={placeholder_match.group(1)}"
+
+        # 通用回退: 截断到合理长度
+        return locator[:50]
 
     @staticmethod
     def _translate_navigate(params: dict) -> TranslatedAction:
