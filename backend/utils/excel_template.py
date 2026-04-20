@@ -14,12 +14,13 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 
 TEMPLATE_COLUMNS = [
-    {"key": "name", "header": "任务名称", "width": 25, "required": True, "default": None},
-    {"key": "description", "header": "任务描述", "width": 40, "required": True, "default": None},
-    {"key": "target_url", "header": "目标URL", "width": 35, "required": False, "default": ""},
-    {"key": "max_steps", "header": "最大步数", "width": 12, "required": False, "default": 10},
-    {"key": "preconditions", "header": "前置条件", "width": 40, "required": False, "default": None},
-    {"key": "assertions", "header": "断言", "width": 50, "required": False, "default": None},
+    {"key": "name", "header": "任务名称", "width": 25, "required": True, "default": None, "aliases": []},
+    {"key": "login_role", "header": "登录角色", "width": 15, "required": False, "default": None, "aliases": []},
+    {"key": "description", "header": "任务描述", "width": 40, "required": True, "default": None, "aliases": ["测试步骤"]},
+    {"key": "target_url", "header": "目标URL", "width": 35, "required": False, "default": "", "aliases": []},
+    {"key": "max_steps", "header": "最大步数", "width": 12, "required": False, "default": 10, "aliases": []},
+    {"key": "preconditions", "header": "前置条件", "width": 40, "required": False, "default": None, "aliases": []},
+    {"key": "assertions", "header": "断言", "width": 50, "required": False, "default": None, "aliases": []},
 ]
 
 _HEADER_FONT = Font(bold=True, color="FFFFFF")
@@ -34,6 +35,7 @@ _THIN_BORDER = Border(
 
 _EXAMPLE_ROW_FULL = [
     "登录功能测试",
+    "main",
     "打开登录页面，输入用户名和密码，点击登录按钮，验证是否跳转到首页",
     "https://erp.example.com/login",
     15,
@@ -43,6 +45,7 @@ _EXAMPLE_ROW_FULL = [
 
 _EXAMPLE_ROW_MINIMAL = [
     "创建订单测试",
+    None,
     "登录后进入订单页面，填写订单信息并提交，验证订单创建成功",
     "https://erp.example.com/orders/new",
     20,
@@ -55,21 +58,22 @@ _README_CONTENT = [
     (3, "一、列说明"),
     (4, "列名 | 类型 | 是否必填 | 说明"),
     (5, "任务名称 | 文本 | 必填 | 测试用例的名称，1-200 个字符"),
-    (6, "任务描述 | 文本 | 必填 | 测试步骤的自然语言描述"),
-    (7, "目标URL | 文本 | 选填 | 测试起始页面地址，留空使用系统默认地址"),
-    (8, "最大步数 | 整数 | 选填 | 最大执行步数（1-100），默认 10"),
-    (9, "前置条件 | JSON 数组 | 选填 | Python 代码列表，如 [\"code1\", \"code2\"]"),
-    (10, "断言 | JSON 数组 | 选填 | 断言配置列表，如 [{\"methodName\":\"xxx\",\"headers\":\"main\"}]"),
-    (12, "二、前置条件格式"),
-    (13, '前置条件使用 JSON 数组格式，填写 Python 代码字符串。例如：["context[\'token\'] = login_api()"]'),
-    (15, "三、断言格式"),
-    (16, '断言使用 JSON 数组格式，每个元素是一个对象。例如：[{"methodName":"check_login_status","headers":"main"}]'),
-    (18, "四、注意事项"),
-    (19, "1. 任务名称和任务描述为必填项"),
-    (20, "2. 最大步数范围 1-100，默认 10"),
-    (21, "3. 前置条件和断言为可选项，留空即可"),
-    (22, "4. 请勿合并单元格"),
-    (23, "5. 填写完成后保存文件并上传"),
+    (6, "登录角色 | 文本 | 选填 | ERP 登录角色（如 main），留空则手动登录"),
+    (7, "任务描述 | 文本 | 必填 | 测试步骤的自然语言描述"),
+    (8, "目标URL | 文本 | 选填 | 测试起始页面地址，留空使用系统默认地址"),
+    (9, "最大步数 | 整数 | 选填 | 最大执行步数（1-100），默认 10"),
+    (10, "前置条件 | JSON 数组 | 选填 | Python 代码列表，如 [\"code1\", \"code2\"]"),
+    (11, "断言 | JSON 数组 | 选填 | 断言配置列表，如 [{\"methodName\":\"xxx\",\"headers\":\"main\"}]"),
+    (14, "二、前置条件格式"),
+    (15, '前置条件使用 JSON 数组格式，填写 Python 代码字符串。例如：["context[\'token\'] = login_api()"]'),
+    (17, "三、断言格式"),
+    (18, '断言使用 JSON 数组格式，每个元素是一个对象。例如：[{"methodName":"check_login_status","headers":"main"}]'),
+    (20, "四、注意事项"),
+    (21, "1. 任务名称和任务描述为必填项"),
+    (22, "2. 最大步数范围 1-100，默认 10"),
+    (23, "3. 前置条件和断言为可选项，留空即可"),
+    (24, "4. 请勿合并单元格"),
+    (25, "5. 填写完成后保存文件并上传"),
 ]
 
 
@@ -129,7 +133,7 @@ def _add_max_steps_validation(ws) -> None:
     dv.prompt = "请输入 1 到 100 之间的整数"
     dv.promptTitle = "最大步数"
     ws.add_data_validation(dv)
-    dv.add("D2:D10000")
+    dv.add("E2:E10000")
 
 
 def _write_example_rows(ws) -> None:

@@ -119,29 +119,36 @@ def _validate_headers(ws) -> list[str] | None:
 
     Lenient: allows FEWER columns than TEMPLATE_COLUMNS (old templates).
     Also supports old 6-column templates (no login_role) via _detect_old_template.
+    Supports column aliases (e.g. '测试步骤' as alias for '任务描述').
     Returns list of error strings if mismatch, None if headers are valid.
     """
-    expected_headers = [col["header"] for col in TEMPLATE_COLUMNS]
     errors = []
     actual_col_count = ws.max_column or 0
 
     # Old template: skip login_role column in validation
     if _detect_old_template(ws):
-        expected_headers = [h for h in expected_headers if h != "登录角色"]
+        check_columns = [col for col in TEMPLATE_COLUMNS if col["key"] != "login_role"]
+    else:
+        check_columns = list(TEMPLATE_COLUMNS)
 
-    check_count = min(actual_col_count, len(expected_headers))
+    check_count = min(actual_col_count, len(check_columns))
 
     for idx in range(check_count):
-        expected = expected_headers[idx]
+        expected_header = check_columns[idx]["header"]
+        aliases = check_columns[idx].get("aliases", [])
         actual = ws.cell(row=1, column=idx + 1).value
-        if actual is None or str(actual).strip() != expected:
-            errors.append(
-                f"列 {idx + 1} 表头应为 '{expected}'，实际为 '{actual}'"
-            )
+        actual_str = str(actual).strip() if actual else ""
 
-    extra_cols = actual_col_count - len(expected_headers)
+        if actual_str and (actual_str == expected_header or actual_str in aliases):
+            continue
+
+        errors.append(
+            f"列 {idx + 1} 表头应为 '{expected_header}'，实际为 '{actual}'"
+        )
+
+    extra_cols = actual_col_count - len(check_columns)
     if extra_cols > 0:
-        errors.append(f"多余列: 发现 {actual_col_count} 列，预期 {len(expected_headers)} 列")
+        errors.append(f"多余列: 发现 {actual_col_count} 列，预期 {len(check_columns)} 列")
 
     return errors if errors else None
 

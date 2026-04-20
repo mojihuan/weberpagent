@@ -12,11 +12,11 @@ from backend.utils.excel_template import TEMPLATE_COLUMNS, generate_template
 class TestTemplateColumns:
     """TEMPLATE_COLUMNS constant tests."""
 
-    def test_template_columns_has_6_entries(self):
-        assert len(TEMPLATE_COLUMNS) == 6
+    def test_template_columns_has_7_entries(self):
+        assert len(TEMPLATE_COLUMNS) == 7
 
     def test_template_columns_has_correct_keys(self):
-        expected_keys = ["name", "description", "target_url", "max_steps", "preconditions", "assertions"]
+        expected_keys = ["name", "login_role", "description", "target_url", "max_steps", "preconditions", "assertions"]
         actual_keys = [col["key"] for col in TEMPLATE_COLUMNS]
         assert actual_keys == expected_keys
 
@@ -94,17 +94,18 @@ class TestTemplateGeneration:
     def test_template_example_row_2_full_data(self, sheet):
         row = [cell.value for cell in sheet[2]]
         assert row[0] == "登录功能测试"
-        assert row[1] == "打开登录页面，输入用户名和密码，点击登录按钮，验证是否跳转到首页"
-        assert row[2] == "https://erp.example.com/login"
-        assert row[3] == 15
+        assert row[1] == "main"
+        assert row[2] == "打开登录页面，输入用户名和密码，点击登录按钮，验证是否跳转到首页"
+        assert row[3] == "https://erp.example.com/login"
+        assert row[4] == 15
 
         # preconditions should be valid JSON array
-        preconditions = json.loads(row[4])
+        preconditions = json.loads(row[5])
         assert isinstance(preconditions, list)
         assert len(preconditions) > 0
 
         # assertions should be valid JSON array of objects
-        assertions = json.loads(row[5])
+        assertions = json.loads(row[6])
         assert isinstance(assertions, list)
         assert len(assertions) > 0
         assert isinstance(assertions[0], dict)
@@ -112,12 +113,13 @@ class TestTemplateGeneration:
     def test_template_example_row_3_minimal(self, sheet):
         row = [cell.value for cell in sheet[3]]
         assert row[0] == "创建订单测试"
-        assert row[1] == "登录后进入订单页面，填写订单信息并提交，验证订单创建成功"
-        assert row[2] == "https://erp.example.com/orders/new"
-        assert row[3] == 20
+        assert row[1] is None  # login_role is optional
+        assert row[2] == "登录后进入订单页面，填写订单信息并提交，验证订单创建成功"
+        assert row[3] == "https://erp.example.com/orders/new"
+        assert row[4] == 20
         # preconditions and assertions should be empty
-        assert row[4] is None or row[4] == ""
         assert row[5] is None or row[5] == ""
+        assert row[6] is None or row[6] == ""
 
     def test_template_max_steps_validation(self, sheet):
         data_validations = sheet.data_validations.dataValidation
@@ -138,8 +140,8 @@ class TestTemplateGeneration:
         dv = data_validations[0]
         # sqref is a MultiCellRange; str() gives "D2:D10000"
         range_str = str(dv.sqref)
-        assert "D2" in range_str
-        assert "D10000" in range_str
+        assert "E2" in range_str
+        assert "E10000" in range_str
 
     def test_template_freeze_panes(self, sheet):
         assert sheet.freeze_panes == "A2"

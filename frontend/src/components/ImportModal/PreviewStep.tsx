@@ -13,6 +13,7 @@ interface PreviewStepProps {
 
 const PREVIEW_COLUMNS = [
   { key: 'name', label: '任务名称', width: 'w-40' },
+  { key: 'login_role', label: '登录角色', width: 'w-20' },
   { key: 'description', label: '任务描述', width: '' },
   { key: 'target_url', label: '目标URL', width: 'w-40' },
   { key: 'max_steps', label: '最大步数', width: 'w-20' },
