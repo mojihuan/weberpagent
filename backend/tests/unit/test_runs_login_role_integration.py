@@ -392,6 +392,7 @@ async def test_preinjection_success_skips_login():
         mock_result = MagicMock()
         mock_result.is_successful.return_value = True
         mock_agent.run_with_cleanup = AsyncMock(return_value=mock_result)
+        mock_agent.pre_navigate = AsyncMock(return_value=True)
         mock_agent_cls.return_value = mock_agent
 
         mock_report = MagicMock()
@@ -467,6 +468,7 @@ async def test_preinjection_success_target_url_is_homepage():
         mock_result = MagicMock()
         mock_result.is_successful.return_value = True
         mock_agent.run_with_cleanup = AsyncMock(return_value=mock_result)
+        mock_agent.pre_navigate = AsyncMock(return_value=True)
         mock_agent_cls.return_value = mock_agent
 
         mock_report = MagicMock()
@@ -541,6 +543,7 @@ async def test_preinjection_success_passes_browser_session():
         mock_result = MagicMock()
         mock_result.is_successful.return_value = True
         mock_agent.run_with_cleanup = AsyncMock(return_value=mock_result)
+        mock_agent.pre_navigate = AsyncMock(return_value=True)
         mock_agent_cls.return_value = mock_agent
 
         mock_report = MagicMock()

@@ -1,5 +1,6 @@
 """Agent 服务 - 封装 browser-use Agent"""
 
+import asyncio
 import base64
 import hashlib
 import json
@@ -134,6 +135,237 @@ class AgentService:
         result = await agent.run(max_steps=max_steps)
         return result
 
+    async def _programmatic_login(
+        self,
+        run_id: str,
+        page: Any,
+        account: str,
+        password: str,
+    ) -> bool:
+        """Perform login by filling the SPA form via page.evaluate().
+
+        Uses pure JavaScript DOM manipulation (not Playwright selectors)
+        because browser-use wraps the Page object differently.
+
+        Args:
+            run_id: Execution ID for logging.
+            page: browser-use Page object (supports evaluate).
+            account: Login account.
+            password: Login password.
+
+        Returns:
+            True if login succeeded (URL no longer contains /login).
+        """
+        try:
+            # Step 1: Click "密码登录" tab
+            clicked_tab = await page.evaluate("""() => {
+                const tabs = document.querySelectorAll('div, span, a, li');
+                for (const el of tabs) {
+                    if (el.textContent.trim() === '密码登录') {
+                        el.click();
+                        return true;
+                    }
+                }
+                return false;
+            }""")
+            if clicked_tab:
+                logger.info(f"[{run_id}][LOGIN] Clicked 密码登录 tab")
+                await asyncio.sleep(0.5)
+            else:
+                logger.debug(f"[{run_id}][LOGIN] No 密码登录 tab found, proceeding")
+
+            # Step 2: Fill account input
+            filled_account = await page.evaluate("""(account) => {
+                // Try password-login inputs first (after tab switch)
+                const inputs = document.querySelectorAll('input');
+                const textInputs = [];
+                const pwdInputs = [];
+                for (const inp of inputs) {
+                    const type = (inp.type || 'text').toLowerCase();
+                    if (type === 'password') {
+                        pwdInputs.push(inp);
+                    } else if (type === 'text' || type === 'tel' || type === 'number') {
+                        // Skip hidden or search inputs
+                        if (inp.offsetParent !== null) {
+                            textInputs.push(inp);
+                        }
+                    }
+                }
+                // Fill the first visible text input as account
+                if (textInputs.length > 0) {
+                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype, 'value'
+                    ).set;
+                    textInputs[0].focus();
+                    nativeInputValueSetter.call(textInputs[0], account);
+                    textInputs[0].dispatchEvent(new Event('compositionstart', { bubbles: true }));
+                    textInputs[0].dispatchEvent(new Event('compositionend', { bubbles: true }));
+                    textInputs[0].dispatchEvent(new Event('input', { bubbles: true }));
+                    textInputs[0].dispatchEvent(new Event('change', { bubbles: true }));
+                    return 'found';
+                }
+                return 'not_found';
+            }""", account)
+            if filled_account == 'found':
+                logger.info(f"[{run_id}][LOGIN] Filled account: {account}")
+            else:
+                logger.error(f"[{run_id}][LOGIN] Could not find account input")
+                return False
+
+            await asyncio.sleep(0.3)
+
+            # Step 3: Fill password input
+            filled_pwd = await page.evaluate("""(password) => {
+                const inputs = document.querySelectorAll('input[type=\"password\"], input[placeholder*=\"密码\"]');
+                for (const inp of inputs) {
+                    if (inp.offsetParent !== null) {
+                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                            window.HTMLInputElement.prototype, 'value'
+                        ).set;
+                        inp.focus();
+                        nativeInputValueSetter.call(inp, password);
+                        inp.dispatchEvent(new Event('compositionstart', { bubbles: true }));
+                        inp.dispatchEvent(new Event('compositionend', { bubbles: true }));
+                        inp.dispatchEvent(new Event('input', { bubbles: true }));
+                        inp.dispatchEvent(new Event('change', { bubbles: true }));
+                        return 'found';
+                    }
+                }
+                return 'not_found';
+            }""", password)
+            if filled_pwd == 'found':
+                logger.info(f"[{run_id}][LOGIN] Filled password")
+            else:
+                logger.error(f"[{run_id}][LOGIN] Could not find password input")
+                return False
+
+            await asyncio.sleep(0.3)
+
+            # Step 4: Click login button
+            # IMPORTANT: Vue SPA requires dispatchEvent(new MouseEvent) instead of btn.click()
+            # because Vue's @click binding expects proper MouseEvent with bubbles/cancelable/view.
+            clicked_login = await page.evaluate("""() => {
+                const buttons = document.querySelectorAll('button, div.login-btn, [class*="login-btn"], [class*="loginBtn"]');
+                for (const btn of buttons) {
+                    const text = btn.textContent.trim();
+                    if (text === '登 录' || text === '登录' || text === 'Login') {
+                        btn.dispatchEvent(new MouseEvent('click', {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window
+                        }));
+                        return 'clicked: ' + text;
+                    }
+                }
+                // Fallback: click any visible button
+                for (const btn of buttons) {
+                    if (btn.offsetParent !== null) {
+                        btn.dispatchEvent(new MouseEvent('click', {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window
+                        }));
+                        return 'clicked_fallback: ' + btn.textContent.trim();
+                    }
+                }
+                return 'not_found';
+            }""")
+            if clicked_login != 'not_found':
+                logger.info(f"[{run_id}][LOGIN] Clicked login button: {clicked_login}")
+            else:
+                logger.error(f"[{run_id}][LOGIN] Could not find login button")
+                return False
+
+            # Step 5: Wait for redirect away from /login
+            for wait_sec in [2, 3, 5]:
+                await asyncio.sleep(wait_sec)
+                current_url = await page.evaluate("() => window.location.href")
+                if "/login" not in current_url:
+                    logger.info(
+                        f"[{run_id}][LOGIN] Login succeeded, "
+                        f"redirected to: {current_url}"
+                    )
+                    return True
+                logger.debug(
+                    f"[{run_id}][LOGIN] Still on login page after "
+                    f"{wait_sec}s: {current_url}"
+                )
+
+            logger.error(f"[{run_id}][LOGIN] Login did not redirect from /login")
+            return False
+
+        except Exception as e:
+            logger.error(f"[{run_id}][LOGIN] Programmatic login failed: {e}")
+            return False
+
+    async def pre_navigate(
+        self,
+        run_id: str,
+        target_url: str,
+        browser_session: BrowserSession,
+        login_account: str | None = None,
+        login_password: str | None = None,
+    ) -> bool:
+        """Pre-navigate to target URL, performing login if needed.
+
+        Strategy:
+        1. Start browser and navigate to the SPA
+        2. If login credentials are provided, perform programmatic login
+           (fill form + click login) so the SPA handles all internal state
+        3. Verify the SPA left the /login page
+
+        Args:
+            run_id: Execution ID for logging.
+            target_url: URL to navigate to.
+            browser_session: BrowserSession to use.
+            login_account: Account for programmatic login (optional).
+            login_password: Password for programmatic login (optional).
+
+        Returns:
+            True if the SPA successfully loaded a non-login page.
+        """
+        try:
+            await browser_session.start()
+            await browser_session.navigate_to(target_url)
+            await asyncio.sleep(2)
+
+            page = await browser_session.get_current_page()
+            if not page:
+                logger.error(f"[{run_id}] No page after initial navigation")
+                return False
+
+            current_url = await page.evaluate("() => window.location.href")
+            logger.info(f"[{run_id}] After initial nav: {current_url}")
+
+            # If we're NOT on /login, we're already authenticated
+            if "/login" not in current_url:
+                logger.info(f"[{run_id}] Already on main page: {current_url}")
+                browser_session._pre_navigated = True
+                return True
+
+            # We're on /login — try programmatic login if credentials provided
+            if login_account and login_password:
+                logger.info(
+                    f"[{run_id}] On login page, performing programmatic login "
+                    f"with account={login_account}"
+                )
+                success = await self._programmatic_login(
+                    run_id, page, login_account, login_password,
+                )
+                if success:
+                    browser_session._pre_navigated = True
+                    return True
+                logger.warning(f"[{run_id}] Programmatic login failed")
+                return False
+
+            # No credentials — can't do anything
+            logger.warning(f"[{run_id}] On login page but no credentials provided")
+            return False
+
+        except Exception as e:
+            logger.warning(f"[{run_id}] Pre-navigation failed: {e}")
+            return False
+
     async def run_with_streaming(
         self,
         task: str,
@@ -169,6 +401,17 @@ class AgentService:
         # 存储引用供 step_callback 访问 (Phase 42, D-01)
         self._browser_session = browser_session
 
+        # Pre-navigate to target URL when authenticated session is available.
+        # If runs.py already called pre_navigate successfully (marked by
+        # _pre_navigated), skip redundant pre-navigation here.
+        pre_navigated = False
+        if target_url and not getattr(browser_session, '_pre_navigated', False):
+            pre_nav_ok = await self.pre_navigate(run_id, target_url, browser_session)
+            self._pre_navigation_auth_ok = pre_nav_ok
+            pre_navigated = True
+        elif target_url:
+            pre_navigated = True
+
         # 创建 per-run 结构化日志记录器
         run_logger = RunLogger(run_id, str(self.output_dir))
         run_logger.log("info", "system", "Run started", max_steps=max_steps)
@@ -183,6 +426,16 @@ class AgentService:
             if browser_state:
                 url = getattr(browser_state, "url", "") or ""
                 logger.info(f"[{run_id}][BROWSER] URL: {url}")
+
+                # Diagnostic: verify localStorage auth injection (Step 1 only)
+                if step == 1 and self._browser_session:
+                    try:
+                        page = await self._browser_session.get_current_page()
+                        if page and url.startswith('http'):
+                            token_val = await page.evaluate("() => window.localStorage.getItem('Admin-Token')")
+                            logger.info(f"[{run_id}][AUTH] localStorage Admin-Token: {'present (%s...)' % token_val[:20] if token_val else 'MISSING'}")
+                    except Exception as e:
+                        logger.debug(f"[{run_id}][AUTH] Could not check localStorage: {e}")
 
                 # 记录 DOM 状态
                 dom_state = getattr(browser_state, "dom_state", None)
@@ -369,18 +622,19 @@ class AgentService:
                 run_logger.log("error", "monitor", f"Detector error: {e}", step=step)
 
             # 调用异步回调
-            import asyncio
             step_stats_json = step_stats_data["value"]
             if asyncio.iscoroutinefunction(on_step):
                 await on_step(step, action, reasoning, screenshot_path, step_stats_json)
             else:
                 on_step(step, action, reasoning, screenshot_path, step_stats_json)
 
-        # 如果有目标 URL，拼接到任务描述前面
+        # 如果有目标 URL 且未预导航，拼接到任务描述前面
         actual_task = task
-        if target_url:
+        if target_url and not pre_navigated:
             actual_task = f"目标URL: {target_url}\n\n任务:\n{task}"
             logger.info(f"[{run_id}] 已将目标 URL 拼接到任务描述中")
+        elif pre_navigated:
+            logger.info(f"[{run_id}] 已预导航到目标页面，跳过 URL 拼接")
 
         logger.info(f"[{run_id}] Creating MonitoredAgent: task={actual_task[:80]}..., max_steps={max_steps}")
 
