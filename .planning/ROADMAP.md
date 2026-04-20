@@ -155,7 +155,7 @@
 
 Plans:
 - [x] 86-01-PLAN.md — POC 验证：page.evaluate localStorage 注入 + 编程式表单登录
-- [ ] 86-02-PLAN.md — 综合研究报告：登录流程文档 + 根因分析 + Phase 87 实现方案
+- [x] 86-02-PLAN.md — 综合研究报告：登录流程文档 + 根因分析 + Phase 87 实现方案
 
 ### Phase 87: 代码登录修复与集成
 **Goal**: Agent 执行任务时使用已登录的浏览器状态直接操作 ERP，跳过 5 步文字登录；代码登录失败时自动回退不中断任务
@@ -197,10 +197,10 @@ Phases execute in numeric order: 86 -> 87 -> 88 -> 89
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 86. 登录机制研究 | v0.10.1 | 1/2 | In Progress|  |
+| 86. 登录机制研究 | v0.10.1 | 2/2 | Complete | 2026-04-20 |
 | 87. 代码登录修复与集成 | v0.10.1 | 0/? | Not started | - |
 | 88. 认证代码清理 | v0.10.1 | 0/? | Not started | - |
 | 89. 测试覆盖 | v0.10.1 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-20 — Phase 86 plans created*
+*Roadmap updated: 2026-04-20 — Phase 86 complete*
