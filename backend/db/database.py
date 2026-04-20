@@ -71,6 +71,10 @@ async def init_db():
         # Phase 85: Add healing columns to runs if missing (HEAL-03)
         result = await conn.execute(text("PRAGMA table_info(runs)"))
         columns = [row[1] for row in result]
+        if "generated_code_path" not in columns:
+            await conn.execute(text(
+                "ALTER TABLE runs ADD COLUMN generated_code_path VARCHAR(500)"
+            ))
         if "healing_status" not in columns:
             await conn.execute(text(
                 "ALTER TABLE runs ADD COLUMN healing_status VARCHAR(20) DEFAULT 'pending'"
