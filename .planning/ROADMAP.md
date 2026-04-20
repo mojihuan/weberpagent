@@ -135,7 +135,7 @@
 
 **Milestone Goal:** 修复代码登录流程，让 Agent 执行时复用已登录的浏览器状态，跳过文字登录步骤，节省 LLM token 和执行时间
 
-- [ ] **Phase 86: 登录机制研究** — 研究 webseleniumerp 代码登录机制和 browser-use 状态复用方案
+- [x] **Phase 86: 登录机制研究** — 研究 webseleniumerp 代码登录机制和 browser-use 状态复用方案 (completed 2026-04-20)
 - [ ] **Phase 87: 代码登录修复与集成** — 实现工作的代码登录 + Agent 状态复用 + 失败回退
 - [ ] **Phase 88: 认证代码清理** — 移除死代码，重构认证模块职责清晰
 - [ ] **Phase 89: 测试覆盖** — 单元测试 + E2E 验证代码登录和状态复用路径
@@ -197,7 +197,7 @@ Phases execute in numeric order: 86 -> 87 -> 88 -> 89
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 86. 登录机制研究 | v0.10.1 | 2/2 | Complete | 2026-04-20 |
+| 86. 登录机制研究 | v0.10.1 | 2/2 | Complete   | 2026-04-20 |
 | 87. 代码登录修复与集成 | v0.10.1 | 0/? | Not started | - |
 | 88. 认证代码清理 | v0.10.1 | 0/? | Not started | - |
 | 89. 测试覆盖 | v0.10.1 | 0/? | Not started | - |

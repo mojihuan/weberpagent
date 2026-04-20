@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.1
 milestone_name: 代码登录及 Agent 复用登录的浏览器状态
-status: Ready to execute
-stopped_at: Completed 86-01-PLAN.md (Tasks 1-2, Task 3 checkpoint pending)
-last_updated: "2026-04-20T06:54:29.991Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 86-02-PLAN.md
+last_updated: "2026-04-20T07:08:15.207Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -54,6 +54,8 @@ Key decisions moved to PROJECT.md Key Decisions table.
 - [Phase 86]: 方案 C (localStorage injection) fails — SPA Vuex/Pinia store reads localStorage on init, router guard checks store not localStorage
 - [Phase 86]: 方案 A (form login) works with dispatchEvent(new MouseEvent) instead of btn.click() — Vue requires proper MouseEvent construction
 - [Phase 86]: browser-use page.evaluate returns complex objects as strings — use JSON.stringify in JS + json.loads in Python
+- [Phase 86]: Phase 87 follows 方案 A (programmatic form login) with single-line fix: btn.click() -> dispatchEvent(new MouseEvent) in agent_service.py
+- [Phase 86]: 方案 C (localStorage injection) confirmed not viable -- SPA Vuex/Pinia store ignores direct localStorage writes, router guard checks store not localStorage
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T06:54:29.989Z
-Stopped at: Completed 86-01-PLAN.md (Tasks 1-2, Task 3 checkpoint pending)
+Last session: 2026-04-20T07:08:15.205Z
+Stopped at: Completed 86-02-PLAN.md
 Resume file: None
