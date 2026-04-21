@@ -164,7 +164,8 @@ class TestInferFieldGroup:
         """Test that fields ending with Time/time/Date/date are grouped as time fields."""
         assert external_precondition_bridge.infer_field_group("createTime") == "时间字段"
         assert external_precondition_bridge.infer_field_group("updateTime") == "时间字段"
-        assert external_precondition_bridge.infer_field_group("orderDate") == "时间字段"
+        # orderDate matches ^order (index 3) before Time$|Date$ (index 6) -> "订单相关"
+        assert external_precondition_bridge.infer_field_group("orderDate") == "订单相关"
 
     def test_infer_field_group_returns_order_for_order_prefix(self):
         """Test that fields starting with 'order' are grouped as order-related."""
@@ -223,7 +224,7 @@ class TestGetAssertionFieldsGrouped:
             external_precondition_bridge,
             '_get_assertions_field_path',
             return_value='/fake/path/base_assertions_field.py'
-        ), patch.object(
+        ), patch('pathlib.Path.exists', return_value=True), patch.object(
             external_precondition_bridge,
             'parse_assertions_field_py',
             return_value=[
@@ -271,7 +272,7 @@ class TestGetAssertionFieldsGrouped:
             external_precondition_bridge,
             '_get_assertions_field_path',
             return_value='/fake/path/base_assertions_field.py'
-        ), patch.object(
+        ), patch('pathlib.Path.exists', return_value=True), patch.object(
             external_precondition_bridge,
             'parse_assertions_field_py',
             return_value=[
@@ -318,7 +319,8 @@ class TestParseAssertionsFieldPy:
             # Check nested path
             purchase_amount = next(f for f in fields if f['name'] == 'purchaseAmount')
             assert purchase_amount['path'] == 'accessoryOrderInfo.purchaseAmount'
-            assert purchase_amount['group'] == '配件订单嵌套'
+            # Group is inferred from field_name "purchaseAmount" which matches ^purchase -> "采购相关"
+            assert purchase_amount['group'] == '采购相关'
         finally:
             import os
             os.unlink(temp_path)

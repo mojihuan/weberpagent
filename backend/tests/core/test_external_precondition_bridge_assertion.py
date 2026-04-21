@@ -91,58 +91,52 @@ class TestExecuteAssertionMethod:
     async def test_returns_success_when_assertion_passes(self):
         """execute_assertion_method returns success=True when assertion passes."""
         with patch('backend.core.external_precondition_bridge.load_base_assertions_class') as mock_load:
-            with patch('backend.core.external_precondition_bridge.resolve_headers') as mock_resolve:
-                mock_load.return_value = ({'PcAssert': MagicMock}, None)
-                mock_resolve.return_value = {'Authorization': 'Bearer token'}
+            mock_load.return_value = ({'PcAssert': MagicMock}, None)
 
-                with patch('backend.core.external_precondition_bridge.asyncio.get_event_loop') as mock_loop:
-                    mock_loop.return_value.run_in_executor = MagicMock(return_value=asyncio.Future())
-                    mock_loop.return_value.run_in_executor.return_value.set_result(None)
+            with patch('backend.core.external_precondition_bridge.asyncio.get_event_loop') as mock_loop:
+                mock_loop.return_value.run_in_executor = MagicMock(return_value=asyncio.Future())
+                mock_loop.return_value.run_in_executor.return_value.set_result(None)
 
-                    # Use wait_for mock that doesn't timeout
-                    with patch('backend.core.external_precondition_bridge.asyncio.wait_for') as mock_wait:
-                        mock_wait.return_value = None
+                # Use wait_for mock that doesn't timeout
+                with patch('backend.core.external_precondition_bridge.asyncio.wait_for') as mock_wait:
+                    mock_wait.return_value = None
 
-                        result = await execute_assertion_method('PcAssert', 'test_assert')
+                    result = await execute_assertion_method('PcAssert', 'test_assert')
 
-                        assert result['success'] is True
-                        assert result['passed'] is True
+                    assert result['success'] is True
+                    assert result['passed'] is True
 
     @pytest.mark.asyncio
     async def test_catches_assertion_error_and_returns_field_results(self):
         """execute_assertion_method catches AssertionError and extracts field results."""
         with patch('backend.core.external_precondition_bridge.load_base_assertions_class') as mock_load:
-            with patch('backend.core.external_precondition_bridge.resolve_headers') as mock_resolve:
-                mock_load.return_value = ({'PcAssert': MagicMock}, None)
-                mock_resolve.return_value = {'Authorization': 'Bearer token'}
+            mock_load.return_value = ({'PcAssert': MagicMock}, None)
 
-                # Create assertion method that raises AssertionError
-                async def raise_assertion_error(*args, **kwargs):
-                    raise AssertionError("字段 'status' 预期值: '已发货', 实际值: '待发货'")
+            # Create assertion method that raises AssertionError
+            async def raise_assertion_error(*args, **kwargs):
+                raise AssertionError("字段 'status' 预期值: '已发货', 实际值: '待发货'")
 
-                with patch('backend.core.external_precondition_bridge.asyncio.wait_for', side_effect=raise_assertion_error):
-                    result = await execute_assertion_method('PcAssert', 'test_assert')
+            with patch('backend.core.external_precondition_bridge.asyncio.wait_for', side_effect=raise_assertion_error):
+                result = await execute_assertion_method('PcAssert', 'test_assert')
 
-                    assert result['success'] is True  # Execution succeeded
-                    assert result['passed'] is False  # Assertion failed
-                    assert len(result['fields']) > 0  # Uses 'fields' per ROADMAP API Contract
+                assert result['success'] is True  # Execution succeeded
+                assert result['passed'] is False  # Assertion failed
+                assert len(result['fields']) > 0  # Uses 'fields' per ROADMAP API Contract
 
     @pytest.mark.asyncio
     async def test_returns_timeout_error_when_exceeds_timeout(self):
         """execute_assertion_method returns TimeoutError when execution exceeds timeout."""
         with patch('backend.core.external_precondition_bridge.load_base_assertions_class') as mock_load:
-            with patch('backend.core.external_precondition_bridge.resolve_headers') as mock_resolve:
-                mock_load.return_value = ({'PcAssert': MagicMock}, None)
-                mock_resolve.return_value = {'Authorization': 'Bearer token'}
+            mock_load.return_value = ({'PcAssert': MagicMock}, None)
 
-                with patch('backend.core.external_precondition_bridge.asyncio.wait_for') as mock_wait:
-                    mock_wait.side_effect = asyncio.TimeoutError()
+            with patch('backend.core.external_precondition_bridge.asyncio.wait_for') as mock_wait:
+                mock_wait.side_effect = asyncio.TimeoutError()
 
-                    result = await execute_assertion_method('PcAssert', 'test_assert', timeout=1.0)
+                result = await execute_assertion_method('PcAssert', 'test_assert', timeout=1.0)
 
-                    assert result['success'] is False
-                    assert result['error_type'] == 'TimeoutError'
-                    assert 'timeout' in result['error'].lower()
+                assert result['success'] is False
+                assert result['error_type'] == 'TimeoutError'
+                assert 'timeout' in result['error'].lower()
 
     @pytest.mark.asyncio
     async def test_returns_import_error_when_class_not_found(self):
@@ -156,25 +150,44 @@ class TestExecuteAssertionMethod:
             assert result['error_type'] == 'ImportError'
 
     @pytest.mark.asyncio
-    async def test_resolves_headers_before_calling_assertion(self):
-        """execute_assertion_method resolves headers identifier before calling assertion."""
-        mock_class = MagicMock
-        mock_instance = MagicMock()
-        mock_method = MagicMock(return_value=True)
-        mock_instance.test_assert = mock_method
-        mock_class.return_value = mock_instance
+    async def test_passes_headers_identifier_to_assertion(self):
+        """execute_assertion_method passes headers as identifier string to assertion method."""
+        # Use a real class so getattr returns the actual method
+        call_record = {}
+
+        class FakeAssert:
+            def test_assert(self, **kwargs):
+                call_record.update(kwargs)
+                return None
+
+        fake_class = FakeAssert
 
         with patch('backend.core.external_precondition_bridge.load_base_assertions_class') as mock_load:
-            with patch('backend.core.external_precondition_bridge.resolve_headers') as mock_resolve:
-                mock_load.return_value = ({'PcAssert': mock_class}, None)
-                mock_resolve.return_value = {'Authorization': 'Bearer resolved_token'}
+            mock_load.return_value = ({'PcAssert': fake_class}, None)
 
-                with patch('backend.core.external_precondition_bridge.asyncio.wait_for') as mock_wait:
-                    mock_wait.return_value = None
+            # Mock asyncio.get_event_loop to return a loop where run_in_executor
+            # calls the function synchronously
+            with patch('backend.core.external_precondition_bridge.asyncio.get_event_loop') as mock_get_loop:
+                mock_loop = MagicMock()
+                mock_get_loop.return_value = mock_loop
 
+                async def fake_wait_for(coro_or_future, timeout=None):
+                    pass
+
+                mock_loop.run_in_executor = MagicMock(
+                    return_value=asyncio.Future()
+                )
+                mock_loop.run_in_executor.return_value.set_result(None)
+
+                with patch('backend.core.external_precondition_bridge.asyncio.wait_for', side_effect=fake_wait_for):
                     await execute_assertion_method('PcAssert', 'test_assert', headers='vice')
 
-                    mock_resolve.assert_called_once_with('vice')
+        # Execute the captured lambda to verify headers was passed correctly
+        assert mock_loop.run_in_executor.call_count == 1
+        executor_arg, lambda_fn = mock_loop.run_in_executor.call_args[0]
+        assert executor_arg is None
+        lambda_fn()
+        assert call_record.get('headers') == 'vice'
 
 
 class TestParseAssertionError:
