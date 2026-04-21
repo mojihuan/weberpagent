@@ -633,6 +633,7 @@ def extract_method_info(cls: type, method_name: str) -> dict | None:
     return {
         "name": method_name,
         "description": description,
+        "docstring_id": description if description != method_name else None,
         "parameters": parameters
     }
 

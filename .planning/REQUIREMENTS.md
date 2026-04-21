@@ -17,8 +17,8 @@
 
 ### DataMethodError 修复 (DATA)
 
-- [ ] **DATA-01**: 诊断 PcImport 混淆方法名失效根因 — webseleniumerp 上游更新后方法名变化导致前置条件执行失败
-- [ ] **DATA-02**: 实现方法名自动发现或动态映射 — 避免硬编码混淆方法名，降低上游更新影响
+- [x] **DATA-01**: 诊断 PcImport 混淆方法名失效根因 — webseleniumerp 上游更新后方法名变化导致前置条件执行失败
+- [x] **DATA-02**: 实现方法名自动发现或动态映射 — 避免硬编码混淆方法名，降低上游更新影响
 
 ### 端到端可用性验证 (E2E)
 
@@ -48,8 +48,8 @@
 | TEST-03 | Phase 91 | Complete |
 | TEST-04 | Phase 91 | Complete |
 | TEST-05 | Phase 91 | Complete |
-| DATA-01 | Phase 92 | Pending |
-| DATA-02 | Phase 92 | Pending |
+| DATA-01 | Phase 92 | Complete |
+| DATA-02 | Phase 92 | Complete |
 | E2E-01 | Phase 93 | Pending |
 | E2E-02 | Phase 93 | Pending |
 | E2E-03 | Phase 93 | Pending |

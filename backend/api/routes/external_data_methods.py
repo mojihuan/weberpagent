@@ -33,6 +33,7 @@ class MethodInfo(BaseModel):
     name: str
     description: str
     parameters: list[ParameterInfo]
+    docstring_id: Optional[str] = None  # Stable identifier from docstring first line
 
 
 class ClassGroup(BaseModel):

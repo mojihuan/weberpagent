@@ -53,6 +53,7 @@ class TestListDataMethods:
                     {
                         "name": "inventory_list_data",
                         "description": "Get inventory list",
+                        "docstring_id": "Get inventory list",
                         "parameters": [
                             {"name": "i", "type": "int", "required": False, "default": "0"}
                         ]
@@ -78,6 +79,67 @@ class TestListDataMethods:
             assert data["classes"][0]["name"] == "BaseParams"
             assert len(data["classes"][0]["methods"]) == 1
             assert data["classes"][0]["methods"][0]["name"] == "inventory_list_data"
+            assert data["classes"][0]["methods"][0]["docstring_id"] == "Get inventory list"
+
+    def test_docstring_id_is_optional(self, client):
+        """Test that methods without docstring_id still work (backward compat)."""
+        mock_methods = [
+            {
+                "name": "TestClass",
+                "methods": [
+                    {
+                        "name": "no_docstring_method",
+                        "description": "no_docstring_method",
+                        "parameters": []
+                        # No docstring_id field - should default to None
+                    }
+                ]
+            }
+        ]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.get_data_methods_grouped',
+            return_value=mock_methods
+        ):
+            response = client.get("/api/external-data-methods")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["classes"][0]["methods"][0].get("docstring_id") is None
+
+    def test_docstring_id_reflects_docstring_first_line(self, client):
+        """Test docstring_id contains the Chinese functional description."""
+        mock_methods = [
+            {
+                "name": "PcImport",
+                "methods": [
+                    {
+                        "name": "UYV6mZaVwDk4HHhyuWRRp",
+                        "description": "\u5e93\u5b58\u7ba1\u7406|\u5e93\u5b58\u5217\u8868",
+                        "docstring_id": "\u5e93\u5b58\u7ba1\u7406|\u5e93\u5b58\u5217\u8868",
+                        "parameters": []
+                    }
+                ]
+            }
+        ]
+
+        with patch(
+            'backend.api.routes.external_data_methods.is_available',
+            return_value=True
+        ), patch(
+            'backend.api.routes.external_data_methods.get_data_methods_grouped',
+            return_value=mock_methods
+        ):
+            response = client.get("/api/external-data-methods")
+
+            assert response.status_code == 200
+            data = response.json()
+            method = data["classes"][0]["methods"][0]
+            assert method["name"] == "UYV6mZaVwDk4HHhyuWRRp"
+            assert method["docstring_id"] == "\u5e93\u5b58\u7ba1\u7406|\u5e93\u5b58\u5217\u8868"
 
     def test_returns_grouped_classes_with_methods(self, client):
         """Test that methods are grouped by class name."""

@@ -189,11 +189,11 @@ Plans:
   1. PcImport 前置条件执行不再报 `'ImportApi' object has no attribute` 错误 — context.get_data() 调用链路完整
   2. 方法名不再硬编码混淆名称 — 系统能自动发现当前可用的方法名或动态映射
   3. webseleniumerp 上游更新后，只需更新依赖版本，无需手动查找和替换方法名
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 92-01: 诊断 PcImport 混淆方法名失效根因
-- [ ] 92-02: 实现方法名自动发现或动态映射
+- [x] 92-01-PLAN.md — 实现 docstring 方法映射 + ImportApi 别名修补 + execute_data_method fallback
+- [ ] 92-02-PLAN.md — API 返回格式扩展 docstring_id + API 测试更新
 
 ### Phase 93: 端到端可用性验证
 **Goal**: 自然语言到报告的完整链路在修复后可用，验证核心产品价值不被回归破坏
@@ -216,9 +216,9 @@ Phases execute in numeric order: 90 -> 91 -> 92 -> 93
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 90. 过时测试清理 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
-| 91. 测试代码修复 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
-| 92. DataMethodError 修复 | v0.10.2 | 0/2 | Not started | - |
+| 91. 测试代码修复 | v0.10.2 | 2/2 | Complete | 2026-04-21 |
+| 92. DataMethodError 修复 | v0.10.2 | 1/2 | In Progress|  |
 | 93. 端到端可用性验证 | v0.10.2 | 0/1 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-21 — Phase 91 plans created*
+*Roadmap updated: 2026-04-21 — Phase 92 plans created*
