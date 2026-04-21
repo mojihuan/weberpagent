@@ -363,3 +363,244 @@ class TestGetDataMethodsGrouped:
             assert 'name' in item
             assert 'methods' in item
             assert isinstance(item['methods'], list)
+
+
+class TestDocstringMethodMap:
+    """Tests for _build_docstring_method_map()."""
+
+    def test_builds_mapping_from_class_methods(self):
+        """Docstring first line maps to method name."""
+        from unittest.mock import MagicMock, patch
+        from backend.core.external_precondition_bridge import _build_docstring_method_map, reset_cache
+
+        # Create mock class with methods that have docstrings
+        mock_method = MagicMock()
+        mock_method.__doc__ = "库存管理|库存列表"
+        mock_method.__module__ = 'common.base_params'
+
+        MockPcImport = type('PcImport', (), {
+            '__module__': 'common.base_params',
+            '__doc__': None,
+            'UYV6mZaVwDk4HHhyuWRRp': mock_method,
+        })
+
+        mock_module = MagicMock()
+        mock_module.PcImport = MockPcImport
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(MagicMock, None)), \
+             patch.dict('sys.modules', {'common.base_params': mock_module}), \
+             patch('inspect.getmembers', return_value=[('PcImport', MockPcImport)]):
+            result = _build_docstring_method_map()
+            assert 'PcImport' in result
+            assert result['PcImport']['库存管理|库存列表'] == 'UYV6mZaVwDk4HHhyuWRRp'
+
+    def test_returns_empty_when_module_unavailable(self):
+        """Returns empty dict when base_params cannot be loaded."""
+        from backend.core.external_precondition_bridge import _build_docstring_method_map, reset_cache
+        from unittest.mock import patch
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(None, "Module not available")):
+            result = _build_docstring_method_map()
+            assert result == {}
+
+    def test_caches_result(self):
+        """Second call returns cached result without re-scanning."""
+        from backend.core import external_precondition_bridge
+        from unittest.mock import patch, MagicMock
+
+        # First call populates cache
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(None, "unavailable")):
+            result1 = _build_docstring_method_map()
+
+        # Manually set cache
+        external_precondition_bridge._docstring_method_map = {'TestClass': {'test_id': 'test_method'}}
+
+        result2 = _build_docstring_method_map()
+        assert result2 == {'TestClass': {'test_id': 'test_method'}}
+
+
+class TestImportApiAliasPatching:
+    """Tests for _patch_import_api_aliases() heuristic validation."""
+
+    def test_patch_adds_obfuscated_aliases(self):
+        """Obfuscated api_attr gets added as alias in _module_map."""
+        from backend.core.external_precondition_bridge import _patch_import_api_aliases
+        from unittest.mock import patch, MagicMock
+        from backend.core import external_precondition_bridge
+
+        # Create mock PcImport method with obfuscated _get_data call
+        mock_method = MagicMock()
+        mock_method.__module__ = 'common.base_params'
+        mock_method.__doc__ = "库存管理|库存列表"
+
+        MockPcImport = type('PcImport', (), {
+            '__module__': 'common.base_params',
+            '__doc__': None,
+            'UYV6mZaVwDk4HHhyuWRRp': mock_method,
+        })
+
+        mock_module = MagicMock()
+        mock_module.PcImport = MockPcImport
+
+        # Mock API class that has matching method
+        MockApiClass = type('InventoryListApi', (), {
+            '__module__': 'api.api_inventory',
+            'I8TzeuUVWOYr': MagicMock(),  # matches type_map value
+        })
+
+        mock_api_module = MagicMock()
+        mock_api_module.InventoryListApi = MockApiClass
+
+        mock_module_map = {
+            'inventory_list': ('api.api_inventory', 'InventoryListApi'),
+        }
+
+        external_precondition_bridge._import_api_patched = False
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(MagicMock, None)), \
+             patch.dict('sys.modules', {'common.base_params': mock_module}), \
+             patch('inspect.getmembers', return_value=[('PcImport', MockPcImport)]), \
+             patch('inspect.getsource', return_value="self._get_data('UYV6mZaVwDk4HHhyuWRRp', data, {'main': ('I8TzeuUVWOYr', 'main')})"), \
+             patch('common.import_api.ImportApi._module_map', mock_module_map), \
+             patch('importlib.import_module', return_value=mock_api_module):
+            _patch_import_api_aliases()
+            assert 'UYV6mZaVwDk4HHhyuWRRp' in mock_module_map
+            assert mock_module_map['UYV6mZaVwDk4HHhyuWRRp'] == ('api.api_inventory', 'InventoryListApi')
+
+    def test_patch_is_idempotent(self):
+        """Calling twice does not duplicate entries."""
+        from backend.core.external_precondition_bridge import _patch_import_api_aliases
+        from backend.core import external_precondition_bridge
+
+        external_precondition_bridge._import_api_patched = True
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(None, "skip")):
+            _patch_import_api_aliases()
+        # Should return early without touching _module_map
+        assert external_precondition_bridge._import_api_patched is True
+
+    def test_patch_skips_existing_keys(self):
+        """api_attr names already in _module_map are not re-processed."""
+        from backend.core.external_precondition_bridge import _patch_import_api_aliases
+        from unittest.mock import patch, MagicMock
+        from backend.core import external_precondition_bridge
+
+        # api_attr that already exists as a key (snake_case, not obfuscated)
+        mock_method = MagicMock()
+        MockPcImport = type('PcImport', (), {
+            '__module__': 'common.base_params',
+            '__doc__': None,
+            'existing_method': mock_method,
+        })
+
+        mock_module = MagicMock()
+        mock_module.PcImport = MockPcImport
+
+        mock_module_map = {
+            'existing_method': ('api.api_test', 'TestApi'),
+        }
+
+        external_precondition_bridge._import_api_patched = False
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(MagicMock, None)), \
+             patch.dict('sys.modules', {'common.base_params': mock_module}), \
+             patch('inspect.getmembers', return_value=[('PcImport', MockPcImport)]), \
+             patch('inspect.getsource', return_value="self._get_data('existing_method', data, {'main': ('X', 'main')})"), \
+             patch('common.import_api.ImportApi._module_map', mock_module_map):
+            _patch_import_api_aliases()
+            # Should not add a duplicate entry
+            assert list(mock_module_map.keys()).count('existing_method') == 1
+
+
+class TestDocstringFallback:
+    """Tests for docstring-based fallback in execute_data_method()."""
+
+    def test_docstring_id_resolves_to_method(self):
+        """Docstring ID resolves to correct obfuscated method name."""
+        from backend.core.external_precondition_bridge import execute_data_method
+        from unittest.mock import patch, MagicMock
+        import asyncio
+
+        mock_instance = MagicMock()
+        mock_instance.UYV6mZaVwDk4HHhyuWRRp = MagicMock(return_value=[{"id": 1}])
+
+        mock_class = MagicMock(return_value=mock_instance)
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(MagicMock, None)), \
+             patch('inspect.getmembers', return_value=[('PcImport', mock_class)]), \
+             patch('inspect.getmodule', return_value=MagicMock()), \
+             patch('inspect.isclass', return_value=True), \
+             patch('backend.core.external_precondition_bridge._build_docstring_method_map',
+                   return_value={'PcImport': {'库存管理|库存列表': 'UYV6mZaVwDk4HHhyuWRRp'}}), \
+             patch('backend.core.external_precondition_bridge._patch_import_api_aliases'):
+            result = asyncio.run(execute_data_method('PcImport', '库存管理|库存列表', {}))
+            assert result['success'] is True
+            assert result['data'] == [{"id": 1}]
+
+    def test_obfuscated_name_backward_compat(self):
+        """Old obfuscated name still works directly."""
+        from backend.core.external_precondition_bridge import execute_data_method
+        from unittest.mock import patch, MagicMock
+        import asyncio
+
+        mock_instance = MagicMock()
+        mock_instance.UYV6mZaVwDk4HHhyuWRRp = MagicMock(return_value=[{"id": 1}])
+        mock_class = MagicMock(return_value=mock_instance)
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(MagicMock, None)), \
+             patch('inspect.getmembers', return_value=[('PcImport', mock_class)]), \
+             patch('inspect.getmodule', return_value=MagicMock()), \
+             patch('inspect.isclass', return_value=True), \
+             patch('backend.core.external_precondition_bridge._patch_import_api_aliases'):
+            result = asyncio.run(execute_data_method('PcImport', 'UYV6mZaVwDk4HHhyuWRRp', {}))
+            assert result['success'] is True
+
+    def test_unknown_method_returns_available_list(self):
+        """Unknown method returns error with available methods list."""
+        from backend.core.external_precondition_bridge import execute_data_method
+        from unittest.mock import patch, MagicMock
+        import asyncio
+
+        mock_instance = MagicMock()
+        mock_class = MagicMock(return_value=mock_instance)
+        # Make getattr return None for unknown method
+        mock_instance.nonexistent_method = None
+
+        with patch('backend.core.external_precondition_bridge.load_base_params_class',
+                   return_value=(MagicMock, None)), \
+             patch('inspect.getmembers', return_value=[('PcImport', mock_class)]), \
+             patch('inspect.getmodule', return_value=MagicMock()), \
+             patch('inspect.isclass', return_value=True), \
+             patch('backend.core.external_precondition_bridge._build_docstring_method_map',
+                   return_value={'PcImport': {'库存管理|库存列表': 'UYV6mZaVwDk4HHhyuWRRp'}}):
+            result = asyncio.run(execute_data_method('PcImport', 'nonexistent_method', {}))
+            assert result['success'] is False
+            assert result['error_type'] == 'NotFoundError'
+            assert '库存管理|库存列表' in result['error']
+
+
+class TestDataMethodCacheReset:
+    """Tests that new caches are properly reset."""
+
+    def test_reset_clears_docstring_method_map(self):
+        """reset_cache() clears _docstring_method_map."""
+        from backend.core import external_precondition_bridge
+
+        external_precondition_bridge._docstring_method_map = {'test': {'id': 'method'}}
+        external_precondition_bridge.reset_cache()
+        assert external_precondition_bridge._docstring_method_map is None
+
+    def test_reset_clears_import_api_patched(self):
+        """reset_cache() resets _import_api_patched flag."""
+        from backend.core import external_precondition_bridge
+
+        external_precondition_bridge._import_api_patched = True
+        external_precondition_bridge.reset_cache()
+        assert external_precondition_bridge._import_api_patched is False

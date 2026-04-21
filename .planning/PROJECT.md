@@ -17,7 +17,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 **最新版本:** v0.10.2 测试验证与代码可用性修复 (in progress)
 **Server online**: 121.40.191.49
-**当前进度:** Phase 90 完成 — 过时测试清理（22 ImportError→0，37 文件删除，conftest 隔离审查）
+**当前进度:** Phase 91 完成 — 测试代码修复（876 passed, 0 failed, 0 errors, 1 xfailed）
 
 ## Current Milestone: v0.10.2 测试验证与代码可用性修复
 
@@ -117,6 +117,9 @@ v0.1-v0.4.2 核心功能:
 - ✓ CLEAN-02: storage_state 构造内联到 self_healing_runner — Phase 88
 - ✓ TEST-01: _build_storage_state 和 _get_storage_state_for_role 单元测试 (5 tests) — Phase 89
 - ✓ TEST-02: 27 单元测试全部通过，mock 路径更新完毕 — Phase 89
+- ✓ TEST-03: 顶层 conftest.py db_session + autouse reset_cache — Phase 91
+- ✓ TEST-04: 外部断言桥接测试 resolve_headers mock 对齐 — Phase 91
+- ✓ TEST-05: 全量测试套件 876 passed, 0 failed, 0 errors — Phase 91
 
 ### Validated (v0.9.0)
 
@@ -151,7 +154,8 @@ v0.1-v0.4.2 核心功能:
 ### Backlog
 
 - PreSubmitGuard DOM 值提取 — 当前 actual_values=None，需实现 DOM 值读取才能主动拦截
-- 5 个预先存在的测试隔离问题 (test_external_bridge, test_browser_cleanup 等) — Phase 90 已清理
+- 5 个预先存在的测试隔离问题 (test_external_bridge, test_browser_cleanup 等) — Phase 90 已清理，Phase 91 修复完成
+- DataMethodError: webseleniumerp 混淆方法名变化 — Phase 92 待处理
 
 ### Out of Scope
 
@@ -210,4 +214,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-21 Phase 90 complete*
+*Last updated: 2026-04-21 Phase 91 complete*
