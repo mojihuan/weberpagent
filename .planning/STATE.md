@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.1
 milestone_name: 代码登录及 Agent 复用登录的浏览器状态
-status: Ready to execute
-stopped_at: Completed 88-01-PLAN.md
-last_updated: "2026-04-21T01:36:18.801Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 88-02-PLAN.md
+last_updated: "2026-04-21T01:53:23.039Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -58,6 +58,8 @@ Key decisions moved to PROJECT.md Key Decisions table.
 - [Phase 86]: 方案 C (localStorage injection) confirmed not viable -- SPA Vuex/Pinia store ignores direct localStorage writes, router guard checks store not localStorage
 - [Phase 88]: Inlined urlparse origin extraction in _build_storage_state (self_healing_runner) rather than importing from auth_service to keep modules decoupled
 - [Phase 88]: Kept _extract_origin as @staticmethod on AuthService for backward compatibility with existing test references
+- [Phase 88]: Deleted entire e2e test directory since conftest.py fixtures only served deleted E2E tests
+- [Phase 88]: Updated test 9 log assertion to match new runs.py format (代码登录回退 instead of Cookie预注入失败)
 
 ### Pending Todos
 
@@ -65,8 +67,8 @@ None.
 
 ### Blockers/Concerns
 
-- Cookie 预注入 + 编程式表单登录均失败 — SPA 不接受注入 token，登录按钮点击后无 redirect
-- auth_service / auth_session_factory / agent_service 登录逻辑多分支混杂，需要清理
+- Cookie 预注入 + 编程式表单登录均失败 — SPA 不接受注入 token，登录按钮点击后无 redirect (Phase 86 confirmed, resolved by Phase 87 programmatic login)
+- ~~auth_service / auth_session_factory / agent_service 登录逻辑多分支混杂，需要清理~~ -- RESOLVED by Phase 88
 - browser-use storage_state 传递机制需验证
 
 ### Source-Verified Facts (2026-04-20)
@@ -79,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T01:36:18.799Z
-Stopped at: Completed 88-01-PLAN.md
+Last session: 2026-04-21T01:53:23.037Z
+Stopped at: Completed 88-02-PLAN.md
 Resume file: None
