@@ -15,13 +15,19 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.1 代码登录及 Agent 复用登录的浏览器状态 (shipped 2026-04-21)
+**最新版本:** v0.10.2 测试验证与代码可用性修复 (in progress)
 **Server online**: 121.40.191.49
-**当前进度:** 里程碑归档完成，准备下一里程碑
+**当前进度:** Phase 90 完成 — 过时测试清理（22 ImportError→0，37 文件删除，conftest 隔离审查）
 
-## Current Milestone: Planning Next
+## Current Milestone: v0.10.2 测试验证与代码可用性修复
 
-**Goal:** 待定
+**Goal:** 验证前面阶段任务的完成度，更新过时的测试代码，修复反复出现的 DataMethodError，确保代码可用性。
+
+**Target features:**
+- DataMethodError 修复 — webseleniumerp 混淆方法名变化导致的 'ImportApi' object has no attribute 错误
+- 测试代码清理 — 更新过时测试使其与当前业务代码一致，防止错误修改正确代码
+- 阶段完成度验证 — 验证 v0.8~v0.10.1 各阶段的实际交付状态
+- 代码可用性验证 — 确保端到端流程（自然语言 → AI 执行 → 报告）可用
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -145,7 +151,7 @@ v0.1-v0.4.2 核心功能:
 ### Backlog
 
 - PreSubmitGuard DOM 值提取 — 当前 actual_values=None，需实现 DOM 值读取才能主动拦截
-- 5 个预先存在的测试隔离问题 (test_external_bridge, test_browser_cleanup 等)
+- 5 个预先存在的测试隔离问题 (test_external_bridge, test_browser_cleanup 等) — Phase 90 已清理
 
 ### Out of Scope
 
@@ -204,4 +210,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-21 after v0.10.1 milestone*
+*Last updated: 2026-04-21 Phase 90 complete*
