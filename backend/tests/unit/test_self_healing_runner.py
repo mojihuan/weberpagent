@@ -110,11 +110,10 @@ async def test_skip_auth_service_failure(runner: SelfHealingRunner, tmp_test_dir
     test_file = str(tmp_test_dir / "test_example.py")
 
     with patch(
-        "backend.core.self_healing_runner.auth_service"
-    ) as mock_auth:
-        mock_auth.get_storage_state_for_role = AsyncMock(
-            side_effect=TokenFetchError(role="main", reason="请求超时")
-        )
+        "backend.core.self_healing_runner._get_storage_state_for_role",
+        new_callable=AsyncMock,
+        side_effect=TokenFetchError(role="main", reason="请求超时"),
+    ):
         result = await runner.run("run1", test_file, login_role="main")
 
     assert result.final_status == "skipped"
@@ -134,14 +133,15 @@ async def test_passed_on_first_try(runner: SelfHealingRunner, tmp_test_dir: Path
 
     with (
         patch(
-            "backend.core.self_healing_runner.auth_service"
-        ) as mock_auth,
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
         patch(
             "backend.core.self_healing_runner.asyncio.to_thread",
             new_callable=AsyncMock,
         ) as mock_to_thread,
     ):
-        mock_auth.get_storage_state_for_role = AsyncMock(return_value=STORAGE_STATE)
         mock_to_thread.return_value = _make_completed_process(returncode=0)
 
         result = await runner.run("run1", test_file, login_role="main")
@@ -164,8 +164,10 @@ async def test_retry_on_failure_then_pass(
 
     with (
         patch(
-            "backend.core.self_healing_runner.auth_service"
-        ) as mock_auth,
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
         patch(
             "backend.core.self_healing_runner.asyncio.to_thread",
             new_callable=AsyncMock,
@@ -174,8 +176,6 @@ async def test_retry_on_failure_then_pass(
             "backend.core.self_healing_runner.LLMHealer"
         ) as mock_healer_cls,
     ):
-        mock_auth.get_storage_state_for_role = AsyncMock(return_value=STORAGE_STATE)
-
         # First call fails, second call passes
         mock_to_thread.side_effect = [
             _make_completed_process(returncode=1, stderr="AssertionError"),
@@ -215,8 +215,10 @@ async def test_max_retries_then_failed(
 
     with (
         patch(
-            "backend.core.self_healing_runner.auth_service"
-        ) as mock_auth,
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
         patch(
             "backend.core.self_healing_runner.asyncio.to_thread",
             new_callable=AsyncMock,
@@ -225,8 +227,6 @@ async def test_max_retries_then_failed(
             "backend.core.self_healing_runner.LLMHealer"
         ) as mock_healer_cls,
     ):
-        mock_auth.get_storage_state_for_role = AsyncMock(return_value=STORAGE_STATE)
-
         # All calls fail
         mock_to_thread.return_value = _make_completed_process(
             returncode=1, stderr="AssertionError in test"
@@ -262,8 +262,10 @@ async def test_timeout_handling(runner: SelfHealingRunner, tmp_test_dir: Path):
 
     with (
         patch(
-            "backend.core.self_healing_runner.auth_service"
-        ) as mock_auth,
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
         patch(
             "backend.core.self_healing_runner.asyncio.to_thread",
             new_callable=AsyncMock,
@@ -272,8 +274,6 @@ async def test_timeout_handling(runner: SelfHealingRunner, tmp_test_dir: Path):
             "backend.core.self_healing_runner.LLMHealer"
         ) as mock_healer_cls,
     ):
-        mock_auth.get_storage_state_for_role = AsyncMock(return_value=STORAGE_STATE)
-
         # All calls timeout
         mock_to_thread.side_effect = subprocess.TimeoutExpired(
             cmd=["pytest"], timeout=120
