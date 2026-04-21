@@ -5,6 +5,7 @@ a clean API for operation code discovery and execution.
 """
 
 import ast
+import importlib
 import sys
 import logging
 import inspect
@@ -32,6 +33,11 @@ _data_methods_cache: list[dict] | None = None
 _assertion_classes_cache: dict[str, type] | None = None
 _assertion_import_error: str | None = None
 _assertion_methods_cache: list[dict] | None = None
+
+# Docstring-based method mapping state
+_docstring_method_map: dict[str, dict[str, str]] | None = None
+# Format: {class_name: {docstring_id: actual_method_name}}
+_import_api_patched: bool = False
 
 # LoginApi state for headers resolution
 _login_api_instance = None
@@ -692,6 +698,126 @@ def get_data_methods_grouped() -> list[dict]:
         return _data_methods_cache
 
 
+def _build_docstring_method_map() -> dict[str, dict[str, str]]:
+    """Build mapping from docstring IDs to actual method names.
+
+    Scans all classes in common.base_params and maps the first line
+    of each public method's docstring to the method name.
+
+    Returns:
+        Dict mapping class_name -> {docstring_id: method_name}
+        e.g. {'PcImport': {'配件管理|配件库存|库存列表': 'CtRBRcFNn2LnUPfJF5Yhu', ...}}
+    """
+    global _docstring_method_map
+
+    if _docstring_method_map is not None:
+        return _docstring_method_map
+
+    cls, error = load_base_params_class()
+    if error:
+        _docstring_method_map = {}
+        return _docstring_method_map
+
+    try:
+        import common.base_params as base_params_module
+
+        result: dict[str, dict[str, str]] = {}
+        for class_name, obj in inspect.getmembers(base_params_module, predicate=inspect.isclass):
+            if obj.__module__ != 'common.base_params':
+                continue
+
+            class_map: dict[str, str] = {}
+            for method_name in dir(obj):
+                if method_name.startswith('_'):
+                    continue
+                method = getattr(obj, method_name, None)
+                if not callable(method):
+                    continue
+
+                docstring = method.__doc__ or ""
+                first_line = docstring.strip().split('\n')[0] if docstring.strip() else ""
+                if first_line:
+                    class_map[first_line] = method_name
+
+            if class_map:
+                result[class_name] = class_map
+
+        _docstring_method_map = result
+        return _docstring_method_map
+    except Exception as e:
+        logger.error(f"Failed to build docstring method map: {e}", exc_info=True)
+        _docstring_method_map = {}
+        return _docstring_method_map
+
+
+def _patch_import_api_aliases():
+    """Add obfuscated api_attr aliases to ImportApi._module_map.
+
+    Scans PcImport methods to extract obfuscated _get_data arguments,
+    then matches them to _module_map entries by checking if the API class
+    has methods matching the type_map values. The type_map values are
+    obfuscated method names unique to each API class, making this matching
+    reliable.
+    """
+    global _import_api_patched
+    if _import_api_patched:
+        return
+
+    cls, error = load_base_params_class()
+    if error:
+        return
+
+    try:
+        import common.base_params as bp_module
+        from common.import_api import ImportApi
+
+        for class_name, obj in inspect.getmembers(bp_module, predicate=inspect.isclass):
+            if obj.__module__ != 'common.base_params':
+                continue
+            for method_name in dir(obj):
+                if method_name.startswith('_'):
+                    continue
+                method = getattr(obj, method_name, None)
+                if not callable(method):
+                    continue
+                try:
+                    source = inspect.getsource(method)
+                except (OSError, TypeError):
+                    continue
+
+                # Extract _get_data first arg
+                get_data_match = re.search(r"_get_data\('(\w+)'", source)
+                if not get_data_match:
+                    continue
+                obfuscated_api_attr = get_data_match.group(1)
+
+                # Skip if already a valid _module_map key (not obfuscated)
+                if obfuscated_api_attr in ImportApi._module_map:
+                    continue
+
+                # Extract type_map method names for matching
+                type_map_methods = set(re.findall(
+                    r"'(\w+)',\s*'(?:main|idle|vice|special|platform|super|camera)'\)",
+                    source
+                ))
+
+                # Find matching _module_map entry by checking API class methods
+                for map_key, (mod_path, cls_name) in ImportApi._module_map.items():
+                    try:
+                        mod = importlib.import_module(mod_path)
+                        api_cls = getattr(mod, cls_name)
+                        api_methods = set(m for m in dir(api_cls) if not m.startswith('_'))
+                        if type_map_methods & api_methods:  # intersection
+                            ImportApi._module_map[obfuscated_api_attr] = (mod_path, cls_name)
+                            break
+                    except Exception:
+                        continue
+
+        _import_api_patched = True
+    except Exception as e:
+        logger.error(f"Failed to patch ImportApi aliases: {e}", exc_info=True)
+
+
 def get_assertion_methods_grouped() -> list[dict]:
     """Get assertion methods grouped by class name.
 
@@ -1139,10 +1265,36 @@ async def execute_data_method(
     try:
         instance = target_class()
         method = getattr(instance, method_name, None)
+
+        # D-02: Docstring-based fallback for stable method names
         if method is None:
+            docstring_map = _build_docstring_method_map()
+            class_map = docstring_map.get(class_name, {})
+            actual_name = class_map.get(method_name)
+
+            if actual_name:
+                logger.info(
+                    f"Docstring match: '{method_name}' -> method '{actual_name}'"
+                )
+                method = getattr(instance, actual_name, None)
+                if method is not None:
+                    method_name = actual_name
+
+        if method is None:
+            # D-03: Build helpful error with available methods
+            docstring_map = _build_docstring_method_map()
+            class_map = docstring_map.get(class_name, {})
+            available = [
+                f"'{doc_id}' -> {name}"
+                for doc_id, name in sorted(class_map.items())
+            ]
+            available_str = ', '.join(available[:20])
             return {
                 "success": False,
-                "error": f"Method '{method_name}' not found in class '{class_name}'",
+                "error": (
+                    f"Method '{method_name}' not found in class '{class_name}'. "
+                    f"Available methods: {available_str}"
+                ),
                 "error_type": "NotFoundError"
             }
     except Exception as e:
@@ -1151,6 +1303,9 @@ async def execute_data_method(
             "error": f"Failed to instantiate class: {e}",
             "error_type": "InstantiationError"
         }
+
+    # Patch ImportApi aliases before execution (fixes _get_data internal failure)
+    _patch_import_api_aliases()
 
     # Execute with timeout
     try:
@@ -1323,6 +1478,7 @@ def reset_cache():
     global _assertion_classes_cache, _assertion_import_error, _assertion_methods_cache
     global _login_api_instance, _login_api_error
     global _assertion_fields_cache, _assertion_fields_error
+    global _docstring_method_map, _import_api_patched
     _pre_front_class = None
     _import_error = None
     _operations_cache = None
@@ -1338,6 +1494,8 @@ def reset_cache():
     _login_api_error = None
     _assertion_fields_cache = None
     _assertion_fields_error = None
+    _docstring_method_map = None
+    _import_api_patched = False
 
     # Clear common.* entries from sys.modules so that stale modules from
     # webseleniumerp or test-created mocks do not persist across tests.

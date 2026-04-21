@@ -19,6 +19,8 @@ from backend.core.external_precondition_bridge import (
     _base_params_class,
     _base_params_import_error,
     _data_methods_cache,
+    _build_docstring_method_map,
+    _patch_import_api_aliases,
 )
 
 
@@ -473,6 +475,7 @@ class TestImportApiAliasPatching:
 
     def test_patch_is_idempotent(self):
         """Calling twice does not duplicate entries."""
+        from unittest.mock import patch
         from backend.core.external_precondition_bridge import _patch_import_api_aliases
         from backend.core import external_precondition_bridge
 
@@ -526,7 +529,14 @@ class TestDocstringFallback:
         from unittest.mock import patch, MagicMock
         import asyncio
 
-        mock_instance = MagicMock()
+        class MockInstance:
+            """Instance where docstring ID is not an attribute but obfuscated name is."""
+            def __getattr__(self, name):
+                if name == '库存管理|库存列表':
+                    raise AttributeError(name)
+                raise AttributeError(name)
+
+        mock_instance = MockInstance()
         mock_instance.UYV6mZaVwDk4HHhyuWRRp = MagicMock(return_value=[{"id": 1}])
 
         mock_class = MagicMock(return_value=mock_instance)
@@ -568,10 +578,13 @@ class TestDocstringFallback:
         from unittest.mock import patch, MagicMock
         import asyncio
 
-        mock_instance = MagicMock()
+        class MockInstance:
+            """Instance where no method exists for unknown or docstring names."""
+            def __getattr__(self, name):
+                raise AttributeError(name)
+
+        mock_instance = MockInstance()
         mock_class = MagicMock(return_value=mock_instance)
-        # Make getattr return None for unknown method
-        mock_instance.nonexistent_method = None
 
         with patch('backend.core.external_precondition_bridge.load_base_params_class',
                    return_value=(MagicMock, None)), \
