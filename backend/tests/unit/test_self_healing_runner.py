@@ -30,7 +30,9 @@ from backend.core.self_healing_runner import (
     CONFTEST_TEMPLATE,
     HealingResult,
     SelfHealingRunner,
+    _build_storage_state,
 )
+from backend.config.settings import Settings
 
 
 # ---------------------------------------------------------------------------
@@ -399,3 +401,35 @@ def test_healing_result_is_frozen():
     assert dataclasses.is_dataclass(result)
     with pytest.raises(dataclasses.FrozenInstanceError):
         result.final_status = "failed"  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# Tests for _build_storage_state (per D-05)
+# ---------------------------------------------------------------------------
+
+
+def test_build_storage_state_token_in_localstorage():
+    """_build_storage_state puts token into localStorage with correct keys."""
+    with patch(
+        "backend.config.settings.get_settings",
+        return_value=Settings(erp_base_url="https://erp.example.com/epbox_erp"),
+    ):
+        result = _build_storage_state("my-jwt-token-123")
+
+    assert result["cookies"] == []
+    assert len(result["origins"]) == 1
+    assert result["origins"][0]["origin"] == "https://erp.example.com"
+    ls = {item["name"]: item["value"] for item in result["origins"][0]["localStorage"]}
+    assert ls["Admin-Token"] == "my-jwt-token-123"
+    assert ls["Admin-Expires-In"] == "720"
+
+
+def test_build_storage_state_origin_with_port():
+    """_build_storage_state preserves port in origin when URL has one."""
+    with patch(
+        "backend.config.settings.get_settings",
+        return_value=Settings(erp_base_url="https://erp.example.com:8443/epbox_erp"),
+    ):
+        result = _build_storage_state("token-abc")
+
+    assert result["origins"][0]["origin"] == "https://erp.example.com:8443"
