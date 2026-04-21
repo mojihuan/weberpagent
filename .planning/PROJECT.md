@@ -15,21 +15,13 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.9.0 Excel 批量导入功能开发 (shipped 2026-04-09)
+**最新版本:** v0.10.1 代码登录及 Agent 复用登录的浏览器状态 (shipped 2026-04-21)
 **Server online**: 121.40.191.49
-**当前进度:** v0.9.1 ERP 全面集成重构 — Phase 75 complete (AccountService + Settings)
+**当前进度:** 里程碑归档完成，准备下一里程碑
 
-## Current Milestone: v0.9.1 ERP 全面集成重构
+## Current Milestone: Planning Next
 
-**Goal:** 跑通「Excel导入 → 前置API(含缓存) → AI执行UI → 断言(含缓存验证)」完整链路
-
-**Target features:**
-- CacheService — 内存KV缓存，替代JSON文件方案，Run 级生命周期
-- AccountService — 多账号管理，从 user_info.py 读取，支持 8 种角色
-- TestFlowService — 流程编排，串联缓存+账号+前置+Agent+断言
-- Excel 模板更新 — 新增登录角色列，前置条件支持 cache 类型 JSON
-- DB migration — Task 增加 login_role 字段
-- 前端 login_role 下拉选择
+**Goal:** 待定
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -39,6 +31,10 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.8.0: 报告完善与 UI 优化 (2026-04-03)
 - v0.8.1 ~ v0.8.4: 表格填写优化与调查 (2026-04-06 ~ 2026-04-07)
 - v0.9.0: Excel 批量导入功能开发 (2026-04-09)
+- v0.9.1: ERP 全面集成重构 (2026-04-12)
+- v0.9.2: Cookie 预注入免登录 (2026-04-17)
+- v0.10.0: Agent 执行速度优化 (2026-04-18)
+- v0.10.1: 代码登录及 Agent 复用登录的浏览器状态 (2026-04-21)
 
 ## Requirements
 
@@ -106,6 +102,15 @@ v0.1-v0.4.2 核心功能:
 - ✓ ACCT-01: AccountService.resolve("main") 返回不可变 AccountInfo — Phase 75
 - ✓ ACCT-02: resolve() 未知角色抛出 ValueError 列出所有可用角色 — Phase 75
 - ✓ ACCT-03: get_login_url() 从 settings.erp_base_url 组合 URL — Phase 75
+
+### Validated (v0.10.1)
+
+- ✓ AUTH-01: Vue SPA 编程式登录修复 — dispatchEvent(MouseEvent) 替代 btn.click() — Phase 87
+- ✓ AUTH-02: 代码登录失败时自动回退到文字登录模式，包含角色名和失败原因的 warning 日志 — Phase 87
+- ✓ CLEAN-01: auth_service 职责单一 — 只负责 HTTP token 获取 — Phase 88
+- ✓ CLEAN-02: storage_state 构造内联到 self_healing_runner — Phase 88
+- ✓ TEST-01: _build_storage_state 和 _get_storage_state_for_role 单元测试 (5 tests) — Phase 89
+- ✓ TEST-02: 27 单元测试全部通过，mock 路径更新完毕 — Phase 89
 
 ### Validated (v0.9.0)
 
@@ -189,10 +194,14 @@ v0.1-v0.4.2 核心功能:
 | Semaphore 默认并发 2，硬上限 4 | 基于部署服务器内存的安全边界 | ✓ Good |
 | _active_batches 模块字典防 GC | asyncio.create_task 无引用会被回收 | ✓ Good |
 | SQLite busy_timeout 30 秒 | 并发写入场景下避免 immediate lock | ⚠️ Revisit — 需实测高并发 |
+| Vue SPA 需要 dispatchEvent(MouseEvent) 登录 | btn.click() 不触发 Vue 事件绑定 | ✓ Good |
+| localStorage 注入不可行 | Vuex/Pinia store 初始化后才读 localStorage，router guard 检查 store | ✓ Good |
+| storage_state 构造内联到 self_healing_runner | 消费者唯一，保持模块解耦 | ✓ Good |
+| browser-use page.evaluate 返回复杂对象为 string | 用 JSON.stringify + json.loads 序列化 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-11 after Phase 75 completion*
+*Last updated: 2026-04-21 after v0.10.1 milestone*

@@ -1,5 +1,45 @@
 # Project Retrospective
 
+## Milestone: v0.10.1 — 代码登录及 Agent 复用登录的浏览器状态
+
+**Shipped:** 2026-04-21
+**Phases:** 4 | **Plans:** 6
+
+### What Was Built
+
+- 登录机制研究: POC 确认 localStorage 注入不可行，编程式表单登录 (dispatchEvent) 可行
+- Vue SPA 编程式登录修复: dispatchEvent(MouseEvent) 替代 btn.click() + 完整表单事件序列
+- 认证代码清理: 删除死代码（auth_session_factory, POC scripts），storage_state 内联到 self_healing_runner
+- 测试覆盖: 5 个新单元测试 + 27 个测试全通过
+
+### What Worked
+
+- **POC 验证驱动研究**: Phase 86 用最小 POC 验证两个方案，快速排除不可行的 localStorage 注入
+- **单行修复核心问题**: Phase 87 的关键修复只有一行 (btn.click() → dispatchEvent)，问题定位精准
+- **先清理后测试**: Phase 88 清理死代码后 Phase 89 补测试，测试基于最终代码结构
+
+### What Was Inefficient
+
+- Phase 87 ROADMAP 标记为 "Not started" 但实际已完成（进度表未更新）
+- REQUIREMENTS.md 仍指向 v0.9.2，v0.10.1 未更新需求文档
+
+### Patterns Established
+
+- **POC-first 研究**: 先用最小代码验证可行性，再进入实施
+- **dispatchEvent 替代 click**: Vue/React SPA 需要构造正确的 MouseEvent 而非 .click()
+
+### Key Lessons
+
+1. Vue SPA 的登录按钮不能直接 .click()，需要 dispatchEvent(new MouseEvent('click', {bubbles: true}))
+2. Vuex/Pinia store 在 SPA 初始化时读取 localStorage，后续直接修改 localStorage 不会触发 store 更新
+3. browser-use 的 page.evaluate 返回复杂 JS 对象时需要 JSON.stringify 序列化
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~4 (86, 87, 88, 89)
+- Notable: 3 天完成 4 个阶段 6 个计划，包含研究和清理
+
 ## Milestone: v0.9.0 — Excel 批量导入功能开发
 
 **Shipped:** 2026-04-09
@@ -123,11 +163,11 @@
 
 ## Cross-Milestone Trends
 
-| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 |
-|--------|--------|--------|--------|--------|--------|--------|
-| Phases | 4 | 5 | 5 | 1 | 2 | 4 |
-| Plans | 10 | 10 | 6 | 1 | 2 | 8 |
-| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 |
-| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 |
-| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 |
-| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 |
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 |
+|--------|--------|--------|--------|--------|--------|--------|---------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 |
+| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 |

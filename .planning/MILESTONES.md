@@ -1,5 +1,20 @@
 # Milestones
 
+## v0.10.1 代码登录及 Agent 复用登录的浏览器状态 (Shipped: 2026-04-21)
+
+**Phases completed:** 4 phases, 6 plans, 12 tasks
+
+**Key accomplishments:**
+
+- POC scripts confirm localStorage injection fails (Vuex/Pinia store timing) but programmatic form login works with dispatchEvent(new MouseEvent) instead of native .click()
+- Comprehensive ERP login mechanism research report confirming 方案 A (programmatic form login with MouseEvent dispatch) as the viable path for Phase 87, with root cause analysis proving 方案 C (localStorage injection) fails due to Vuex/Pinia store initialization timing
+- 修复 Vue SPA 编程式登录：dispatchEvent(MouseEvent) 替代 btn.click() + 完整表单事件序列 + 回退日志角色名增强
+- Purged dead auth branches and relocated storage_state construction to its sole consumer (self_healing_runner)
+- Aligned test suite with Plan 01 auth cleanup: deleted E2E tests, replaced auth_session_factory mocks with pre_navigate/create_browser_session mocks, 27 unit tests pass
+- 5 unit tests for _build_storage_state and _get_storage_state_for_role covering token injection, origin parsing, error propagation, and full pipeline verification
+
+---
+
 ## v0.9.0 Excel 批量导入功能开发 (Shipped: 2026-04-09)
 
 **Phases completed:** 4 phases, 8 plans, 15 tasks

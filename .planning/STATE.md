@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.1
 milestone_name: 代码登录及 Agent 复用登录的浏览器状态
-status: Phase complete — ready for verification
-stopped_at: Completed 88-02-PLAN.md
-last_updated: "2026-04-21T01:53:23.039Z"
+status: v0.10.1 milestone complete
+stopped_at: Completed 89-01-PLAN.md
+last_updated: "2026-04-21T03:05:49.796Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  completed_phases: 4
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 88 — 认证代码清理
+**Current focus:** Phase 89 — 测试覆盖
 
 ## Last Shipped
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 88 (认证代码清理) — EXECUTING
-Plan: 2 of 2
+Phase: 89
+Plan: Not started
 
 ## Performance Metrics
 
@@ -60,6 +60,8 @@ Key decisions moved to PROJECT.md Key Decisions table.
 - [Phase 88]: Kept _extract_origin as @staticmethod on AuthService for backward compatibility with existing test references
 - [Phase 88]: Deleted entire e2e test directory since conftest.py fixtures only served deleted E2E tests
 - [Phase 88]: Updated test 9 log assertion to match new runs.py format (代码登录回退 instead of Cookie预注入失败)
+- [Phase 89]: Patched account_service at source module (backend.core.account_service.account_service) instead of consumer module due to lazy import inside function body
+- [Phase 89]: Patched auth_service at consumer module (backend.core.self_healing_runner.auth_service) since it is a module-level import
 
 ### Pending Todos
 
@@ -81,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T01:53:23.037Z
-Stopped at: Completed 88-02-PLAN.md
+Last session: 2026-04-21T02:52:20.984Z
+Stopped at: Completed 89-01-PLAN.md
 Resume file: None
