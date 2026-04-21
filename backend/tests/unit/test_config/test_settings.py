@@ -7,6 +7,14 @@ import pytest
 from backend.config.settings import Settings, get_settings
 
 
+@pytest.fixture(autouse=True)
+def _reset_settings_cache():
+    """Clear get_settings cache before and after each test for isolation."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 class TestWeberpPathSettings:
     """Tests for weberp_path field in Settings."""
 

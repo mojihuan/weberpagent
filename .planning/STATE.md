@@ -1,46 +1,47 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.1
-milestone_name: 代码登录及 Agent 复用登录的浏览器状态
-status: v0.10.1 milestone complete
-stopped_at: Completed 89-01-PLAN.md
-last_updated: "2026-04-21T03:05:49.796Z"
+milestone: v0.10.2
+milestone_name: 测试验证与代码可用性修复
+status: Executing Phase 90
+stopped_at: Completed 90-01-PLAN.md
+last_updated: "2026-04-21T06:17:45.634Z"
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-20)
+See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 89 — 测试覆盖
+**Current focus:** Phase 90 — 过时测试清理
 
 ## Last Shipped
 
-**v0.10.0 Agent 执行速度优化** (2026-04-18)
+**v0.10.1 代码登录及 Agent 复用登录的浏览器状态** (2026-04-21)
 
-- Phase 82: 代码生成基础 — ActionTranslator + PlaywrightCodeGenerator
-- Phase 83: 定位器回退 — LocatorChainBuilder 多策略回退
-- Phase 84: LLM 修复 — LLMHealer DOM 分析 + 代码修复
-- Phase 85: Agent 重执行 — SelfHealingRunner pytest 重跑 + 前端 badge
+- Phase 86: 登录机制研究 — 方案 A (编程式表单登录) 确认可行
+- Phase 87: 代码登录修复 — dispatchEvent(MouseEvent) 替代 btn.click()
+- Phase 88: 认证代码清理 — 移除死代码，重构认证模块
+- Phase 89: 测试覆盖 — 单元测试 + E2E 验证
 
 **Server online**: 121.40.191.49
 
 ## Current Position
 
-Phase: 89
-Plan: Not started
+Phase: 90 (过时测试清理) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
 **Velocity:**
 
+- v0.10.1: 4 phases, 6 plans (2026-04-21)
 - v0.10.0: 4 phases, 7 plans (2026-04-18)
 - v0.9.2: 3 phases, 4 plans (2026-04-17)
 - v0.9.1: 5 phases, 7 plans (2026-04-12)
@@ -51,17 +52,9 @@ Plan: Not started
 
 Key decisions moved to PROJECT.md Key Decisions table.
 
-- [Phase 86]: 方案 C (localStorage injection) fails — SPA Vuex/Pinia store reads localStorage on init, router guard checks store not localStorage
-- [Phase 86]: 方案 A (form login) works with dispatchEvent(new MouseEvent) instead of btn.click() — Vue requires proper MouseEvent construction
-- [Phase 86]: browser-use page.evaluate returns complex objects as strings — use JSON.stringify in JS + json.loads in Python
-- [Phase 86]: Phase 87 follows 方案 A (programmatic form login) with single-line fix: btn.click() -> dispatchEvent(new MouseEvent) in agent_service.py
-- [Phase 86]: 方案 C (localStorage injection) confirmed not viable -- SPA Vuex/Pinia store ignores direct localStorage writes, router guard checks store not localStorage
 - [Phase 88]: Inlined urlparse origin extraction in _build_storage_state (self_healing_runner) rather than importing from auth_service to keep modules decoupled
-- [Phase 88]: Kept _extract_origin as @staticmethod on AuthService for backward compatibility with existing test references
-- [Phase 88]: Deleted entire e2e test directory since conftest.py fixtures only served deleted E2E tests
-- [Phase 88]: Updated test 9 log assertion to match new runs.py format (代码登录回退 instead of Cookie预注入失败)
 - [Phase 89]: Patched account_service at source module (backend.core.account_service.account_service) instead of consumer module due to lazy import inside function body
-- [Phase 89]: Patched auth_service at consumer module (backend.core.self_healing_runner.auth_service) since it is a module-level import
+- [Phase 90]: Deleted stale test files via git rm (no archiving) -- files have no salvage value, ImportError references to deleted modules
 
 ### Pending Todos
 
@@ -69,20 +62,20 @@ None.
 
 ### Blockers/Concerns
 
-- Cookie 预注入 + 编程式表单登录均失败 — SPA 不接受注入 token，登录按钮点击后无 redirect (Phase 86 confirmed, resolved by Phase 87 programmatic login)
-- ~~auth_service / auth_session_factory / agent_service 登录逻辑多分支混杂，需要清理~~ -- RESOLVED by Phase 88
-- browser-use storage_state 传递机制需验证
+- DataMethodError: `PcImport.UYV6mZaVwDk4HHhyuWRRp` — webseleniumerp 混淆方法名变化导致，Phase 92 处理
+- 963 tests total, 64 failed + 20 errors (pre-cleanup state) — Phase 90 清理后再统计
+- [UPDATED after 90-01]: 787 passed, 48 failed, 42 errors, 0 ImportError (from 818 passed, 65 failed, 22 errors, 22 ImportError)
 
-### Source-Verified Facts (2026-04-20)
+### Source-Verified Facts (2026-04-21)
 
-- Token 通过 HTTP API 获取成功（auth_service）
-- storage_state 文件创建成功（auth_session_factory）
-- SPA 访问时仍跳转到 /login?redirect=%2Findex
-- 编程式表单登录（填账号+密码+点登录）后无 redirect 发生
-- 回退到文字登录模式正常工作（但浪费 5 步 LLM 调用）
+- webseleniumerp base_params 使用混淆方法名，上游更新后方法名会变
+- PcImport 继承 BaseImport(BaseApi)，方法内调用 ImportApi 的混淆方法名
+- 错误 `'ImportApi' object has no attribute 'UYV6mZaVwDk4HHhyuWRRp'` 表示调用的方法名已过期
+- 20 errors 是 ImportError — 测试引用已删除的模块
+- [Phase 90-01]: All ImportError errors eliminated (22 -> 0). Remaining 42 errors are test setup issues (test_repository, test_report_service, test_assertion_service, test_report_timeline, test_assertion_result_repo)
 
 ## Session Continuity
 
-Last session: 2026-04-21T02:52:20.984Z
-Stopped at: Completed 89-01-PLAN.md
+Last session: 2026-04-21T06:17:45.631Z
+Stopped at: Completed 90-01-PLAN.md
 Resume file: None
