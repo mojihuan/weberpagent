@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.1
 milestone_name: 代码登录及 Agent 复用登录的浏览器状态
-status: Phase complete — ready for verification
-stopped_at: Completed 86-02-PLAN.md
-last_updated: "2026-04-20T07:08:15.207Z"
+status: Ready to execute
+stopped_at: Completed 88-01-PLAN.md
+last_updated: "2026-04-21T01:36:18.801Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 86 — 登录机制研究
+**Current focus:** Phase 88 — 认证代码清理
 
 ## Last Shipped
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 86 (登录机制研究) — EXECUTING
+Phase: 88 (认证代码清理) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -56,6 +56,8 @@ Key decisions moved to PROJECT.md Key Decisions table.
 - [Phase 86]: browser-use page.evaluate returns complex objects as strings — use JSON.stringify in JS + json.loads in Python
 - [Phase 86]: Phase 87 follows 方案 A (programmatic form login) with single-line fix: btn.click() -> dispatchEvent(new MouseEvent) in agent_service.py
 - [Phase 86]: 方案 C (localStorage injection) confirmed not viable -- SPA Vuex/Pinia store ignores direct localStorage writes, router guard checks store not localStorage
+- [Phase 88]: Inlined urlparse origin extraction in _build_storage_state (self_healing_runner) rather than importing from auth_service to keep modules decoupled
+- [Phase 88]: Kept _extract_origin as @staticmethod on AuthService for backward compatibility with existing test references
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-20T07:08:15.205Z
-Stopped at: Completed 86-02-PLAN.md
+Last session: 2026-04-21T01:36:18.799Z
+Stopped at: Completed 88-01-PLAN.md
 Resume file: None

@@ -16,30 +16,6 @@ def test_agent_service_creation(agent_service):
 
 
 @pytest.mark.asyncio
-async def test_run_simple_mock(agent_service):
-    """测试简单执行（Mock）"""
-    with (
-        patch("backend.core.agent_service.Agent") as MockAgent,
-        patch("backend.core.agent_service.create_llm") as mock_create_llm,
-    ):
-        # Mock LLM
-        mock_llm = MagicMock()
-        mock_create_llm.return_value = mock_llm
-
-        # Mock Agent
-        mock_agent = MagicMock()
-        mock_agent.run = AsyncMock()
-        mock_agent.run.return_value = MagicMock(is_done=True)
-        MockAgent.return_value = mock_agent
-
-        result = await agent_service.run_simple(task="打开网页")
-
-        assert result is not None
-        mock_agent.run.assert_called_once()
-        mock_create_llm.assert_called_once_with(None)
-
-
-@pytest.mark.asyncio
 async def test_run_with_callback(agent_service):
     """测试带回调的执行"""
     with (

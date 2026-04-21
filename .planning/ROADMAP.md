@@ -177,7 +177,11 @@ Plans:
   2. auth_session_factory 或等效模块职责单一：只负责将 token 转换为 browser-use 可用的浏览器状态
   3. agent_service 的登录分支逻辑清晰：代码登录 -> 回退到文字登录，无多层嵌套 if/else
   4. 已确认不工作的代码路径（如旧的 cookie 直接注入方式）被完全移除，不留死代码
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 88-01-PLAN.md — 删除死文件 + 清理生产代码（auth_session_factory、POC、agent_service 死分支）
+- [ ] 88-02-PLAN.md — 更新和删除测试文件（E2E 测试删除、单元测试 mock 路径更新）
 
 ### Phase 89: 测试覆盖
 **Goal**: 代码登录流程和 Agent 状态复用路径有单元测试和 E2E 测试覆盖，回归安全有保障
@@ -199,8 +203,8 @@ Phases execute in numeric order: 86 -> 87 -> 88 -> 89
 |-------|-----------|----------------|--------|-----------|
 | 86. 登录机制研究 | v0.10.1 | 2/2 | Complete   | 2026-04-20 |
 | 87. 代码登录修复与集成 | v0.10.1 | 0/? | Not started | - |
-| 88. 认证代码清理 | v0.10.1 | 0/? | Not started | - |
+| 88. 认证代码清理 | v0.10.1 | 1/2 | In Progress|  |
 | 89. 测试覆盖 | v0.10.1 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-20 — Phase 86 complete*
+*Roadmap updated: 2026-04-21 — Phase 88 plans created*
