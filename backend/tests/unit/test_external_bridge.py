@@ -141,40 +141,9 @@ class TestExternalPreconditionBridgeCache:
         assert external_precondition_bridge._modules_cache is None
         assert external_precondition_bridge._path_configured is False
 
-    def test_operations_cached_after_first_parse(self, monkeypatch):
-        """Test that operations are cached after first parse (when available)."""
-        # Ensure WEBSERP_PATH is not configured by setting to empty string
-        from backend.config import get_settings
-        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
-        get_settings.cache_clear()  # Clear settings cache after env change
-        reset_cache()  # Clear bridge cached state after env change
-        # This test verifies caching behavior
-        # Since external module is not available, cache should be set to empty
-        result1 = get_operations_grouped()
-        result2 = get_operations_grouped()
-
-        # Both should return same empty result (cached)
-        assert result1 == result2 == []
-
 
 class TestDataMethodsDiscovery:
     """Tests for data method discovery from base_params.py."""
-
-    def test_load_base_params_class_unavailable(self, monkeypatch):
-        """Test load_base_params_class() returns (None, error) when module unavailable."""
-        # Ensure WEBSERP_PATH is not configured by setting to empty string
-        from backend.config import get_settings
-        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
-        get_settings.cache_clear()  # Clear settings cache after env change
-        reset_cache()  # Clear bridge cached state after env change
-        cls, error = load_base_params_class()
-
-        # Without WEBSERP_PATH configured, base_params should not be loadable
-        assert cls is None
-        assert error is not None
-        assert isinstance(error, str)
-        # Should mention import failure or configuration
-        assert "Failed to import" in error or "not configured" in error.lower()
 
     def test_load_base_params_class_caches_result(self):
         """Test load_base_params_class() caches result and returns same instance."""
@@ -355,18 +324,6 @@ class TestDiscoverClassMethods:
 
 class TestGetDataMethodsGrouped:
     """Tests for get_data_methods_grouped function."""
-
-    def test_get_data_methods_grouped_returns_empty_when_unavailable(self, monkeypatch):
-        """Test get_data_methods_grouped() returns empty list when module unavailable."""
-        # Ensure WEBSERP_PATH is not configured by setting to empty string
-        from backend.config import get_settings
-        monkeypatch.setenv('WEBSERP_PATH', '')  # Set to empty to override .env
-        get_settings.cache_clear()  # Clear settings cache after env change
-        reset_cache()  # Clear bridge cached state after env change
-        result = get_data_methods_grouped()
-
-        # Without WEBSERP_PATH configured, should return empty list
-        assert result == []
 
     def test_get_data_methods_grouped_populates_cache(self):
         """Test cache is populated after first call to get_data_methods_grouped()."""

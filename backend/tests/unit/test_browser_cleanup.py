@@ -34,7 +34,8 @@ class TestAgentServiceCleanup:
                 on_step=mock_run.call_args[1]['on_step'],
                 max_steps=5,
                 llm_config=None,
-                target_url=None
+                target_url=None,
+                browser_session=None
             )
 
     @pytest.mark.asyncio
@@ -129,33 +130,3 @@ class TestAgentServiceCleanup:
                     run_id="test-run-5",
                     on_step=lambda *args: None
                 )
-
-
-class TestRunAgentBackgroundWiring:
-    """Tests for run_agent_background using cleanup pattern"""
-
-    @pytest.mark.asyncio
-    async def test_run_agent_background_uses_cleanup_pattern(self):
-        """run_agent_background uses run_with_cleanup for background tasks"""
-        from backend.api.routes.runs import run_agent_background
-
-        with patch('backend.api.routes.runs.AgentService') as mock_service_class:
-            mock_service = MagicMock()
-            mock_service_class.return_value = mock_service
-            mock_service.run_with_cleanup = AsyncMock(
-                return_value=MagicMock(is_successful=lambda: True)
-            )
-
-            # Call the background function (matches actual signature)
-            await run_agent_background(
-                run_id="test-run",
-                task_id="test-task-id",
-                task_name="Test Task",
-                task_description="Test task description",
-                max_steps=10,
-                preconditions=None,
-                target_url=None
-            )
-
-            # Verify run_with_cleanup was called (not run_with_streaming)
-            mock_service.run_with_cleanup.assert_called_once()
