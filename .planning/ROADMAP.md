@@ -215,7 +215,7 @@ Phases execute in numeric order: 90 -> 91 -> 92 -> 93
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 90. 过时测试清理 | v0.10.2 | 2/2 | Complete   | 2026-04-21 |
+| 90. 过时测试清理 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
 | 91. 测试代码修复 | v0.10.2 | 0/2 | Not started | - |
 | 92. DataMethodError 修复 | v0.10.2 | 0/2 | Not started | - |
 | 93. 端到端可用性验证 | v0.10.2 | 0/1 | Not started | - |
