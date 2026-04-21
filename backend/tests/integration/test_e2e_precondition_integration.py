@@ -26,12 +26,14 @@ def _clear_common_from_sys_modules():
 
 @pytest.fixture(autouse=True)
 def reset_bridge_cache():
-    """Reset bridge cache and clear sys.modules before and after each test."""
+    """Reset bridge cache and clear sys.modules + sys.path before and after each test."""
     _clear_common_from_sys_modules()
     external_precondition_bridge.reset_cache()
+    before_path = list(sys.path)
     yield
     _clear_common_from_sys_modules()
     external_precondition_bridge.reset_cache()
+    sys.path[:] = before_path
 
 
 @pytest.fixture

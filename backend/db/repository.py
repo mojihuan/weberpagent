@@ -35,11 +35,11 @@ class TaskRepository:
             task_data["preconditions"] = self._serialize_preconditions(task_data["preconditions"])
         # assertions (业务断言配置) 存储到 external_assertions 字段
         # Task.assertions 是 SQLAlchemy 关系字段，不能直接赋值
-        if task_data.get("assertions") is not None:
+        assertions_val = task_data.pop("assertions", None)
+        if assertions_val is not None:
             task_data["external_assertions"] = json.dumps(
-                task_data["assertions"], ensure_ascii=False
+                assertions_val, ensure_ascii=False
             )
-            del task_data["assertions"]
         task = Task(**task_data)
         self.session.add(task)
         await self.session.commit()

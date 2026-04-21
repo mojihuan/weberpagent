@@ -94,6 +94,9 @@ def load_pre_front_class() -> tuple[type | None, str | None]:
             if not success:
                 _import_error = msg
                 return None, _import_error
+        else:
+            _import_error = "WEBSERP_PATH not configured (optional feature)"
+            return None, _import_error
 
     try:
         from common.base_prerequisites import PreFront
@@ -142,6 +145,9 @@ def load_base_params_class() -> tuple[type | None, str | None]:
             if not success:
                 _base_params_import_error = msg
                 return None, _base_params_import_error
+        else:
+            _base_params_import_error = "WEBSERP_PATH not configured (optional feature)"
+            return None, _base_params_import_error
 
     try:
         from common.base_params import BaseImport
@@ -184,6 +190,9 @@ def load_base_assertions_class() -> tuple[dict[str, type] | None, str | None]:
             if not success:
                 _assertion_import_error = msg
                 return None, _assertion_import_error
+        else:
+            _assertion_import_error = "WEBSERP_PATH not configured (optional feature)"
+            return None, _assertion_import_error
 
     try:
         from common.base_assertions import PcAssert, MgAssert, McAssert
@@ -747,6 +756,9 @@ def _get_login_api():
         settings = get_settings()
         if settings.weberp_path:
             configure_external_path(settings.weberp_path)
+        else:
+            _login_api_error = "WEBSERP_PATH not configured (optional feature)"
+            return None
 
     try:
         from api.api_login import LoginApi
@@ -1326,6 +1338,20 @@ def reset_cache():
     _login_api_error = None
     _assertion_fields_cache = None
     _assertion_fields_error = None
+
+    # Clear common.* entries from sys.modules so that stale modules from
+    # webseleniumerp or test-created mocks do not persist across tests.
+    # This is safe because reset_cache() invalidates all cached state, and
+    # any subsequent load_* call will re-import fresh modules if needed.
+    stale_modules = [k for k in sys.modules if k == "common" or k.startswith("common.")]
+    for key in stale_modules:
+        del sys.modules[key]
+
+    # Also clear any api.* entries that may have been imported from
+    # webseleniumerp (e.g. api.api_login used by _get_login_api).
+    stale_api_modules = [k for k in sys.modules if k == "api" or k.startswith("api.")]
+    for key in stale_api_modules:
+        del sys.modules[key]
 
 
 # =============================================================================
