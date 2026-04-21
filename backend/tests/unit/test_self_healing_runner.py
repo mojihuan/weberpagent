@@ -31,7 +31,9 @@ from backend.core.self_healing_runner import (
     HealingResult,
     SelfHealingRunner,
     _build_storage_state,
+    _get_storage_state_for_role,
 )
+from backend.core.account_service import AccountInfo
 from backend.config.settings import Settings
 
 
@@ -433,3 +435,69 @@ def test_build_storage_state_origin_with_port():
         result = _build_storage_state("token-abc")
 
     assert result["origins"][0]["origin"] == "https://erp.example.com:8443"
+
+
+# ---------------------------------------------------------------------------
+# Tests for _get_storage_state_for_role (per D-06)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_storage_state_for_role_success():
+    """_get_storage_state_for_role resolves credentials, fetches token, builds state."""
+    with (
+        patch("backend.core.account_service.account_service") as mock_acct,
+        patch("backend.core.self_healing_runner.auth_service") as mock_auth,
+        patch(
+            "backend.config.settings.get_settings",
+            return_value=Settings(erp_base_url="https://erp.example.com"),
+        ),
+    ):
+        mock_acct.resolve.return_value = AccountInfo(
+            account="Y59800075", password="secret", role="main",
+        )
+        mock_auth.fetch_token = AsyncMock(return_value="jwt-token-xyz")
+
+        result = await _get_storage_state_for_role("main")
+
+    mock_acct.resolve.assert_called_once_with("main")
+    mock_auth.fetch_token.assert_awaited_once_with(
+        "Y59800075", "secret", role="main",
+    )
+    ls = {i["name"]: i["value"] for i in result["origins"][0]["localStorage"]}
+    assert ls["Admin-Token"] == "jwt-token-xyz"
+
+
+@pytest.mark.asyncio
+async def test_get_storage_state_for_role_fetch_fails():
+    """_get_storage_state_for_role propagates TokenFetchError from fetch_token."""
+    with (
+        patch("backend.core.account_service.account_service") as mock_acct,
+        patch("backend.core.self_healing_runner.auth_service") as mock_auth,
+    ):
+        mock_acct.resolve.return_value = AccountInfo(
+            account="Y59800075", password="secret", role="main",
+        )
+        mock_auth.fetch_token = AsyncMock(
+            side_effect=TokenFetchError(role="main", reason="请求超时 (>10s)"),
+        )
+
+        with pytest.raises(TokenFetchError) as exc_info:
+            await _get_storage_state_for_role("main")
+
+    assert "main" in str(exc_info.value)
+    assert "超时" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_get_storage_state_for_role_unknown_role():
+    """_get_storage_state_for_role propagates ValueError from resolve."""
+    with patch("backend.core.account_service.account_service") as mock_acct:
+        mock_acct.resolve.side_effect = ValueError(
+            "unknown role: 'nonexistent'. available roles: camera, idle, main, ..."
+        )
+
+        with pytest.raises(ValueError) as exc_info:
+            await _get_storage_state_for_role("nonexistent")
+
+    assert "nonexistent" in str(exc_info.value)
