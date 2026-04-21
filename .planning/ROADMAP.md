@@ -146,7 +146,7 @@
 **Milestone Goal:** 验证前面阶段任务的完成度，更新过时的测试代码，修复反复出现的 DataMethodError，确保端到端流程可用
 
 - [x] **Phase 90: 过时测试清理** — 删除与当前架构不符的过时测试，消除不可修复的噪音 (completed 2026-04-21)
-- [ ] **Phase 91: 测试代码修复** — 修复剩余测试失败，mock 路径与当前代码对齐
+- [x] **Phase 91: 测试代码修复** — 修复剩余测试失败，mock 路径与当前代码对齐 (completed 2026-04-21)
 - [ ] **Phase 92: DataMethodError 修复** — 诊断并解决 webseleniumerp 混淆方法名变化导致的前置条件执行失败
 - [ ] **Phase 93: 端到端可用性验证** — 验证完整链路（自然语言 -> AI 执行 -> 报告）在修复后可用
 
@@ -179,7 +179,7 @@ Plans:
 
 Plans:
 - [x] 91-01-PLAN.md — 创建顶层 conftest.py (db_session + autouse reset_cache) + 修复外部断言桥接和 auth_service 测试结构性对齐
-- [ ] 91-02-PLAN.md — 修复 precondition_service + 其他零散测试 + 全量套件验证
+- [x] 91-02-PLAN.md — 修复 precondition_service + 其他零散测试 + 全量套件验证
 
 ### Phase 92: DataMethodError 修复
 **Goal**: 前置条件执行不再因 webseleniumerp 混淆方法名变化而失败，系统具备方法名自动发现能力
@@ -216,7 +216,7 @@ Phases execute in numeric order: 90 -> 91 -> 92 -> 93
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 90. 过时测试清理 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
-| 91. 测试代码修复 | v0.10.2 | 1/2 | In Progress|  |
+| 91. 测试代码修复 | v0.10.2 | 2/2 | Complete   | 2026-04-21 |
 | 92. DataMethodError 修复 | v0.10.2 | 0/2 | Not started | - |
 | 93. 端到端可用性验证 | v0.10.2 | 0/1 | Not started | - |
 

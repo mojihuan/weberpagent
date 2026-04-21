@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.2
 milestone_name: 测试验证与代码可用性修复
-status: Ready to execute
-stopped_at: Completed 91-01-PLAN.md
-last_updated: "2026-04-21T08:23:28.051Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 91-02-PLAN.md
+last_updated: "2026-04-21T08:55:55.028Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -58,6 +58,9 @@ Key decisions moved to PROJECT.md Key Decisions table.
 - [Phase 90]: Added autouse get_settings.cache_clear() fixtures to test_settings.py and test_config/test_settings.py for preventive isolation
 - [Phase 91]: Autouse reset_cache fixture at top-level conftest covers all test directories — external_precondition_bridge pollution from 13+ module globals affects all test subdirectories
 - [Phase 91]: Marked MgAssert availability test as xfail since webseleniumerp upstream does not export MgAssert — Import failure of MgAssert causes entire load_base_assertions_class to fail; may resolve in future upstream updates
+- [Phase 91]: Bridge load functions return early when WEBSERP_PATH is empty to prevent stale sys.modules imports
+- [Phase 91]: reset_cache() clears common.* and api.* from sys.modules to prevent cross-test module pollution
+- [Phase 91]: TaskRepository.create() uses pop('assertions') to safely remove relationship-colliding key before ORM creation
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T08:23:28.049Z
-Stopped at: Completed 91-01-PLAN.md
+Last session: 2026-04-21T08:55:55.026Z
+Stopped at: Completed 91-02-PLAN.md
 Resume file: None
