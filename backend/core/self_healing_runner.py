@@ -26,6 +26,7 @@ import re
 import subprocess
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from backend.core.auth_service import TokenFetchError, auth_service
 from backend.core.llm_healer import LLMHealer
@@ -33,6 +34,47 @@ from backend.core.llm_healer import LLMHealer
 logger = logging.getLogger(__name__)
 
 PYTEST_TIMEOUT_SECONDS = 120
+
+
+def _build_storage_state(token: str) -> dict[str, Any]:
+    """Construct Playwright storage_state dict from access_token.
+
+    Creates a storage_state with empty cookies and localStorage entries
+    for Admin-Token and Admin-Expires-In, targeting the ERP origin.
+    """
+    from backend.config.settings import get_settings
+
+    settings = get_settings()
+    parsed = urlparse(settings.erp_base_url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    return {
+        "cookies": [],
+        "origins": [
+            {
+                "origin": origin,
+                "localStorage": [
+                    {"name": "Admin-Token", "value": token},
+                    {"name": "Admin-Expires-In", "value": "720"},
+                ],
+            }
+        ],
+    }
+
+
+async def _get_storage_state_for_role(role: str) -> dict[str, Any]:
+    """Get storage_state for a role by resolving credentials and fetching token.
+
+    Combines AccountService.resolve() to get credentials,
+    auth_service.fetch_token() to get access_token, and _build_storage_state()
+    to construct the Playwright storage_state dict.
+    """
+    from backend.core.account_service import account_service
+
+    account_info = account_service.resolve(role)
+    token = await auth_service.fetch_token(
+        account_info.account, account_info.password, role=role,
+    )
+    return _build_storage_state(token)
 
 CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright storage_state injection."""
 import json
@@ -111,7 +153,7 @@ class SelfHealingRunner:
 
         # D-04: AuthService 失败时跳过
         try:
-            storage_state = await auth_service.get_storage_state_for_role(login_role)
+            storage_state = await _get_storage_state_for_role(login_role)
         except TokenFetchError as exc:
             self._logger.warning(
                 f"[{run_id}] AuthService 失败, 跳过自愈重执行: {exc}"

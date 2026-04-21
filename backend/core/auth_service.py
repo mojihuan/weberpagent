@@ -1,21 +1,17 @@
-"""Auth service — HTTP token acquisition and Playwright storage_state construction.
+"""Auth service — HTTP token acquisition.
 
 Provides AuthService (module-level singleton) that:
 1. Fetches ERP access tokens via HTTP POST to /auth/login
-2. Constructs Playwright-compatible storage_state dicts with localStorage entries
-3. Combines AccountService resolution with token fetch for role-based auth
 
 No browser instances required — purely HTTP-based token acquisition.
 """
 
 import logging
-from typing import Any
 from urllib.parse import urlparse
 
 import httpx
 
 from backend.config.settings import get_settings
-from backend.core.account_service import account_service
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +32,10 @@ class TokenFetchError(Exception):
 
 
 class AuthService:
-    """HTTP-based ERP token acquisition and storage_state construction.
+    """HTTP-based ERP token acquisition.
 
     Provides methods to:
     - fetch_token: POST to ERP /auth/login and extract access_token
-    - build_storage_state: construct Playwright storage_state dict with localStorage
-    - get_storage_state_for_role: combine AccountService + fetch + build
     """
 
     def __init__(self) -> None:
@@ -104,61 +98,6 @@ class AuthService:
                 role=role,
                 reason=f"响应格式异常: {response.text[:200]}",
             )
-
-    def build_storage_state(self, token: str) -> dict[str, Any]:
-        """Construct Playwright storage_state dict from access_token.
-
-        Creates a storage_state with empty cookies and localStorage entries
-        for Admin-Token and Admin-Expires-In, targeting the ERP origin.
-
-        Args:
-            token: JWT access_token string.
-
-        Returns:
-            Playwright-compatible storage_state dict.
-        """
-        settings = get_settings()
-        origin = self._extract_origin(settings.erp_base_url)
-
-        return {
-            "cookies": [],
-            "origins": [
-                {
-                    "origin": origin,
-                    "localStorage": [
-                        {"name": "Admin-Token", "value": token},
-                        {"name": "Admin-Expires-In", "value": "720"},
-                    ],
-                }
-            ],
-        }
-
-    async def get_storage_state_for_role(
-        self, role: str
-    ) -> dict[str, Any]:
-        """Get storage_state for a role by resolving credentials and fetching token.
-
-        Combines AccountService.resolve() to get credentials,
-        fetch_token() to get access_token, and build_storage_state()
-        to construct the Playwright storage_state dict.
-
-        Args:
-            role: ERP role name (e.g. "main", "special", "vice").
-
-        Returns:
-            Playwright-compatible storage_state dict.
-
-        Raises:
-            TokenFetchError: If token acquisition fails.
-            ValueError: If role is unknown to AccountService.
-        """
-        account_info = account_service.resolve(role)
-        token = await self.fetch_token(
-            account_info.account,
-            account_info.password,
-            role=role,
-        )
-        return self.build_storage_state(token)
 
     @staticmethod
     def _extract_origin(url: str) -> str:
