@@ -1,5 +1,7 @@
 """PreconditionService 单元测试"""
 
+import sys
+
 import pytest
 import asyncio
 from unittest.mock import patch, MagicMock
@@ -11,6 +13,28 @@ from backend.core.precondition_service import (
     DataMethodError,
     execute_data_method_sync,
 )
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_sys_modules():
+    """Clean up sys.modules and sys.path entries from mock module imports.
+
+    Tests that use sys.path.insert with tmp_path mock modules (e.g.
+    test_complex_precondition_code_pattern creates common/base_prerequisites.py
+    in tmp_path) leave `common` and `common.base_prerequisites` entries in
+    sys.modules AND tmp_path entries in sys.path.  These stale entries cause
+    subsequent tests (external_bridge, llm_healer, etc.) to find the mock
+    module instead of the real one, producing false positives or crashes.
+    """
+    before_modules = {k: v for k, v in sys.modules.items() if k.startswith("common")}
+    before_path = list(sys.path)
+    yield
+    after_modules = {k: v for k, v in sys.modules.items() if k.startswith("common")}
+    new_modules = set(after_modules.keys()) - set(before_modules.keys())
+    for key in new_modules:
+        del sys.modules[key]
+    # Restore sys.path to state before this test
+    sys.path[:] = before_path
 
 
 class TestPreconditionService:

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.2
 milestone_name: 测试验证与代码可用性修复
-status: Ready to plan
-stopped_at: Completed 90-02-PLAN.md
-last_updated: "2026-04-21T06:38:18.888Z"
+status: Ready to execute
+stopped_at: Completed 91-01-PLAN.md
+last_updated: "2026-04-21T08:23:28.051Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 90 — 过时测试清理
+**Current focus:** Phase 91 — 测试代码修复
 
 ## Last Shipped
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: 91
-Plan: Not started
+Phase: 91 (测试代码修复) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -56,6 +56,8 @@ Key decisions moved to PROJECT.md Key Decisions table.
 - [Phase 89]: Patched account_service at source module (backend.core.account_service.account_service) instead of consumer module due to lazy import inside function body
 - [Phase 90]: Deleted stale test files via git rm (no archiving) -- files have no salvage value, ImportError references to deleted modules
 - [Phase 90]: Added autouse get_settings.cache_clear() fixtures to test_settings.py and test_config/test_settings.py for preventive isolation
+- [Phase 91]: Autouse reset_cache fixture at top-level conftest covers all test directories — external_precondition_bridge pollution from 13+ module globals affects all test subdirectories
+- [Phase 91]: Marked MgAssert availability test as xfail since webseleniumerp upstream does not export MgAssert — Import failure of MgAssert causes entire load_base_assertions_class to fail; may resolve in future upstream updates
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-21T06:30:02.580Z
-Stopped at: Completed 90-02-PLAN.md
+Last session: 2026-04-21T08:23:28.049Z
+Stopped at: Completed 91-01-PLAN.md
 Resume file: None

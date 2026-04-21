@@ -175,11 +175,11 @@ Plans:
   2. auth_service 和 precondition_service 测试通过 — mock 路径指向当前模块结构
   3. 其他零散失败测试（agent_service, self_healing_runner, llm_healer, browser_cleanup, repository 等）全部通过
   4. `uv run pytest backend/tests/ -v` 零失败零错误
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 91-01: 修复外部断言桥接和 auth_service 测试
-- [ ] 91-02: 修复 precondition_service 和其他零散测试
+- [x] 91-01-PLAN.md — 创建顶层 conftest.py (db_session + autouse reset_cache) + 修复外部断言桥接和 auth_service 测试结构性对齐
+- [ ] 91-02-PLAN.md — 修复 precondition_service + 其他零散测试 + 全量套件验证
 
 ### Phase 92: DataMethodError 修复
 **Goal**: 前置条件执行不再因 webseleniumerp 混淆方法名变化而失败，系统具备方法名自动发现能力
@@ -216,9 +216,9 @@ Phases execute in numeric order: 90 -> 91 -> 92 -> 93
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 90. 过时测试清理 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
-| 91. 测试代码修复 | v0.10.2 | 0/2 | Not started | - |
+| 91. 测试代码修复 | v0.10.2 | 1/2 | In Progress|  |
 | 92. DataMethodError 修复 | v0.10.2 | 0/2 | Not started | - |
 | 93. 端到端可用性验证 | v0.10.2 | 0/1 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-21 — Phase 90 plans created*
+*Roadmap updated: 2026-04-21 — Phase 91 plans created*
