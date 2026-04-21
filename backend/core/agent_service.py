@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any, Callable, Union
 
-from browser_use import Agent, BrowserSession, BrowserProfile
+from browser_use import BrowserSession, BrowserProfile
 
 from backend.agent.monitored_agent import MonitoredAgent
 from backend.agent.stall_detector import StallDetector
@@ -101,39 +101,6 @@ class AgentService:
 
         filepath.write_bytes(screenshot_bytes)
         return str(filepath)
-
-    async def run_simple(
-        self,
-        task: str,
-        max_steps: int = 10,
-        llm_config: dict | None = None,
-    ) -> Any:
-        """简单执行任务
-
-        Args:
-            task: 自然语言任务描述
-            max_steps: 最大执行步数
-            llm_config: LLM 配置
-
-        Returns:
-            Agent 执行历史
-        """
-        logger.info(f"创建 LLM: config={llm_config}")
-        llm = create_llm(llm_config)
-        logger.info(f"LLM 创建成功: type={type(llm).__name__}")
-
-        # 创建本地浏览器会话
-        browser_session = create_browser_session()
-
-        agent = Agent(
-            task=task,
-            llm=llm,
-            browser_session=browser_session,
-            max_actions_per_step=5,
-        )
-
-        result = await agent.run(max_steps=max_steps)
-        return result
 
     async def _programmatic_login(
         self,
@@ -411,8 +378,7 @@ class AgentService:
         # _pre_navigated), skip redundant pre-navigation here.
         pre_navigated = False
         if target_url and not getattr(browser_session, '_pre_navigated', False):
-            pre_nav_ok = await self.pre_navigate(run_id, target_url, browser_session)
-            self._pre_navigation_auth_ok = pre_nav_ok
+            await self.pre_navigate(run_id, target_url, browser_session)
             pre_navigated = True
         elif target_url:
             pre_navigated = True
@@ -431,16 +397,6 @@ class AgentService:
             if browser_state:
                 url = getattr(browser_state, "url", "") or ""
                 logger.info(f"[{run_id}][BROWSER] URL: {url}")
-
-                # Diagnostic: verify localStorage auth injection (Step 1 only)
-                if step == 1 and self._browser_session:
-                    try:
-                        page = await self._browser_session.get_current_page()
-                        if page and url.startswith('http'):
-                            token_val = await page.evaluate("() => window.localStorage.getItem('Admin-Token')")
-                            logger.info(f"[{run_id}][AUTH] localStorage Admin-Token: {'present (%s...)' % token_val[:20] if token_val else 'MISSING'}")
-                    except Exception as e:
-                        logger.debug(f"[{run_id}][AUTH] Could not check localStorage: {e}")
 
                 # 记录 DOM 状态
                 dom_state = getattr(browser_state, "dom_state", None)
