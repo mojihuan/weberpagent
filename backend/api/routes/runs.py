@@ -159,84 +159,61 @@ async def run_agent_background(
             task_description = PreconditionService.substitute_variables(task_description, context)
             logger.info(f"[{run_id}] 变量替换后的任务描述: {task_description[:100]}...")
 
-        # Pre-injection branch: try cookie injection, fallback to text login (D-07, D-08, D-09)
+        # Pre-injection branch: programmatic login with clean session, fallback to text login
         authenticated_session = None
         effective_target_url = None if login_role else target_url
         auth_pre_nav_ok = False
 
         if login_role:
-            from backend.core.auth_session_factory import create_authenticated_session
             from backend.core.auth_service import TokenFetchError
+            from backend.core.test_flow_service import TestFlowService
 
-            # Try cookie pre-injection
+            flow = TestFlowService()
+            cache_values = shared_cache.all() if shared_cache else {}
+
+            # Use a clean BrowserSession (no storage_state injection).
+            # Phase 86 research confirmed storage_state injection fails for Vue SPA:
+            # the SPA's Vuex/Pinia store ignores injected localStorage tokens.
+            # Worse, the CDP init script from storage_state interferes with
+            # the programmatic login, causing the login button click to silently fail.
+            from backend.core.agent_service import create_browser_session
+
+            authenticated_session = create_browser_session()
+            from urllib.parse import urlparse
+            _parsed = urlparse(settings.erp_base_url)
+            effective_target_url = f"{_parsed.scheme}://{_parsed.netloc}"
+
+            # Perform programmatic form login (fill form + click via dispatchEvent)
             try:
-                authenticated_session = await create_authenticated_session(login_role)
-            except TokenFetchError as e:
-                logger.warning(
-                    "Cookie预注入失败，回退到文字登录 | 角色=%s | 原因=%s",
-                    e.role, e.reason,
+                auth_pre_nav_ok = await agent_service.pre_navigate(
+                    run_id, effective_target_url, authenticated_session,
+                    login_account=account_info.account,
+                    login_password=account_info.password,
                 )
+            except Exception as e:
+                logger.warning(f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航异常: {e}")
+                auth_pre_nav_ok = False
 
-            if authenticated_session:
-                # Pre-injection success (D-08): cached variable replacement only, no login prefix
-                from backend.core.test_flow_service import TestFlowService
-
-                flow = TestFlowService()
-                cache_values = shared_cache.all() if shared_cache else {}
+            if auth_pre_nav_ok:
+                # Programmatic login succeeded — skip login in task description
                 task_description = flow.replace_cached_variables_only(
                     task_description, cache_values
                 )
-                from urllib.parse import urlparse
-                _parsed = urlparse(settings.erp_base_url)
-                effective_target_url = f"{_parsed.scheme}://{_parsed.netloc}"
-                logger.info(f"[{run_id}] Cookie预注入成功，跳过登录步骤")
-
-                # Pre-navigate and perform programmatic login.
-                # The SPA uses Vuex/Pinia store for auth state — raw localStorage
-                # injection doesn't work. Programmatic login fills the SPA's own
-                # login form so all internal state is properly initialized.
-                try:
-                    auth_pre_nav_ok = await agent_service.pre_navigate(
-                        run_id, effective_target_url, authenticated_session,
-                        login_account=account_info.account,
-                        login_password=account_info.password,
-                    )
-                except Exception as e:
-                    logger.warning(f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航异常: {e}")
-                    auth_pre_nav_ok = False
-
-                if not auth_pre_nav_ok:
-                    logger.warning(
-                        f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航失败，"
-                        f"SPA 未接受注入的 token，回退到文字登录模式"
-                    )
-                    # Fallback: close the failed session and rebuild task with login text
-                    try:
-                        await authenticated_session.stop()
-                    except Exception:
-                        pass
-                    authenticated_session = None
-                    effective_target_url = None
-
-                    # Rebuild task description with login prefix
-                    task_description = flow._build_description(
-                        task_description=task_description,
-                        login_url=login_url,
-                        account=account_info.account,
-                        password=account_info.password,
-                        context=context if isinstance(context, dict) else {},
-                        cache_values=cache_values,
-                    )
-                    logger.info(
-                        f"[{run_id}] 回退文字登录，任务描述: "
-                        f"{task_description[:150]}..."
-                    )
+                logger.info(f"[{run_id}] 编程式登录成功，跳过登录步骤")
             else:
-                # Pre-injection failure (D-09): existing full login flow
-                from backend.core.test_flow_service import TestFlowService
+                logger.warning(
+                    f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航失败，"
+                    f"回退到文字登录模式"
+                )
+                # Fallback: close the failed session and rebuild task with login text
+                try:
+                    await authenticated_session.stop()
+                except Exception:
+                    pass
+                authenticated_session = None
+                effective_target_url = None
 
-                flow = TestFlowService()
-                cache_values = shared_cache.all() if shared_cache else {}
+                # Rebuild task description with login prefix
                 task_description = flow._build_description(
                     task_description=task_description,
                     login_url=login_url,
@@ -245,8 +222,10 @@ async def run_agent_background(
                     context=context if isinstance(context, dict) else {},
                     cache_values=cache_values,
                 )
-                effective_target_url = None
-                logger.info(f"[{run_id}] 注入登录步骤后的任务描述: {task_description[:150]}...")
+                logger.info(
+                    f"[{run_id}] 回退文字登录，任务描述: "
+                    f"{task_description[:150]}..."
+                )
 
         # === 前置条件执行结束 ===
 

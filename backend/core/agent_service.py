@@ -142,144 +142,145 @@ class AgentService:
         account: str,
         password: str,
     ) -> bool:
-        """Perform login by filling the SPA form via page.evaluate().
+        """Login to ERP SPA via mouse click + JS value injection.
 
-        Uses pure JavaScript DOM manipulation (not Playwright selectors)
-        because browser-use wraps the Page object differently.
+        Strategy:
+          - page.evaluate() to find elements (JSON.stringify return)
+          - (await page.mouse).click() for physical clicks (isTrusted)
+          - JS nativeInputValueSetter for form filling (v-model)
 
-        Args:
-            run_id: Execution ID for logging.
-            page: browser-use Page object (supports evaluate).
-            account: Login account.
-            password: Login password.
+        browser-use CDP page limitations:
+          - page.evaluate() returns strings for objects → JSON.stringify
+          - page.mouse is async (await), page.keyboard does NOT exist
+          - page.locator() does NOT work
 
-        Returns:
-            True if login succeeded (URL no longer contains /login).
+        Reference: webseleniumerp/pages/pages_login.py login flow.
         """
         try:
-            # Step 1: Click "密码登录" tab
-            clicked_tab = await page.evaluate("""() => {
-                const tabs = document.querySelectorAll('div, span, a, li');
-                for (const el of tabs) {
-                    if (el.textContent.trim() === '密码登录') {
-                        el.click();
-                        return true;
+            mouse = await page.mouse
+            # Escape values for safe JS embedding
+            acc_js = json.dumps(account)
+            pwd_js = json.dumps(password)
+
+            # Step 1: Switch to 密码登录 tab (mouse click = isTrusted)
+            tab_raw = await page.evaluate("""() => {
+                var divs = document.querySelectorAll('div');
+                for (var i = 0; i < divs.length; i++) {
+                    if (divs[i].textContent.trim() === '密码登录'
+                        && divs[i].offsetParent !== null) {
+                        var r = divs[i].getBoundingClientRect();
+                        return JSON.stringify({
+                            x: r.x + r.width/2,
+                            y: r.y + r.height/2
+                        });
                     }
                 }
-                return false;
+                return null;
             }""")
-            if clicked_tab:
-                logger.info(f"[{run_id}][LOGIN] Clicked 密码登录 tab")
-                await asyncio.sleep(0.5)
+            if tab_raw:
+                tab_pos = json.loads(tab_raw)
+                await mouse.click(tab_pos['x'], tab_pos['y'])
+                logger.info(
+                    f"[{run_id}][LOGIN] Clicked 密码登录 tab at "
+                    f"({tab_pos['x']:.0f}, {tab_pos['y']:.0f})"
+                )
+                await asyncio.sleep(1)
             else:
-                logger.debug(f"[{run_id}][LOGIN] No 密码登录 tab found, proceeding")
+                logger.warning(
+                    f"[{run_id}][LOGIN] Could not find 密码登录 tab"
+                )
 
-            # Step 2: Fill account input
-            filled_account = await page.evaluate("""(account) => {
-                // Try password-login inputs first (after tab switch)
-                const inputs = document.querySelectorAll('input');
-                const textInputs = [];
-                const pwdInputs = [];
-                for (const inp of inputs) {
-                    const type = (inp.type || 'text').toLowerCase();
-                    if (type === 'password') {
-                        pwdInputs.push(inp);
-                    } else if (type === 'text' || type === 'tel' || type === 'number') {
-                        // Skip hidden or search inputs
-                        if (inp.offsetParent !== null) {
-                            textInputs.push(inp);
-                        }
-                    }
-                }
-                // Fill the first visible text input as account
-                if (textInputs.length > 0) {
-                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                        window.HTMLInputElement.prototype, 'value'
-                    ).set;
-                    textInputs[0].focus();
-                    nativeInputValueSetter.call(textInputs[0], account);
-                    textInputs[0].dispatchEvent(new Event('compositionstart', { bubbles: true }));
-                    textInputs[0].dispatchEvent(new Event('compositionend', { bubbles: true }));
-                    textInputs[0].dispatchEvent(new Event('input', { bubbles: true }));
-                    textInputs[0].dispatchEvent(new Event('change', { bubbles: true }));
-                    return 'found';
-                }
-                return 'not_found';
-            }""", account)
-            if filled_account == 'found':
-                logger.info(f"[{run_id}][LOGIN] Filled account: {account}")
-            else:
-                logger.error(f"[{run_id}][LOGIN] Could not find account input")
+            # Step 2: Fill account (nativeInputValueSetter → v-model)
+            acc_raw = await page.evaluate(f"""() => {{
+                var inp = document.querySelector(
+                    'input[placeholder="请输入账号"]'
+                );
+                if (!inp) {{
+                    var all = document.querySelectorAll('input');
+                    for (var i = 0; i < all.length; i++) {{
+                        if (all[i].placeholder
+                            && all[i].placeholder.indexOf('账号') >= 0) {{
+                            inp = all[i]; break;
+                        }}
+                    }}
+                }}
+                if (!inp) return null;
+                var setter = Object.getOwnPropertyDescriptor(
+                    window.HTMLInputElement.prototype, 'value'
+                ).set;
+                setter.call(inp, {acc_js});
+                inp.dispatchEvent(new Event('input', {{bubbles: true}}));
+                inp.dispatchEvent(new Event('change', {{bubbles: true}}));
+                return 'ok';
+            }}""")
+            if not acc_raw:
+                logger.error(
+                    f"[{run_id}][LOGIN] Could not find account input"
+                )
                 return False
-
+            logger.info(f"[{run_id}][LOGIN] Filled account: {account}")
             await asyncio.sleep(0.3)
 
-            # Step 3: Fill password input
-            filled_pwd = await page.evaluate("""(password) => {
-                const inputs = document.querySelectorAll('input[type=\"password\"], input[placeholder*=\"密码\"]');
-                for (const inp of inputs) {
-                    if (inp.offsetParent !== null) {
-                        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                            window.HTMLInputElement.prototype, 'value'
-                        ).set;
-                        inp.focus();
-                        nativeInputValueSetter.call(inp, password);
-                        inp.dispatchEvent(new Event('compositionstart', { bubbles: true }));
-                        inp.dispatchEvent(new Event('compositionend', { bubbles: true }));
-                        inp.dispatchEvent(new Event('input', { bubbles: true }));
-                        inp.dispatchEvent(new Event('change', { bubbles: true }));
-                        return 'found';
-                    }
-                }
-                return 'not_found';
-            }""", password)
-            if filled_pwd == 'found':
-                logger.info(f"[{run_id}][LOGIN] Filled password")
-            else:
-                logger.error(f"[{run_id}][LOGIN] Could not find password input")
+            # Step 3: Fill password (nativeInputValueSetter → v-model)
+            pwd_raw = await page.evaluate(f"""() => {{
+                var inp = document.querySelector(
+                    'input[placeholder="请输入密码"]'
+                );
+                if (!inp) inp = document.querySelector(
+                    'input[type="password"]'
+                );
+                if (!inp) return null;
+                var setter = Object.getOwnPropertyDescriptor(
+                    window.HTMLInputElement.prototype, 'value'
+                ).set;
+                setter.call(inp, {pwd_js});
+                inp.dispatchEvent(new Event('input', {{bubbles: true}}));
+                inp.dispatchEvent(new Event('change', {{bubbles: true}}));
+                return 'ok';
+            }}""")
+            if not pwd_raw:
+                logger.error(
+                    f"[{run_id}][LOGIN] Could not find password input"
+                )
                 return False
-
+            logger.info(f"[{run_id}][LOGIN] Filled password")
             await asyncio.sleep(0.3)
 
-            # Step 4: Click login button
-            # IMPORTANT: Vue SPA requires dispatchEvent(new MouseEvent) instead of btn.click()
-            # because Vue's @click binding expects proper MouseEvent with bubbles/cancelable/view.
-            clicked_login = await page.evaluate("""() => {
-                const buttons = document.querySelectorAll('button, div.login-btn, [class*="login-btn"], [class*="loginBtn"]');
-                for (const btn of buttons) {
-                    const text = btn.textContent.trim();
-                    if (text === '登 录' || text === '登录' || text === 'Login') {
-                        btn.dispatchEvent(new MouseEvent('click', {
-                            bubbles: true,
-                            cancelable: true,
-                            view: window
-                        }));
-                        return 'clicked: ' + text;
+            # Step 4: Click 登 录 button (mouse click = isTrusted)
+            btn_raw = await page.evaluate("""() => {
+                var btns = document.querySelectorAll('button');
+                for (var i = 0; i < btns.length; i++) {
+                    var t = btns[i].textContent.trim();
+                    if (t === '登 录' || t === '登录' || t === 'Login') {
+                        var r = btns[i].getBoundingClientRect();
+                        return JSON.stringify({
+                            x: r.x + r.width/2,
+                            y: r.y + r.height/2,
+                            text: t
+                        });
                     }
                 }
-                // Fallback: click any visible button
-                for (const btn of buttons) {
-                    if (btn.offsetParent !== null) {
-                        btn.dispatchEvent(new MouseEvent('click', {
-                            bubbles: true,
-                            cancelable: true,
-                            view: window
-                        }));
-                        return 'clicked_fallback: ' + btn.textContent.trim();
-                    }
-                }
-                return 'not_found';
+                return null;
             }""")
-            if clicked_login != 'not_found':
-                logger.info(f"[{run_id}][LOGIN] Clicked login button: {clicked_login}")
-            else:
-                logger.error(f"[{run_id}][LOGIN] Could not find login button")
+            if not btn_raw:
+                logger.error(
+                    f"[{run_id}][LOGIN] Could not find login button"
+                )
                 return False
+            btn_pos = json.loads(btn_raw)
+            await mouse.click(btn_pos['x'], btn_pos['y'])
+            logger.info(
+                f"[{run_id}][LOGIN] Clicked login button "
+                f"'{btn_pos['text']}' at "
+                f"({btn_pos['x']:.0f}, {btn_pos['y']:.0f})"
+            )
 
             # Step 5: Wait for redirect away from /login
             for wait_sec in [2, 3, 5]:
                 await asyncio.sleep(wait_sec)
-                current_url = await page.evaluate("() => window.location.href")
+                current_url = await page.evaluate(
+                    "() => window.location.href"
+                )
                 if "/login" not in current_url:
                     logger.info(
                         f"[{run_id}][LOGIN] Login succeeded, "
@@ -288,14 +289,18 @@ class AgentService:
                     return True
                 logger.debug(
                     f"[{run_id}][LOGIN] Still on login page after "
-                    f"{wait_sec}s: {current_url}"
+                    f"{wait_sec}s"
                 )
 
-            logger.error(f"[{run_id}][LOGIN] Login did not redirect from /login")
+            logger.error(
+                f"[{run_id}][LOGIN] Login did not redirect from /login"
+            )
             return False
 
         except Exception as e:
-            logger.error(f"[{run_id}][LOGIN] Programmatic login failed: {e}")
+            logger.error(
+                f"[{run_id}][LOGIN] Programmatic login failed: {e}"
+            )
             return False
 
     async def pre_navigate(
