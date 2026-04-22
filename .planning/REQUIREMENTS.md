@@ -22,9 +22,9 @@
 
 ### 端到端可用性验证 (E2E)
 
-- [ ] **E2E-01**: 验证自然语言→AI 执行→报告全链路可用 — 在服务器上执行完整测试流程
-- [ ] **E2E-02**: 验证前置条件系统正常工作 — context.get_data() 调用链路修复后可用
-- [ ] **E2E-03**: 验证断言系统正常工作 — 业务断言执行链路完整
+- [x] **E2E-01**: 验证自然语言→AI 执行→报告全链路可用 — 在服务器上执行完整测试流程
+- [x] **E2E-02**: 验证前置条件系统正常工作 — context.get_data() 调用链路修复后可用
+- [x] **E2E-03**: 验证断言系统正常工作 — 业务断言执行链路完整
 
 ## Future Requirements (Deferred)
 
@@ -50,9 +50,9 @@
 | TEST-05 | Phase 91 | Complete |
 | DATA-01 | Phase 92 | Complete |
 | DATA-02 | Phase 92 | Complete |
-| E2E-01 | Phase 93 | Pending |
-| E2E-02 | Phase 93 | Pending |
-| E2E-03 | Phase 93 | Pending |
+| E2E-01 | Phase 93 | Complete |
+| E2E-02 | Phase 93 | Complete |
+| E2E-03 | Phase 93 | Complete |
 
 ---
 *Requirements defined: 2026-04-21 — v0.10.2 milestone*
