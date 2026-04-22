@@ -201,12 +201,14 @@ def load_base_assertions_class() -> tuple[dict[str, type] | None, str | None]:
             return None, _assertion_import_error
 
     try:
-        from common.base_assertions import PcAssert, MgAssert, McAssert
-        _assertion_classes_cache = {
-            'PcAssert': PcAssert,
-            'MgAssert': MgAssert,
-            'McAssert': McAssert
-        }
+        import common.base_assertions as _ba_mod
+        _assertion_classes_cache = {}
+        for _name in ('PcAssert', 'MgAssert', 'McAssert'):
+            _cls = getattr(_ba_mod, _name, None)
+            if _cls is not None:
+                _assertion_classes_cache[_name] = _cls
+        if not _assertion_classes_cache:
+            raise ImportError("No assertion classes found in common.base_assertions")
         logger.info("Successfully loaded assertion classes (PcAssert, MgAssert, McAssert)")
         return _assertion_classes_cache, None
     except ImportError as e:
@@ -751,14 +753,151 @@ def _build_docstring_method_map() -> dict[str, dict[str, str]]:
         return _docstring_method_map
 
 
+def _remap_stale_module_map_classes(ImportApi):
+    """Fix _module_map entries whose class names are stale after upstream obfuscation.
+
+    Upstream webseleniumerp periodically obfuscates all API class names.
+    The _module_map still holds human-readable class names (e.g.
+    'InventoryListApi') that no longer exist in their modules. This function
+    remaps each entry to the actual class by sorted positional matching:
+    old keys and actual classes are both sorted, then mapped 1:1.
+
+    This is safe because the module file paths are stable across obfuscation
+    passes and the number of classes per module matches the number of
+    _module_map entries.
+    """
+    from collections import defaultdict
+
+    entries_by_module = defaultdict(list)
+    for key, (mod_path, cls_name) in list(ImportApi._module_map.items()):
+        entries_by_module[mod_path].append((key, cls_name))
+
+    updated_count = 0
+    for mod_path, entries in entries_by_module.items():
+        try:
+            mod = importlib.import_module(mod_path)
+            actual_classes = sorted([
+                name for name in dir(mod)
+                if not name.startswith('_')
+                and isinstance(getattr(mod, name, None), type)
+                and name != 'BaseApi'
+            ])
+        except Exception:
+            continue
+
+        entries_sorted = sorted(entries, key=lambda x: x[0])
+        for i, (old_key, old_cls_name) in enumerate(entries_sorted):
+            if i < len(actual_classes):
+                new_cls_name = actual_classes[i]
+                if new_cls_name != old_cls_name:
+                    ImportApi._module_map[old_key] = (mod_path, new_cls_name)
+                    updated_count += 1
+
+    if updated_count:
+        logger.info(f"Remapped {updated_count} stale _module_map class names")
+
+
+def _scan_module_for_get_data_attrs(module) -> set[str]:
+    """Scan a module's classes for obfuscated _get_data/_get_cached_api attributes.
+
+    Returns the set of obfuscated api_attr names found in method source code.
+    """
+    attrs = set()
+    for class_name, obj in inspect.getmembers(module, predicate=inspect.isclass):
+        if obj.__module__ != module.__name__:
+            continue
+        for method_name in dir(obj):
+            if method_name.startswith('_'):
+                continue
+            method = getattr(obj, method_name, None)
+            if not callable(method):
+                continue
+            try:
+                source = inspect.getsource(method)
+            except (OSError, TypeError):
+                continue
+
+            # Match _get_data('...') and _get_cached_api('...')
+            for pattern in (r"_get_data\('(\w+)'", r"_get_cached_api\('(\w+)'"):
+                for match in re.finditer(pattern, source):
+                    attrs.add(match.group(1))
+    return attrs
+
+
+def _match_attr_to_module_map(attr_name: str, ImportApi) -> bool:
+    """Try to add an obfuscated attr to _module_map by matching method names.
+
+    Handles two patterns:
+    - base_params: type_map = {'main': ('METHOD', 'header'), ...}
+    - base_assertions: methods = {'main': api.METHOD, ...} or api.METHOD refs
+
+    Returns True if the attr was added to _module_map.
+    """
+    # Search all loaded modules for the source containing this attr
+    for mod_name, mod in list(sys.modules.items()):
+        if not mod_name.startswith(('common.', 'api.')):
+            continue
+        for class_name, obj in inspect.getmembers(mod, predicate=inspect.isclass):
+            if obj.__module__ != mod.__name__:
+                continue
+            for method_name in dir(obj):
+                if method_name.startswith('_'):
+                    continue
+                method = getattr(obj, method_name, None)
+                if not callable(method):
+                    continue
+                try:
+                    source = inspect.getsource(method)
+                except (OSError, TypeError):
+                    continue
+
+                if f"'{attr_name}'" not in source:
+                    continue
+
+                # Pattern 1: type_map = {'key': ('METHOD', 'header'), ...}
+                type_map_methods = set(re.findall(
+                    r"'(\w+)',\s*'(?:main|idle|vice|special|platform|super|camera)'\)",
+                    source
+                ))
+
+                # Pattern 2: api.METHOD references (assertion pattern)
+                api_method_refs = set(re.findall(r'api\.(\w+)', source))
+
+                # Combine both pattern results
+                probe_methods = type_map_methods | api_method_refs
+                if not probe_methods:
+                    continue
+
+                # Find matching _module_map entry
+                for map_key, (mod_path, cls_name) in ImportApi._module_map.items():
+                    try:
+                        api_mod = importlib.import_module(mod_path)
+                        api_cls = getattr(api_mod, cls_name)
+                        api_methods = set(
+                            m for m in dir(api_cls) if not m.startswith('_')
+                        )
+                        if probe_methods & api_methods:
+                            ImportApi._module_map[attr_name] = (mod_path, cls_name)
+                            return True
+                    except Exception:
+                        continue
+    return False
+
+
 def _patch_import_api_aliases():
     """Add obfuscated api_attr aliases to ImportApi._module_map.
 
-    Scans PcImport methods to extract obfuscated _get_data arguments,
-    then matches them to _module_map entries by checking if the API class
-    has methods matching the type_map values. The type_map values are
-    obfuscated method names unique to each API class, making this matching
-    reliable.
+    Three-phase patching:
+    1. Remap stale human-readable class names to current obfuscated names
+       (upstream periodically re-obfuscates all API class names).
+    2. Scan base_params methods to extract obfuscated _get_data arguments,
+       then match them to _module_map entries by checking if the API class
+       has methods matching the type_map values.
+    3. Scan base_assertions methods for _get_cached_api arguments using the
+       same matching strategy.
+
+    The type_map values are obfuscated method names unique to each API class,
+    making this matching reliable once the stale class names are fixed.
     """
     global _import_api_patched
     if _import_api_patched:
@@ -772,8 +911,12 @@ def _patch_import_api_aliases():
         import common.base_params as bp_module
         from common.import_api import ImportApi
 
+        # Phase 1: Fix stale class names in _module_map
+        _remap_stale_module_map_classes(ImportApi)
+
+        # Phase 2: Add obfuscated api_attr aliases from base_params
         for class_name, obj in inspect.getmembers(bp_module, predicate=inspect.isclass):
-            if obj.__module__ != 'common.base_params':
+            if obj.__module__ != bp_module.__name__:
                 continue
             for method_name in dir(obj):
                 if method_name.startswith('_'):
@@ -792,7 +935,7 @@ def _patch_import_api_aliases():
                     continue
                 obfuscated_api_attr = get_data_match.group(1)
 
-                # Skip if already a valid _module_map key (not obfuscated)
+                # Skip if already a valid _module_map key
                 if obfuscated_api_attr in ImportApi._module_map:
                     continue
 
@@ -813,6 +956,16 @@ def _patch_import_api_aliases():
                             break
                     except Exception:
                         continue
+
+        # Phase 3: Add obfuscated api_attr aliases from base_assertions
+        try:
+            import common.base_assertions as ba_module
+            ba_attrs = _scan_module_for_get_data_attrs(ba_module)
+            for attr in ba_attrs:
+                if attr not in ImportApi._module_map:
+                    _match_attr_to_module_map(attr, ImportApi)
+        except ImportError:
+            logger.debug("base_assertions not available, skipping assertion alias patching")
 
         _import_api_patched = True
     except Exception as e:

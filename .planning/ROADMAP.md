@@ -147,7 +147,7 @@
 
 - [x] **Phase 90: 过时测试清理** — 删除与当前架构不符的过时测试，消除不可修复的噪音 (completed 2026-04-21)
 - [x] **Phase 91: 测试代码修复** — 修复剩余测试失败，mock 路径与当前代码对齐 (completed 2026-04-21)
-- [ ] **Phase 92: DataMethodError 修复** — 诊断并解决 webseleniumerp 混淆方法名变化导致的前置条件执行失败
+- [x] **Phase 92: DataMethodError 修复** — 诊断并解决 webseleniumerp 混淆方法名变化导致的前置条件执行失败 (completed 2026-04-21)
 - [ ] **Phase 93: 端到端可用性验证** — 验证完整链路（自然语言 -> AI 执行 -> 报告）在修复后可用
 
 ## Phase Details
@@ -193,7 +193,7 @@ Plans:
 
 Plans:
 - [x] 92-01-PLAN.md — 实现 docstring 方法映射 + ImportApi 别名修补 + execute_data_method fallback
-- [ ] 92-02-PLAN.md — API 返回格式扩展 docstring_id + API 测试更新
+- [x] 92-02-PLAN.md — API 返回格式扩展 docstring_id + API 测试更新
 
 ### Phase 93: 端到端可用性验证
 **Goal**: 自然语言到报告的完整链路在修复后可用，验证核心产品价值不被回归破坏
@@ -217,7 +217,7 @@ Phases execute in numeric order: 90 -> 91 -> 92 -> 93
 |-------|-----------|----------------|--------|-----------|
 | 90. 过时测试清理 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
 | 91. 测试代码修复 | v0.10.2 | 2/2 | Complete | 2026-04-21 |
-| 92. DataMethodError 修复 | v0.10.2 | 1/2 | In Progress|  |
+| 92. DataMethodError 修复 | v0.10.2 | 2/2 | Complete   | 2026-04-21 |
 | 93. 端到端可用性验证 | v0.10.2 | 0/1 | Not started | - |
 
 ---

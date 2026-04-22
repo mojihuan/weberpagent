@@ -444,7 +444,7 @@ class TestImportApiAliasPatching:
             'UYV6mZaVwDk4HHhyuWRRp': mock_method,
         })
 
-        mock_module = MagicMock()
+        mock_module = MagicMock(__name__='common.base_params')
         mock_module.PcImport = MockPcImport
 
         # Mock API class that has matching method
@@ -460,14 +460,32 @@ class TestImportApiAliasPatching:
             'inventory_list': ('api.api_inventory', 'InventoryListApi'),
         }
 
+        # Build a mock ImportApi class with the _module_map attribute
+        MockImportApi = type('ImportApi', (), {
+            '_module_map': mock_module_map,
+            '_initialized': {},
+        })
+
+        mock_import_api_module = MagicMock(__name__='common.import_api')
+        mock_import_api_module.ImportApi = MockImportApi
+
+        # common package stub -- must expose sub-modules as attributes
+        # so that 'import common.base_params' resolves to our mock
+        mock_common = MagicMock()
+        mock_common.base_params = mock_module
+        mock_common.import_api = mock_import_api_module
+
         external_precondition_bridge._import_api_patched = False
 
         with patch('backend.core.external_precondition_bridge.load_base_params_class',
                    return_value=(MagicMock, None)), \
-             patch.dict('sys.modules', {'common.base_params': mock_module}), \
+             patch.dict('sys.modules', {
+                 'common': mock_common,
+                 'common.base_params': mock_module,
+                 'common.import_api': mock_import_api_module,
+             }), \
              patch('inspect.getmembers', return_value=[('PcImport', MockPcImport)]), \
              patch('inspect.getsource', return_value="self._get_data('UYV6mZaVwDk4HHhyuWRRp', data, {'main': ('I8TzeuUVWOYr', 'main')})"), \
-             patch('common.import_api.ImportApi._module_map', mock_module_map), \
              patch('importlib.import_module', return_value=mock_api_module):
             _patch_import_api_aliases()
             assert 'UYV6mZaVwDk4HHhyuWRRp' in mock_module_map
@@ -500,21 +518,36 @@ class TestImportApiAliasPatching:
             'existing_method': mock_method,
         })
 
-        mock_module = MagicMock()
+        mock_module = MagicMock(__name__='common.base_params')
         mock_module.PcImport = MockPcImport
 
         mock_module_map = {
             'existing_method': ('api.api_test', 'TestApi'),
         }
 
+        MockImportApi = type('ImportApi', (), {
+            '_module_map': mock_module_map,
+            '_initialized': {},
+        })
+        mock_import_api_module = MagicMock(__name__='common.import_api')
+        mock_import_api_module.ImportApi = MockImportApi
+
+        mock_common = MagicMock()
+        mock_common.base_params = mock_module
+        mock_common.import_api = mock_import_api_module
+
         external_precondition_bridge._import_api_patched = False
 
         with patch('backend.core.external_precondition_bridge.load_base_params_class',
                    return_value=(MagicMock, None)), \
-             patch.dict('sys.modules', {'common.base_params': mock_module}), \
+             patch.dict('sys.modules', {
+                 'common': mock_common,
+                 'common.base_params': mock_module,
+                 'common.import_api': mock_import_api_module,
+             }), \
              patch('inspect.getmembers', return_value=[('PcImport', MockPcImport)]), \
              patch('inspect.getsource', return_value="self._get_data('existing_method', data, {'main': ('X', 'main')})"), \
-             patch('common.import_api.ImportApi._module_map', mock_module_map):
+             patch('importlib.import_module', return_value=MagicMock()):
             _patch_import_api_aliases()
             # Should not add a duplicate entry
             assert list(mock_module_map.keys()).count('existing_method') == 1
