@@ -35,6 +35,19 @@ from backend.db.repository import AssertionResultRepository, PreconditionResultR
 logger = logging.getLogger(__name__)
 
 
+def _sanitize_variables(variables: dict) -> dict:
+    """Filter out non-JSON-serializable values from a variables dict.
+
+    External precondition code may store arbitrary Python objects (type
+    objects, class instances, etc.) in the context.  Only JSON-safe
+    primitives are kept for SSE broadcast and database persistence.
+    """
+    return {
+        k: v for k, v in variables.items()
+        if isinstance(v, (str, int, float, bool, list, dict, type(None)))
+    }
+
+
 def get_llm_config() -> dict:
     """获取 LLM 配置，从集中配置读取
 
@@ -119,13 +132,15 @@ async def run_agent_background(
                 result = await precondition_service.execute_single(code, i)
 
                 # 发送 precondition 事件（success/failed）
+                # Sanitize variables: only include JSON-serializable values
+                _safe_vars = _sanitize_variables(result.variables) if (result.success and result.variables) else None
                 pre_event = SSEPreconditionEvent(
                     index=i,
                     code=code_display,
                     status="success" if result.success else "failed",
                     error=result.error,
                     duration_ms=result.duration_ms,
-                    variables=result.variables if result.success else None,
+                    variables=_safe_vars,
                 )
                 await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
 
@@ -139,7 +154,7 @@ async def run_agent_background(
                     status="success" if result.success else "failed",
                     error=result.error,
                     duration_ms=result.duration_ms,
-                    variables=json.dumps(result.variables) if (result.success and result.variables) else None,
+                    variables=json.dumps(_safe_vars) if _safe_vars else None,
                 )
 
                 if not result.success:
