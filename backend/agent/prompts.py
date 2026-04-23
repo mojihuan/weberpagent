@@ -50,40 +50,27 @@ Ant Design 表格使用 click-to-edit 模式：`<td>` 单元格在 DOM 快照中
 上传后等待文件名显示确认成功，不要用 evaluate 模拟文件选择。
 
 ## 9. ERP 表格单元格填写
-销售出库等页面的表格中，每个商品行有多个可编辑单元格（销售金额、物流费用等）。
-这些单元格的 `<input>` 在 DOM 快照中可能不易被识别，需要特殊策略：
+ERP 表格每个商品行有多个可编辑数值单元格，通过行标识+列注释交叉定位：
+每个 td 单元格上方有列注释 `<!-- 列: X -->`，每行上方有行注释 `<!-- 行: I数字 -->`。
 
-**单元格定位：**
-- 用 placeholder 精确匹配目标输入框：`placeholder="销售金额"`, `placeholder="物流费用"`
-- 不要用 DOM index 定位（同一列可能有多个相同 placeholder 的输入框）
-- 添加商品后，该商品的行会出现新的可编辑单元格，找到对应 placeholder 的 input
+**定位：**
+看到 `<!-- 行: I数字 -->` → 找到目标行
+看到 `<!-- 列: X -->` → 找到目标列
+两者交叉 → 精确定位目标 <td> 单元格
+示例：任务"填写 I01784004409597 的销售金额为 150" → 找 `<!-- 行: I01784004409597 -->` 行 + `<!-- 列: 销售金额 -->` 列 → 交叉 td
 
-**行定位技巧：**
-- 商品名称（如 I01781131295568）所在行 → 该行的"销售金额"单元格
-- 如果不确定，先点击包含商品名称的单元格激活编辑，再在附近找 input
+**操作：**
+CLICK 交叉定位的 td → 等待 input 出现 → INPUT 填值
+td 内部结构 `<td><div>0.00</div></td>` → 点击后出现 `<input>` → 填写新值
+不要尝试直接查找 input（click-to-edit 模式下 input 点击前不在 DOM 中）
 
-**禁止行为：**
-- 不要点击 `<td>` 本身（td 元素不是交互元素，会误命中）
-- 不要混淆"物流费用"和"销售金额"——两者是不同字段
-- 不要对非当前商品的行进行操作（先确认商品名称列）
+**验证：**
+填写后检查 td 内显示值已变更（如 0.00 → 150），若不匹配先 clear 再重新填写
 
-**evaluate JS fallback：**
-- 如果标准 input action 失败，可用 `document.querySelector('input[placeholder="销售金额"]').value = '150'`
-- 填写后必须用 `input.value` 验证值已写入，不要假设成功
-
-**点击编辑工作流（关键）：**
-ERP 销售出库表格使用 click-to-edit 模式：
-- <td> 单元格在 DOM 中显示为 `<td> [index]<span>0.00</span></td>` 或 `<td> [index]<div>210</div></td>`
-- 单元格内的文本（如 0.00、210）是显示值，不是 <input> 元素
-- 填写步骤：1）CLICK 点击该 <td> 单元格 → 2）等待输入框出现 → 3）INPUT 填写新值
-- 不要尝试直接查找 `input[placeholder="销售金额"]`（点击编辑模式下这个 input 不存在于 DOM 中）
-- 不要混淆列：总成本列的 td 显示 "210"，销售金额列的 td 显示 "0.00"，两者是不同单元格
-- 通过对应行的物品编号 / IMEI 确认商品所在行，再点击正确的列单元格
-- 填写后验证表格中显示的值已变为目标值（如 0.00 变为 150）
-**行标识定位：** 看到 `<!-- 行: I数字 -->` → 锁定该行内 input，多行相同 placeholder 用行标识区分
-**反重复操作：** 看到 `[已尝试 N 次 模式: ...]` → 切换策略，不要重复相同操作
-**策略优先级：** `[策略: 1-原生 input]`→直接 input；`[策略: 2-需先 click]`→先 click 再 input；`[策略: 3-evaluate JS]`→用 JS 设值
-**失败恢复：** click_no_effect→换 evaluate JS 点击；wrong_column→按 IMEI 重定位；edit_not_active→先 click td 激活再填值
+**异常处理：**
+看到 `[已尝试 N 次 模式: ...]` → 切换策略，不要重复相同操作
+策略优先级：`[策略: 1-原生 input]`→直接 input；`[策略: 2-需先 click]`→先 click 再 input；`[策略: 3-evaluate JS]`→用 JS 设值
+click_no_effect→换 evaluate JS 点击；wrong_column→按行注释重定位；edit_not_active→先 click td 激活再填值
 """
 
 # 向后兼容别名（browser_agent.py:87, proxy_agent.py:111 仍导入 CHINESE_ENHANCEMENT）
