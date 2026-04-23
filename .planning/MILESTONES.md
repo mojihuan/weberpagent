@@ -1,5 +1,18 @@
 # Milestones
 
+## v0.10.3 DOM 深度修复 - 表格单元格选择精确性 (Shipped: 2026-04-23)
+
+**Phases completed:** 3 phases, 4 plans
+
+**Key accomplishments:**
+
+- _td_child_depth helper and extended _patch_should_exclude_child to protect div/span inside td up to 2 layers from bbox flattening
+- _get_column_header helper and Patch 8 injecting <!-- 列: {header} --> comments above td nodes via thead th position mapping, with full DEPTH-02 regression pass
+- Rewrote ENHANCED_SYSTEM_MESSAGE Section 9 with row+column annotation cross-positioning, replacing placeholder matching with four-segment logical chain (locate/operate/verify/recover)
+- DEPTH-05 E2E test confirming Agent correctly selects sales amount column (not profit column) via step reasoning analysis and run outcome validation
+
+---
+
 ## v0.10.2 测试验证与代码可用性修复 (Shipped: 2026-04-23)
 
 **Phases completed:** 4 phases, 7 plans, 13 tasks

@@ -1,705 +1,534 @@
-# Architecture Research: Excel Batch Import and Parallel Execution
+# Architecture Research
 
-**Domain:** AI-Driven UI Testing Platform -- Batch Import & Execution
-**Researched:** 2026-04-08
-**Confidence:** HIGH (based on comprehensive codebase analysis of existing Task/Run/Agent pipeline)
+**Domain:** Playwright code verification and task management UI integration
+**Researched:** 2026-04-23
+**Confidence:** HIGH (based on direct codebase analysis of existing patterns)
 
-## System Overview
+## Recommended Architecture
 
-The batch import and parallel execution feature extends the existing Task -> Run -> Agent pipeline. The core data flow is:
-
-```
-Excel File Upload
-       |
-       v
-[Parse + Validate] --> [Preview Response]
-       |
-       v (user confirms)
-[Batch Task Creation] (single transaction, N tasks)
-       |
-       v (user selects tasks + clicks "batch execute")
-[Batch Execution Manager]
-  |
-  +---> [Semaphore (max 2 concurrent)]
-  |       |
-  |       +---> Run Agent Task 1 (reuse run_agent_background)
-  |       +---> Run Agent Task 2 (reuse run_agent_background)
-  |       |
-  |       +---> (wait for slot) --> Run Agent Task 3 ...
-  |
-  +---> [Batch Progress SSE / Polling]
-          |
-          +---> per-task status updates
-          +---> batch-level aggregate status
-```
-
-### Architecture Diagram
+### System Overview -- Current + New Components
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Frontend (React)                             │
-├──────────────┬──────────────┬───────────────────────────────────────┤
-│ TaskList     │ ImportModal  │ BatchExecutionDashboard                │
-│ (checkboxes) │ (upload+prev)│ (per-task status + progress)           │
-└──────┬───────┴──────┬───────┴──────────────┬────────────────────────┘
-       │              │                      │
-┌──────┴──────────────┴──────────────────────┴────────────────────────┐
-│                     FastAPI REST + SSE                               │
-├──────────────┬──────────────┬───────────────────────────────────────┤
-│ /api/tasks   │ /api/import  │ /api/batches                           │
-│ (existing)   │ (new)        │ (new)                                  │
-└──────┬───────┴──────┬───────┴──────────────┬────────────────────────┘
-       │              │                      │
-┌──────┴──────────────┴──────────────────────┴────────────────────────┐
-│                     Service Layer                                    │
-├──────────────┬──────────────┬───────────────────────────────────────┤
-│ TaskRepo     │ ImportService│ BatchExecutionManager                  │
-│ (existing)   │ (new)        │ (new: semaphore + progress tracking)  │
-│              │              │                                        │
-│              │ ExcelParser  │ reuses: run_agent_background()        │
-│              │ (new)        │                                        │
-└──────┬───────┴──────┬───────┴──────────────┬────────────────────────┘
-       │              │                      │
-┌──────┴──────────────┴──────────────────────┴────────────────────────┐
-│                     Data Layer (SQLite WAL)                          │
-├──────────────┬──────────────┬───────────────────────────────────────┤
-│ tasks        │ batches      │ batch_task_entries                     │
-│ (existing)   │ (new)        │ (new: batch_id -> task_id mapping)    │
-│ runs         │              │                                       │
-│ (existing)   │              │                                       │
-└──────────────┴──────────────┴───────────────────────────────────────┘
+                            FRONTEND (React)
+┌─────────────────────────────────────────────────────────────────┐
+│  Tasks Page                                                      │
+│  ┌───────────────────────────────────────────────────────────┐   │
+│  │  TaskTable                                                 │   │
+│  │  ┌─────────┬────────┬──────────┬───────┬──────┬────────┐  │   │
+│  │  │ check   │ name   │ url      │status │ code │ actions│  │   │
+│  │  │ box     │        │          │       │ NEW  │        │  │   │
+│  │  └─────────┴────────┴──────────┴───────┴──────┴────────┘  │   │
+│  │  TaskRow  ──── "has code" indicator ──── view/run btns     │   │
+│  └───────────────────────────────────────────────────────────┘   │
+│                                                                   │
+│  CodeViewerModal (NEW)        RunCodeDialog (NEW)                │
+│  ┌───────────────────────┐    ┌──────────────────────────┐      │
+│  │ react-syntax-highlighter│    │ Execution status display │      │
+│  │ Read-only Python code  │    │ stdout/stderr output     │      │
+│  │ Line numbers + themes  │    │ Pass/Fail result         │      │
+│  └───────────────────────┘    └──────────────────────────┘      │
+└─────────────────────────────────────────────────────────────────┘
+         | REST (GET code, POST execute)
+         v
+┌─────────────────────────────────────────────────────────────────┐
+│  BACKEND (FastAPI)                                                │
+│                                                                   │
+│  routes/runs.py (MODIFY)                                          │
+│  ┌──────────────────────────┐  ┌────────────────────────────┐    │
+│  │ GET /runs/{id}/code      │  │ POST /runs/{id}/run-code   │    │
+│  │ Read file -> return text │  │ subprocess pytest + status │    │
+│  └──────────────────────────┘  └────────────────────────────┘    │
+│                                                                   │
+│  routes/tasks.py (MODIFY)                                         │
+│  ┌──────────────────────────┐                                     │
+│  │ TaskResponse + has_code  │  Task status: + "success"          │
+│  │ from latest run          │                                     │
+│  └──────────────────────────┘                                     │
+│                                                                   │
+│  SelfHealingRunner (EXISTING -- reuse)                            │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │ Already handles: pytest subprocess + storage_state        │    │
+│  │ + timeout + LLM retry. Reuse for "run code" button.      │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+         |
+         v
+┌─────────────────────────────────────────────────────────────────┐
+│  STORAGE (SQLite + Filesystem)                                    │
+│  ┌─────────────┐  ┌──────────────────────────────────────┐      │
+│  │ tasks table  │  │ outputs/{run_id}/generated/          │      │
+│  │ status +     │  │   test_{run_id}.py                   │      │
+│  │ "success"    │  │ outputs/{run_id}/.storage_state.json │      │
+│  └─────────────┘  │ outputs/{run_id}/conftest.py          │      │
+│                    └──────────────────────────────────────┘      │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Recommended Project Structure
+### Component Boundaries
 
-### New Backend Files
+| Component | Responsibility | New/Modified | Communicates With |
+|-----------|---------------|-------------|-------------------|
+| TaskTable | Add "code" column header | MODIFIED | TaskRow |
+| TaskRow | Show code indicator + view/run buttons | MODIFIED | CodeViewerModal, RunCodeDialog, API |
+| CodeViewerModal | Read-only Python code display | NEW | runs API |
+| RunCodeDialog | Trigger code execution, show result | NEW | runs API |
+| GET /runs/{id}/code | Serve generated code file content | NEW (endpoint) | Filesystem |
+| POST /runs/{id}/run-code | Execute Playwright code via pytest | NEW (endpoint) | SelfHealingRunner |
+| TaskResponse schema | Add `has_code` computed field | MODIFIED | runs query |
+| Task.status field | Extend to include "success" | MODIFIED | DB, schemas |
+| StatusBadge | Add "success" status display | MODIFIED (already exists) | TaskRow |
+| SelfHealingRunner | Reuse for single-run code execution | UNCHANGED (reuse) | subprocess |
+
+### Data Flow
+
+#### Flow 1: "Has Code" Indicator in Task List
 
 ```
-backend/
-├── api/
-│   └── routes/
-│       └── batches.py           # NEW: batch import + execution endpoints
-├── core/
-│   ├── import_service.py        # NEW: Excel parsing + validation + preview
-│   └── batch_manager.py         # NEW: semaphore-based parallel execution + progress
-├── db/
-│   ├── models.py                # MODIFY: add Batch, BatchTaskEntry models
-│   ├── repository.py            # MODIFY: add BatchRepository
-│   └── schemas.py               # MODIFY: add batch-related schemas
+Tasks page loads
+    |
+    v
+GET /tasks (existing)
+    |
+    v
+TaskResponse includes computed has_code: boolean
+    |
+    v
+For each task, check: does latest run have generated_code_path that exists?
+    |
+    v
+TaskRow renders code indicator (icon/badge) based on has_code
 ```
 
-### New Frontend Files
+**Key decision:** `has_code` is computed on the backend from the task's latest run's `generated_code_path` field. This avoids N+1 file existence checks on the frontend.
+
+#### Flow 2: View Code (read-only)
+
+```
+User clicks "view code" button on TaskRow
+    |
+    v
+CodeViewerModal opens with run_id from latest run with code
+    |
+    v
+GET /runs/{run_id}/code
+    |
+    v
+Backend reads generated_code_path file from disk
+    |
+    v
+Returns { code: string, language: "python", task_name: string }
+    |
+    v
+CodeViewerModal renders with react-syntax-highlighter
+```
+
+#### Flow 3: Run Code (execute)
+
+```
+User clicks "run code" button on TaskRow
+    |
+    v
+RunCodeDialog opens, shows confirmation
+    |
+    v
+POST /runs/{run_id}/run-code
+    |
+    v
+Backend reuses SelfHealingRunner.run() with max_iterations=1 (no LLM retry)
+    |
+    v
+Returns { status: "passed"|"failed", stdout: string, stderr: string }
+    |
+    v
+RunCodeDialog shows execution result
+    |
+    v
+If passed -> update task status to "success"
+```
+
+#### Flow 4: Task Status State Machine
+
+```
+Current:
+  draft --> ready    (user sets ready)
+  ready --> draft    (user sets draft back)
+
+New (STATUS-01):
+  draft --> ready --> success
+                    ^         |
+                    |         v
+                    +- (re-run fails) <-- ready
+
+Rules:
+  - "success" set automatically when Playwright code execution passes
+  - "success" reverted to "ready" if user re-runs and it fails
+  - User cannot manually set "success" -- only system sets it
+```
+
+## Integration Points -- Detailed
+
+### Backend Changes
+
+#### 1. New Endpoint: GET /runs/{run_id}/code
+
+Add to `backend/api/routes/runs.py`:
+
+```
+Purpose: Return generated Playwright code content for a run
+Input: run_id (path param)
+Output: { code: str, task_name: str, generated_at: str } or 404
+Logic:
+  1. Fetch run from DB, get generated_code_path
+  2. If no path or file doesn't exist -> 404
+  3. Read file content
+  4. Return JSON response
+```
+
+This follows the existing pattern of `GET /runs/{run_id}/screenshots/{step_index}` which serves file-based content from disk.
+
+#### 2. New Endpoint: POST /runs/{run_id}/run-code
+
+Add to `backend/api/routes/runs.py`:
+
+```
+Purpose: Execute the generated Playwright code for a run
+Input: run_id (path param)
+Output: { status: "passed"|"failed", stdout: str, stderr: str, attempts: int }
+Logic:
+  1. Fetch run, get generated_code_path + task.login_role
+  2. Instantiate SelfHealingRunner (existing class)
+  3. Call runner.run() with max_iterations=1 (single attempt, no LLM retry)
+  4. Return HealingResult as JSON
+  5. If passed -> update task status to "success"
+```
+
+**Why reuse SelfHealingRunner instead of writing new subprocess code:**
+- SelfHealingRunner already handles: storage_state injection, conftest generation, subprocess timeout, pytest invocation, error capture, cleanup
+- Setting max_iterations=1 effectively disables LLM retry while keeping all other infrastructure
+- Single responsibility: no code duplication
+
+**Implementation approach for disabling LLM retry:**
+Add a `max_iterations` parameter to `SelfHealingRunner.run()` with default 3. When called from the "run code" endpoint, pass `max_iterations=1`. This is a minimal change to the existing class.
+
+#### 3. Modified: TaskResponse Schema
+
+Add computed field `has_code` to `TaskResponse` in `backend/db/schemas.py`:
+
+```python
+has_code: bool = False
+```
+
+Populate in the list endpoint by checking if the task's latest run has a non-null `generated_code_path`. This requires modifying the `list_tasks` route to join with runs and compute this field.
+
+**Efficient approach:** Add a subquery or hybrid property that checks `exists(select 1 from runs where task_id = :id and generated_code_path is not null)`. Alternatively, load the latest run per task and check in the response serializer. Given the small dataset (typically < 100 tasks), the simpler approach of loading latest runs is acceptable.
+
+#### 4. Modified: Task.status Field
+
+Extend `Task.status` column comment from `# draft, ready` to `# draft, ready, success`. No schema migration needed -- the column is `String(20)` which already supports "success".
+
+Update `TaskUpdate.status` regex pattern from `^(draft|ready)$` to `^(draft|ready|success)$`.
+
+Update frontend `Task` type:
+```typescript
+status: 'draft' | 'ready' | 'success'
+```
+
+#### 5. Modified: Task Status Update After Code Execution
+
+In the `POST /runs/{run_id}/run-code` endpoint, after `SelfHealingRunner` returns with `final_status="passed"`:
+- Update `Task.status` to `"success"` via `TaskRepository.update_status()`
+- If `final_status="failed"`, revert `Task.status` from `"success"` back to `"ready"` (only if currently "success")
+
+### Frontend Changes
+
+#### 1. New Component: CodeViewerModal
+
+Location: `frontend/src/components/CodeViewer/CodeViewerModal.tsx`
+
+```
+Props:
+  - open: boolean
+  - onClose: () => void
+  - runId: string | null
+
+Behavior:
+  - When opened with runId, fetches GET /runs/{runId}/code
+  - Displays Python code with react-syntax-highlighter (v3 light build)
+  - Read-only -- no editing capability
+  - Shows task name in header
+  - Copy-to-clipboard button
+
+Dependencies: react-syntax-highlighter + @types/react-syntax-highlighter
+```
+
+**Why react-syntax-highlighter over prism-react-renderer:**
+- The project needs a simple, drop-in code viewer -- not a highly customized rendering pipeline
+- react-syntax-highlighter provides built-in line numbers, themes, and language detection out of the box
+- The bundle size difference is negligible for this project (single-page app, no SSR concerns)
+- Fewer API surface decisions = faster implementation
+
+#### 2. New Component: RunCodeDialog
+
+Location: `frontend/src/components/CodeViewer/RunCodeDialog.tsx`
+
+```
+Props:
+  - open: boolean
+  - onClose: () => void
+  - runId: string | null
+  - onSuccess: () => void  // callback to refresh task list
+
+Behavior:
+  - Shows confirmation dialog before execution
+  - On confirm, calls POST /runs/{runId}/run-code
+  - Shows loading spinner during execution (pytest can take 30-120s)
+  - On complete, shows pass/fail result with stdout/stderr
+  - If passed, calls onSuccess to refresh task status
+
+Pattern: Same as existing ConfirmModal + loading state pattern used in BatchExecuteDialog
+```
+
+#### 3. Modified: TaskTable
+
+Add "code" column header between "status" and "steps" columns.
+
+#### 4. Modified: TaskRow
+
+Add code indicator cell and view/run buttons:
+
+```
+New column cell:
+  - If task.has_code: show green code icon
+  - If !task.has_code: show gray dash
+
+New buttons (in existing actions column):
+  - "View Code" button (eye icon) -- only visible when has_code
+  - "Run Code" button (play-code icon) -- only visible when has_code
+```
+
+#### 5. Modified: StatusBadge
+
+Already has `success` mapping (line 14): `{ label: '已完成', className: 'bg-green-100 text-green-700' }`. May want to change label to `'成功'` for the new Task.status = "success" semantic, but the visual styling is already correct.
+
+#### 6. New API Functions
+
+Add to `frontend/src/api/runs.ts`:
+
+```typescript
+getCode(runId: string): Promise<{ code: string; task_name: string }>
+runCode(runId: string): Promise<{ status: string; stdout: string; stderr: string }>
+```
+
+#### 7. Modified: Task Type
+
+Update in `frontend/src/types/index.ts`:
+
+```typescript
+export interface Task {
+  ...
+  status: 'draft' | 'ready' | 'success'  // add 'success'
+  has_code?: boolean  // NEW computed field
+}
+```
+
+## Architectural Patterns
+
+### Pattern 1: File-Based Code Storage (Existing)
+
+**What:** Generated Playwright code is stored as `.py` files on disk at `outputs/{run_id}/generated/test_{run_id}.py`. The Run model stores the path in `generated_code_path`.
+
+**Why this works:** Files can be directly executed by pytest subprocess without any serialization/deserialization. The `SelfHealingRunner` writes a `conftest.py` and `.storage_state.json` alongside the test file, which pytest auto-discovers.
+
+**Implication for new features:** The "view code" endpoint reads the file from disk. The "run code" endpoint passes the same file path to `SelfHealingRunner`. No new storage mechanism needed.
+
+### Pattern 2: Subprocess Execution with Timeout (Existing)
+
+**What:** `SelfHealingRunner.run()` executes `uv run pytest {test_file} --headed=false --timeout=60 -v` via `subprocess.run` wrapped in `asyncio.to_thread`, with a 120-second overall timeout.
+
+**Why this works for code execution button:** The same subprocess mechanism serves both the automatic self-healing pipeline and the manual "run code" trigger. The only difference is max_iterations (3 vs 1).
+
+### Pattern 3: Request-Response for Bounded Operations (New)
+
+**What:** The "run code" endpoint uses a standard REST request-response cycle, not BackgroundTasks or SSE.
+
+**Why:** Unlike agent execution (which takes minutes and uses SSE for streaming), code execution is bounded (120s max timeout) and the user expects an immediate result. `SelfHealingRunner.run()` already wraps subprocess in `asyncio.to_thread` so it won't block the event loop. The HTTP request stays open during execution (up to 120s), which is acceptable for this use case.
+
+**Contrast with existing patterns:** The existing `create_run` uses `BackgroundTasks` + SSE because agent execution is unbounded and produces incremental step events. Code execution produces a single binary result (passed/failed), making SSE overkill.
+
+### Pattern 4: Computed Fields on List Endpoints (New)
+
+**What:** The `has_code` field on `TaskResponse` is computed from associated Run data, not stored on the Task model itself.
+
+**Why:** Avoids data duplication and keeps the Task model simple. The relationship is Task -> Runs (1:many), and `has_code` depends on whether any Run has a valid `generated_code_path`. Computed on read rather than stored on write.
+
+**Implementation:** In `list_tasks`, after fetching tasks, batch-fetch the latest run per task and check `generated_code_path`. Use a single query with a window function or subquery to avoid N+1:
+
+```sql
+SELECT r.task_id, r.generated_code_path
+FROM runs r
+WHERE r.id = (
+    SELECT r2.id FROM runs r2
+    WHERE r2.task_id = r.task_id
+    ORDER BY r2.created_at DESC
+    LIMIT 1
+)
+AND r.generated_code_path IS NOT NULL
+```
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Storing Code Content in the Database
+
+**What people do:** Read the generated .py file and store its content as a TEXT column in the Run table.
+
+**Why it's wrong:** Duplication with filesystem, larger DB, SQLite bloat, and the code already exists on disk where pytest can directly execute it.
+
+**Do this instead:** Keep code on disk. Use `generated_code_path` as the reference. The "view code" endpoint reads the file at request time. File size is small (typically 2-20 KB) so disk I/O is negligible.
+
+### Anti-Pattern 2: Creating a New Subprocess Execution Mechanism
+
+**What people do:** Write a new function that calls `subprocess.run(["pytest", ...])` specifically for the "run code" button.
+
+**Why it's wrong:** Duplicates all the infrastructure SelfHealingRunner already handles: storage_state injection, conftest generation, timeout protection, error capture, cleanup.
+
+**Do this instead:** Reuse `SelfHealingRunner` with `max_iterations=1`. Add the parameter to the existing `run()` method.
+
+### Anti-Pattern 3: SSE for Code Execution Results
+
+**What people do:** Use the existing SSE event stream to push code execution results.
+
+**Why it's wrong:** The SSE infrastructure is designed for long-running agent executions with real-time step updates. Code execution is a single request-response cycle (run pytest, return result). SSE adds unnecessary complexity and requires the frontend to subscribe/unsubscribe to a stream.
+
+**Do this instead:** Use a standard REST request-response. POST /runs/{id}/run-code awaits the result and returns it directly.
+
+### Anti-Pattern 4: Adding "success" Status from Agent Execution
+
+**What people do:** Set Task.status = "success" whenever the agent-based run completes successfully.
+
+**Why it's wrong:** The requirement (STATUS-01) is specifically about *Playwright code* execution success, not agent execution success. Agent execution and code execution are different things -- the agent uses browser-use LLM, while code execution runs the generated pytest file. Conflating them creates ambiguity.
+
+**Do this instead:** Only set Task.status = "success" when the generated Playwright pytest code successfully executes via the "run code" mechanism (SelfHealingRunner with max_iterations=1 returns "passed").
+
+### Anti-Pattern 5: has_code Flag Stored on Task Model
+
+**What people do:** Add a `has_code` boolean column to the tasks table, updated whenever code is generated.
+
+**Why it's wrong:** Denormalized data that can drift out of sync. If a run is deleted or the file is manually removed, the flag becomes stale. Adds write-path complexity (must update Task on every code generation).
+
+**Do this instead:** Compute `has_code` on read from the runs relationship. The query cost is negligible for the current dataset size.
+
+## Build Order (Dependency-Aware)
+
+The following build order ensures each phase has its dependencies met:
+
+### Phase 1: Backend Data Layer (no frontend deps)
+
+1. Extend Task.status to support "success" (model comment + schema regex)
+2. Add `max_iterations` parameter to `SelfHealingRunner.run()`
+3. Add GET /runs/{run_id}/code endpoint
+4. Add POST /runs/{run_id}/run-code endpoint
+5. Add `has_code` computed field to TaskResponse + list_tasks route
+
+**Tests:** Unit tests for both new endpoints, test that max_iterations=1 skips LLM retry.
+
+### Phase 2: Frontend Infrastructure (depends on Phase 1 APIs)
+
+1. Install react-syntax-highlighter
+2. Add API functions: `getCode()`, `runCode()`
+3. Update Task type (status union + has_code field)
+4. Update StatusBadge if needed
+
+### Phase 3: Frontend UI Components (depends on Phase 2)
+
+1. Build CodeViewerModal
+2. Build RunCodeDialog
+3. Modify TaskTable (add column header)
+4. Modify TaskRow (code indicator + buttons)
+5. Wire up Tasks page to host new modals
+
+**Tests:** Component rendering tests for each new component.
+
+### Phase 4: Integration Testing
+
+1. E2E test: task with generated code -> view code -> verify display
+2. E2E test: task with generated code -> run code -> verify status update
+3. E2E test: task status state machine (draft -> ready -> success -> re-run -> ready)
+
+## Project Structure Changes
+
+### New Files
 
 ```
 frontend/src/
-├── api/
-│   └── batches.ts               # NEW: batch API client
 ├── components/
-│   ├── ImportModal/
-│   │   ├── UploadStep.tsx       # NEW: file upload + drag-drop
-│   │   ├── PreviewStep.tsx      # NEW: parsed data preview table
-│   │   └── ImportResult.tsx     # NEW: import success/failure summary
-│   └── BatchExecution/
-│       ├── BatchDashboard.tsx   # NEW: batch progress overview
-│       └── TaskStatusCard.tsx   # NEW: individual task status in batch
-├── hooks/
-│   ├── useBatchImport.ts        # NEW: import state management
-│   └── useBatchExecution.ts     # NEW: batch execution + polling
+│   └── CodeViewer/
+│       ├── CodeViewerModal.tsx    # NEW: read-only Python code display
+│       └── RunCodeDialog.tsx      # NEW: execute code confirmation + result
+```
+
+### Modified Files
+
+```
+backend/
+├── api/routes/
+│   ├── runs.py                    # MODIFY: add GET /code + POST /run-code endpoints
+│   └── tasks.py                   # MODIFY: add has_code to list response
+├── core/
+│   └── self_healing_runner.py     # MODIFY: add max_iterations param to run()
+├── db/
+│   ├── models.py                  # MODIFY: Task.status comment -> add "success"
+│   ├── schemas.py                 # MODIFY: TaskUpdate regex + TaskResponse has_code
+│   └── repository.py              # MODIFY: add task status update method
+
+frontend/src/
+├── api/
+│   └── runs.ts                    # MODIFY: add getCode(), runCode()
+├── components/
+│   ├── TaskList/
+│   │   ├── TaskTable.tsx          # MODIFY: add "code" column header
+│   │   └── TaskRow.tsx            # MODIFY: add code indicator + view/run buttons
+│   └── shared/
+│       └── StatusBadge.tsx        # MODIFY: update "success" label if needed
 ├── pages/
-│   └── BatchMonitor.tsx         # NEW: batch execution monitoring page
+│   └── Tasks.tsx                  # MODIFY: add state for CodeViewerModal + RunCodeDialog
 └── types/
-    └── index.ts                 # MODIFY: add Batch-related types
+    └── index.ts                   # MODIFY: add has_code + "success" to Task type
 ```
 
 ### Structure Rationale
 
-- **import_service.py** separated from batch_manager.py because import and execution are independent operations with different lifecycles. Import is synchronous (parse + validate + create tasks); execution is long-running async.
-- **BatchRepository** is NOT created as a separate file. Instead, add methods to the existing repository.py following the existing pattern (TaskRepository, RunRepository in same file).
-- **Frontend components** split by feature (ImportModal vs BatchExecution) rather than type, matching existing pattern (TaskList/, RunMonitor/, Report/).
-
-## Component Responsibilities
-
-| Component | Responsibility | Integration with Existing |
-|-----------|---------------|--------------------------|
-| ImportService | Parse Excel, validate rows, generate preview, create tasks | Uses TaskRepository.create() |
-| ExcelParser | Low-level openpyxl row parsing + field extraction | None (pure utility) |
-| BatchExecutionManager | Semaphore-controlled parallel agent execution + progress tracking | Reuses run_agent_background() |
-| Batch (model) | Batch metadata (name, status, created_at, total/progress counts) | References existing Task |
-| BatchTaskEntry (model) | Mapping: batch_id -> task_id with per-task status | References Batch + Task |
-| batches.py (route) | REST endpoints for import preview, confirm, batch execute | Uses ImportService, BatchManager |
-| ImportModal (frontend) | Upload Excel, show preview, confirm import | Uses batches API client |
-| BatchDashboard (frontend) | Task selection, start batch, per-task progress | Uses useBatchExecution hook |
-
-## Architectural Patterns
-
-### Pattern 1: Two-Phase Import (Preview then Confirm)
-
-**What:** The Excel upload is split into two API calls: (1) POST /api/import/preview returns parsed data without creating tasks, (2) POST /api/import/confirm creates tasks after user reviews.
-
-**When to use:** Any data import where user validation is important.
-
-**Trade-offs:** Extra API round-trip, but prevents accidental bad imports. Memory cost of holding parsed data temporarily.
-
-**Why this pattern:** QA users need to verify the parsed data before committing. The preview shows exactly which tasks will be created and flags validation errors per-row.
-
-```
-POST /api/import/preview   --> { rows: [...], errors: [...], valid_count, error_count }
-POST /api/import/confirm   --> { tasks: [...], batch_id }
-```
-
-Implementation detail: The preview endpoint stores parsed data in a temporary location (either server-side session cache keyed by a preview_id, or re-parses on confirm). **Recommendation: re-parse on confirm** -- avoids server-side state management and is simpler. Excel files are small (typically <100 rows for test cases), so re-parsing cost is negligible.
-
-### Pattern 2: Semaphore-Based Concurrency Control
-
-**What:** A module-level `asyncio.Semaphore` limits the number of concurrent browser-use agent executions to prevent resource exhaustion.
-
-**When to use:** Any batch operation that launches resource-heavy async tasks.
-
-**Trade-offs:** Tasks wait in queue when semaphore is full, but prevents OOM and SQLite write contention.
-
-**Implementation:**
-
-```python
-# backend/core/batch_manager.py
-
-import asyncio
-import logging
-from typing import Any
-
-logger = logging.getLogger(__name__)
-
-class BatchExecutionManager:
-    """Manages parallel execution of batch tasks with resource control."""
-
-    def __init__(self, max_concurrent: int = 2):
-        self._semaphore = asyncio.Semaphore(max_concurrent)
-        self._active_batches: dict[str, dict[str, Any]] = {}  # batch_id -> progress
-
-    async def execute_batch(self, batch_id: str, task_ids: list[str]) -> None:
-        """Execute multiple tasks in parallel with semaphore control."""
-        self._active_batches[batch_id] = {
-            "total": len(task_ids),
-            "completed": 0,
-            "success": 0,
-            "failed": 0,
-            "task_status": {tid: "pending" for tid in task_ids},
-        }
-
-        async def run_single(task_id: str) -> None:
-            async with self._semaphore:
-                self._active_batches[batch_id]["task_status"][task_id] = "running"
-                try:
-                    # Reuse existing run_agent_background with fresh DB session
-                    await self._run_task(task_id)
-                    self._active_batches[batch_id]["task_status"][task_id] = "success"
-                    self._active_batches[batch_id]["success"] += 1
-                except Exception as e:
-                    logger.error(f"Batch task {task_id} failed: {e}")
-                    self._active_batches[batch_id]["task_status"][task_id] = "failed"
-                    self._active_batches[batch_id]["failed"] += 1
-                finally:
-                    self._active_batches[batch_id]["completed"] += 1
-
-        await asyncio.gather(*[run_single(tid) for tid in task_ids])
-        # Cleanup after completion
-        del self._active_batches[batch_id]
-```
-
-**Key design decision: max_concurrent = 2.** Rationale:
-- Each browser-use agent consumes 200-500MB RAM (Chromium instance).
-- Server has ~2GB available RAM.
-- Two concurrent browsers = ~1GB max, leaving headroom for FastAPI, SQLite, OS.
-- Can be made configurable via environment variable for future scaling.
-
-### Pattern 3: Polling-Based Batch Progress (NOT SSE)
-
-**What:** Batch progress is fetched via periodic GET polling rather than SSE streaming.
-
-**When to use:** When you have multiple concurrent data streams and need aggregate status.
-
-**Trade-offs:** Higher latency than SSE per-update, but dramatically simpler implementation. No need to multiplex N SSE streams.
-
-**Why NOT SSE for batch progress:**
-- SSE is currently per-run (one stream per run_id via EventManager).
-- Batch execution runs N agents, each with its own SSE stream.
-- Adding a batch-level SSE would require multiplexing N run streams into one batch stream, adding significant complexity.
-- For batch progress, polling every 2-3 seconds is sufficient (QA users watch the dashboard, not individual steps).
-
-**Implementation:** `GET /api/batches/{batch_id}/progress` returns:
-
-```json
-{
-  "batch_id": "abc123",
-  "status": "running",
-  "total": 10,
-  "completed": 3,
-  "success": 2,
-  "failed": 1,
-  "tasks": [
-    {"task_id": "t1", "task_name": "Login test", "status": "success", "run_id": "r1"},
-    {"task_id": "t2", "task_name": "Create order", "status": "running", "run_id": "r2"},
-    {"task_id": "t3", "task_name": "Delete order", "status": "pending"},
-    ...
-  ]
-}
-```
-
-**Note:** Individual run monitoring still uses existing SSE streaming. Click on a running task in the batch dashboard -> navigate to RunMonitor page with SSE connection, exactly as it works today.
-
-### Pattern 4: In-Memory Progress with DB Persistence
-
-**What:** Batch progress is tracked in memory (BatchExecutionManager._active_batches) during execution, then persisted to the Batch model when complete.
-
-**When to use:** For high-frequency status updates where DB writes per-update are too expensive.
-
-**Trade-offs:** In-memory state is lost on server restart during batch execution. Acceptable because batch execution is a user-initiated operation -- if server restarts mid-batch, user restarts the batch.
-
-**Why this is acceptable:** The worst case is a batch appears "stuck" after restart. The user can check individual task statuses and re-run failed ones. No data corruption risk because each task creates its own Run independently.
-
-## Data Flow
-
-### Import Flow
-
-```
-[User uploads .xlsx]
-    |
-    v
-POST /api/import/preview
-    |
-    +--> ImportService.parse_excel(file_bytes)
-    |       |
-    |       +--> validate each row (name required, description required, max_steps range)
-    |       +--> return { preview_id, rows: [...parsed], errors: [...per-row] }
-    |
-    v
-[Frontend shows preview table + errors]
-    |
-    v
-POST /api/import/confirm   (body: { preview data / re-upload file, batch_name })
-    |
-    +--> ImportService.parse_excel(file_bytes)  # re-parse (no server state)
-    +--> DB transaction:
-    |       create Batch row
-    |       for each valid row:
-    |           create Task row
-    |           create BatchTaskEntry row (batch_id -> task_id)
-    |       commit
-    |
-    v
-Response: { batch_id, task_ids, created_count, skipped_count }
-```
-
-### Batch Execution Flow
-
-```
-[User selects tasks on TaskList page, clicks "Batch Execute"]
-    |
-    v
-POST /api/batches  (body: { task_ids: [...], batch_name: "..." })
-    |
-    +--> Create Batch row (status: "pending")
-    +--> Create BatchTaskEntry rows
-    +--> Start background task: BatchExecutionManager.execute_batch()
-    |
-    v
-Response: { batch_id }
-
-[Frontend polls every 2s]
-    |
-    v
-GET /api/batches/{batch_id}/progress
-    |
-    +--> Read from BatchExecutionManager._active_batches (in-memory)
-    |       OR read from DB if batch is complete
-    |
-    v
-[Dashboard updates: progress bar, per-task status cards]
-
-[User clicks on a running task]
-    |
-    v
-Navigate to /runs/{run_id}  (existing RunMonitor with SSE)
-```
-
-### State Management (Frontend)
-
-```
-useBatchImport (hook)
-    state: { step: 'upload'|'preview'|'result', file, preview, errors, importing }
-
-useBatchExecution (hook)
-    state: { batchId, progress, pollTimer }
-    effect: setInterval(pollProgress, 2000)
-    cleanup: clearInterval on unmount or batch complete
-```
-
-## Database Schema Changes
-
-### New Tables
-
-```sql
--- Batch: groups multiple tasks for batch operations
-CREATE TABLE batches (
-    id VARCHAR(8) PRIMARY KEY,
-    name VARCHAR(200) NOT NULL,
-    type VARCHAR(20) NOT NULL DEFAULT 'execution',  -- 'import' or 'execution'
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',   -- pending, running, completed, failed
-    total INTEGER NOT NULL DEFAULT 0,
-    completed INTEGER NOT NULL DEFAULT 0,
-    success INTEGER NOT NULL DEFAULT 0,
-    failed INTEGER NOT NULL DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    finished_at DATETIME
-);
-
--- BatchTaskEntry: many-to-many mapping between batches and tasks
-CREATE TABLE batch_task_entries (
-    id VARCHAR(8) PRIMARY KEY,
-    batch_id VARCHAR(8) NOT NULL REFERENCES batches(id),
-    task_id VARCHAR(8) NOT NULL REFERENCES tasks(id),
-    run_id VARCHAR(8) REFERENCES runs(id),   -- set when execution starts
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- pending, running, success, failed
-    error TEXT,                               -- error message if failed
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Why Two Tables Instead of Adding Fields to Task
-
-- A task can belong to multiple batches (import batch A, execution batch B).
-- Batch-level metadata (total, completed, progress) should not live on individual tasks.
-- Clean separation: Batch owns orchestration, Task owns test definition.
-- Matches existing patterns: Run references Task but Task has no run-specific fields.
-
-### Why status and progress fields on Batch model (duplicated from in-memory)
-
-- Batch status and counts are persisted to DB on completion (or interruption).
-- This allows querying batch history without the in-memory manager.
-- During execution, reads come from in-memory (fast). After execution, reads come from DB (durable).
-
-## Integration Points with Existing Code
-
-### 1. Task Creation (ImportService -> TaskRepository)
-
-ImportService calls `TaskRepository.create()` for each valid row. This is identical to the existing single-task creation flow. No changes to TaskRepository needed.
-
-The import endpoint validates all rows first, then creates tasks in a single transaction:
-
-```python
-async def create_batch_tasks(self, rows: list[TaskCreate]) -> list[Task]:
-    """Create multiple tasks in a single transaction."""
-    tasks = []
-    for row_data in rows:
-        task = Task(**row_data.model_dump())
-        self.session.add(task)
-        tasks.append(task)
-    await self.session.commit()
-    for task in tasks:
-        await self.session.refresh(task)
-    return tasks
-```
-
-**SQLite concurrency concern:** All task creation happens in one transaction. With WAL mode, this blocks other writers briefly but is fast for <100 inserts. Acceptable for a single-user QA tool.
-
-### 2. Task Execution (BatchManager -> run_agent_background)
-
-BatchExecutionManager calls the existing `run_agent_background()` function directly. This function already:
-- Creates its own DB session via `async_session()`
-- Creates its own AgentService instance
-- Handles SSE events via EventManager
-- Generates reports via ReportService
-
-**No changes needed to run_agent_background().** The BatchManager wraps each call in a semaphore slot.
-
-**Critical detail:** Each call to run_agent_background creates a separate browser session (line 45-54 of agent_service.py: `browser_session = create_browser_session()`). This is correct for parallel execution -- each task gets its own browser.
-
-### 3. SSE Streaming (Existing EventManager, Unchanged)
-
-Individual run monitoring continues to use the existing EventManager + SSE pattern. The batch dashboard does NOT use SSE -- it polls the batch progress endpoint.
-
-Users can still click into individual runs from the batch dashboard and get the full SSE streaming experience.
-
-### 4. API Router Registration
-
-```python
-# In backend/api/main.py, add:
-from backend.api.routes import batches
-app.include_router(batches.router, prefix="/api")
-```
-
-## Scaling Considerations
-
-| Concern | Current (single QA user) | 5 concurrent users | Notes |
-|---------|--------------------------|--------------------|-------|
-| Browser RAM | 2 instances = 1GB | 2 instances = 1GB | Semaphore is global, shared across all users |
-| SQLite writes | WAL mode handles it | May see occasional lock timeouts | Add retry logic on SQLITE_BUSY |
-| Import file size | <100 rows typical | <100 rows per user | File size limit: 5MB enforced |
-| Batch size | 10-20 tasks | 10-20 tasks per user | No limit needed -- semaphore throttles execution |
-| In-memory progress | 1-2 active batches | 5-10 active batches | Trivial memory cost |
-
-### Scaling Priorities
-
-1. **First bottleneck: Browser RAM.** Semaphore with max_concurrent=2 handles this. If server is upgraded, increase via env var.
-2. **Second bottleneck: SQLite write contention under parallel execution.** Each parallel agent writes steps to DB. With 2 concurrent agents, this is fine. With more, add retry with backoff on SQLITE_BUSY errors.
-
-## Anti-Patterns
-
-### Anti-Pattern 1: SSE Multiplexing for Batch Progress
-
-**What people do:** Create a single SSE stream that combines events from N concurrent runs into one stream.
-**Why it is wrong:** Requires substantial changes to EventManager, complex event routing, and harder-to-debug frontend code. Each run already has its own SSE stream.
-**Do this instead:** Use polling for batch-level progress. Users click into individual runs for real-time SSE monitoring.
-
-### Anti-Pattern 2: Server-Side Preview State
-
-**What people do:** Store parsed Excel data in server memory or a temp DB table between preview and confirm.
-**Why it is wrong:** Requires state cleanup, session management, and TTL logic. Server restart loses preview state.
-**Do this instead:** Re-parse the Excel file on confirm. The file is small (<100 rows) and parsing is fast (<100ms). Send the file again from the frontend (it is already in browser memory).
-
-### Anti-Pattern 3: Per-Step Batch Progress Updates
-
-**What people do:** Update batch progress on every agent step event.
-**Why it is wrong:** With 2 concurrent agents each producing steps every few seconds, this creates excessive DB writes on the batch table.
-**Do this instead:** Update batch progress only on task completion (success/fail), not per-step. Per-step updates are already handled by the existing SSE + Step persistence.
-
-### Anti-Pattern 4: Creating Tasks Without Validation
-
-**What people do:** Import all rows, mark invalid ones as "draft" with errors.
-**Why it is wrong:** Pollutes task list with invalid tasks that can never be executed.
-**Do this instead:** Two-phase import -- preview shows all validation errors, confirm only creates valid rows. Invalid rows are reported back with row numbers and error messages so users can fix their Excel.
-
-### Anti-Pattern 5: Long-Running Excel Parsing on Event Loop
-
-**What people do:** Call openpyxl directly in async FastAPI route.
-**Why it is wrong:** openpyxl is synchronous and blocks the event loop, preventing SSE heartbeats and other requests.
-**Do this instead:** Run openpyxl parsing in a thread executor via `asyncio.to_thread()` or `loop.run_in_executor()`.
-
-## Excel Template Design
-
-### Recommended Template Structure
-
-| Column | Required | Type | Example | Maps To |
-|--------|----------|------|---------|---------|
-| A: 用例名称 | Yes | text | "销售出库-标准流程" | Task.name |
-| B: 步骤描述 | Yes | text | "1. 点击销售管理..." | Task.description |
-| C: 目标URL | No | text | "/sales/out" | Task.target_url |
-| D: 最大步数 | No | number | 15 | Task.max_steps (default 10) |
-| E: 前置条件 | No | text (semicolon-separated) | "login(); get_warehouse()" | Task.preconditions |
-| F: 断言配置 | No | text (JSON) | '{"className":"PcAssert",...}' | Task.external_assertions |
-
-**Why this structure:**
-- Column A and B are the only required fields (matches existing TaskCreate schema).
-- Precondition codes are semicolon-separated to fit in a single cell (frontend TaskFormModal already has a precondition editor -- the import simply splits by semicolon).
-- Assertion config as JSON string is consistent with how external_assertions is already stored.
-- Optional columns have sensible defaults matching existing Task model defaults.
-
-### Template File
-
-Ship a `data/templates/task_import_template.xlsx` file with:
-- Header row with column names
-- 2-3 example rows
-- Data validation (dropdown for max_steps, input validation hints)
-- A "readme" sheet explaining each column
-
-## API Endpoints Design
-
-### Import Endpoints
-
-```
-POST /api/import/preview
-  Content-Type: multipart/form-data
-  Body: file (xlsx)
-  Response: {
-    rows: [{ row_number, name, description, target_url, max_steps, preconditions, assertions, valid, errors }],
-    total_rows: number,
-    valid_rows: number,
-    error_rows: number
-  }
-
-POST /api/import/confirm
-  Content-Type: multipart/form-data
-  Body: file (xlsx), batch_name (string)
-  Response: {
-    batch_id: string,
-    created_count: number,
-    skipped_count: number,
-    task_ids: string[]
-  }
-
-GET /api/import/template
-  Response: xlsx file download
-```
-
-### Batch Execution Endpoints
-
-```
-POST /api/batches
-  Body: { task_ids: string[], batch_name?: string }
-  Response: { batch_id: string, status: "pending" }
-
-GET /api/batches
-  Response: [{ batch_id, name, status, total, completed, success, failed, created_at }]
-
-GET /api/batches/{batch_id}
-  Response: { batch details + task entries }
-
-GET /api/batches/{batch_id}/progress
-  Response: { batch status, per-task status, counts }
-  (This is the polling endpoint, returns from in-memory if running, DB if complete)
-
-POST /api/batches/{batch_id}/cancel
-  Response: { status: "cancelled" }
-  (Sets cancelled flag, semaphore-released tasks check flag before starting)
-```
-
-## Frontend State Management
-
-### useBatchImport Hook
-
-```typescript
-interface BatchImportState {
-  step: 'upload' | 'preview' | 'importing' | 'result'
-  file: File | null
-  preview: PreviewResponse | null
-  importing: boolean
-  result: ImportConfirmResponse | null
-  error: string | null
-}
-
-// Hook returns:
-{
-  state: BatchImportState,
-  uploadAndPreview: (file: File) => Promise<void>,
-  confirmImport: () => Promise<void>,
-  reset: () => void,
-}
-```
-
-### useBatchExecution Hook
-
-```typescript
-interface BatchExecutionState {
-  batchId: string | null
-  progress: BatchProgress | null
-  loading: boolean
-  error: string | null
-}
-
-// Hook returns:
-{
-  state: BatchExecutionState,
-  startBatch: (taskIds: string[], batchName?: string) => Promise<void>,
-  // polling starts automatically when batchId is set, stops on completion/unmount
-}
-```
-
-### Integration with Existing TaskList
-
-The existing TaskList page already has checkbox selection (`selectedIds`). The batch execution trigger integrates as:
-
-1. Add a "Batch Execute" button to the existing `BatchActions` component (alongside "Batch Delete" and "Batch Set Ready").
-2. Clicking "Batch Execute" calls `POST /api/batches` with `selectedIds`.
-3. On success, navigate to `/batches/{batch_id}` (new BatchMonitor page).
-4. BatchMonitor page uses `useBatchExecution` hook for polling.
-
-## SQLite Concurrency Strategy
-
-### Write Concurrency
-
-| Operation | Concurrency Pattern | Rationale |
-|-----------|---------------------|-----------|
-| Import (batch task creation) | Single transaction | Fast (<100 inserts), brief lock |
-| Batch execution step writes | WAL mode handles concurrent reads, writes are serialized | 2 concurrent agents = 2 writers, WAL handles this |
-| Batch progress updates | In-memory, no DB writes during execution | Avoids write contention |
-| Batch completion | Single write on batch complete | One-time, fast |
-
-### Read Concurrency
-
-| Operation | Pattern | Rationale |
-|-----------|---------|-----------|
-| Progress polling | In-memory first, DB fallback | Fastest path for active batches |
-| Batch list | Standard DB read | WAL allows concurrent reads |
-| Individual run SSE | Existing EventManager | Unchanged |
-
-### Error Recovery for SQLITE_BUSY
-
-Add retry logic to the repository layer for batch operations:
-
-```python
-import asyncio
-from sqlalchemy.exc import OperationalError
-
-async def with_retry(func, max_retries=3, base_delay=0.1):
-    """Retry on SQLITE_BUSY errors with exponential backoff."""
-    for attempt in range(max_retries):
-        try:
-            return await func()
-        except OperationalError as e:
-            if "locked" in str(e) and attempt < max_retries - 1:
-                await asyncio.sleep(base_delay * (2 ** attempt))
-            else:
-                raise
-```
-
-## Build Order (Dependencies)
-
-The implementation must follow this order due to dependencies:
-
-```
-Phase 1: Excel Template + Parse (no DB changes)
-  1.1 Create Excel template file (data/templates/task_import_template.xlsx)
-  1.2 Create ExcelParser utility (openpyxl wrapper)
-  1.3 Create ImportService (parse + validate)
-  1.4 Add /api/import/preview endpoint
-  1.5 Frontend: ImportModal (upload + preview)
-  Tests: Unit tests for ExcelParser, ImportService
-
-Phase 2: Batch Task Creation (DB changes needed)
-  2.1 Add Batch + BatchTaskEntry models to models.py
-  2.2 Add migration in database.py init_db() (ALTER TABLE if not exists)
-  2.3 Add batch schemas to schemas.py
-  2.4 Add /api/import/confirm endpoint (creates tasks + batch)
-  2.5 Frontend: ImportResult component + confirm flow
-  Tests: Integration tests for confirm endpoint, DB schema tests
-
-Phase 3: Batch Execution (depends on Phase 2 DB)
-  3.1 Create BatchExecutionManager (semaphore + progress tracking)
-  3.2 Add batch execution endpoints (POST /api/batches, GET progress)
-  3.3 Frontend: BatchExecution dashboard + useBatchExecution hook
-  3.4 Integration with TaskList "Batch Execute" button
-  3.5 Route / App.tsx: add /batches routes
-  Tests: Integration test for batch execution with mocked agent
-
-Phase 4: Polish + Edge Cases
-  4.1 Cancel batch execution support
-  4.2 Retry failed tasks within a batch
-  4.3 Error handling for server restart during batch
-  4.4 Template download endpoint
-  4.5 E2E test for full import -> batch execute flow
-```
+- **CodeViewer/ folder** (new): Groups CodeViewerModal and RunCodeDialog together as they share a domain concern (code viewing/execution). Follows the existing pattern of feature-based folders (TaskList/, RunMonitor/, ImportModal/).
+- **No new backend services:** SelfHealingRunner is reused, not duplicated. The new endpoints are thin wrappers.
+- **Minimal model changes:** Task.status String(20) already fits "success". No migration needed.
+
+## Scalability Considerations
+
+| Concern | Current (single server) | If scaling needed |
+|---------|------------------------|-------------------|
+| Code file reads | Direct disk I/O, <1ms per file | Already fine for 100s of tasks |
+| Concurrent code executions | Single pytest at a time (subprocess) | Add Semaphore like batch execution (existing pattern) |
+| Task list has_code computation | SQL subquery per list request | Add cached column on Task if list becomes slow |
+
+**No scaling concerns for current use case.** This is a single-user QA tool with < 1000 tasks.
 
 ## Key Design Decisions Summary
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Batch progress: SSE vs polling | Polling (2s interval) | Simpler, no EventManager changes, sufficient for batch-level |
-| Individual run monitoring | Existing SSE (unchanged) | Already works, click-through from batch dashboard |
-| Preview state | Re-parse on confirm | No server-side state to manage |
-| Concurrency control | asyncio.Semaphore (max 2) | Browser RAM constraint, configurable |
-| Import validation | Per-row validation in preview | Users see exactly what will import |
-| Batch-Task relationship | Many-to-many via BatchTaskEntry | Tasks can be in multiple batches |
-| New dependency | openpyxl (add to pyproject.toml) | Standard Python Excel library, sync (use with run_in_executor) |
-| Frontend file upload | Standard fetch FormData | No need for special upload library |
+| Code viewer library | react-syntax-highlighter | Drop-in simple, built-in themes/line numbers, adequate for read-only use |
+| Code execution mechanism | Reuse SelfHealingRunner | Already handles all subprocess infrastructure, max_iterations=1 disables retry |
+| Run-code API style | REST request-response (not SSE) | Bounded operation (120s max), single result, no streaming needed |
+| has_code field | Computed on read from runs | Avoids denormalization, no stale data risk |
+| Task "success" status | System-set only (not user) | Matches semantic: success = Playwright code passed |
+| New frontend dependency | react-syntax-highlighter | One new npm package, widely used, well-maintained |
+| Storage of code content | Filesystem only (not DB) | Files already exist on disk for pytest, no duplication |
 
 ## Sources
 
-- Codebase analysis: existing Task/Run/Agent pipeline in backend/
-- Existing patterns: EventManager, Repository pattern, useRunStream hook
-- SQLite WAL mode documentation: https://www.sqlite.org/wal.html
-- FastAPI file upload: https://fastapi.tiangolo.com/tutorial/request-files/
-- asyncio.Semaphore: Python standard library documentation
-- openpyxl: https://openpyxl.readthedocs.io/ (sync library, use with run_in_executor)
+- Direct codebase analysis: `backend/db/models.py`, `backend/api/routes/runs.py`, `backend/api/routes/tasks.py`, `backend/core/self_healing_runner.py`, `backend/core/code_generator.py`, `backend/db/repository.py`, `backend/db/schemas.py`
+- Frontend analysis: `frontend/src/types/index.ts`, `frontend/src/components/TaskList/TaskTable.tsx`, `frontend/src/components/TaskList/TaskRow.tsx`, `frontend/src/components/shared/StatusBadge.tsx`, `frontend/src/api/runs.ts`, `frontend/package.json`
+- [FastAPI Custom Response Docs](https://fastapi.tiangolo.com/advanced/custom-response/) -- for serving file content patterns
 
 ---
-*Architecture research for: Excel batch import and parallel execution*
-*Researched: 2026-04-08*
+*Architecture research for: Playwright code verification and task management UI integration*
+*Researched: 2026-04-23*

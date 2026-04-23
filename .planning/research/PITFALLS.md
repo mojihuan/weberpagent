@@ -1,371 +1,355 @@
-# Domain Pitfalls: ERP Integration (CacheService, AccountService, TestFlowService)
+# Domain Pitfalls
 
-**Domain:** Adding run-scoped caching, multi-account login, test flow orchestration, and Excel template changes to an existing FastAPI + Playwright test automation platform (v0.9.1)
-**Researched:** 2026-04-11
-**Context:** v0.9.1 milestone -- CacheService, AccountService, TestFlowService, DB migration, Excel template update, Jinja2 variable replacement
-**Confidence:** HIGH (based on direct code analysis of all affected files, SQLite documentation, Jinja2 behavior, and established patterns from previous milestone pitfalls)
+**Domain:** Adding Playwright code verification, execution, and task management UI integration to existing aiDriveUITest platform (v0.10.4)
+**Researched:** 2026-04-23
+**Context:** v0.10.4 milestone -- Playwright code execution from web UI, code viewer component, task status state machine extension, task list "code" column
+**Confidence:** HIGH (based on direct code analysis of `self_healing_runner.py`, `code_generator.py`, `runs.py`, `database.py` migration patterns, frontend TaskRow/StatusBadge components, and verified external sources on subprocess cleanup and path traversal)
 
 ## Critical Pitfalls
 
 Mistakes that cause rewrites or major issues.
 
-### Pitfall 1: Jinja2 StrictUndefined Crashes on {{cached:key}} Syntax
+---
 
-**What goes wrong:**
-The existing `PreconditionService.substitute_variables()` (line 336-361 in `precondition_service.py`) uses Jinja2 with `StrictUndefined`. When the task description contains `{{cached:i}}`, Jinja2 interprets `cached:i` as a variable name lookup, cannot find it in the context dict, and throws `UndefinedError`. The entire run fails before the agent even starts.
+### Pitfall 1: Orphaned Playwright/Chrome Processes from Subprocess pytest
 
-The implementation plan's `TestFlowService._build_description()` uses regex to replace `{{cached:key}}` before Jinja2 processing. But the existing substitution in `run_agent_background()` (line 145 in `runs.py`) calls `PreconditionService.substitute_variables(task_description, context)` FIRST, before TestFlowService ever runs. The order of operations is wrong.
+**What goes wrong:** When a user clicks "Run Code" from the web UI, the backend spawns a subprocess to run `pytest` on the generated Playwright test file. If the subprocess times out, the test hangs, or the user navigates away, the Playwright-launched Chrome browser process (and its renderer/GPU child processes) become zombie processes that consume memory indefinitely.
 
-**Why it happens:**
-There are two substitution points in the system:
-1. Line 145 in `runs.py`: `PreconditionService.substitute_variables(task_description, context)` -- runs during existing flow
-2. TestFlowService: regex replacement of `{{cached:key}}` then Jinja2 -- runs during new flow
+**Why it happens:** The existing `SelfHealingRunner` uses `asyncio.to_thread(subprocess.run, ...)` with a `timeout=PYTEST_TIMEOUT_SECONDS` (120s). When the timeout fires, `subprocess.run` raises `TimeoutExpired`, but it does NOT kill the child process tree. Playwright spawns Chrome as a separate child process. When only the parent pytest process is terminated, Chrome processes become orphaned. This is a [known issue with pytest-timeout](https://github.com/pytest-dev/pytest-timeout/issues/159) and has been [observed in production Playwright deployments](https://github.com/windmill-labs/windmill/issues/6048).
 
-If both run, or if the old substitution runs on text with `{{cached:key}}`, it crashes. The design doc assumes TestFlowService handles everything, but the existing `run_agent_background` function still runs substitution at line 145 for backward compatibility.
+The existing `SelfHealingRunner._cleanup()` only deletes `.storage_state.json` and `conftest.py` files -- it does NOT clean up browser processes.
 
 **Consequences:**
-- Any task description containing `{{cached:i}}` fails with `UndefinedError: 'cached:i' is undefined`
-- Run fails before agent starts, stuck in "failed" status
-- No clear error message -- QA users see a cryptic Jinja2 error
+- Server memory exhaustion after multiple "Run Code" clicks (2GB deployment server)
+- Port conflicts when new Playwright instances try to launch on occupied debug ports
+- Zombie Chrome processes accumulate until server becomes unresponsive
+- 3-4 orphaned Chrome instances (each ~200-400MB) can exhaust the deployment server's RAM
+- [Playwright Python zombie threads](https://github.com/microsoft/playwright-python/issues/2397) are a known issue in containerized/server environments
 
-**How to avoid:**
-1. In `run_agent_background`, the `if task.login_role` branch must skip the existing `substitute_variables()` call entirely and delegate ALL substitution to TestFlowService
-2. TestFlowService must do regex-based `{{cached:key}}` replacement BEFORE passing the result to Jinja2
-3. Ensure the `{{cached:key}}` regex pattern is removed from the string before Jinja2 sees it: `re.sub(r'\{\{cached:(\w+)\}\}', replace_cached, text)` must produce a string with zero `{{cached:...}}` patterns
-4. Add a guard: after regex replacement, verify no `{{cached:` patterns remain before calling Jinja2
+**Prevention:**
+- Use `subprocess.Popen` with `start_new_session=True` instead of `subprocess.run`, enabling process group tracking
+- Kill the entire process group on timeout: `os.killpg(os.getpgid(proc.pid), signal.SIGKILL)`
+- Add a global `_active_code_runs` dict (same pattern as `_active_batches` in `batch_execution.py`) to track running subprocesses and enable cleanup on shutdown
+- Limit concurrent code runs with a dedicated `asyncio.Semaphore(1)` for single-server deployment
+- Register FastAPI shutdown event handler to kill any remaining subprocesses
+- Consider reusing the existing `SelfHealingRunner` infrastructure rather than building a parallel execution path
 
-**Warning signs:**
-- `UndefinedError` in run logs mentioning "cached" or colon in variable name
-- Tasks with `{{cached:key}}` in description always fail immediately
-- Run fails at the precondition/variable-substitution phase, never reaches agent execution
-
-**Phase to address:**
-TestFlowService (Task 6-7 in implementation plan) -- the substitution order must be designed before wiring into `runs.py`
-
-**Confidence:** HIGH -- direct code analysis of `precondition_service.py` line 336-361 (StrictUndefined), `runs.py` line 145 (substitute_variables call), and the `{{cached:key}}` syntax in the design doc
+**Detection:**
+- Log subprocess PID at start, verify process termination in `finally` block
+- Monitor Chrome process count: `pgrep -c chrome` or `pgrep -c chromium` before/after runs
+- Add a health-check endpoint that warns when zombie count exceeds threshold
 
 ---
 
-### Pitfall 2: Step Numbering Shift Breaks Step Tracking and SSE Events
+### Pitfall 2: Path Traversal in Code File Serving Endpoint
 
-**What goes wrong:**
-The design doc injects 5 login steps before the user's steps. The implementation plan shifts user step numbers by +5 (e.g., "step 1" becomes "step 6"). But the `on_step` callback in `runs.py` uses the step number directly from the agent to save to the database as `step_index`. The SSE events and the step timeline in the UI expect sequential integers starting from 1.
+**What goes wrong:** The new "View Code" endpoint serves generated `.py` files from the `outputs/` directory. If the endpoint accepts a file path or run ID without proper validation, an attacker (or buggy client) could request `../../../etc/passwd` or `../../backend/config/settings.py` and read sensitive configuration including API keys.
 
-If the injected login steps produce steps 1-5 from the agent, and the user's first step is step 6, the agent's internal step counter will actually be 1, 2, 3, 4, 5, 6, 7... -- NOT 6, 7, 8, 9, 10, 11... The "shift by +5" in the task description text does NOT change the agent's step counter. The agent starts counting from 1 regardless of what the task description says.
+**Why it happens:** FastAPI's `FileResponse` does not prevent path traversal by itself. The existing screenshot endpoint (`/runs/{run_id}/screenshots/{step_index}`) is safe because `step_index` is an integer, but a code file endpoint will accept string-based identifiers.
 
-Meanwhile, the `global_seq` counter in `runs.py` (line 83) tracks sequence numbers for precondition results, steps, and assertions on a single timeline. If precondition results get seq 1-3, and agent steps get step_index 1-10 from the agent callback, the sequence numbering and step_index numbering diverge.
-
-**Why it happens:**
-The implementation plan shifts the step numbers in the task description TEXT (`re.sub(r'^步骤(\d+)[:：]', ...)`), but this only changes what the AI reads. The agent's internal step counter starts from 1 regardless. The `step_callback` receives the agent's internal step number, not the number in the text.
+The existing `run.generated_code_path` stores an absolute file path (e.g., `/root/project/weberpagent/outputs/abc12345/generated/test_abc12345.py`). If the endpoint uses this path directly from the database without validation, and the database value was somehow tampered with (or if the endpoint accepts a raw path parameter), files outside the intended directory can be served.
 
 **Consequences:**
-- Database steps show step_index 1-5 (login) then 6+ (user), but the agent reports step 1-10 internally. The step_index and the text step numbers do not match.
-- Step timeline in the UI shows confusing numbering
-- The `sequence_number` (global timeline) and `step_index` (per-run) become inconsistent
-- Precondition results already consumed sequence numbers 1-N, then steps start at step_index 1 with sequence_number N+1
+- Exposure of `DASHSCOPE_API_KEY` and other secrets in `.env` or settings files
+- Exposure of `database.db` containing all test data and user information
+- Full source code access including authentication logic and API keys
+- [CVE-2025-55526](https://www.sentinelone.com/vulnerability-database/cve-2025-55526/) demonstrates this exact vulnerability pattern in a FastAPI application
 
-**How to avoid:**
-1. Do NOT shift step numbers in the task description. Let the agent number steps naturally (1, 2, 3...). The login steps will be steps 1-5, user steps will be 6+ in the agent's output.
-2. Mark injected login steps differently: add a metadata field like `is_login_step: true` to the step data in the database
-3. Use `global_seq` for timeline ordering (already implemented in Phase 59). Precondition results, login steps, user steps, and assertions all get sequential `sequence_number` values. The `step_index` is the agent's raw counter.
-4. Test this end-to-end: verify that a task with login_role produces correct step_index and sequence_number values in the database
+**Prevention:**
+- Never accept raw file paths as API parameters. Accept only `run_id` and resolve the path server-side from the database (`run.generated_code_path`)
+- Validate the resolved path is within the allowed directory: `Path(code_path).resolve().is_relative_to(OUTPUTS_DIR.resolve())`
+- Use the same pattern as the existing screenshot endpoint: look up the run, get the stored path, verify it exists, then serve
+- Reject any path containing `..` components after normalization
+- Only serve files with `.py` extension as an additional safeguard
+- Return `Content-Type: text/plain; charset=utf-8` to prevent browser execution
 
-**Warning signs:**
-- Steps in the database have step_index values that do not match the step numbers in the action text
-- UI timeline shows steps out of order or with gaps
-- Steps with the same step_index but different sequence_numbers
-
-**Phase to address:**
-TestFlowService (Task 6-7) -- step numbering strategy must be decided before building the description builder
-
-**Confidence:** HIGH -- direct code analysis of `on_step` callback (runs.py line 164-210), `global_seq` counter (line 83), and `MonitoredAgent` step numbering behavior
+**Detection:**
+- Unit test with path traversal payloads: `../../../etc/passwd`, `..%2F..%2F`, null byte injection (`%00`)
+- Integration test: verify the endpoint returns 404 for paths outside `outputs/`
+- Security test: request the endpoint with a run_id that has a path pointing to `/etc/passwd` (requires database tampering)
 
 ---
 
-### Pitfall 3: Excel Template Column Position Change Breaks Old Template Imports
+### Pitfall 3: Task Status State Machine Extension Breaking Existing Data
 
-**What goes wrong:**
-The current `TEMPLATE_COLUMNS` in `excel_template.py` defines columns as: name, description, target_url, max_steps, preconditions, assertions (6 columns). The new template changes this to: name, login_role, description, max_steps, preconditions, assertions (6 columns, target_url removed, login_role inserted at position 2).
+**What goes wrong:** The milestone requires adding a "success" status to tasks (STATUS-01). Currently, `Task.status` only allows `"draft"` and `"ready"`. The validation is enforced in multiple places with strict matching. Changing the status enum without updating all consumers breaks existing functionality.
 
-The parser (`excel_parser.py`) maps columns by INDEX position using `TEMPLATE_COLUMNS` -- it iterates `for col_idx, col_def in enumerate(TEMPLATE_COLUMNS)` and reads the cell at that column index. The header validation (`_validate_headers`) checks that row 1 headers match `TEMPLATE_COLUMNS`.
+**Why it happens:** The status field is validated at multiple layers:
+- `backend/db/schemas.py` line 33: `TaskUpdate.status` has regex `^(draft|ready)$`
+- `frontend/src/types/index.ts` line 11: `status: 'draft' | 'ready'`
+- `TaskRow.tsx` passes status to `StatusBadge` which may not handle unknown values
+- SQLite has no ENUM constraint; validation is purely application-level
+- The existing `init_db()` migration pattern in `database.py` (lines 44-89) uses `ALTER TABLE ADD COLUMN` with defaults
 
-When a user uploads an OLD template (without login_role, with target_url at position 2), the header validation will catch the mismatch and reject the file. This is GOOD. But the error message will be cryptic: "column 2 header should be 'login_role', actual is 'task description'" -- confusing for QA users who just downloaded the template last week.
+More critically, "success" conflates two different concepts:
+- **Task editorial state**: draft (incomplete definition) / ready (ready to execute)
+- **Task execution outcome**: success / failed (result of running the task)
 
-**Why it happens:**
-The template changed fundamentally -- a column was inserted and another was removed. The parser relies on exact header matching. There is no backward compatibility or version detection.
+Adding "success" to Task.status means a task that was executed successfully is no longer "ready" for re-execution. This creates UX confusion: if a user edits a "successful" task, does it revert to "draft"? What if they just want to re-run it?
 
 **Consequences:**
-- All existing Excel files become invalid
-- QA users must re-download templates and reformat their test cases
-- No migration path for existing Excel data
-- Error messages do not explain what changed or how to fix it
+- Existing tasks cannot be updated if the new status is not in the regex allowlist (`TaskUpdate` rejects with 400)
+- Frontend TypeScript compilation errors or runtime crashes when `StatusBadge` receives an unknown status string
+- Existing task filtering by status breaks (queries expecting only draft/ready get unexpected results)
+- Semantic confusion: task is "successful" but cannot be re-run without changing status back to "ready"
 
-**How to avoid:**
-1. Keep `target_url` in the new template. Add `login_role` as a new column. This preserves backward compatibility: old files are still parseable (login_role column missing = use default), and new files work too.
-2. If removing `target_url` is required, add template version detection: include a version number in a cell or a named range (e.g., `B1` says "v2"). The parser checks version and selects the appropriate column mapping.
-3. At minimum, provide a clear migration error message: "This template uses the old format. Please download the new template from [link]. Changes: 'target URL' column removed, 'login role' column added at position 2."
-4. Update the README sheet in the template to include the version and a changelog.
+**Prevention:**
+- Consider whether "success" belongs on `Task` at all. Better options:
+  - **Option A (recommended):** Derive task success from its latest `Run.status`. Add a computed `latest_run_status` field on the task list response (subquery: `SELECT status FROM runs WHERE task_id = ? ORDER BY created_at DESC LIMIT 1`). The Task model stays unchanged (draft/ready only).
+  - **Option B:** Add a separate `latest_outcome` field on Task, updated on run completion. Keeps editorial state and execution outcome separate.
+  - **Option C:** If "success" must go on Task.status, update ALL validation points: regex, TypeScript type, StatusBadge component, and add the column migration to `init_db()`.
+- If Option C is chosen:
+  - Update `TaskUpdate` regex to `^(draft|ready|success)$`
+  - Update TypeScript `Task` interface to include `'success'`
+  - Ensure `StatusBadge` handles the new value with appropriate styling
+  - The "success" status should be set ONLY by the system after code verification, not by user input
+  - Add clear transition rules: editing a "success" task reverts it to "draft"; re-running reverts to "ready"
 
-**Warning signs:**
-- Import fails on any Excel file created before the update
-- Error message references wrong column names
-- Users report "template worked yesterday, broken today"
-
-**Phase to address:**
-Excel template update (Task 5) -- backward compatibility decision must be made before modifying TEMPLATE_COLUMNS
-
-**Confidence:** HIGH -- direct code analysis of `excel_parser.py` (header validation at line 104-123, column iteration at line 174), and `excel_template.py` TEMPLATE_COLUMNS definition
+**Detection:**
+- Test that existing task CRUD operations still work after schema changes
+- Test that the frontend renders all status values without TypeScript errors or crashes
+- Test that draft/ready filtering in the task list still works correctly
+- Test that a "successful" task can be re-edited and re-run
 
 ---
 
-### Pitfall 4: ContextWrapper Constructor Change Breaks Existing Code Paths
+### Pitfall 4: Concurrent Code Execution Resource Exhaustion
 
-**What goes wrong:**
-The implementation plan changes `ContextWrapper.__init__` to accept an optional `cache` parameter: `def __init__(self, cache: CacheService | None = None)`. The existing code creates `ContextWrapper` instances in two places:
+**What goes wrong:** Multiple users (or the same user in multiple tabs) can click "Run Code" simultaneously. Each click spawns a subprocess pytest process which launches a Playwright browser. On the 2GB deployment server, 2+ concurrent Playwright runs can exhaust memory and crash the server or cause all runs to fail with OOM.
 
-1. `PreconditionService.__init__` (line 203): `self.context: ContextWrapper = ContextWrapper()` -- this is fine, the parameter is optional
-2. `runs.py` line 267-269: manual `ContextWrapper()` creation for external assertions:
-```python
-if not isinstance(context, ContextWrapper):
-    context_wrapper = ContextWrapper()
-    context_wrapper._data = context.copy() if context else {}
-else:
-    context_wrapper = context
-```
+**Why it happens:** The existing `SelfHealingRunner` already runs subprocess pytest during the post-execution pipeline, but it runs in the background after an agent execution completes. The new "Run Code" button is user-initiated and can be triggered multiple times rapidly. The existing `_active_batches` Semaphore pattern (max 2 concurrency) exists for batch runs but does not cover this new code execution path.
 
-The second case is problematic: when `login_role` is set, the `PreconditionService` creates a `ContextWrapper` with a `CacheService`, but when `login_role` is NOT set (backward compatibility), the existing code creates a bare `ContextWrapper()` without a cache. Then when `execute_all_assertions` tries to use `context_wrapper.cache()` or `context_wrapper.cached()`, it creates a default `CacheService()` that is not shared with the one from `PreconditionService`.
-
-More critically, the `PreconditionService` instance is only created inside the `if preconditions:` block (runs.py line 88-89). If there are no preconditions but there IS a `login_role`, the `PreconditionService` and its `ContextWrapper` are never created. The `context` variable remains an empty dict `{}` (line 86). The assertion code at line 267 checks `isinstance(context, ContextWrapper)` -- this returns `False` for a plain dict, so it creates a new `ContextWrapper()`. This new instance has no cache and no precondition data.
-
-**Why it happens:**
-The `ContextWrapper` is created in multiple places with different ownership. The precondition path creates one, the assertion path creates another. Adding cache to `ContextWrapper` without unifying the creation point leads to split-brain state.
+The [`asyncio.Semaphore` may not properly gate subprocess creation](https://stackoverflow.com/questions/72198249/asyncio-semaphore2-does-not-limit-amount-of-subprocesses-to-2) because subprocess spawning is not inherently async -- a thread pool is used (`asyncio.to_thread`), and the semaphore is released before the subprocess completes.
 
 **Consequences:**
-- Cache data from preconditions is invisible to assertions
-- Assertion code calling `context.cached('i')` gets `KeyError` because the assertion's ContextWrapper has a different CacheService
-- Runs fail with cryptic "cache key 'i' does not exist" errors during assertion phase
+- Server crash due to OOM (2GB RAM, each Chrome ~300MB, 2 concurrent = 600MB just for browsers)
+- All in-progress runs fail when the server becomes unresponsive
+- SQLite corruption risk if write is interrupted during OOM kill
+- Chrome processes become zombies on crash, preventing recovery
 
-**How to avoid:**
-1. Create ONE `CacheService` instance at the top of `run_agent_background`, before any branching
-2. Pass the SAME `CacheService` to both `PreconditionService` and assertion execution
-3. If `login_role` is set, always create a `ContextWrapper` with the shared `CacheService`, even if there are no preconditions
-4. Test the path: task with `login_role` but NO preconditions, followed by assertions that use `cached()` -- this is the most fragile path
+**Prevention:**
+- Create a dedicated `_active_code_runs` module-level dict similar to `batch_execution._active_batches`
+- Use an `asyncio.Semaphore(1)` to limit concurrent code executions to 1 on the deployment server
+- Hold the semaphore for the ENTIRE subprocess lifetime (acquire before spawn, release in finally after process group killed)
+- Return HTTP 409 Conflict if a code run is already in progress
+- Debounce the "Run Code" button on the frontend: disable during execution, show spinner
+- Show execution status in the UI so users know when a run is in progress
 
-**Warning signs:**
-- `KeyError` in assertion execution saying "cache key does not exist"
-- Assertion results show "execution error" instead of "pass/fail"
-- Cache data visible in precondition results but missing in assertion context
-
-**Phase to address:**
-TestFlowService wiring (Task 7) -- the shared CacheService lifecycle must be designed as part of the `run_agent_background` refactor
-
-**Confidence:** HIGH -- direct code analysis of `runs.py` lines 86-147 (precondition block), lines 263-362 (assertion block), and `ContextWrapper` usage in both blocks
+**Detection:**
+- Integration test: fire 3 simultaneous "Run Code" requests, verify only 1 succeeds and others get 409
+- Monitor memory usage during code runs on the deployment server
+- Test that killing a run cleans up all Chrome subprocesses
 
 ---
 
-### Pitfall 5: Account Credentials Leak into Agent Logs and Screenshots
+### Pitfall 5: XSS via Code Content in Code Viewer
 
-**What goes wrong:**
-The `build_login_prefix()` function injects account and password directly into the task description text: `"2. Enter {account} in the account input box\n3. Enter {password} in the password input box"`. This text becomes the agent's task string. The agent may include this text in:
-1. Step action logs: `action = "input_text: Y59800075"` -- saved to database
-2. Reasoning logs: `"I entered password Aa123456 into the field"` -- saved to database
-3. Screenshots: if the password field shows the actual characters before masking
-4. The `RunLogger` structured logs in `data/outputs/{run_id}/` directory
-5. The task description stored in the `steps` table via `add_step()`
+**What goes wrong:** Generated Playwright code is displayed in a read-only code viewer. The generated code may contain string literals from the ERP system's DOM (page titles, error messages, form values). If any of these contain `<script>` tags and the viewer uses `dangerouslySetInnerHTML` or similar unsafe rendering, the browser executes injected scripts.
 
-The current system saves all step actions and reasoning to SQLite without any filtering. Reports display these logs to the user. If the server is shared or if reports are exported, credentials are exposed.
-
-**Why it happens:**
-The design puts credentials in the task description because the AI agent needs to know what to type. There is no masking layer between the agent's output and the database/logs.
+**Why it happens:** The `PlaywrightCodeGenerator` produces code that includes string values from the agent's interaction with the ERP system. For example, `page.expect_inner_text()` assertions may contain arbitrary HTML from the page. If the frontend renders this code as HTML rather than text, XSS occurs.
 
 **Consequences:**
-- All account credentials stored in plain text in SQLite `steps` table
-- Credentials visible in the test report UI
-- Credentials in log files on the server
-- If database is backed up (daily cron job per deployment notes), credentials persist in backups
+- Session hijacking if XSS steals browser tokens
+- Unauthorized API calls on behalf of the user
+- Phishing attacks via injected UI elements in the code panel
+- Single-user local tool mitigates severity, but the deployment server is internet-accessible (121.40.191.49)
 
-**How to avoid:**
-1. Short term: accept that credentials appear in agent output. This is a test automation tool running locally, not a public SaaS. Document this limitation.
-2. Medium term: add a post-processing step in `on_step()` that redacts known credential patterns from the `action` and `reasoning` strings before saving to the database
-3. Masking pattern: before saving, replace `account_info.account` with `[ACCOUNT]` and `account_info.password` with `[PASSWORD]` in action/reasoning text
-4. Never log credentials at INFO level. The `run_agent_background` already logs account info at line 848: `logger.info(f"[{run_id}] login role: {login_role}, account: {account_info.account}")` -- remove the account value from this log line
+**Prevention:**
+- Use `react-syntax-highlighter` with the Prism backend for code display -- it [renders text nodes, not raw HTML](https://github.com/react-syntax-highlighter/react-syntax-highlighter)
+- NEVER use `dangerouslySetInnerHTML` for code content
+- If building a custom viewer, always use `textContent` or `React.createElement` not `innerHTML`
+- Return code content as `Content-Type: text/plain; charset=utf-8` from the API, not as HTML
+- Alternatively, wrap code in a JSON response field (the existing pattern in the codebase uses JSON responses)
 
-**Warning signs:**
-- Plain text passwords visible in the test report step timeline
-- Log files containing account credentials
-- Database queries on `steps` table returning credential strings
-
-**Phase to address:**
-TestFlowService wiring (Task 7) -- add masking to the `on_step` callback as part of the integration
-
-**Confidence:** HIGH -- direct code analysis of `on_step` callback (runs.py line 164-210), `build_login_prefix()` in implementation plan, and `RunLogger` usage in `agent_service.py`
+**Detection:**
+- Test with code content containing `<script>alert('xss')</script>` in string literals
+- Test with DOM assertion content that includes HTML tags like `<img onerror=alert(1)>`
+- Verify the browser console shows no script execution
 
 ---
 
-### Pitfall 6: SQLite Migration Fails on Existing Database with Data
+## Moderate Pitfalls
 
-**What goes wrong:**
-The implementation plan adds `login_role` to the Task model and runs `ALTER TABLE tasks ADD COLUMN login_role VARCHAR(20)`. The existing `init_db()` in `database.py` (lines 39-64) already has a pattern for this: check `PRAGMA table_info(tasks)`, add column if missing.
+### Pitfall 6: Large Generated Files Freezing the Code Viewer
 
-But there are two problems:
+**What goes wrong:** Generated Playwright test files for complex tasks with 30+ steps can be several hundred lines. `react-syntax-highlighter` [renders all lines as individual React elements upfront](https://github.com/react-syntax-highlighter/react-syntax-highlighter/issues/545), causing DOM bloat and UI freezes for files over ~500 lines.
 
-1. **Gunicorn with 2 workers**: Each worker calls `init_db()` on startup. If both workers try to `ALTER TABLE` simultaneously, one gets `sqlite3.OperationalError: duplicate column name` because SQLite's `ALTER TABLE ADD COLUMN` is not idempotent in concurrent scenarios. The existing pattern checks `PRAGMA table_info` first, which should prevent this -- but if both workers read the PRAGMA result BEFORE either has executed the ALTER, both proceed and one fails.
+**Why it happens:** The library does not virtualize by default. Each line becomes a separate DOM node with nested spans for syntax highlighting. For a 300-line file, this creates 300+ React element trees.
 
-2. **Existing data has NULL values**: All existing tasks will have `login_role = NULL`. The code must handle `task.login_role is None` everywhere. The implementation plan makes it `Optional[str]` in the model, which is correct. But the Excel parser sets `login_role` as `required: True` in the new template. Existing tasks in the database that were created via the old template have no `login_role`. The frontend task detail page will show `login_role: null`, which the dropdown should handle (show "unselected" state).
+**Prevention:**
+- Use `react-syntax-highlighter` with the `LightAsync` build for reduced bundle size and lazy language loading
+- Cap displayed code at a reasonable length (e.g., 500 lines) with a "truncated, download full file" indicator
+- For v0.10.4 scope, generated test files are typically 50-150 lines (based on analysis of `code_generator.py` output patterns), so plain `react-syntax-highlighter` with Prism should be sufficient
+- If files regularly exceed 200 lines, consider the [virtualized renderer](https://github.com/conorhastings/react-syntax-highlighter-virtualized-renderer) or a simple `<pre>` with line numbers
+- Add a loading state while code content is being fetched and parsed
 
-**Why it happens:**
-SQLite's `ALTER TABLE ADD COLUMN` is a DDL operation that acquires a write lock. With Gunicorn's 2 workers, both run `init_db()` at startup. The check-then-alter pattern has a race condition.
-
-**Consequences:**
-- One worker crashes on startup with "duplicate column name" error
-- Gunicorn restarts that worker, which retries and succeeds (because the other worker already added the column)
-- Intermittent startup failures in production
-- Existing tasks have `NULL` login_role, which must be handled in every code path
-
-**How to avoid:**
-1. Wrap the ALTER TABLE in a try/except for `OperationalError` with "duplicate column" in the message. Log a warning and continue. The existing pattern already checks PRAGMA first, but add the exception handler as a safety net.
-2. The existing pattern in `database.py` (lines 48-63) already does this correctly for `sequence_number` and `batch_id`. Follow the same pattern for `login_role`.
-3. In the frontend, handle `login_role: null` by showing an empty/unselected dropdown state
-4. In `run_agent_background`, check `if task.login_role` (falsy check on None) to branch between new flow and existing flow. None and empty string both skip the new flow.
-
-**Warning signs:**
-- "duplicate column name" errors in server startup logs
-- Worker restart in Gunicorn logs after deployment
-- Tasks created before the update show no login role in the UI
-
-**Phase to address:**
-DB migration (Task 4) -- follow the existing migration pattern in `database.py` exactly
-
-**Confidence:** HIGH -- direct code analysis of `database.py` init_db (lines 39-64), existing migration patterns for sequence_number and batch_id columns
+**Detection:**
+- Test with a 500-line generated file and measure render time in browser DevTools
+- Check Performance tab for layout thrashing or long tasks
 
 ---
 
-### Pitfall 7: Cache Precondition Type ("cache") Conflicts with Existing Precondition Parsing
+### Pitfall 7: File Not Found After Disk Cleanup or Healing Runner Cleanup
 
-**What goes wrong:**
-Existing preconditions are stored as a JSON array of strings: `["code1", "code2"]`. Each string is Python code executed via `exec()`. The new design introduces a JSON object format for cache-type preconditions: `{"type": "cache", "method": "PcImport.inventory_list", "params": {...}, "cache_key": "i", "cache_field": "imei"}`.
+**What goes wrong:** The "View Code" button reads from `generated_code_path` stored in the Run database record. If the file has been deleted (disk cleanup, manual deletion, or the `SelfHealingRunner._cleanup()` method), the endpoint returns 500 instead of a user-friendly error.
 
-The existing parsing in `run_agent_background` (runs.py line 443-449) does:
-```python
-preconditions = json.loads(task.preconditions)
-```
-This returns a list. Then it iterates:
-```python
-for i, code in enumerate(preconditions):
-    if not code.strip():
-        continue
-    result = await precondition_service.execute_single(code, i)
-```
+**Why it happens:** The `generated_code_path` column is set during code generation (Phase 82, line 490 in `runs.py`), but there is no guarantee the file still exists when the user clicks "View Code" minutes or hours later. The `SelfHealingRunner._cleanup()` method deletes `.storage_state.json` and `conftest.py` (NOT the test file), but other cleanup processes or manual operations could delete the generated code.
 
-If `code` is a dict (the new cache-type precondition), `code.strip()` will crash with `AttributeError: 'dict' object has no attribute 'strip'`. The existing precondition execution path does not handle dict-type preconditions.
+**Prevention:**
+- Always check `Path(code_path).exists()` before attempting to serve
+- Return 404 with a clear message: "Generated code file not found. The code may have been cleaned up."
+- Add a `has_code` boolean to the Task/Run response so the frontend can hide or disable the "View Code" button when code is unavailable
+- Derive `has_code` from: `generated_code_path IS NOT NULL AND healing_status NOT IN ('pending', 'healing')`
+- Do NOT delete the generated `.py` file in `_cleanup()` -- only delete `.storage_state.json` and `conftest.py`
 
-**Why it happens:**
-The existing code assumes every element in the preconditions list is a string (Python code). The new format mixes strings and dicts in the same array.
-
-**Consequences:**
-- Any task with a cache-type precondition crashes during execution
-- `AttributeError` in run logs
-- Run stuck in "failed" status
-
-**How to avoid:**
-1. Before iterating preconditions, check each element's type:
-```python
-for i, item in enumerate(preconditions):
-    if isinstance(item, dict):
-        # Cache-type precondition
-        result = await precondition_service.execute_cache_precondition(json.dumps(item), i)
-    elif isinstance(item, str):
-        if not item.strip():
-            continue
-        result = await precondition_service.execute_single(item, i)
-    else:
-        logger.warning(f"Precondition {i}: unexpected type {type(item)}")
-        continue
-```
-2. This type-dispatching must happen in BOTH the new TestFlowService path AND the existing `run_agent_background` path (for backward compatibility with tasks that have mixed precondition types)
-
-**Warning signs:**
-- `AttributeError: 'dict' object has no attribute 'strip'` in run logs
-- Precondition execution fails immediately for tasks with cache-type preconditions
-- Runs that worked before the update now fail
-
-**Phase to address:**
-Cache precondition execution (Task 8) -- the type-dispatching must be built into the precondition iteration loop
-
-**Confidence:** HIGH -- direct code analysis of `runs.py` line 443-449 (precondition parsing), line 88-142 (precondition execution loop), and the new precondition format in the design doc
+**Detection:**
+- Test by deleting the generated file manually and then requesting the view endpoint
+- Verify the frontend handles 404 gracefully with a user-facing message
+- Verify the "View Code" button is hidden/disabled when `has_code` is false
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 8: Race Condition Between Code Generation and Code Viewing
 
-Shortcuts that seem reasonable but create long-term problems.
+**What goes wrong:** A user creates a run, and while the agent is still executing (code not yet generated), they see the task in the list and click "View Code". The endpoint finds no generated code and returns an error, confusing the user.
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Two separate execution paths in `run_agent_background` (if/else on login_role) | Preserves backward compatibility without refactoring existing code | Divergent execution paths become harder to maintain; bug fixes must be applied to both paths | MVP only -- plan to unify into TestFlowService for all tasks after validation |
-| Regex-based `{{cached:key}}` replacement instead of custom Jinja2 extension | Simpler to implement, no Jinja2 subclassing | Fragile regex can break on edge cases (e.g., `{{cached:i}}` inside a Jinja2 expression) | Acceptable if regex is simple and well-tested; document limitations |
-| Hardcoded login step count (5 steps) in shift logic | Simple implementation | If login flow changes (e.g., 2FA added), step shift breaks | Never -- instead, do not shift step numbers at all (see Pitfall 2) |
-| Reading user_info.py via import from sys.path | Reuses existing config file from webseleniumerp | Tight coupling to external project's file structure; breaks if webseleniumerp restructures | Acceptable for now -- webseleniumerp is a stable external project owned by the same team |
-| Storing preconditions as mixed string/dict JSON array | No schema change needed for preconditions column | Type ambiguity requires isinstance checks everywhere preconditions are processed | Acceptable for MVP -- consider a proper precondition schema in a future milestone |
+**Why it happens:** Code generation happens at the end of the run pipeline (after agent execution, after assertions, after report generation -- lines 479-493 in `runs.py`). The UI may show the task with a "code" indicator before code is actually generated. The `healing_status` field transitions from "pending" to "healing" to "passed"/"failed"/"skipped", providing a signal for code availability.
 
-## Integration Gotchas
+**Prevention:**
+- The "has code" indicator should only show when `healing_status` is in a terminal state: `passed`, `failed`, or `skipped` (not `pending` or `healing`)
+- Disable the "View Code" button in the UI until code is confirmed available
+- Add a tooltip explaining why the button is disabled: "Code generation in progress" or "No code generated for this task"
+- The task list endpoint should expose `healing_status` so the frontend can make this determination
 
-Common mistakes when connecting to external services/libraries.
+**Detection:**
+- Create a run and immediately try to view code before generation completes
+- Verify the UI does not show the code button until healing_status reaches a terminal state
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Jinja2 + `{{cached:key}}` syntax | Passing `{{cached:key}}` to Jinja2 with StrictUndefined, causing UndefinedError | Regex-replace `{{cached:key}}` patterns BEFORE Jinja2 processing, then run Jinja2 on the cleaned string |
-| SQLite ADD COLUMN with Gunicorn 2 workers | Both workers run ALTER TABLE simultaneously, one gets "duplicate column" error | Check PRAGMA table_info + wrap ALTER TABLE in try/except OperationalError |
-| Excel parser + TEMPLATE_COLUMNS change | Parser uses column index, so inserting a column shifts all subsequent columns | Parser maps by header name (already validates headers), but old templates with different headers will be rejected with a clear message |
-| ContextWrapper + CacheService lifecycle | Creating separate CacheService instances for preconditions and assertions | Create ONE CacheService at the top of `run_agent_background`, pass it to all services |
-| Precondition list + mixed types (string/dict) | Iterating `for code in preconditions` and calling `.strip()` on dict elements | Type-check each element: `isinstance(item, dict)` for cache type, `isinstance(item, str)` for code type |
-| AccountService + user_info.py import | Importing from sys.path that may not be configured when AccountService is created | Use the existing `external_precondition_bridge.configure_external_path()` to ensure path is set before importing |
+---
 
-## Performance Traps
+### Pitfall 9: SQLite Write Contention During Concurrent Code Execution
 
-Patterns that work at small scale but fail as usage grows.
+**What goes wrong:** When code execution is triggered from the web UI, it needs to update run status in SQLite. If this happens concurrently with the existing agent execution pipeline (which also writes to SQLite), the database may lock or timeout.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| CacheService storing large API responses in memory | Memory grows during batch execution with many cache-heavy tasks | CacheService should store only extracted field values, not full API responses. Add a size limit per key (e.g., 1KB) | 10+ parallel runs with large API responses cached |
-| Regex replacement on very long task descriptions | Slow variable substitution for tasks with 50+ steps | The regex `{{cached:(\w+)}}` is fast for reasonable inputs. No action needed unless descriptions exceed 10KB | Unlikely to break -- typical task descriptions are < 5KB |
-| AccountService importing user_info.py on every run | sys.path manipulation and module import on every `AccountService()` creation | Cache the config dict at module level (like existing `_login_api_instance` pattern in external_precondition_bridge) | 100+ sequential runs per batch |
+**Why it happens:** SQLite uses file-level locking. The `busy_timeout` is set to 30 seconds (line 26 in `database.py`), but concurrent writes from multiple asyncio tasks can still cause `OperationalError: database is locked`. The existing batch execution uses `Semaphore(2)` to limit concurrent runs, but the new code execution path is independent.
 
-## Security Mistakes
+**Prevention:**
+- Reuse the existing database session pattern: create a new session per operation, commit promptly
+- Avoid long-running transactions that hold write locks during the subprocess run
+- The code execution endpoint should update status quickly (single UPDATE statement) and not hold a session open during the subprocess
+- Use the same `async_session` factory to ensure proper connection pool behavior
+- Update status BEFORE spawning the subprocess (pending -> running) and AFTER it completes (running -> success/failed)
 
-Domain-specific security issues beyond general web security.
+**Detection:**
+- Run agent execution and code execution simultaneously and monitor for `OperationalError: database is locked`
+- Check SQLite WAL file size during concurrent operations
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Credentials in agent task description | Plain text passwords saved in SQLite steps table, visible in UI reports | Post-process step action/reasoning to mask known credential values before database save |
-| Credentials in server logs | `logger.info` with account info visible in `journalctl` | Remove account value from log lines; log only the role name |
-| Credentials in backup files | Daily database backup contains all credential instances in steps table | Short-term: acceptable for local tool. Medium-term: implement step-data encryption or credential redaction |
-| user_info.py credentials readable by service | Service runs as root, config file has plaintext passwords | This is the existing deployment pattern. Changing it requires a broader security review. |
+---
 
-## UX Pitfalls
+### Pitfall 10: Subprocess stdout/stderr Buffer Overflow
 
-Common user experience mistakes in this domain.
+**What goes wrong:** When running pytest via subprocess, if the test produces excessive output (verbose mode with many steps, large assertion errors), `subprocess.run` with `capture_output=True` buffers everything in memory. On the 2GB server, a runaway test producing megabytes of output can cause OOM.
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Old Excel template silently rejected with cryptic error | QA users do not understand "column 2 header should be 'login role', actual is 'task description'" | Provide version-specific error: "This template uses the v1 format. Please download the latest template." |
-| login_role required in new template but optional in UI | Users confused about whether login role is mandatory | Make login_role optional in the template with default "main". Most tasks use the main account. |
-| No preview of injected login steps | Users cannot see what the agent will actually execute (login + their steps) | Show the full composed task description in the run detail view, with login steps highlighted differently |
-| Cache key naming is opaque | Users do not know what `{{cached:i}}` means in the step description | Provide autocomplete or a "cached variables" panel showing available cache keys and their current values |
-| Role names in English (main, special, vice) | QA users are Chinese speakers, role names are technical | Use Chinese labels in the dropdown: "main account (main)", "warehouse account (special)" etc. |
+**Why it happens:** The existing `SelfHealingRunner` uses `capture_output=True` and `text=True` (line 188-199), which reads all stdout/stderr into Python strings. A Playwright test in verbose mode (`-v` flag is used) against a complex ERP page can produce substantial output.
 
-## "Looks Done But Isn't" Checklist
+**Prevention:**
+- Limit captured output to a reasonable size (e.g., 100KB)
+- Truncate output if it exceeds the limit, keeping the tail (most recent traceback)
+- The existing `_truncate_error()` method (line 361) handles this for display, but the raw subprocess capture can still grow unbounded before truncation
+- Consider using `-q` flag for user-triggered code runs instead of `-v` to reduce output volume
+- Use `subprocess.Popen` with `PIPE` and read incrementally to enforce size limits
 
-Things that appear complete but are missing critical pieces.
+**Detection:**
+- Run a test that produces 1MB+ of output and monitor memory usage
+- Verify truncated output still contains the relevant error information (traceback tail)
 
-- [ ] **CacheService integration:** Often missing the shared lifecycle -- verify that the SAME CacheService instance is used by both preconditions and assertions (check by testing a task with cache precondition + cache assertion)
-- [ ] **Backward compatibility:** Often missing the path where `login_role is None` -- verify that tasks created before the update still execute correctly without errors
-- [ ] **Step numbering:** Often missing the mismatch between text step numbers and agent step_index -- verify by running a task with login_role and checking step_index values in the database
-- [ ] **Precondition type dispatching:** Often missing the isinstance check for dict-type preconditions -- verify by creating a task with a cache-type precondition and confirming it does not crash on `.strip()`
-- [ ] **Excel old template rejection:** Often missing clear migration messaging -- verify by uploading an old-format template and confirming the error message explains what changed
-- [ ] **Credential masking in logs:** Often missing the removal of credential values from log.info calls -- verify by running a task with login_role and checking server logs for plaintext passwords
-- [ ] **No-precondition path:** Often missing the case where task has login_role but NO preconditions -- verify that cache assertions still work (CacheService should exist even without preconditions)
-- [ ] **Batch execution compatibility:** Often missing the test that batch execution works with login_role tasks -- verify by creating a batch with 3 tasks, some with login_role and some without
+---
+
+## Minor Pitfalls
+
+### Pitfall 11: Frontend "Code" Column Performance in Task List (N+1 Queries)
+
+**What goes wrong:** Adding a "has code" column to the task list requires knowing whether each task has generated code. Naively querying runs for each task to check `generated_code_path` causes N+1 queries.
+
+**Why it happens:** The task list endpoint (`GET /tasks`) currently does not join with runs. Adding code availability information requires either a join or a subquery.
+
+**Prevention:**
+- Add a subquery in the task list repository method: `EXISTS (SELECT 1 FROM runs WHERE task_id = tasks.id AND generated_code_path IS NOT NULL AND healing_status NOT IN ('pending', 'healing'))`
+- Or add a `latest_run_healing_status` field to the task list response, derived from a join
+- Frontend should not make additional per-task requests to determine code availability
+
+**Detection:**
+- Load task list with 50+ tasks and measure API response time
+- Enable SQLAlchemy echo logging and check for N+1 query patterns
+
+---
+
+### Pitfall 12: Unicode/Encoding Issues in Generated Code Content
+
+**What goes wrong:** Task names contain Chinese characters. The `_sanitize_function_name()` method preserves Unicode identifiers. File paths and code content contain mixed Chinese/ASCII. If encoding is not handled consistently, the code viewer shows garbled text.
+
+**Why it happens:** The generated files are written with `encoding="utf-8"` (line 121 in `code_generator.py`), but the HTTP response may not specify the correct charset.
+
+**Prevention:**
+- Ensure the code content API response sets `Content-Type: text/plain; charset=utf-8`
+- If wrapping in JSON, use `ensure_ascii=False` (the existing codebase pattern)
+- Test with task names containing Chinese characters
+
+**Detection:**
+- View code for a task with a Chinese name and verify characters render correctly in the browser
+
+---
+
+### Pitfall 13: Browser State Leakage Between Code Runs
+
+**What goes wrong:** When running Playwright code from the web UI, the test may reuse `storage_state` from a previous run. If the login token has expired, the test fails with authentication errors. If a different user's state is used, the test operates with wrong permissions.
+
+**Why it happens:** The existing `SelfHealingRunner` generates a fresh `storage_state` for each run using `_get_storage_state_for_role()`. The new code execution endpoint must do the same. If it accidentally reuses a state file from a previous run, the behavior is unpredictable.
+
+**Prevention:**
+- Always generate fresh `storage_state` for code execution using the same `_get_storage_state_for_role()` function
+- Verify the token is valid before starting the subprocess
+- Clean up `storage_state` file after execution completes
+- Use unique temporary directories for each code run to prevent file collisions
+
+**Detection:**
+- Run code with an expired token and verify a clear error message is returned
+- Run code for role "main" then immediately for "special" and verify no state leakage
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Backend: Code serving endpoint | Path traversal (Pitfall 2) | Resolve path from DB, validate within `outputs/`, use `is_relative_to()` |
+| Backend: Code execution endpoint | Orphaned processes (Pitfall 1) | Process group kill via `os.killpg`, Semaphore(1), `_active_code_runs` tracking |
+| Backend: Task status extension | State machine breakage (Pitfall 3) | Consider deriving from Run.status; update ALL validation layers if adding to Task |
+| Frontend: Code viewer component | XSS (Pitfall 5), large files (Pitfall 6) | Use react-syntax-highlighter (safe by default), cap file size |
+| Frontend: "Run Code" button | Concurrent execution (Pitfall 4) | Debounce, disable during run, Semaphore(1), HTTP 409 |
+| Frontend: Task list "code" column | N+1 queries (Pitfall 11) | Subquery or join, no per-task API calls |
+| Database: Schema migration | NULL/wrong defaults (Pitfall 3) | Follow existing `init_db()` pattern in `database.py` |
+| Integration: Code generation timing | Race condition (Pitfall 8) | Use `healing_status` as availability gate |
+| Integration: Error handling | File not found (Pitfall 7) | Check file exists before serving, return 404 |
+| Deployment: Memory limits | Subprocess OOM (Pitfall 4, 10) | Semaphore(1), output truncation, process group kill |
+
+---
+
+## Architectural Decision Flag: Task "success" Status
+
+The most impactful decision is whether "success" should be a `Task.status` value or derived from `Run.status`. The current system has a clean separation:
+
+- **Task** = test definition (status: draft/ready = editorial state)
+- **Run** = execution instance (status: pending/running/success/failed/stopped = execution outcome)
+
+Adding "success" to `Task.status` conflates editorial state with execution outcome. Consider:
+- **Option A (recommended):** Derive task success from latest Run.status. Add a computed field on the task list response. Task model stays draft/ready only.
+- **Option B:** Add a separate `latest_outcome` field on Task, updated on run completion. Clean separation, but requires migration and update logic.
+- **Option C:** Add "success" to Task.status. Simplest query, but creates semantic confusion (what happens when re-running a "successful" task?).
+
+If Option C is chosen, define clear transition rules: editing a "success" task reverts to "draft"; re-running reverts to "ready".
+
+---
 
 ## Recovery Strategies
 
@@ -373,36 +357,46 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Jinja2 UndefinedError on {{cached:key}} | LOW | Fix substitution order in run_agent_background. Deploy fix. Re-run failed tasks. |
-| Step numbering mismatch in database | MEDIUM | No data migration needed -- sequence_number is correct, step_index is just a display label. Fix the frontend to use sequence_number for timeline ordering. |
-| Old Excel template rejection | LOW | Add template version detection and clearer error message. No data migration. |
-| ContextWrapper split-brain (separate caches) | MEDIUM | Refactor run_agent_background to create CacheService once at the top. Test all paths. |
-| Credentials leaked in logs/database | HIGH | Cannot redact retroactively from existing database without a migration script. Add masking going forward. Rotate exposed credentials. |
-| SQLite migration race condition | LOW | Already handled by existing try/except pattern. Just ensure the new column follows the same pattern. |
-| Precondition type crash (.strip on dict) | LOW | Add isinstance check. Deploy fix. Re-run failed tasks. |
+| Orphaned Chrome processes | LOW | `pkill -f chromium` or `pkill -f chrome`; add process group kill to finally block |
+| Path traversal serving wrong file | LOW | Fix path validation, deploy fix, audit access logs for exploitation |
+| Task status state machine break | MEDIUM | Add missing validation, update TypeScript types, redeploy. Existing data with "success" status may need manual cleanup if Option C is chosen. |
+| OOM from concurrent runs | LOW | Add Semaphore(1), deploy fix. Recovery: kill orphaned processes, restart server. |
+| XSS in code viewer | LOW | Switch to react-syntax-highlighter or ensure text-only rendering. No data migration needed. |
+| File not found on View Code | LOW | Add file existence check, return 404. No data migration. |
+| Race condition (code not ready) | LOW | Use healing_status gate, disable button. No data migration. |
 
-## Pitfall-to-Phase Mapping
+---
 
-How roadmap phases should address these pitfalls.
+## "Looks Done But Isn't" Checklist
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Jinja2 {{cached:key}} crash | Task 6-7: TestFlowService + wiring | Unit test: call substitute_variables with `{{cached:i}}` in text, verify no UndefinedError |
-| Step numbering shift | Task 6: TestFlowService | Integration test: run task with login_role, verify step_index values in database match agent output |
-| Excel old template breakage | Task 5: Excel template update | Manual test: upload old-format template, verify clear error message |
-| ContextWrapper split cache | Task 7: Wire into runs.py | Unit test: create ContextWrapper without cache, then with shared cache, verify same CacheService instance |
-| Credential leak in logs | Task 7: Wire into runs.py | Grep test: run task with login_role, then grep logs for known password -- verify zero matches |
-| SQLite migration race | Task 4: DB migration | Startup test: run init_db twice concurrently, verify no crash |
-| Precondition type crash | Task 8: Cache precondition | Unit test: pass dict to precondition loop, verify isinstance dispatch handles it correctly |
+Things that appear complete but are missing critical pieces.
+
+- [ ] **Process cleanup:** Often missing the process group kill -- verify that Chrome subprocesses are killed on timeout, not just the pytest parent process
+- [ ] **Path validation:** Often missing the `is_relative_to()` check -- verify that path traversal payloads return 404, not 200
+- [ ] **Status validation consistency:** Often missing the TypeScript type update -- verify frontend compiles without errors after adding "success" status
+- [ ] **Concurrency limit:** Often missing the Semaphore -- verify that concurrent "Run Code" clicks return 409 instead of spawning multiple processes
+- [ ] **Code availability check:** Often missing the `healing_status` gate -- verify the "View Code" button is disabled while code is being generated
+- [ ] **N+1 query prevention:** Often missing the subquery/join -- verify task list API does not make per-task queries for code availability
+- [ ] **Browser state freshness:** Often missing the fresh storage_state generation -- verify each code run gets a new token, not a cached one
+- [ ] **Output truncation:** Often missing the stdout/stderr size limit -- verify that a verbose test does not cause memory issues
+
+---
 
 ## Sources
 
-- Direct code analysis: `backend/core/precondition_service.py` (ContextWrapper, Jinja2 substitution), `backend/core/external_precondition_bridge.py` (singleton patterns), `backend/core/agent_service.py` (agent step callback), `backend/api/routes/runs.py` (execution pipeline), `backend/db/models.py` (Task model), `backend/db/database.py` (init_db migration pattern), `backend/utils/excel_template.py` (TEMPLATE_COLUMNS), `backend/utils/excel_parser.py` (column mapping)
-- Design documents: `docs/plans/2026-04-11-erp-integration-design.md`, `docs/plans/2026-04-11-erp-integration-impl.md`
-- Previous pitfalls: `.planning/research/PITFALLS.md` (v0.9.0 -- SQLite concurrent writes, browser cleanup patterns)
-- SQLite documentation: ALTER TABLE limitations, busy_timeout, WAL mode single-writer constraint
-- Jinja2 documentation: StrictUndefined behavior, custom variable_start_string/variable_end_string
+- [pytest-timeout subprocess leak issue](https://github.com/pytest-dev/pytest-timeout/issues/159) -- HIGH confidence, official GitHub issue
+- [Playwright zombie processes in production](https://github.com/windmill-labs/windmill/issues/6048) -- HIGH confidence, verified production issue
+- [Playwright Python zombie thread issue](https://github.com/microsoft/playwright-python/issues/2397) -- HIGH confidence, official repo
+- [asyncio.Semaphore does not limit subprocesses](https://stackoverflow.com/questions/72198249/asyncio-semaphore2-does-not-limit-amount-of-subprocesses-to-2) -- MEDIUM confidence, SO verified
+- [CPython ResourceWarning: subprocess is still running](https://github.com/python/cpython/issues/109490) -- HIGH confidence, official CPython issue
+- [FastAPI path traversal CVE-2025-55526](https://www.sentinelone.com/vulnerability-database/cve-2025-55526/) -- HIGH confidence, CVE entry
+- [Path traversal prevention guide](https://directorytraversalattack.hashnode.dev/directory-traversal-attack) -- MEDIUM confidence, community guide
+- [react-syntax-highlighter large file issue](https://github.com/react-syntax-highlighter/react-syntax-highlighter/issues/545) -- HIGH confidence, official GitHub issue
+- [react-syntax-highlighter virtualized renderer](https://github.com/conorhastings/react-syntax-highlighter-virtualized-renderer) -- HIGH confidence, verified solution
+- [SQLite ALTER TABLE limitations](https://stackoverflow.com/questions/9935593/sqlite3-change-column-default-value) -- HIGH confidence, official SQLite docs
+- [Playwright in production memory issues](https://medium.com/@onurmaciit/8gb-was-a-lie-playwright-in-production-c2bdbe4429d6) -- MEDIUM confidence, production experience report
+- Direct code analysis: `backend/core/self_healing_runner.py` (subprocess execution, cleanup), `backend/core/code_generator.py` (code generation), `backend/api/routes/runs.py` (execution pipeline), `backend/db/database.py` (migration pattern), `backend/db/models.py` (schema), `backend/db/schemas.py` (validation), `frontend/src/types/index.ts` (TypeScript types), `frontend/src/components/TaskList/TaskRow.tsx` (UI component)
 
 ---
-*Pitfalls research for: v0.9.1 ERP integration (CacheService, AccountService, TestFlowService, DB migration, Excel template update)*
-*Researched: 2026-04-11*
+*Pitfalls research for: v0.10.4 Playwright code verification and task management UI integration*
+*Researched: 2026-04-23*

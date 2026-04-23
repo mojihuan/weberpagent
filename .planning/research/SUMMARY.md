@@ -1,167 +1,175 @@
 # Project Research Summary
 
-**Project:** aiDriveUITest v0.9.1 -- ERP Integration (CacheService, AccountService, TestFlowService)
-**Domain:** AI-driven UI test automation -- run-scoped caching, multi-role login, test flow orchestration, Excel template extension
-**Researched:** 2026-04-11
+**Project:** aiDriveUITest v0.10.4 -- Playwright Code Verification and Task Management UI
+**Domain:** AI-driven UI test automation -- Playwright code lifecycle (view, execute, verify)
+**Researched:** 2026-04-23
 **Confidence:** HIGH
 
 ## Executive Summary
 
-v0.9.1 adds a coordination layer to the existing aiDriveUITest platform, transforming it from "AI executes what you type" to "AI orchestrates a complete ERP test scenario with proper accounts, cached data references, and post-execution verification." The three new services (CacheService, AccountService, TestFlowService) are built entirely with Python stdlib and already-installed packages -- zero new dependencies. The implementation is an additive, backward-compatible branch: tasks without `login_role` continue using the existing execution path unchanged.
+This is an incremental feature release for an existing AI-driven UI test automation platform. The v0.10.4 milestone adds Playwright code visibility and manual re-execution to the task management workflow. The core challenge is not building new infrastructure -- it is correctly exposing what already exists (SelfHealingRunner subprocess execution, generated code files on disk, Run.healing_status tracking) through new API endpoints and frontend components.
 
-The recommended approach is to build bottom-up by dependency order: CacheService first (pure data primitive, everything depends on it), then AccountService (independent of cache, can be parallelized), then DB migration and Excel template updates (prerequisites for the integration layer), and finally TestFlowService as the orchestration layer that ties everything together. The critical risk is the two execution paths diverging in `run_agent_background()` -- the codebase already has a 340-line function, and adding a parallel path increases maintenance burden. Plan to unify into TestFlowService for all tasks after validation.
+The recommended approach is reuse-heavy: the backend adds two thin endpoints (GET code content, POST execute code) that delegate entirely to existing SelfHealingRunner and filesystem patterns. The frontend adds one new dependency (react-syntax-highlighter for read-only code display) and two new components (CodeViewerModal, RunCodeDialog) that follow established modal patterns. The Task.status extension to include "success" is the most architecturally sensitive change -- research strongly recommends deriving success from Run status rather than extending the Task status enum, to avoid conflating editorial state with execution outcome.
 
-The highest-impact pitfalls involve substitution ordering (Jinja2 StrictUndefined will crash on `{{cached:key}}` if regex replacement does not run first), ContextWrapper lifecycle (separate CacheService instances for preconditions vs assertions causes split-brain state), and step numbering confusion (the AI agent's internal counter starts at 1 regardless of injected login step text). These must be addressed in the TestFlowService wiring phase, not patched later.
+The primary risks are operational, not architectural. Orphaned Chrome processes from subprocess pytest execution can exhaust the 2GB deployment server's memory. Path traversal in the code-serving endpoint could expose secrets. Concurrent "Run Code" clicks without a semaphore gate could crash the server. All three have straightforward mitigations documented in the pitfalls research.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Zero new dependencies. All v0.9.1 capabilities use Python stdlib (dict for cache, dataclasses for DTOs, re for variable substitution, asyncio for concurrency) and already-installed packages (Jinja2 for template substitution, Pydantic for schema validation, SQLAlchemy for DB column addition, openpyxl for Excel template changes). This follows the project's explicit philosophy of minimal dependencies.
+Only one new dependency is needed. The entire backend change reuses stdlib and existing infrastructure.
 
 **Core technologies:**
-- **Python `dict` (stdlib):** CacheService backing store -- single-process, run-scoped, O(1) lookup, GC cleanup, zero config
-- **Python `@dataclass(frozen=True)` (stdlib):** AccountInfo DTO -- immutability enforced at class level, no Pydantic needed for internal DTOs
-- **Python `re` + Jinja2 3.1.6:** Two-phase variable substitution -- regex replaces `{{cached:key}}` first, then Jinja2 handles `{{variable}}`, avoiding StrictUndefined crashes
-- **SQLAlchemy 2.0 `mapped_column(String(20), nullable=True)`:** login_role column on Task model -- backward compatible, existing tasks get NULL
-- **openpyxl 3.1.5:** Excel template update with login_role column and role dropdown validation
+- **react-syntax-highlighter 16.1.1 (Prism build):** Read-only Python code viewer component -- chosen over Monaco/CodeMirror (4MB+ overkill), Shiki (async complexity), and prism-react-renderer (more boilerplate). 40KB gzipped, zero-config line numbers and themes.
+- **@types/react-syntax-highlighter 15.5.13:** TypeScript definitions for the above.
+- **subprocess + asyncio.to_thread (stdlib, existing):** Code execution reuses the established SelfHealingRunner pattern -- no new subprocess code.
+- **pathlib.Path (stdlib, existing):** File reading for code content serving, using `generated_code_path` from the Run model.
 
 ### Expected Features
 
-**Must have (table stakes):**
-- Run-scoped parameter cache (CacheService) -- ERP tests require cross-step data passing; without caching QA must hardcode values
-- Multi-role account login (AccountService) -- real ERP testing requires different accounts for different scenarios (admin, warehouse, buyer)
-- Login step injection -- when a task specifies a role, automatically prepend login steps before user-defined steps
-- Cache reference syntax `{{cached:key}}` -- bridge between precondition-fetched data and AI execution
-- Task model login_role field (DB migration) -- nullable for backward compatibility, existing tasks continue to work
-- Excel template login_role column with dropdown -- parser extracts role, passes to Task creation
-- Frontend login_role dropdown -- human-readable Chinese labels for role names
+**Must have (P1 -- table stakes):**
+- UI-01: Task list "code" column -- icon/badge showing whether a task has generated Playwright code
+- UI-02: View generated code modal -- read-only Python viewer with syntax highlighting and line numbers
+- UI-03: Run code button -- triggers pytest execution via SelfHealingRunner, shows pass/fail result
+- STATUS-01: Task status "success" -- marks task as verified after code execution passes
 
-**Should have (competitive):**
-- TestFlowService orchestration layer -- coordinates the full lifecycle without turning `run_agent_background()` into a 500-line monolith
-- Cache precondition JSON schema -- declarative alternative to Python code for data-fetching preconditions
-- Two-phase variable substitution -- explicit ordering prevents subtle template conflicts
-- Cache verify assertion type -- verify cached values appear in post-execution results
+**Should have (P2 -- differentiators):**
+- Code status badge on task row -- color-coded indicator (green/yellow/red/gray) for code health
+- Inline execution feedback -- real-time pytest output in the code viewer
 
-**Defer (v0.9.x):**
-- Step renumbering logic -- skip the regex complexity if AI Agent handles numbered steps well without it
-- Login step optimization -- current 5-step injection is verbose but reliable
-- Persistent cache across Runs -- stale data risk makes this a non-starter
-
-**Explicitly exclude:**
-- Account management UI (deployment concern, not test authoring)
-- Multi-account concurrent login in a single Run (browser session limitation)
-- Dynamic role resolution from ERP API (chicken-and-egg credential problem)
-- Excel template auto-migration (subtle data loss risks)
+**Defer (v2+):**
+- In-place code editing -- breaks AI-driven workflow; edits get overwritten on re-run
+- Full IDE in browser -- scope creep beyond QA tester needs
+- Automatic status promotion on healing pass -- hides uncertainty from flaky results
 
 ### Architecture Approach
 
-The architecture is a coordinator pattern: TestFlowService orchestrates AccountService (resolve credentials), CacheService (manage cross-step data), PreconditionService (execute setup with cache), AgentService (run AI execution), and AssertionService (verify results including cache values). The key integration point is a branch in `run_agent_background()`: if `task.login_role` is set, delegate to TestFlowService; otherwise, use the existing code path. Each service remains independently testable in isolation.
+The architecture follows a strict reuse pattern. Two new FastAPI endpoints wrap existing infrastructure: GET /runs/{id}/code reads from the filesystem (no database storage of code content), and POST /runs/{id}/run-code delegates to SelfHealingRunner with max_iterations=1 (disabling LLM retry). The frontend adds a CodeViewer/ component folder following the established feature-folder pattern. The TaskResponse gains a computed has_code field from a SQL subquery, avoiding denormalization.
 
 **Major components:**
-1. **CacheService** (~30 lines) -- pure in-memory KV store scoped to a single Run, with `cache()`, `cached()`, `has()`, `all()`, `clear()` methods
-2. **AccountService** (~60 lines) -- reads from `webseleniumerp/config/user_info.py`, maps role names to frozen AccountInfo dataclasses
-3. **TestFlowService** (~80 lines) -- pure coordinator that delegates to all other services; handles login prefix generation, two-phase variable substitution, and assertion orchestration
+1. **CodeViewerModal** -- read-only Python display using react-syntax-highlighter, follows existing modal pattern (ConfirmModal, ImageViewer)
+2. **RunCodeDialog** -- confirmation + execution result display, reuses ConfirmModal + loading state pattern from BatchExecuteDialog
+3. **GET /runs/{id}/code endpoint** -- reads generated_code_path from DB, validates path within outputs/, serves file content as JSON
+4. **POST /runs/{id}/run-code endpoint** -- instantiates SelfHealingRunner, executes pytest, updates Task.status on pass, uses asyncio.Semaphore(1) for concurrency control
 
 ### Critical Pitfalls
 
-1. **Jinja2 StrictUndefined crashes on `{{cached:key}}` syntax** -- The existing `substitute_variables()` uses StrictUndefined. If `{{cached:key}}` reaches Jinja2 before regex replacement, the run fails with UndefinedError. Prevention: the `login_role` branch must skip the existing substitution call entirely and delegate all substitution to TestFlowService, which runs regex replacement before Jinja2.
-
-2. **ContextWrapper split-brain (separate CacheService instances)** -- CacheService is created in multiple places: PreconditionService creates one, the assertion path may create another. Prevention: create ONE CacheService instance at the top of `run_agent_background()` and pass it to all services.
-
-3. **Excel template column change breaks old imports** -- Inserting `login_role` at column 2 shifts all subsequent columns. Old templates fail header validation with cryptic messages. Prevention: either keep `target_url` and add `login_role` as a new column (backward compatible), or provide version-specific error messages explaining what changed.
-
-4. **Precondition type crash (`dict.strip()`)** -- Cache-type preconditions are JSON dicts mixed with existing string preconditions. Calling `.strip()` on a dict raises AttributeError. Prevention: add isinstance dispatch before iterating preconditions.
-
-5. **Account credentials leak into agent logs and database** -- Login step injection puts plain text credentials in the task description, which propagates to step actions, reasoning, and database records. Prevention: post-process step data to redact known credentials before saving.
+1. **Orphaned Chrome processes from subprocess pytest** -- Use `start_new_session=True` + `os.killpg()` for process group kill on timeout. Add `_active_code_runs` tracking dict. Register FastAPI shutdown handler.
+2. **Path traversal in code file serving** -- Never accept raw file paths as API parameters. Resolve from DB, validate with `Path.is_relative_to(OUTPUTS_DIR)`. Only serve .py files.
+3. **Task status "success" conflating editorial state with execution outcome** -- Strongly consider deriving success from latest Run.healing_status instead of extending Task.status. If extending, update ALL validation layers (schema regex, TypeScript type, StatusBadge).
+4. **Concurrent code execution exhausting server memory** -- Use `asyncio.Semaphore(1)`. Return HTTP 409 Conflict for concurrent requests. Debounce frontend button.
+5. **XSS via generated code content** -- Use react-syntax-highlighter (renders text nodes, not raw HTML). Never use dangerouslySetInnerHTML. Set Content-Type to text/plain.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+### Phase 1: Backend Data Layer and API Endpoints
 
-### Phase 1: CacheService + ContextWrapper Integration
-**Rationale:** CacheService is the foundation -- cache preconditions and cache assertions both depend on it. It is also the simplest component (pure data structure, ~30 lines, no external dependencies).
-**Delivers:** In-memory KV cache scoped to a single Run, wired into existing ContextWrapper for precondition access.
-**Addresses:** Table-stakes feature "run-scoped parameter cache"
-**Avoids:** Pitfall 4 (ContextWrapper split-brain) by establishing the shared CacheService pattern from the start
+**Rationale:** Backend changes have zero frontend dependencies and establish the API contract. Building this first allows frontend work to proceed against real endpoints.
+**Delivers:** Two new endpoints, schema extensions, SelfHealingRunner parameterization.
+**Addresses:** UI-02 (code serving), UI-03 (code execution), STATUS-01 (status extension), UI-01 (has_code field).
+**Avoids:** Pitfalls 1 (process group kill), 2 (path validation), 4 (semaphore gate), 9 (SQLite contention), 10 (output truncation).
 
-### Phase 2: AccountService + Settings Update
-**Rationale:** Account resolution is independent of caching -- it reads from `user_info.py` and returns frozen DTOs. Can be developed in parallel with Phase 1 results being validated.
-**Delivers:** Multi-role account resolution, erp_login_url configuration field
-**Addresses:** Table-stakes feature "multi-role account login"
-**Uses:** Python dataclasses (frozen=True), existing sys.path lazy-loading pattern from external_precondition_bridge
+Key changes:
+- Add `max_iterations` parameter to SelfHealingRunner.run()
+- Add GET /runs/{run_id}/code with path traversal protection
+- Add POST /runs/{run_id}/run-code with Semaphore(1) and process group tracking
+- Extend TaskResponse with computed `has_code` field (SQL subquery)
+- Extend Task.status validation to include "success" (or implement derived approach)
+- Add `asyncio.Semaphore(1)` + `_active_code_runs` tracking module
 
-### Phase 3: DB Migration + Excel Template + Frontend Dropdown
-**Rationale:** The login_role field must exist in the database before the Excel parser or frontend form can use it. These three changes are tightly coupled and straightforward (LOW complexity each).
-**Delivers:** Task model login_role column, updated Excel template with role dropdown, frontend role selector
-**Addresses:** Table-stakes features "Task model login_role field", "Excel template login_role column", "Frontend login_role dropdown"
-**Avoids:** Pitfall 3 (old template breakage) by deciding backward-compatibility strategy; Pitfall 6 (SQLite migration race) by following existing init_db() pattern with try/except
+### Phase 2: Frontend Infrastructure and API Integration
 
-### Phase 4: TestFlowService + runs.py Integration
-**Rationale:** The orchestration layer depends on all previous components. This is the highest-risk phase because it touches the existing execution pipeline and must handle substitution ordering, step numbering, credential masking, and backward compatibility.
-**Delivers:** Full test flow orchestration with login injection, two-phase substitution, and cache-aware assertion execution
-**Addresses:** Differentiator "TestFlowService orchestration layer", table-stakes "login step injection" and "cache reference syntax"
-**Avoids:** Pitfall 1 (Jinja2 crash) by controlling substitution order; Pitfall 2 (step numbering) by NOT shifting numbers; Pitfall 5 (credential leak) by adding masking to on_step callback
+**Rationale:** Depends on Phase 1 endpoints being available. Installs the single new dependency and wires up API functions.
+**Delivers:** react-syntax-highlighter installed, TypeScript types updated, API functions ready.
+**Uses:** react-syntax-highlighter, existing lucide-react icons.
+**Implements:** Frontend data layer for code viewing/execution.
 
-### Phase 5: Cache Precondition Type + Cache Verify Assertions
-**Rationale:** Advanced precondition/assertion patterns depend on CacheService working correctly. Deferred until the basic flow is validated end-to-end.
-**Delivers:** JSON-config cache preconditions, cache_verify assertion type
-**Addresses:** Differentiator "cache precondition JSON schema", deferred feature "cache verify assertion type"
-**Avoids:** Pitfall 7 (precondition type crash) by implementing isinstance dispatch for mixed precondition arrays
+Key changes:
+- Install react-syntax-highlighter + @types/react-syntax-highlighter
+- Add `getCode()` and `runCode()` to frontend/src/api/runs.ts
+- Update Task type: add `'success'` to status union, add `has_code?: boolean`
+- Update StatusBadge config for "success" status
+
+### Phase 3: Frontend UI Components
+
+**Rationale:** Depends on Phase 2 for API wiring. Builds the user-facing components.
+**Delivers:** CodeViewerModal, RunCodeDialog, task list "code" column.
+**Addresses:** UI-01, UI-02, UI-03 frontend implementation.
+**Avoids:** Pitfall 5 (XSS via react-syntax-highlighter), Pitfall 6 (large file rendering with line cap), Pitfall 8 (race condition with healing_status gate).
+
+Key changes:
+- Build CodeViewerModal with react-syntax-highlighter Prism build
+- Build RunCodeDialog with confirmation, loading state, result display
+- Add "code" column to TaskTable
+- Add code indicator and view/run buttons to TaskRow
+- Wire Tasks page to host new modals
+
+### Phase 4: Integration and Security Testing
+
+**Rationale:** Validates the full flow end-to-end and catches the "looks done but isn't" items from pitfalls research.
+**Delivers:** E2E tests, security tests, concurrency tests.
+**Addresses:** All pitfalls from the "Looks Done But Isn't" checklist.
+
+Key tests:
+- E2E: task with code -> view code -> verify display
+- E2E: task with code -> run code -> verify status update to "success"
+- Security: path traversal payloads return 404
+- Security: XSS payloads in code content do not execute
+- Concurrency: two simultaneous run-code requests -> one 409
+- Edge case: file not found -> 404 with clear message
+- Edge case: code generation in progress -> button disabled
 
 ### Phase Ordering Rationale
 
-- Dependency chain: CacheService -> ContextWrapper -> PreconditionService -> TestFlowService. Building bottom-up ensures each phase has its dependencies ready.
-- Phases 1 and 2 are independent (cache vs account) but Phase 4 needs both, so they must complete first.
-- Phase 3 (DB + Excel + frontend) is a prerequisite for Phase 4 because TestFlowService branches on `task.login_role`, which must exist in the model.
-- Phase 5 is deliberately last: it adds complexity (JSON precondition parsing, cache verify logic) that should only be built after the basic login_role flow works end-to-end.
+- Phase 1 before Phase 2-3: Backend API contract must exist before frontend can integrate. No mock server needed.
+- Phase 2 before Phase 3: API functions and types must be ready before components consume them.
+- Phase 4 last: Integration testing requires both backend and frontend complete.
+- STATUS-01 in Phase 1: The status extension is a prerequisite for the "mark as success" flow in UI-03.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 4:** Complex integration with the existing execution pipeline. The substitution ordering and step numbering strategies need validation with actual agent runs. Consider running a spike to verify the AI Agent's behavior with injected login steps before committing to the implementation.
-- **Phase 5:** Cache precondition JSON schema design needs validation with real ERP API responses to confirm field extraction patterns work as expected.
+- **Phase 1 (Task status decision):** The choice between deriving success from Run.status vs. extending Task.status is an architectural decision that should be finalized during requirements. Both research files recommend deriving, but the milestone description says "extend status."
+- **Phase 1 (SelfHealingRunner parameterization):** Adding `max_iterations` to an existing class needs careful testing to ensure it doesn't break the self-healing pipeline (which uses max_iterations=3).
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1:** Pure data structure, well-documented Python dict patterns, no external dependencies
-- **Phase 2:** Follows existing lazy-loading pattern from external_precondition_bridge.py
-- **Phase 3:** Follows existing migration pattern from database.py init_db(), standard Excel template and Pydantic schema updates
+- **Phase 2:** Standard npm install + TypeScript type updates. Well-documented patterns.
+- **Phase 3:** Standard React component development following existing project conventions (modal pattern, TaskRow pattern).
+- **Phase 4:** Standard Playwright E2E + security testing patterns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified against pyproject.toml and installed packages. Zero new dependencies confirmed. All version compatibility checked. |
-| Features | HIGH | Based on thorough codebase analysis, existing design docs, and validated webseleniumerp integration patterns. Dependency graph is clear and well-documented. |
-| Architecture | HIGH | Component boundaries and responsibilities are well-defined. Integration points with existing code identified at specific line numbers. The coordinator pattern is straightforward. |
-| Pitfalls | HIGH | Based on direct code analysis of all affected files. Each pitfall references specific line numbers in the codebase. Recovery strategies are practical. |
+| Stack | HIGH | Only one new dependency (react-syntax-highlighter). All alternatives evaluated against specific requirements. Backend uses 100% existing infrastructure. |
+| Features | HIGH | Feature specifications derived from direct codebase analysis. Dependencies mapped with existing code references. Priority matrix based on user value vs. cost. |
+| Architecture | HIGH | Architecture is primarily reuse of existing patterns (SelfHealingRunner, modal components, subprocess execution). All component boundaries mapped to existing files. |
+| Pitfalls | HIGH | Critical pitfalls identified with CVE references, GitHub issues, and direct codebase analysis. Recovery strategies documented. "Looks Done But Isn't" checklist provided. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Login step injection AI reliability:** The design assumes the AI Agent reliably executes the 5-step login sequence. This needs end-to-end validation during Phase 4. If the agent struggles with login, the injection approach may need adjustment (e.g., Playwright API pre-navigation).
-- **Batch execution + login_role interaction:** Batch execution with mixed login_role tasks (some with roles, some without) needs integration testing. The semaphore-based concurrency and per-task account resolution should work independently, but the combined path is untested.
-- **Template migration UX:** The decision between keeping `target_url` for backward compatibility vs. removing it needs a definitive call during Phase 3 planning. The research recommends keeping it, but the design doc removes it.
+- **Task "success" status semantics:** Research recommends deriving from Run.status (Option A), but the milestone says "extend Task.status" (Option C). This decision must be finalized during requirements definition. Option A is cleaner architecturally; Option C is simpler to query.
+- **SelfHealingRunner.run() thread safety:** Adding `max_iterations` parameter and potentially calling run() from a new endpoint context needs verification that the class is stateless between calls or properly resets.
+- **Deployment server memory headroom:** The 2GB server constraint (121.40.191.49) means the Semaphore(1) gate is critical. Verify current memory usage during normal operation to confirm one additional Chrome process (~300MB) fits within available headroom.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Codebase analysis of all affected files (runs.py, precondition_service.py, external_precondition_bridge.py, models.py, database.py, excel_template.py, excel_parser.py)
-- `pyproject.toml` -- verified dependency versions and zero-new-dependency confirmation
-- `docs/plans/2026-04-11-erp-integration-design.md` -- design specifications
-- `docs/plans/2026-04-11-erp-integration-impl.md` -- implementation plan
-- `webseleniumerp/config/user_info.py` -- validated account configuration source
+- Codebase analysis: `backend/core/self_healing_runner.py`, `backend/core/code_generator.py`, `backend/api/routes/runs.py`, `backend/db/models.py`, `backend/db/schemas.py`, `backend/db/repository.py`, `frontend/src/types/index.ts`, `frontend/src/components/TaskList/`
+- [react-syntax-highlighter NPM](https://www.npmjs.com/package/react-syntax-highlighter) -- version 16.1.1, Python support confirmed
+- [pytest-timeout subprocess leak](https://github.com/pytest-dev/pytest-timeout/issues/159) -- orphaned process behavior documented
+- [Playwright Python zombie threads](https://github.com/microsoft/playwright-python/issues/2397) -- server environment issue
+- [FastAPI path traversal CVE-2025-55526](https://www.sentinelone.com/vulnerability-database/cve-2025-55526/) -- exact vulnerability pattern
 
 ### Secondary (MEDIUM confidence)
-- `webseleniumerp/common/file_cache_manager.py` -- JSON file cache being replaced by in-memory approach
-- SQLite WAL mode documentation -- concurrency patterns for parallel browser writes
-- Jinja2 StrictUndefined documentation -- variable substitution behavior under strict mode
-
-### Tertiary (contextual)
-- Previous milestone pitfalls (v0.9.0) -- SQLite concurrent writes, browser cleanup patterns inform v0.9.1 risk assessment
-- PROJECT.md -- "zero new dependencies" decision record and scope boundaries
+- [Shiki vs Prism vs highlight.js comparison](https://www.pkgpulse.com/blog/shiki-vs-prismjs-vs-highlightjs-syntax-highlighting-javascript-2026) -- feature comparison
+- [react-syntax-highlighter large file issue](https://github.com/react-syntax-highlighter/react-syntax-highlighter/issues/545) -- DOM bloat for 500+ lines
+- [Playwright in production memory issues](https://medium.com/@onurmaciit/8gb-was-a-lie-playwright-in-production-c2bdbe4429d6) -- production memory analysis
+- [TestRail Code-first workflow](https://support.testrail.com/hc/en-us/articles/12609674354068-Code-first-workflow) -- competitor reference
+- [FastAPI Background Tasks docs](https://fastapi.tiangolo.com/tutorial/background-tasks/) -- existing async pattern
 
 ---
-*Research completed: 2026-04-11*
+*Research completed: 2026-04-23*
 *Ready for roadmap: yes*

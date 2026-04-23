@@ -1,5 +1,57 @@
 # Project Retrospective
 
+## Milestone: v0.10.3 — DOM 深度修复 - 表格单元格选择精确性
+
+**Shipped:** 2026-04-23
+**Phases:** 3 | **Plans:** 4
+
+### What Was Built
+
+- _td_child_depth helper: 保护 td 内部 div/span 不被 bbox 过滤扁平化（最多 2 层）
+- Patch 8 列标题注入: `_get_column_header` 通过 thead th 位置映射，注入 `<!-- 列: {header} -->` 注释
+- Section 9 全面重写: 四段式交叉定位（定位/操作/验证/异常处理），替代 placeholder 匹配
+- E2E 验证: Agent 正确选择销售金额列而非利润列
+
+### What Worked
+
+- **根因精准定位**: 从 E2E 失败日志直接定位到 `_apply_bounding_box_filtering` 扁平化 td 内部结构
+- **三层修复策略**: DOM Patch (可见性) + 列注释 (上下文) + Prompt (指导)，每层独立可测试
+- **TDD 节奏稳定**: 先写 failing test → implement → pass，4 个 plan 全部按此流程
+
+### What Was Inefficient
+
+- DashScope 账户欠费导致 E2E 不能随时重跑（需充值才能验证）
+- Phase 96 利润列断言逻辑需要一次 fix commit（初始 blanket check 过于严格）
+
+### Patterns Established
+
+- **列注释注入模式**: 通过 DOM 注释向 Agent 传递列位置信息，不修改 Agent 决策逻辑
+- **四段式 Prompt 结构**: 定位→操作→验证→异常恢复，适用于所有 ERP 表格操作场景
+- **td-child depth 限制**: strict less-than 2 层保护，depth 2+ 回退原始逻辑
+
+### Key Lessons
+
+1. browser-use 的 `_apply_bounding_box_filtering` 会将 td 内的 div/span 标记为 `excluded_by_parent`，需要在 monkey-patch 层保护
+2. 列标题注释比 placeholder 匹配更可靠——Ant Design 表格不预渲染 input
+3. success-based 断言比 blanket 禁止检查更稳健——关注正确结果而非禁止错误模式
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: 1 (all 3 phases in single session)
+- Notable: 1 天完成 3 个阶段 4 个计划，含 TDD + E2E 验证
+
+## Cross-Milestone Trends
+
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 |
+|--------|--------|--------|--------|--------|--------|--------|---------|---------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 |
+| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 | 1 (fix commit) |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 |
+
 ## Milestone: v0.10.1 — 代码登录及 Agent 复用登录的浏览器状态
 
 **Shipped:** 2026-04-21
@@ -161,13 +213,4 @@
 - Sessions: 2 (plan + execute)
 - Notable: 极小的里程碑，单阶段单计划，效率高
 
-## Cross-Milestone Trends
-
-| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 |
-|--------|--------|--------|--------|--------|--------|--------|---------|
-| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 |
-| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 |
-| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 |
-| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 |
-| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 |
-| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 |
+## Milestone: v0.9.0 — Excel 批量导入功能开发
