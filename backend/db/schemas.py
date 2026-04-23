@@ -30,7 +30,7 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=1)
     target_url: Optional[str] = Field(None, max_length=500)
     max_steps: Optional[int] = Field(None, ge=1, le=100)
-    status: Optional[str] = Field(None, pattern="^(draft|ready)$")
+    status: Optional[str] = Field(None, pattern="^(draft|ready|success)$")
     preconditions: Optional[List[str]] = Field(None, description="前置条件代码列表")
     assertions: Optional[List[dict[str, Any]]] = Field(None, description="业务断言配置列表")
     login_role: Optional[str] = Field(None, max_length=20)
