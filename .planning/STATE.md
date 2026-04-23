@@ -1,15 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.2
-milestone_name: 测试验证与代码可用性修复
-status: Milestone complete (archived)
-stopped_at: v0.10.2 archived, ready for next milestone
-last_updated: "2026-04-23T01:00:00.000Z"
+milestone: v0.10.3
+milestone_name: DOM 深度修复 - 表格单元格选择精确性
+status: planning
+last_updated: "2026-04-23T02:14:06.085Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 71
+  completed_phases: 62
+  total_plans: 165
+  completed_plans: 169
 ---
 
 # Project State
@@ -19,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Ready for next milestone planning
+**Current focus:** Phase 94 — dom-patch-enhancement
 
 ## Last Shipped
 
@@ -34,9 +33,16 @@ See: .planning/PROJECT.md (updated 2026-04-23)
 
 ## Current Position
 
-Phase: 93 (complete)
-Plan: All plans complete
-Next: Start new milestone via `/gsd:new-milestone`
+Phase: 94 (dom-patch-enhancement) — EXECUTING
+Plan: 2 of 2
+
+## Root Cause
+
+Agent 在 ERP 销售出库表格中反复点击错误的列（利润列而非销售金额列），连续 8 步失败。
+
+**技术根因**: `<td>` 内部子元素在 browser-use `_apply_bounding_box_filtering()` 阶段被 `excluded_by_parent` 标记扁平化。`<div class="ant-table-cell-inner">` 和 `<span>` 的 bbox 99% 在父 `<td>` 内，且不在例外列表中（只有 input/select/textarea/label 豁免）。`dom_patch.py` 的 `_patch_should_exclude_child()` 只保护 `hand` 和 `el-checkbox` CSS 类。
+
+**结果**: DOM dump 中 `<td>` 内部结构不可见，Agent 只看到裸文本值（0.00 vs -24.00），无法区分列。
 
 ## Performance Metrics
 
@@ -54,15 +60,17 @@ Next: Start new milestone via `/gsd:new-milestone`
 
 Key decisions moved to PROJECT.md Key Decisions table.
 
+- [Phase 94]: td-child depth < _MAX_TD_CHILD_DEPTH (strict less-than) protects depth 0-1, depth 2+ uses original logic — 2-layer limit preserves useful td structure without bloating DOM dump
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None — all blockers resolved in v0.10.2.
+- DOM dump 大小需监控，避免 token 膨胀超过 50%
 
 ## Session Continuity
 
-Last session: 2026-04-23
-Status: Milestone v0.10.2 archived, clean slate for next milestone
+Last session: 2026-04-23T02:14:06.080Z
+Status: v0.10.3 milestone created, Phase 94 ready for planning

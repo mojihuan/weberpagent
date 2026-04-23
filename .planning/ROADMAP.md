@@ -23,7 +23,7 @@
 ### 🔵 v0.10.3 DOM 深度修复 - 表格单元格选择精确性 (Phases 94-96)
 
 - [ ] Phase 94: DOM Patch 增强 — td 内部子元素 bbox 保护 + 列标题映射注入 (2/2 plans)
-  - [ ] 94-01-PLAN.md — DEPTH-01: td-child depth helper + _patch_should_exclude_child extension
+  - [x] 94-01-PLAN.md — DEPTH-01: td-child depth helper + _patch_should_exclude_child extension
   - [ ] 94-02-PLAN.md — DEPTH-03: column header injection (Patch 8) + DEPTH-02 regression
 - [ ] Phase 95: Prompt 更新 — Section 9 利用列标题注释 + 深度结构指导
 - [ ] Phase 96: E2E 验证 — 销售出库场景验证 Agent 正确选择列
