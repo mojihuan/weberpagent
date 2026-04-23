@@ -291,6 +291,92 @@ def _td_child_depth(node) -> int | None:
     return None
 
 
+def _get_column_header(td_original) -> str | None:
+    """Find column header text for a td by position index mapping to thead.
+
+    Walks up from td's parent <tr> to find the enclosing <table>, then
+    traverses <thead> -> last <tr> -> <th> children to build header list.
+    Maps the td's position index within its parent <tr> to the corresponding
+    th text.
+
+    Uses the LAST <tr> in <thead> to handle multi-row Ant Design headers
+    (group headers on top, actual column headers on bottom row).
+
+    Args:
+        td_original: An AccessibilityNode (EnhancedDOMTreeNode) with tag_name='td'.
+
+    Returns:
+        Column header text string, or None if not found.
+    """
+    # Step 1: Find td's position index within its parent <tr>
+    parent_tr = getattr(td_original, "parent_node", None)
+    if parent_tr is None:
+        return None
+    tr_tag = getattr(parent_tr, "tag_name", "")
+    if tr_tag.lower() != "tr":
+        return None
+
+    td_index = 0
+    found = False
+    for child in getattr(parent_tr, "children", []):
+        child_tag = getattr(child, "tag_name", "")
+        if child_tag.lower() == "td":
+            if child is td_original:
+                found = True
+                break
+            td_index += 1
+
+    if not found:
+        return None
+
+    # Step 2: Walk up from <tr> to find <table>
+    current = getattr(parent_tr, "parent_node", None)
+    table_node = None
+    while current is not None:
+        tag = getattr(current, "tag_name", "")
+        if tag.lower() == "table":
+            table_node = current
+            break
+        # Limit traversal depth to avoid infinite loops
+        if tag.lower() in ("body", "html"):
+            break
+        current = getattr(current, "parent_node", None)
+
+    if table_node is None:
+        return None
+
+    # Step 3: Find <thead> in table's children
+    thead = None
+    for child in getattr(table_node, "children", []):
+        if getattr(child, "tag_name", "").lower() == "thead":
+            thead = child
+            break
+
+    if thead is None:
+        return None
+
+    # Step 4: Get last <tr> in thead (handles multi-row headers)
+    thead_trs = [
+        c for c in getattr(thead, "children", [])
+        if getattr(c, "tag_name", "").lower() == "tr"
+    ]
+    if not thead_trs:
+        return None
+    last_tr = thead_trs[-1]
+
+    # Step 5: Collect <th> texts and map by index
+    th_texts = []
+    for child in getattr(last_tr, "children", []):
+        if getattr(child, "tag_name", "").lower() == "th":
+            text = child.get_all_children_text()
+            th_texts.append(text.strip() if text else "")
+
+    if td_index < len(th_texts):
+        header = th_texts[td_index]
+        return header if header else None
+    return None
+
+
 def _is_erp_table_cell_input(node) -> bool:
     """Check if a SimplifiedNode is an ERP table cell input with relevant placeholder.
 
@@ -373,7 +459,7 @@ def _patch_is_interactive() -> None:
 def apply_dom_patch() -> None:
     """Apply monkey-patches to browser-use DOM serializer.
 
-    Patches 6 mechanisms:
+    Patches 7 mechanisms:
     1. ClickableElementDetector.is_interactive - marks ERP elements (ERP CSS
        classes and <td> cells with text) as interactive so they receive
        clickable indices.
@@ -389,6 +475,8 @@ def apply_dom_patch() -> None:
        in DOM dump (fixes click-to-edit cell visibility).
     6. DOMTreeSerializer.serialize_tree - inject row identity comments (Patch 6)
        and failure/strategy annotations (Patch 7) into DOM dump output.
+    7. DOMTreeSerializer.serialize_tree - inject column header comments (Patch 8)
+       above <td> elements mapping td position to thead th text.
 
     Idempotent: multiple calls are safe and only patch once.
     """
@@ -572,6 +660,12 @@ def _patch_serialize_tree_annotations() -> None:
                 lines.append(f'{depth_str}<!-- 行: {row_id} -->')
 
         lines.append(result)
+
+        # --- Patch 8: Column header comment for <td> ---
+        if tag == 'td':
+            header = _get_column_header(orig)
+            if header:
+                lines.insert(len(lines) - 1, f'{depth_str}<!-- 列: {header} -->')
 
         # --- Patch 7: Failure + strategy annotation ---
         # Only for ERP inputs that appear in _failure_tracker (D-04)
