@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v0.10.4 Playwright 代码验证与任务管理集成** — Phases 97-98 (in progress)
 - ✅ **v0.10.3 DOM 深度修复 - 表格单元格选择精确性** — Phases 94-96 (shipped 2026-04-23)
 - ✅ **v0.10.2 测试验证与代码可用性修复** — Phases 90-93 (shipped 2026-04-23)
 - ✅ **v0.10.1 代码登录及 Agent 复用登录的浏览器状态** — Phases 86-89 (shipped 2026-04-21)
@@ -19,6 +20,19 @@
 - ✅ **v0.6.2 回归原生 browser-use** — Phases 45-47 (shipped 2026-03-27)
 
 ## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+### 🚧 v0.10.4 Playwright 代码验证与任务管理集成 (In Progress)
+
+**Milestone Goal:** 验证生成的 Playwright 代码可执行测试任务，并在任务管理中提供代码查看和运行能力
+
+- [ ] **Phase 97: 后端 API** — 代码查看/执行 API + 任务状态扩展
+- [ ] **Phase 98: 前端 UI** — 代码列/查看器/执行按钮 + 状态徽章
 
 <details>
 <summary>✅ v0.10.3 DOM 深度修复 - 表格单元格选择精确性 (Phases 94-96) — SHIPPED 2026-04-23</summary>
@@ -162,15 +176,45 @@
 
 </details>
 
-<details>
-<summary>✅ v0.10.2 测试验证与代码可用性修复 (Phases 90-93) — SHIPPED 2026-04-23</summary>
+## Phase Details
 
-- [x] Phase 90: 过时测试清理 (2/2 plans) — completed 2026-04-21
-- [x] Phase 91: 测试代码修复 (2/2 plans) — completed 2026-04-21
-- [x] Phase 92: DataMethodError 修复 (2/2 plans) — completed 2026-04-21
-- [x] Phase 93: 端到端可用性验证 (1/1 plan) — completed 2026-04-22
+### Phase 97: 后端 API
+**Goal**: QA 可以通过 API 查看已生成的 Playwright 代码内容，触发 pytest 执行，并获取执行结果（包含成功/失败状态）
+**Depends on**: Phase 96 (v0.10.3 completed)
+**Requirements**: CODE-01, CODE-02, CODE-03, STATUS-01
+**Success Criteria** (what must be TRUE):
+  1. GET /runs/{run_id}/code 返回该 run 生成的 Python 代码文件内容（文本格式，带行号信息）
+  2. POST /runs/{run_id}/execute-code 触发 pytest 执行，复用 SelfHealingRunner（storage_state 注入 + 超时保护），返回执行 ID
+  3. 代码执行完成后，GET /runs/{run_id} 返回 healing_status="success"/"failed" 和 healing_error 错误信息
+  4. 代码执行成功时，对应 Task.status 自动更新为 "success"
+  5. 并发执行请求返回 HTTP 409，防止服务器内存耗尽
+**Plans**: 2 plans
 
-</details>
+Plans:
+- [x] 97-01-PLAN.md -- GET /code endpoint + schema expansion + CODE-01 tests
+- [ ] 97-02-PLAN.md -- POST /execute-code + concurrency guard + status auto-update + CODE-02/03/STATUS-01 tests
+
+### Phase 98: 前端 UI
+**Goal**: QA 在任务列表中能看到哪些任务有可用代码，点击即可查看代码或运行 Playwright 测试
+**Depends on**: Phase 97
+**Requirements**: UI-01, UI-02, UI-03
+**Success Criteria** (what must be TRUE):
+  1. 任务列表 TaskTable 新增"代码"列，有代码的任务显示可用标识，无代码的任务显示灰色占位
+  2. 点击"查看代码"按钮打开 CodeViewerModal，以语法高亮 + 行号方式只读展示 Python 代码
+  3. 点击"运行代码"按钮触发 Playwright 执行，显示执行状态（等待/运行中/成功/失败），执行失败时展示错误信息
+  4. Task.status 为 "success" 时，StatusBadge 显示绿色"成功"标签
+**Plans**: TBD
+**UI hint**: yes
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 97 → 98
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 97. 后端 API | v0.10.4 | 1/2 | In Progress|  |
+| 98. 前端 UI | v0.10.4 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-23 -- v0.10.3 shipped*
+*Roadmap updated: 2026-04-23 -- Phase 97 plans created (2 plans)*

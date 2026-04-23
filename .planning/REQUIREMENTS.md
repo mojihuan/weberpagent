@@ -1,58 +1,67 @@
-# Requirements: v0.10.2 测试验证与代码可用性修复
+# Requirements: aiDriveUITest v0.10.4
 
-## Active
+**Defined:** 2026-04-23
+**Core Value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
 
-### 过时测试清理 (CLEAN) — 执行优先
+## v0.10.4 Requirements
 
-- [x] **CLEAN-01**: 识别并删除不再需要的测试文件 — 无法修复或与当前架构不符的过时测试（先清理再修复，避免修复了后面会被删除的测试）
-- [x] **CLEAN-02**: 清理测试隔离问题 — 修复跨测试状态泄漏、共享 fixture 问题
+### 代码执行验证 (CODE)
 
-### 测试代码修复 (TEST)
+- [x] **CODE-01**: GET /runs/{run_id}/code 返回已生成的 Playwright 代码文件内容（从 Run.generated_code_path 读取）
+- [ ] **CODE-02**: POST /runs/{run_id}/execute-code 触发 pytest 执行，复用 SelfHealingRunner 基础设施（storage_state 注入 + 超时保护）
+- [ ] **CODE-03**: 代码执行结果（成功/失败/错误信息/耗时）可通过 GET /runs/{run_id} 获取，包含 healing_status 和 healing_error 字段
 
-- [x] **TEST-01**: 修复 Import Error 测试 — 引用已删除/重构模块的测试文件更新或删除
-- [x] **TEST-02**: 修复外部断言桥接测试 — mock 目标路径与当前代码对齐 (test_external_assertion_bridge.py)
-- [x] **TEST-03**: 修复 auth_service 测试 — 重构后测试 mock 路径更新 (test_auth_service.py)
-- [x] **TEST-04**: 修复 precondition_service 测试 — mock 目标与当前 execute_data_method_sync 路径一致 (test_precondition_service.py)
-- [x] **TEST-05**: 修复其他零散失败测试 — agent_service, self_healing_runner, llm_healer, browser_cleanup, repository 等
+### 任务管理 UI (UI)
 
-### DataMethodError 修复 (DATA)
+- [ ] **UI-01**: 任务列表 TaskTable 新增"代码"列，通过 latest run 的 generated_code_path 判断是否显示代码可用标识
+- [ ] **UI-02**: "查看代码"按钮 — 打开 CodeViewerModal 只读显示 Python 代码，使用 react-syntax-highlighter 语法高亮，显示行号
+- [ ] **UI-03**: "运行代码"按钮 — 在 CodeViewerModal 内触发 Playwright 执行，异步反馈执行状态（等待/运行中/成功/失败），显示错误信息
 
-- [x] **DATA-01**: 诊断 PcImport 混淆方法名失效根因 — webseleniumerp 上游更新后方法名变化导致前置条件执行失败
-- [x] **DATA-02**: 实现方法名自动发现或动态映射 — 避免硬编码混淆方法名，降低上游更新影响
+### 任务状态 (STATUS)
 
-### 端到端可用性验证 (E2E)
+- [ ] **STATUS-01**: Task.status 扩展为 draft/ready/success 三种状态，success 由系统在 Playwright 代码执行成功后自动设置，前端 StatusBadge 显示"成功"标签（绿色）
 
-- [x] **E2E-01**: 验证自然语言→AI 执行→报告全链路可用 — 在服务器上执行完整测试流程
-- [x] **E2E-02**: 验证前置条件系统正常工作 — context.get_data() 调用链路修复后可用
-- [x] **E2E-03**: 验证断言系统正常工作 — 业务断言执行链路完整
+## Future Requirements
 
-## Future Requirements (Deferred)
+### 代码管理
 
-- PreSubmitGuard DOM 值提取 — actual_values=None，需实现 DOM 值读取
-- 性能优化 — 测试运行速度、并发稳定性
+- **CODE-EDIT-01**: 在线编辑生成的 Playwright 代码（当前只读查看）
+- **CODE-DIFF-01**: 查看 Agent 生成代码与 LLM 修复代码的 diff
+- **CODE-CLEANUP-01**: 过期生成代码文件自动清理策略
+
+### 高级执行
+
+- **EXEC-CONCURRENT-01**: 多任务并发代码执行（Semaphore 控制）
+- **EXEC-SCHEDULE-01**: 定时执行 Playwright 代码
+- **EXEC-REPORT-01**: 代码执行结果生成独立报告
 
 ## Out of Scope
 
-- 新功能开发 — 本里程碑只做验证和修复
-- 架构重构 — 不改变现有模块结构
-- webseleniumerp 混淆策略修改 — 上游项目决定混淆方式，不在本项目中改变
+| Feature | Reason |
+|---------|--------|
+| 在线代码编辑器 (Monaco/CodeMirror) | 当前只需只读查看，4MB+ bundle 不值得 |
+| 代码版本管理 | 过度设计，当前生成即最终版本 |
+| 多用户并发执行保护 | 单用户本地使用，Semaphore(1) 足够 |
+| 代码执行定时任务 | 非核心需求，推迟到有实际需求 |
+| 批量代码执行 | 复杂度高，当前场景为单任务验证 |
 
 ## Traceability
 
-| REQ-ID | Phase | Status |
-|--------|-------|--------|
-| CLEAN-01 | Phase 90 | Complete |
-| CLEAN-02 | Phase 90 | Complete |
-| TEST-01 | Phase 91 | Complete |
-| TEST-02 | Phase 91 | Complete |
-| TEST-03 | Phase 91 | Complete |
-| TEST-04 | Phase 91 | Complete |
-| TEST-05 | Phase 91 | Complete |
-| DATA-01 | Phase 92 | Complete |
-| DATA-02 | Phase 92 | Complete |
-| E2E-01 | Phase 93 | Complete |
-| E2E-02 | Phase 93 | Complete |
-| E2E-03 | Phase 93 | Complete |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CODE-01 | Phase 97 | Complete |
+| CODE-02 | Phase 97 | Pending |
+| CODE-03 | Phase 97 | Pending |
+| STATUS-01 | Phase 97 | Pending |
+| UI-01 | Phase 98 | Pending |
+| UI-02 | Phase 98 | Pending |
+| UI-03 | Phase 98 | Pending |
+
+**Coverage:**
+- v0.10.4 requirements: 7 total
+- Mapped to phases: 7
+- Unmapped: 0
 
 ---
-*Requirements defined: 2026-04-21 — v0.10.2 milestone*
+*Requirements defined: 2026-04-23*
+*Last updated: 2026-04-23 after roadmap creation*

@@ -1,14 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.3
-milestone_name: DOM 深度修复 - 表格单元格选择精确性
-status: shipped
-last_updated: "2026-04-23T08:20:00.000Z"
+milestone: v0.10.4
+milestone_name: Playwright 代码验证与任务管理集成
+status: Ready to execute
+stopped_at: Completed 97-01-PLAN.md
+last_updated: "2026-04-23T12:54:24.634Z"
 progress:
-  total_phases: 73
-  completed_phases: 68
-  total_plans: 171
-  completed_plans: 171
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 97 — api
 
 ## Last Shipped
 
@@ -32,21 +33,34 @@ See: .planning/PROJECT.md (updated 2026-04-23)
 
 ## Current Position
 
-Phase: —
-Status: Between milestones
+Phase: 97 (api) — EXECUTING
+Plan: 2 of 2
 
-## Performance Metrics
+## Accumulated Context
 
-**Velocity:**
+### Decisions
 
-- v0.10.3: 3 phases, 4 plans (2026-04-23)
-- v0.10.2: 4 phases, 7 plans (2026-04-23)
-- v0.10.1: 4 phases, 6 plans (2026-04-21)
-- v0.10.0: 4 phases, 7 plans (2026-04-18)
-- v0.9.2: 3 phases, 4 plans (2026-04-17)
-- v0.9.1: 5 phases, 7 plans (2026-04-12)
+Recent decisions affecting current work:
+
+- SelfHealingRunner is fully reusable for code execution endpoint (no new subprocess infrastructure)
+- Task.status String(20) already supports "success" value, no DB migration needed
+- has_code should be computed at read time from latest run's generated_code_path (no denormalization)
+- react-syntax-highlighter (Prism build) chosen for read-only code display (40KB gzipped, zero-config)
+- asyncio.Semaphore(1) for concurrent code execution protection on 2GB server
+- [Phase 97-api]: Used FastAPI app.dependency_overrides instead of patch() for test injection
+- [Phase 97-api]: Path traversal check runs before file existence in _validate_code_path
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+- Orphaned Chrome processes from subprocess pytest — need start_new_session=True + os.killpg() process group kill
+- Path traversal risk in code-serving endpoint — must validate resolved path is within outputs/
 
 ## Session Continuity
 
-Last session: 2026-04-23T08:20:00.000Z
-Status: v0.10.3 shipped, ready for next milestone
+Last session: 2026-04-23T12:54:24.632Z
+Stopped at: Completed 97-01-PLAN.md
+Resume file: None
