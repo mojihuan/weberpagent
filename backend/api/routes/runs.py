@@ -25,8 +25,10 @@ from backend.db.schemas import (
     SSEErrorEvent,
     SSEPreconditionEvent,
     SSEAssertionEvent,
+    TaskUpdate,
 )
 from backend.core.agent_service import AgentService
+from backend.core.self_healing_runner import SelfHealingRunner
 from backend.core.event_manager import event_manager
 from backend.core.report_service import ReportService
 from backend.core.assertion_service import AssertionService
@@ -35,6 +37,10 @@ from backend.core.external_precondition_bridge import execute_all_assertions
 from backend.db.repository import AssertionResultRepository, PreconditionResultRepository
 
 logger = logging.getLogger(__name__)
+
+# Module-level concurrency guard for code execution (per D-08)
+_code_execution_semaphore = asyncio.Semaphore(1)
+_active_code_execution: dict[str, str] = {}  # run_id -> started_at ISO
 
 
 def _sanitize_variables(variables: dict) -> dict:
@@ -92,6 +98,64 @@ def _validate_code_path(code_path: str) -> Path:
     if not resolved.exists():
         raise HTTPException(status_code=404, detail="代码文件不存在")
     return resolved
+
+
+async def _execute_code_background(
+    run_id: str,
+    test_file_path: str,
+    login_role: str,
+    task_id: str,
+) -> None:
+    """Background task: run SelfHealingRunner and update healing status + Task status.
+
+    Per D-04: reuses SelfHealingRunner.run() completely.
+    Per D-06: updates healing_status field (pending -> healing -> passed/failed).
+    Per D-09: updates Task.status = "success" on passed result.
+    """
+    async with _code_execution_semaphore:
+        _active_code_execution[run_id] = datetime.now().isoformat()
+        try:
+            runner = SelfHealingRunner(get_llm_config())
+            result = await runner.run(
+                run_id=run_id,
+                test_file_path=test_file_path,
+                login_role=login_role,
+                base_dir="outputs",
+            )
+            # Update healing status (D-06)
+            async with async_session() as session:
+                run_repo = RunRepository(session)
+                await run_repo.update_healing_status(
+                    run_id=run_id,
+                    status=result.final_status,
+                    attempts=result.attempts,
+                    error=result.error_message or None,
+                    code_path=result.repaired_code_path or None,
+                )
+                # D-09: Update Task.status on success
+                if result.final_status == "passed":
+                    task_repo = TaskRepository(session)
+                    await task_repo.update(task_id, TaskUpdate(status="success"))
+            logger.info(
+                f"[{run_id}] 代码执行完成: status={result.final_status}, "
+                f"attempts={result.attempts}"
+            )
+        except Exception as e:
+            logger.error(f"[{run_id}] 代码执行后台任务异常: {e}", exc_info=True)
+            # Ensure healing status reflects failure
+            try:
+                async with async_session() as session:
+                    run_repo = RunRepository(session)
+                    await run_repo.update_healing_status(
+                        run_id=run_id,
+                        status="failed",
+                        attempts=0,
+                        error=str(e)[:2000],
+                    )
+            except Exception:
+                pass  # Non-blocking
+        finally:
+            _active_code_execution.pop(run_id, None)
 
 
 async def run_agent_background(
@@ -689,6 +753,50 @@ async def get_run_code(
     content = resolved.read_text(encoding="utf-8")
     formatted = _format_code_with_line_numbers(content)
     return PlainTextResponse(formatted)
+
+
+@router.post("/{run_id}/execute-code", status_code=202)
+async def execute_run_code(
+    run_id: str,
+    background_tasks: BackgroundTasks,
+    run_repo: RunRepository = Depends(get_run_repo),
+):
+    """触发 Playwright 代码执行 (CODE-02)"""
+    # Pre-check 1: run exists
+    run = await run_repo.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="执行记录不存在")
+
+    # Pre-check 2: has generated code
+    if not run.generated_code_path:
+        raise HTTPException(status_code=400, detail="该执行记录无生成代码")
+
+    # Pre-check 3: task has login_role (per D-07)
+    async with async_session() as session:
+        run_with_task = await RunRepository(session).get_with_task(run_id)
+    task = run_with_task.task if run_with_task else None
+    if not task or not task.login_role:
+        raise HTTPException(status_code=400, detail="任务未配置登录角色，无法执行")
+
+    # Pre-check 4: concurrent execution (per D-08)
+    if run_id in _active_code_execution:
+        raise HTTPException(status_code=409, detail="已有代码执行正在进行中，请稍后重试")
+
+    # Update healing_status to "healing" before starting (D-06)
+    async with async_session() as session:
+        repo = RunRepository(session)
+        await repo.update_healing_status(run_id, status="healing", attempts=0)
+
+    # Launch background execution
+    background_tasks.add_task(
+        _execute_code_background,
+        run_id=run_id,
+        test_file_path=run.generated_code_path,
+        login_role=task.login_role,
+        task_id=task.id,
+    )
+
+    return {"run_id": run_id, "status": "healing"}
 
 
 @router.get("/{run_id}/stream")
