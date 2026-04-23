@@ -15,19 +15,9 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.2 测试验证与代码可用性修复 (in progress)
+**最新版本:** v0.10.2 测试验证与代码可用性修复 (shipped 2026-04-23)
 **Server online**: 121.40.191.49
-**当前进度:** Phase 91 完成 — 测试代码修复（876 passed, 0 failed, 0 errors, 1 xfailed）
-
-## Current Milestone: v0.10.2 测试验证与代码可用性修复
-
-**Goal:** 验证前面阶段任务的完成度，更新过时的测试代码，修复反复出现的 DataMethodError，确保代码可用性。
-
-**Target features:**
-- DataMethodError 修复 — webseleniumerp 混淆方法名变化导致的 'ImportApi' object has no attribute 错误
-- 测试代码清理 — 更新过时测试使其与当前业务代码一致，防止错误修改正确代码
-- 阶段完成度验证 — 验证 v0.8~v0.10.1 各阶段的实际交付状态
-- 代码可用性验证 — 确保端到端流程（自然语言 → AI 执行 → 报告）可用
+**当前进度:** v0.10.2 已归档，准备下一个里程碑
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -45,6 +35,12 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 ## Requirements
 
 ### Validated
+
+**v0.10.2 测试验证与代码可用性修复 (2026-04-23):**
+- ✓ CLEAN-01/02: 删除 37 过时测试文件 + autouse cache reset fixtures — Phase 90
+- ✓ TEST-01~05: 全量测试套件 876 passed, 0 failed, 0 errors — Phase 91
+- ✓ DATA-01/02: Docstring 方法映射 + ImportApi 别名修补，上游混淆名变化不再破坏前置条件 — Phase 92
+- ✓ E2E-01/02/03: 自然语言→AI 执行→报告全链路验证通过 + 3 个 E2E 回归测试 — Phase 93
 
 **v0.8.1 修复销售出库表格填写问题 (2026-04-06):**
 - ✓ DOM-PATCH-01: td cell 文本内容检测 + ERP 表格 input 可见性 patch — Phase 62
@@ -154,8 +150,7 @@ v0.1-v0.4.2 核心功能:
 ### Backlog
 
 - PreSubmitGuard DOM 值提取 — 当前 actual_values=None，需实现 DOM 值读取才能主动拦截
-- 5 个预先存在的测试隔离问题 (test_external_bridge, test_browser_cleanup 等) — Phase 90 已清理，Phase 91 修复完成
-- DataMethodError: webseleniumerp 混淆方法名变化 — Phase 92 待处理
+- 4/81 assertion api_attrs 无法匹配 (bidding/fulfillment 模块类数多于 _module_map 条目) — 未来优化
 
 ### Out of Scope
 
@@ -169,6 +164,10 @@ v0.1-v0.4.2 核心功能:
 - 后端 FastAPI + Python
 - 前端 React + Vite + Tailwind
 - 数据库 SQLite (aiosqlite)
+
+**代码质量:**
+- 测试套件: 891 tests (876 unit/integration + 3 e2e + 12 xfailed), 0 failed, 0 errors
+- E2E 回归测试: 3 个覆盖完整链路
 
 **技术栈:**
 | 层级 | 技术 |
@@ -208,10 +207,15 @@ v0.1-v0.4.2 核心功能:
 | localStorage 注入不可行 | Vuex/Pinia store 初始化后才读 localStorage，router guard 检查 store | ✓ Good |
 | storage_state 构造内联到 self_healing_runner | 消费者唯一，保持模块解耦 | ✓ Good |
 | browser-use page.evaluate 返回复杂对象为 string | 用 JSON.stringify + json.loads 序列化 | ✓ Good |
+| Docstring first-line 作为稳定方法标识符 | webseleniumerp 混淆名变化不影响 docstring | ✓ Good |
+| Runtime ImportApi._module_map alias patching | 不侵入上游代码，运行时修补 | ✓ Good |
+| 三阶段 alias patching (remap + scan params + scan assertions) | 处理上游全量重新混淆 | ✓ Good |
+| 前置条件变量序列化过滤非 JSON-safe 类型 | 防止 SSE/DB 序列化崩溃 | ✓ Good |
+| httpx AsyncClient + ASGITransport 进程内 E2E 测试 | 无需真实服务器，快速可靠 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-21 Phase 91 complete*
+*Last updated: 2026-04-23 after v0.10.2 milestone*

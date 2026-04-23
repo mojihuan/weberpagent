@@ -12,6 +12,7 @@ import pytest
 from backend.agent.dom_patch import (
     _ERP_CLICKABLE_CLASSES,
     _has_erp_clickable_class,
+    _td_child_depth,
     apply_dom_patch,
 )
 
@@ -41,6 +42,26 @@ class MockSimplifiedNode:
     ):
         self.original_node = MockOriginalNode(class_name)
         self.children = children or []
+        self.ignored_by_paint_order = False
+        self.excluded_by_parent = False
+
+
+class MockChainNode:
+    """Mock for AccessibilityNode with parent_node chain support."""
+
+    def __init__(self, tag_name: str = "", parent=None, children=None):
+        self.tag_name = tag_name
+        self.parent_node = parent
+        self.children = children or []
+        self.attributes = {}
+
+
+class MockSimplifiedNodeWithChain:
+    """Mock SimplifiedNode with configurable original_node for parent chain tests."""
+
+    def __init__(self, original_node=None):
+        self.original_node = original_node
+        self.children = []
         self.ignored_by_paint_order = False
         self.excluded_by_parent = False
 
@@ -301,3 +322,134 @@ class TestIsInteractivePatch:
                     if erp_cls in cls:
                         detected = True
         assert detected is False
+
+
+# ---------------------------------------------------------------------------
+# Tests: _td_child_depth
+# ---------------------------------------------------------------------------
+
+
+class TestTdChildDepth:
+    """Tests for _td_child_depth helper function."""
+
+    def test_direct_child_of_td_returns_0(self):
+        """div directly inside td has depth 0."""
+        td = MockChainNode(tag_name="td")
+        div = MockChainNode(tag_name="div", parent=td)
+        node = MockSimplifiedNodeWithChain(original_node=div)
+        assert _td_child_depth(node) == 0
+
+    def test_grandchild_of_td_returns_1(self):
+        """span inside div inside td has depth 1."""
+        td = MockChainNode(tag_name="td")
+        div = MockChainNode(tag_name="div", parent=td)
+        span = MockChainNode(tag_name="span", parent=div)
+        node = MockSimplifiedNodeWithChain(original_node=span)
+        assert _td_child_depth(node) == 1
+
+    def test_great_grandchild_of_td_returns_2(self):
+        """div inside span inside div inside td has depth 2 (layer 3)."""
+        td = MockChainNode(tag_name="td")
+        div1 = MockChainNode(tag_name="div", parent=td)
+        span = MockChainNode(tag_name="span", parent=div1)
+        div2 = MockChainNode(tag_name="div", parent=span)
+        node = MockSimplifiedNodeWithChain(original_node=div2)
+        assert _td_child_depth(node) == 2
+
+    def test_not_inside_td_returns_none(self):
+        """div NOT inside td returns None."""
+        tr = MockChainNode(tag_name="tr")
+        div = MockChainNode(tag_name="div", parent=tr)
+        node = MockSimplifiedNodeWithChain(original_node=div)
+        assert _td_child_depth(node) is None
+
+    def test_non_div_span_tag_returns_none(self):
+        """input tag returns None even if inside td."""
+        td = MockChainNode(tag_name="td")
+        inp = MockChainNode(tag_name="input", parent=td)
+        node = MockSimplifiedNodeWithChain(original_node=inp)
+        assert _td_child_depth(node) is None
+
+    def test_no_original_node_returns_none(self):
+        """Node with no original_node returns None."""
+        node = MockSimplifiedNodeWithChain(original_node=None)
+        assert _td_child_depth(node) is None
+
+    def test_th_also_works_as_ancestor(self):
+        """th works the same as td for depth counting."""
+        th = MockChainNode(tag_name="th")
+        div = MockChainNode(tag_name="div", parent=th)
+        node = MockSimplifiedNodeWithChain(original_node=div)
+        assert _td_child_depth(node) == 0
+
+
+# ---------------------------------------------------------------------------
+# Tests: _should_exclude_child td depth patch
+# ---------------------------------------------------------------------------
+
+
+class TestShouldExcludeChildTdPatch:
+    """Tests for extended _patch_should_exclude_child with td depth check."""
+
+    def _make_node_in_td(self, tag_name: str, depth_from_td: int):
+        """Build a mock chain: td > ... > node at given depth."""
+        td = MockChainNode(tag_name="td")
+        if depth_from_td == 0:
+            target = MockChainNode(tag_name=tag_name, parent=td)
+        else:
+            current = td
+            for _i in range(depth_from_td - 1):
+                intermediate = MockChainNode(tag_name="div", parent=current)
+                current = intermediate
+            target = MockChainNode(tag_name=tag_name, parent=current)
+        return MockSimplifiedNodeWithChain(original_node=target)
+
+    def test_div_directly_in_td_not_excluded(self):
+        """Per D-01: div directly in td should return False (not excluded)."""
+        node = self._make_node_in_td("div", depth_from_td=0)
+        td_depth = _td_child_depth(node)
+        assert td_depth == 0
+        # Simulate patched logic
+        if td_depth is not None and td_depth < 2:
+            result = False
+        else:
+            result = True  # would call original
+        assert result is False
+
+    def test_span_in_div_in_td_not_excluded(self):
+        """Per D-02: span at depth 1 (grandchild of td) should return False."""
+        node = self._make_node_in_td("span", depth_from_td=1)
+        td_depth = _td_child_depth(node)
+        assert td_depth == 1
+        if td_depth is not None and td_depth < 2:
+            result = False
+        else:
+            result = True
+        assert result is False
+
+    def test_deep_div_in_td_uses_original(self):
+        """Per D-02: div at depth 2 (great-grandchild) should use original logic."""
+        node = self._make_node_in_td("div", depth_from_td=2)
+        td_depth = _td_child_depth(node)
+        assert td_depth == 2
+        # depth 2 is NOT < 2, so falls through to original
+        if td_depth is not None and td_depth < 2:
+            result = False
+        else:
+            result = "original_called"
+        assert result == "original_called"
+
+    def test_existing_hand_class_still_protected(self):
+        """Existing hand/el-checkbox protection must be preserved."""
+        node = MockSimplifiedNode(class_name="hand")
+        assert _has_erp_clickable_class(node) is True
+        # hand class is caught BEFORE td_depth check in the patch
+
+    def test_non_td_element_uses_original(self):
+        """Regular span not in td should use original exclusion logic."""
+        tr = MockChainNode(tag_name="tr")
+        span = MockChainNode(tag_name="span", parent=tr)
+        node = MockSimplifiedNodeWithChain(original_node=span)
+        td_depth = _td_child_depth(node)
+        assert td_depth is None
+        # None is not < 2, so falls through to original

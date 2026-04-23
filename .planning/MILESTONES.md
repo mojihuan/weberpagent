@@ -1,5 +1,21 @@
 # Milestones
 
+## v0.10.2 测试验证与代码可用性修复 (Shipped: 2026-04-23)
+
+**Phases completed:** 4 phases, 7 plans, 13 tasks
+
+**Key accomplishments:**
+
+- Deleted 37 obsolete test files and 4 stale test methods, eliminating all ImportError errors from the pytest suite
+- Audited all 8 test files with autouse fixtures and added 2 missing get_settings cache reset fixtures for hermetic test isolation
+- Top-level conftest.py with db_session fixture and autouse cache reset, plus alignment of 4 test files with current execute_assertion_method (headers as string identifier, GROUP_RULES priority)
+- sys.modules/sys.path cleanup fixtures, bridge early-return guard, and repository assertions pop -- achieving 876 passed, 0 failed, 0 errors
+- Docstring-based method discovery with ImportApi._module_map alias patching to resolve webseleniumerp obfuscated method name changes
+- Add docstring_id field to data methods API response with Optional[str] backward compatibility
+- E2E tests validating full pipeline (task -> run -> report), docstring method mapping, and PcAssert assertion execution with three-phase ImportApi alias patching fix
+
+---
+
 ## v0.10.1 代码登录及 Agent 复用登录的浏览器状态 (Shipped: 2026-04-21)
 
 **Phases completed:** 4 phases, 6 plans, 12 tasks

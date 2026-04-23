@@ -2,6 +2,8 @@
 
 ## Milestones
 
+- 🔵 **v0.10.3 DOM 深度修复 - 表格单元格选择精确性** — Phases 94-96 (in progress)
+- ✅ **v0.10.2 测试验证与代码可用性修复** — Phases 90-93 (shipped 2026-04-23)
 - ✅ **v0.10.1 代码登录及 Agent 复用登录的浏览器状态** — Phases 86-89 (shipped 2026-04-21)
 - ✅ **v0.10.0 Agent 执行速度优化** — Phases 82-85 (shipped 2026-04-18)
 - ✅ **v0.9.2 Cookie 预注入免登录** — Phases 79-81 (shipped 2026-04-17)
@@ -17,6 +19,24 @@
 - ✅ **v0.6.2 回归原生 browser-use** — Phases 45-47 (shipped 2026-03-27)
 
 ## Phases
+
+### 🔵 v0.10.3 DOM 深度修复 - 表格单元格选择精确性 (Phases 94-96)
+
+- [ ] Phase 94: DOM Patch 增强 — td 内部子元素 bbox 保护 + 列标题映射注入 (2/2 plans)
+  - [ ] 94-01-PLAN.md — DEPTH-01: td-child depth helper + _patch_should_exclude_child extension
+  - [ ] 94-02-PLAN.md — DEPTH-03: column header injection (Patch 8) + DEPTH-02 regression
+- [ ] Phase 95: Prompt 更新 — Section 9 利用列标题注释 + 深度结构指导
+- [ ] Phase 96: E2E 验证 — 销售出库场景验证 Agent 正确选择列
+
+<details>
+<summary>✅ v0.10.2 测试验证与代码可用性修复 (Phases 90-93) — SHIPPED 2026-04-23</summary>
+
+- [x] Phase 90: 过时测试清理 (2/2 plans) — completed 2026-04-21
+- [x] Phase 91: 测试代码修复 (2/2 plans) — completed 2026-04-21
+- [x] Phase 92: DataMethodError 修复 (2/2 plans) — completed 2026-04-21
+- [x] Phase 93: 端到端可用性验证 (1/1 plan) — completed 2026-04-22
+
+</details>
 
 <details>
 <summary>✅ v0.10.1 代码登录及 Agent 复用登录的浏览器状态 (Phases 86-89) — SHIPPED 2026-04-21</summary>
@@ -135,90 +155,21 @@
 <summary>✅ v0.10.0 Agent 执行速度优化 (Phases 82-85) — SHIPPED 2026-04-18</summary>
 
 - [x] Phase 82: 代码生成基础 (completed 2026-04-18)
-- [x] Phase 83: 定位器回退 (completed 2026-04-18)
+- [x] Phase 83: 定位器回放 (completed 2026-04-18)
 - [x] Phase 84: LLM 修复 (completed 2026-04-18)
 - [x] Phase 85: Agent 重执行 (completed 2026-04-18)
 
 </details>
 
-### v0.10.2 测试验证与代码可用性修复 (In Progress)
+<details>
+<summary>✅ v0.10.2 测试验证与代码可用性修复 (Phases 90-93) — SHIPPED 2026-04-23</summary>
 
-**Milestone Goal:** 验证前面阶段任务的完成度，更新过时的测试代码，修复反复出现的 DataMethodError，确保端到端流程可用
+- [x] Phase 90: 过时测试清理 (2/2 plans) — completed 2026-04-21
+- [x] Phase 91: 测试代码修复 (2/2 plans) — completed 2026-04-21
+- [x] Phase 92: DataMethodError 修复 (2/2 plans) — completed 2026-04-21
+- [x] Phase 93: 端到端可用性验证 (1/1 plan) — completed 2026-04-22
 
-- [x] **Phase 90: 过时测试清理** — 删除与当前架构不符的过时测试，消除不可修复的噪音 (completed 2026-04-21)
-- [x] **Phase 91: 测试代码修复** — 修复剩余测试失败，mock 路径与当前代码对齐 (completed 2026-04-21)
-- [x] **Phase 92: DataMethodError 修复** — 诊断并解决 webseleniumerp 混淆方法名变化导致的前置条件执行失败 (completed 2026-04-21)
-- [x] **Phase 93: 端到端可用性验证** — 验证完整链路（自然语言 -> AI 执行 -> 报告）在修复后可用 (completed 2026-04-22)
-
-## Phase Details
-
-### Phase 90: 过时测试清理
-**Goal**: 测试套件中不再有过时或不可修复的测试文件，后续修复工作不会浪费在将被删除的测试上
-**Depends on**: Nothing (first phase in milestone, clean before fix)
-**Requirements**: CLEAN-01, CLEAN-02
-**Success Criteria** (what must be TRUE):
-  1. 所有 ImportError 测试文件被识别并删除 — pytest 运行时不再出现 ImportError 错误
-  2. 与当前架构不符的过时测试文件被删除 — 测试文件全部引用当前存在的模块路径
-  3. 跨测试状态泄漏被修复 — 同一测试文件中的测试可独立运行且结果一致
-**Plans**: 2 plans
-
-Plans:
-- [x] 90-01-PLAN.md — git rm 删除 ImportError 文件、_archived/ 目录、工具脚本、顶层 conftest.py，删除部分过时测试方法
-- [x] 90-02-PLAN.md — 审查 conftest fixture 隔离性，验证测试状态无泄漏，运行全量验证
-
-### Phase 91: 测试代码修复
-**Goal**: 所有保留的测试文件通过，mock 路径和 fixture 与当前代码完全对齐
-**Depends on**: Phase 90
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
-**Success Criteria** (what must be TRUE):
-  1. 所有外部断言桥接测试通过 — test_external_assertion_bridge.py 中 mock 目标路径与当前代码对齐
-  2. auth_service 和 precondition_service 测试通过 — mock 路径指向当前模块结构
-  3. 其他零散失败测试（agent_service, self_healing_runner, llm_healer, browser_cleanup, repository 等）全部通过
-  4. `uv run pytest backend/tests/ -v` 零失败零错误
-**Plans**: 2 plans
-
-Plans:
-- [x] 91-01-PLAN.md — 创建顶层 conftest.py (db_session + autouse reset_cache) + 修复外部断言桥接和 auth_service 测试结构性对齐
-- [x] 91-02-PLAN.md — 修复 precondition_service + 其他零散测试 + 全量套件验证
-
-### Phase 92: DataMethodError 修复
-**Goal**: 前置条件执行不再因 webseleniumerp 混淆方法名变化而失败，系统具备方法名自动发现能力
-**Depends on**: Phase 91
-**Requirements**: DATA-01, DATA-02
-**Success Criteria** (what must be TRUE):
-  1. PcImport 前置条件执行不再报 `'ImportApi' object has no attribute` 错误 — context.get_data() 调用链路完整
-  2. 方法名不再硬编码混淆名称 — 系统能自动发现当前可用的方法名或动态映射
-  3. webseleniumerp 上游更新后，只需更新依赖版本，无需手动查找和替换方法名
-**Plans**: 2 plans
-
-Plans:
-- [x] 92-01-PLAN.md — 实现 docstring 方法映射 + ImportApi 别名修补 + execute_data_method fallback
-- [x] 92-02-PLAN.md — API 返回格式扩展 docstring_id + API 测试更新
-
-### Phase 93: 端到端可用性验证
-**Goal**: 自然语言到报告的完整链路在修复后可用，验证核心产品价值不被回归破坏
-**Depends on**: Phase 92
-**Requirements**: E2E-01, E2E-02, E2E-03
-**Success Criteria** (what must be TRUE):
-  1. 自然语言测试步骤经 AI 执行后生成完整测试报告 — 从输入到报告输出的全链路畅通
-  2. 前置条件系统正常工作 — context.get_data() 调用返回预期数据，变量替换正确
-  3. 断言系统正常工作 — 业务断言执行并返回 pass/fail 结果
-**Plans**: 1 plan
-
-Plans:
-- [x] 93-01-PLAN.md — E2E 测试基础设施 + 全链路验证 (前置条件 docstring 映射 + PcAssert 断言 + AI 执行 + 报告生成)
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 90 -> 91 -> 92 -> 93
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 90. 过时测试清理 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
-| 91. 测试代码修复 | v0.10.2 | 2/2 | Complete | 2026-04-21 |
-| 92. DataMethodError 修复 | v0.10.2 | 2/2 | Complete    | 2026-04-21 |
-| 93. 端到端可用性验证 | v0.10.2 | 1/1 | Complete   | 2026-04-22 |
+</details>
 
 ---
-*Roadmap updated: 2026-04-22 — Phase 93 plan created*
+*Roadmap updated: 2026-04-23 — Phase 94 planned (2 plans)*
