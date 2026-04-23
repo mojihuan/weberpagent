@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.3
 milestone_name: DOM 深度修复 - 表格单元格选择精确性
 status: planning
-last_updated: "2026-04-23T02:23:35.196Z"
+last_updated: "2026-04-23T05:24:00.822Z"
 progress:
-  total_phases: 71
-  completed_phases: 63
-  total_plans: 165
-  completed_plans: 170
+  total_phases: 72
+  completed_phases: 64
+  total_plans: 166
+  completed_plans: 171
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 94 — dom-patch-enhancement
+**Current focus:** Phase 95 — prompt更新-section9列标题深度结构指导
 
 ## Last Shipped
 
@@ -33,8 +33,8 @@ See: .planning/PROJECT.md (updated 2026-04-23)
 
 ## Current Position
 
-Phase: 94 (dom-patch-enhancement) — EXECUTING
-Plan: 2 of 2
+Phase: 95 (prompt更新-section9列标题深度结构指导) — EXECUTING
+Plan: 1 of 1
 
 ## Root Cause
 
@@ -62,6 +62,8 @@ Key decisions moved to PROJECT.md Key Decisions table.
 
 - [Phase 94]: td-child depth < _MAX_TD_CHILD_DEPTH (strict less-than) protects depth 0-1, depth 2+ uses original logic — 2-layer limit preserves useful td structure without bloating DOM dump
 - [Phase 94]: _get_column_header uses LAST tr in thead for multi-row Ant Design headers, Patch 8 injects <!-- 列: header --> above td nodes
+- [Phase 95]: Section 9 全面重写为四段式结构 (定位/操作/验证/异常处理)，用行标识+列注释交叉定位替代 placeholder 匹配
+- [Phase 95]: wrong_column 恢复策略从按 IMEI 重定位改为按行注释重定位，利用新列注释能力
 
 ### Pending Todos
 
@@ -73,5 +75,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-23T02:23:35.192Z
+Last session: 2026-04-23T05:24:00.817Z
 Status: v0.10.3 milestone created, Phase 94 ready for planning

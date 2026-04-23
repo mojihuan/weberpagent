@@ -25,8 +25,10 @@
 - [ ] Phase 94: DOM Patch 增强 — td 内部子元素 bbox 保护 + 列标题映射注入 (2/2 plans)
   - [x] 94-01-PLAN.md — DEPTH-01: td-child depth helper + _patch_should_exclude_child extension
   - [x] 94-02-PLAN.md — DEPTH-03: column header injection (Patch 8) + DEPTH-02 regression
-- [ ] Phase 95: Prompt 更新 — Section 9 利用列标题注释 + 深度结构指导
-- [ ] Phase 96: E2E 验证 — 销售出库场景验证 Agent 正确选择列
+- [ ] Phase 95: Prompt 更新 — Section 9 利用列标题注释 + 深度结构指导 (1/1 plans)
+  - [x] 95-01-PLAN.md — DEPTH-04: Section 9 full rewrite with column annotation cross-positioning
+- [ ] Phase 96: E2E 验证 — 销售出库场景验证 Agent 正确选择列 (1/1 plans)
+  - [ ] 96-01-PLAN.md — DEPTH-05: E2E column selection verification with real LLM
 
 <details>
 <summary>✅ v0.10.2 测试验证与代码可用性修复 (Phases 90-93) — SHIPPED 2026-04-23</summary>
@@ -172,4 +174,4 @@
 </details>
 
 ---
-*Roadmap updated: 2026-04-23 — Phase 94 planned (2 plans)*
+*Roadmap updated: 2026-04-23 -- Phase 96 planned (1 plan)*
