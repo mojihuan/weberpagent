@@ -200,7 +200,12 @@ class TestSection9Phase69:
         assert len(lines) <= 80
 
     def test_existing_section9_content_unchanged(self):
-        """D-07: Existing Section 9 content must not be modified."""
-        assert "单元格定位" in ENHANCED_SYSTEM_MESSAGE
-        assert "禁止行为" in ENHANCED_SYSTEM_MESSAGE
-        assert "点击编辑工作流" in ENHANCED_SYSTEM_MESSAGE
+        """DEPTH-04: Section 9 rewritten with column annotation cross-positioning."""
+        assert "列:" in ENHANCED_SYSTEM_MESSAGE
+        assert "定位" in ENHANCED_SYSTEM_MESSAGE
+        assert "操作" in ENHANCED_SYSTEM_MESSAGE
+
+    def test_contains_column_annotation_rules(self):
+        """DEPTH-04: Section 9 must contain column annotation cross-positioning rules."""
+        assert "列:" in ENHANCED_SYSTEM_MESSAGE
+        assert "交叉" in ENHANCED_SYSTEM_MESSAGE or "定位" in ENHANCED_SYSTEM_MESSAGE
