@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.3
 milestone_name: DOM 深度修复 - 表格单元格选择精确性
 status: planning
-last_updated: "2026-04-23T02:14:06.085Z"
+last_updated: "2026-04-23T02:23:35.196Z"
 progress:
   total_phases: 71
-  completed_phases: 62
+  completed_phases: 63
   total_plans: 165
-  completed_plans: 169
+  completed_plans: 170
 ---
 
 # Project State
@@ -61,6 +61,7 @@ Agent 在 ERP 销售出库表格中反复点击错误的列（利润列而非销
 Key decisions moved to PROJECT.md Key Decisions table.
 
 - [Phase 94]: td-child depth < _MAX_TD_CHILD_DEPTH (strict less-than) protects depth 0-1, depth 2+ uses original logic — 2-layer limit preserves useful td structure without bloating DOM dump
+- [Phase 94]: _get_column_header uses LAST tr in thead for multi-row Ant Design headers, Patch 8 injects <!-- 列: header --> above td nodes
 
 ### Pending Todos
 
@@ -72,5 +73,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-23T02:14:06.080Z
+Last session: 2026-04-23T02:23:35.192Z
 Status: v0.10.3 milestone created, Phase 94 ready for planning
