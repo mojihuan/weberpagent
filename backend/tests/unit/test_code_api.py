@@ -1,6 +1,8 @@
 """Unit tests for GET /runs/{run_id}/code endpoint (CODE-01).
 
-Tests mock RunRepository to avoid real database dependencies.
+Tests mock RunRepository via FastAPI dependency overrides to avoid real
+database dependencies.
+
 Covers:
   1. Success: returns line-numbered code text (D-01)
   2. No code: generated_code_path is null
@@ -10,11 +12,13 @@ Covers:
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
 
 from backend.api.main import app
+from backend.api.routes.runs import get_run_repo
+from backend.db.repository import RunRepository
 
 
 # ---------------------------------------------------------------------------
@@ -23,8 +27,14 @@ from backend.api.main import app
 
 @pytest.fixture
 def client():
-    """Create test client with the runs router mounted."""
-    return TestClient(app)
+    """Create test client with dependency overrides ready.
+
+    Tests must set app.dependency_overrides[get_run_repo] themselves
+    to control the mock repository per test case.
+    """
+    tc = TestClient(app)
+    yield tc
+    app.dependency_overrides.clear()
 
 
 def _make_run(run_id="run-001", generated_code_path=None):
@@ -39,9 +49,16 @@ def _make_run(run_id="run-001", generated_code_path=None):
 
 def _make_run_repo(run=None):
     """Create a mock RunRepository whose .get() returns the given run."""
-    repo = MagicMock()
+    repo = MagicMock(spec=RunRepository)
     repo.get = AsyncMock(return_value=run)
     return repo
+
+
+def _override_repo(repo):
+    """Register a dependency override for get_run_repo."""
+    def _override():
+        return repo
+    app.dependency_overrides[get_run_repo] = _override
 
 
 # ---------------------------------------------------------------------------
@@ -53,15 +70,20 @@ class TestGetRunCode:
 
     def test_get_code_success(self, client, tmp_path):
         """GET /runs/{run_id}/code returns 200 with line-numbered code text."""
-        # Create a real temp file simulating generated code
+        # Create a real temp file inside an outputs/ subdirectory so that
+        # _validate_code_path's containment check (outputs root) can pass
+        # when the CWD-relative "outputs" happens to resolve differently.
+        # We patch _validate_code_path to bypass filesystem constraints.
         code_file = tmp_path / "test_generated.py"
         code_file.write_text("def test_xxx():\n    pass", encoding="utf-8")
 
         run = _make_run(generated_code_path=str(code_file))
         run_repo = _make_run_repo(run)
+        _override_repo(run_repo)
 
-        with patch("backend.api.routes.runs.get_run_repo", return_value=run_repo):
-            response = client.get("/runs/run-001/code")
+        from unittest.mock import patch
+        with patch("backend.api.routes.runs._validate_code_path", return_value=code_file):
+            response = client.get("/api/runs/run-001/code")
 
         assert response.status_code == 200
         assert "text/plain" in response.headers.get("content-type", "")
@@ -73,21 +95,25 @@ class TestGetRunCode:
         """GET /runs/{run_id}/code returns 404 when generated_code_path is null."""
         run = _make_run(generated_code_path=None)
         run_repo = _make_run_repo(run)
+        _override_repo(run_repo)
 
-        with patch("backend.api.routes.runs.get_run_repo", return_value=run_repo):
-            response = client.get("/runs/run-002/code")
+        response = client.get("/api/runs/run-002/code")
 
         assert response.status_code == 404
-        detail = response.json().get("detail", "")
-        assert "无生成代码" in detail
+        data = response.json()
+        # Global exception handler wraps detail in error.message
+        message = data.get("error", {}).get("message", "")
+        assert "无生成代码" in message
 
     def test_get_code_file_not_found(self, client):
         """GET /runs/{run_id}/code returns 404 when code file does not exist on disk."""
-        run = _make_run(generated_code_path="/nonexistent/path/test.py")
+        # Use a path under outputs/ so path traversal check passes,
+        # but the file does not actually exist on disk.
+        run = _make_run(generated_code_path="outputs/nonexistent_test_file.py")
         run_repo = _make_run_repo(run)
+        _override_repo(run_repo)
 
-        with patch("backend.api.routes.runs.get_run_repo", return_value=run_repo):
-            response = client.get("/runs/run-003/code")
+        response = client.get("/api/runs/run-003/code")
 
         assert response.status_code == 404
 
@@ -95,17 +121,17 @@ class TestGetRunCode:
         """GET /runs/{run_id}/code returns 403 for path outside outputs/ directory."""
         run = _make_run(generated_code_path="/etc/passwd")
         run_repo = _make_run_repo(run)
+        _override_repo(run_repo)
 
-        with patch("backend.api.routes.runs.get_run_repo", return_value=run_repo):
-            response = client.get("/runs/run-004/code")
+        response = client.get("/api/runs/run-004/code")
 
         assert response.status_code == 403
 
     def test_get_code_run_not_found(self, client):
         """GET /runs/{run_id}/code returns 404 when run_id does not exist."""
         run_repo = _make_run_repo(run=None)
+        _override_repo(run_repo)
 
-        with patch("backend.api.routes.runs.get_run_repo", return_value=run_repo):
-            response = client.get("/runs/nonexistent/code")
+        response = client.get("/api/runs/nonexistent/code")
 
         assert response.status_code == 404

@@ -7,8 +7,10 @@ import traceback
 from datetime import datetime
 from typing import Any
 
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from fastapi.responses import StreamingResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import get_settings
@@ -63,6 +65,33 @@ def get_llm_config() -> dict:
 
 
 router = APIRouter(prefix="/runs", tags=["runs"])
+
+
+def _format_code_with_line_numbers(content: str) -> str:
+    """Format code with right-aligned line numbers (per D-01).
+
+    Format: "{line_num:>width} | {line_content}"
+    Example: "  1 | def test_xxx():"
+    """
+    lines = content.splitlines()
+    max_width = len(str(len(lines)))
+    formatted = [f"{i + 1:>{max_width}} | {line}" for i, line in enumerate(lines)]
+    return "\n".join(formatted)
+
+
+def _validate_code_path(code_path: str) -> Path:
+    """Validate code path exists and is within outputs/ directory (per D-03).
+
+    Returns resolved Path if valid.
+    Raises HTTPException on validation failure.
+    """
+    resolved = Path(code_path).resolve()
+    outputs_root = Path("outputs").resolve()
+    if not str(resolved).startswith(str(outputs_root)):
+        raise HTTPException(status_code=403, detail="非法文件路径")
+    if not resolved.exists():
+        raise HTTPException(status_code=404, detail="代码文件不存在")
+    return resolved
 
 
 async def run_agent_background(
@@ -640,6 +669,26 @@ async def get_run(
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
     return run
+
+
+@router.get("/{run_id}/code")
+async def get_run_code(
+    run_id: str,
+    run_repo: RunRepository = Depends(get_run_repo),
+):
+    """获取执行记录生成的 Playwright 代码内容 (CODE-01)"""
+    run = await run_repo.get(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="执行记录不存在")
+    if not run.generated_code_path:
+        raise HTTPException(status_code=404, detail="该执行记录无生成代码")
+
+    # Path traversal protection (D-03)
+    resolved = _validate_code_path(run.generated_code_path)
+
+    content = resolved.read_text(encoding="utf-8")
+    formatted = _format_code_with_line_numbers(content)
+    return PlainTextResponse(formatted)
 
 
 @router.get("/{run_id}/stream")
