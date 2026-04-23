@@ -11,6 +11,7 @@ import pytest
 
 from backend.agent.dom_patch import (
     _ERP_CLICKABLE_CLASSES,
+    _get_column_header,
     _has_erp_clickable_class,
     _td_child_depth,
     apply_dom_patch,
@@ -455,3 +456,171 @@ class TestShouldExcludeChildTdPatch:
         td_depth = _td_child_depth(node)
         assert td_depth is None
         # None is not < 2, so falls through to original
+
+
+# ---------------------------------------------------------------------------
+# Tests: _get_column_header
+# ---------------------------------------------------------------------------
+
+
+class TestGetColumnHeader:
+    """Tests for _get_column_header helper function."""
+
+    def _build_table_tree(self, th_texts: list[str], td_count: int, target_td_index: int):
+        """Build a mock table tree: table > thead > tr > th*s, tbody > tr > td*s.
+
+        Returns the td node at target_td_index.
+        """
+        # Build th nodes
+        th_nodes = []
+        for text in th_texts:
+            th = MockChainNode(tag_name="th")
+            th._text = text
+            th.get_all_children_text = lambda t=text: t
+            th_nodes.append(th)
+
+        # Build thead > tr > th*s
+        thead_tr = MockChainNode(tag_name="tr", children=th_nodes)
+        for th in th_nodes:
+            th.parent_node = thead_tr
+        thead = MockChainNode(tag_name="thead", children=[thead_tr])
+        thead_tr.parent_node = thead
+
+        # Build td nodes
+        td_nodes = []
+        target_td = None
+        for i in range(td_count):
+            td = MockChainNode(tag_name="td")
+            td._text = f"cell_{i}"
+            td.get_all_children_text = lambda t=f"cell_{i}": t
+            td_nodes.append(td)
+            if i == target_td_index:
+                target_td = td
+
+        # Build tbody > tr > td*s
+        tbody_tr = MockChainNode(tag_name="tr", children=td_nodes)
+        for td in td_nodes:
+            td.parent_node = tbody_tr
+        tbody = MockChainNode(tag_name="tbody", children=[tbody_tr])
+        tbody_tr.parent_node = tbody
+
+        # Build table
+        table = MockChainNode(tag_name="table", children=[thead, tbody])
+        thead.parent_node = table
+        tbody.parent_node = table
+
+        return target_td
+
+    def test_returns_header_for_first_td(self):
+        """td at index 0 returns first th text."""
+        td = self._build_table_tree(
+            th_texts=["物品编号", "IMEI", "品类"],
+            td_count=3,
+            target_td_index=0,
+        )
+        assert _get_column_header(td) == "物品编号"
+
+    def test_returns_header_for_third_td(self):
+        """td at index 2 returns third th text."""
+        td = self._build_table_tree(
+            th_texts=["物品编号", "IMEI", "品类", "品牌"],
+            td_count=4,
+            target_td_index=2,
+        )
+        assert _get_column_header(td) == "品类"
+
+    def test_returns_none_when_no_parent_tr(self):
+        """td with no parent_node returns None."""
+        td = MockChainNode(tag_name="td")
+        assert _get_column_header(td) is None
+
+    def test_returns_none_when_parent_not_tr(self):
+        """td with parent that is not tr returns None."""
+        div = MockChainNode(tag_name="div")
+        td = MockChainNode(tag_name="td", parent=div)
+        assert _get_column_header(td) is None
+
+    def test_returns_none_when_no_table_ancestor(self):
+        """td in tr but no table ancestor returns None."""
+        tr = MockChainNode(tag_name="tr")
+        td = MockChainNode(tag_name="td", parent=tr)
+        tr.children = [td]
+        assert _get_column_header(td) is None
+
+    def test_returns_none_when_no_thead(self):
+        """table without thead returns None."""
+        tr = MockChainNode(tag_name="tr")
+        td = MockChainNode(tag_name="td", parent=tr)
+        tr.children = [td]
+        tbody = MockChainNode(tag_name="tbody", children=[tr])
+        tr.parent_node = tbody
+        table = MockChainNode(tag_name="table", children=[tbody])
+        tbody.parent_node = table
+        assert _get_column_header(td) is None
+
+    def test_returns_none_when_thead_has_no_tr(self):
+        """thead with no tr children returns None."""
+        tr = MockChainNode(tag_name="tr")
+        td = MockChainNode(tag_name="td", parent=tr)
+        tr.children = [td]
+        thead = MockChainNode(tag_name="thead", children=[])
+        tbody_tr = MockChainNode(tag_name="tbody", children=[tr])
+        tr.parent_node = tbody_tr
+        table = MockChainNode(tag_name="table", children=[thead, tbody_tr])
+        thead.parent_node = table
+        tbody_tr.parent_node = table
+        assert _get_column_header(td) is None
+
+    def test_uses_last_tr_in_thead(self):
+        """Multi-row header: uses LAST tr (actual column headers)."""
+        # First tr: group header "基本信息"
+        th_group = MockChainNode(tag_name="th")
+        th_group.get_all_children_text = lambda: "基本信息"
+        th_group.parent_node = MockChainNode(tag_name="tr")
+        th_group.parent_node.children = [th_group]
+        first_tr = th_group.parent_node
+
+        # Second tr: actual column headers
+        th1 = MockChainNode(tag_name="th")
+        th1.get_all_children_text = lambda: "编号"
+        th1.parent_node = MockChainNode(tag_name="tr")
+        th2 = MockChainNode(tag_name="th")
+        th2.get_all_children_text = lambda: "名称"
+        th2.parent_node = th1.parent_node
+        second_tr = th1.parent_node
+        second_tr.children = [th1, th2]
+
+        thead = MockChainNode(tag_name="thead", children=[first_tr, second_tr])
+        first_tr.parent_node = thead
+        second_tr.parent_node = thead
+
+        # tbody > tr > td
+        td = MockChainNode(tag_name="td")
+        tr = MockChainNode(tag_name="tr", children=[td])
+        td.parent_node = tr
+        tbody = MockChainNode(tag_name="tbody", children=[tr])
+        tr.parent_node = tbody
+        table = MockChainNode(tag_name="table", children=[thead, tbody])
+        thead.parent_node = table
+        tbody.parent_node = table
+
+        # td at index 0 should map to second_tr's first th = "编号"
+        assert _get_column_header(td) == "编号"
+
+    def test_returns_none_for_index_out_of_range(self):
+        """td index exceeds th count returns None."""
+        td = self._build_table_tree(
+            th_texts=["A"],  # only 1 th
+            td_count=3,
+            target_td_index=2,  # index 2 but only 1 th
+        )
+        assert _get_column_header(td) is None
+
+    def test_returns_none_for_empty_th_text(self):
+        """th with empty text returns None."""
+        td = self._build_table_tree(
+            th_texts=[""],  # empty header
+            td_count=1,
+            target_td_index=0,
+        )
+        assert _get_column_header(td) is None

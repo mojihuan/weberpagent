@@ -463,6 +463,59 @@ class _InputSimplifiedNode:
         self.is_interactive = True
 
 
+class _TdInTable:
+    """Mock SimplifiedNode for a <td> inside a table with thead."""
+
+    def __init__(
+        self,
+        th_texts: list[str],
+        td_index: int,
+        backend_node_id: int = 800,
+    ):
+        # Build th nodes
+        th_nodes = []
+        for text in th_texts:
+            th = _TdWithText(text)
+            th.tag_name = "th"
+            th_nodes.append(th)
+
+        # Build thead > tr
+        thead_tr = _TrMockAccessibilityNode(tag_name="tr", children=th_nodes)
+        thead = _TrMockAccessibilityNode(tag_name="thead", children=[thead_tr])
+
+        # Build td nodes
+        td_nodes = []
+        target = None
+        for i in range(len(th_texts)):
+            td = _TrMockAccessibilityNode(
+                tag_name="td",
+                backend_node_id=backend_node_id if i == td_index else backend_node_id + i + 1,
+            )
+            td_nodes.append(td)
+            if i == td_index:
+                target = td
+
+        # Build tbody > tr
+        tbody_tr = _TrMockAccessibilityNode(tag_name="tr", children=td_nodes)
+        tbody = _TrMockAccessibilityNode(tag_name="tbody", children=[tbody_tr])
+
+        # Build table
+        table = _TrMockAccessibilityNode(tag_name="table", children=[thead, tbody])
+
+        # Set parent chains
+        for th in th_nodes:
+            th.parent_node = thead_tr
+        thead_tr.parent_node = thead
+        for td_n in td_nodes:
+            td_n.parent_node = tbody_tr
+        tbody_tr.parent_node = tbody
+        thead.parent_node = table
+        tbody.parent_node = table
+
+        self.original_node = target
+        self.is_interactive = False
+
+
 def _apply_serialize_patch_and_call(node, include_attributes=None):
     """Apply _patch_serialize_tree_annotations and call the patched serialize_tree.
 
@@ -693,3 +746,64 @@ class TestRegistrationInApplyDomPatch:
             mod._PATCHED = False
             apply_dom_patch()
             mock_patch.assert_called_once()
+
+
+class TestColumnHeaderComment:
+    """Tests for DEPTH-03: Column header comment injection in serialize output."""
+
+    def test_td_gets_column_header_comment(self):
+        """td in table with thead produces <!-- 列: {header} --> comment."""
+        td_node = _TdInTable(
+            th_texts=["物品编号", "销售金额", "利润"],
+            td_index=1,
+            backend_node_id=800,
+        )
+        result = _apply_serialize_patch_and_call(td_node)
+        assert "<!-- 列: 销售金额 -->" in result
+
+    def test_td_first_column_header(self):
+        """First td gets first column header."""
+        td_node = _TdInTable(
+            th_texts=["物品编号", "IMEI"],
+            td_index=0,
+            backend_node_id=801,
+        )
+        result = _apply_serialize_patch_and_call(td_node)
+        assert "<!-- 列: 物品编号 -->" in result
+
+    def test_td_without_thead_no_comment(self):
+        """td without table/thead ancestor gets no column comment."""
+        # Use a bare td node (no table ancestry)
+        td_orig = _TrMockAccessibilityNode(tag_name="td", backend_node_id=802)
+        td_node = _TrSimplifiedNode.__new__(_TrSimplifiedNode)
+        td_node.original_node = td_orig
+        td_node.is_interactive = False
+        result = _apply_serialize_patch_and_call(td_node)
+        assert "列:" not in result
+
+    def test_row_identity_and_column_header_coexist(self):
+        """Row identity (Patch 6) and column header (Patch 8) both appear for tr with IMEI."""
+        # Create a tr with IMEI td child
+        imei_td = _TdWithText("I352017041234567")
+        tr_node = _TrSimplifiedNode(tr_children=[imei_td], backend_node_id=803)
+        result = _apply_serialize_patch_and_call(tr_node)
+        # Row identity should be present (Patch 6)
+        assert "<!-- 行: I352017041234567 -->" in result
+
+    def test_failure_annotation_still_works(self):
+        """Patch 7 failure annotation still works after Patch 8 addition."""
+        import backend.agent.dom_patch as mod
+
+        backend_id = 804
+        mod._node_annotations[backend_id] = {
+            "row_identity": "I352017041234567",
+            "base_strategy": 2,
+            "is_erp_input": True,
+        }
+        update_failure_tracker(str(backend_id), "error msg", "click_no_effect")
+
+        input_node = _InputSimplifiedNode(backend_node_id=backend_id)
+        result = _apply_serialize_patch_and_call(input_node)
+
+        assert "行内 input" in result
+        assert "[策略:" in result
