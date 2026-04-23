@@ -17,6 +17,12 @@ _PATCHED = False
 # CSS class substrings that identify ERP clickable sub-elements
 _ERP_CLICKABLE_CLASSES = frozenset({"hand", "el-checkbox"})
 
+# Tags inside <td> that should be protected from bbox flattening
+_TD_CHILD_TAGS = frozenset({"div", "span"})
+
+# Maximum depth from td to protect (depth 0 = direct child, depth 1 = grandchild)
+_MAX_TD_CHILD_DEPTH = 2
+
 # Placeholder substrings identifying ERP table cell input fields
 # These inputs are inside <td> cells and may lack snapshot_node in AX tree
 _ERP_TABLE_CELL_PLACEHOLDERS = frozenset({
@@ -249,6 +255,42 @@ def _is_inside_table_cell(node) -> bool:
     return False
 
 
+def _td_child_depth(node) -> int | None:
+    """Count parent_node chain distance from node to its nearest td/th ancestor.
+
+    Returns the number of parent_node steps from node up to the nearest <td> or <th>.
+    Returns None if the node is not inside a td/th, or if the node's tag is not div/span.
+
+    Depth semantics (per D-02):
+        depth=0: node is a direct child of td (layer 1)
+        depth=1: node is a grandchild of td (layer 2)
+        depth=2+: beyond the 2-layer protection limit
+
+    Args:
+        node: A SimplifiedNode instance.
+
+    Returns:
+        Number of steps to nearest td/th, or None.
+    """
+    original = getattr(node, "original_node", None)
+    if original is None:
+        return None
+
+    tag_name = getattr(original, "tag_name", "")
+    if tag_name.lower() not in _TD_CHILD_TAGS:
+        return None
+
+    depth = 0
+    current = getattr(original, "parent_node", None)
+    while current is not None:
+        current_tag = getattr(current, "tag_name", "")
+        if current_tag.lower() in ("td", "th"):
+            return depth
+        depth += 1
+        current = getattr(current, "parent_node", None)
+    return None
+
+
 def _is_erp_table_cell_input(node) -> bool:
     """Check if a SimplifiedNode is an ERP table cell input with relevant placeholder.
 
@@ -338,7 +380,8 @@ def apply_dom_patch() -> None:
     2. PaintOrderRemover.calculate_paint_order - resets ignored_by_paint_order
        for ERP nodes after the original method runs.
     3. DOMTreeSerializer._should_exclude_child - returns False for ERP nodes
-       so they are never excluded by bounding box filtering.
+       and div/span inside td (up to 2 layers) so they are never excluded
+       by bounding box filtering.
     4. DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes -
        forces interactive assignment for ERP table cell inputs.
     5. ClickableElementDetector.is_interactive (extended) - marks <td> cells
@@ -400,7 +443,12 @@ def _patch_should_exclude_child() -> None:
     original_should_exclude = DOMTreeSerializer._should_exclude_child
 
     def patched_should_exclude_child(self, node, active_bounds) -> bool:
+        # Existing: protect ERP clickable elements (hand, el-checkbox)
         if _has_erp_clickable_class(node):
+            return False
+        # D-01: protect div/span inside td up to 2 layers (depth < _MAX_TD_CHILD_DEPTH)
+        td_depth = _td_child_depth(node)
+        if td_depth is not None and td_depth < _MAX_TD_CHILD_DEPTH:
             return False
         return original_should_exclude(self, node, active_bounds)
 

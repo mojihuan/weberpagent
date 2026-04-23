@@ -392,16 +392,18 @@ class TestShouldExcludeChildTdPatch:
     """Tests for extended _patch_should_exclude_child with td depth check."""
 
     def _make_node_in_td(self, tag_name: str, depth_from_td: int):
-        """Build a mock chain: td > ... > node at given depth."""
+        """Build a mock chain: td > div > ... > node at given depth from td.
+
+        depth_from_td=0: td > tag_name
+        depth_from_td=1: td > div > tag_name
+        depth_from_td=2: td > div > div > tag_name
+        """
         td = MockChainNode(tag_name="td")
-        if depth_from_td == 0:
-            target = MockChainNode(tag_name=tag_name, parent=td)
-        else:
-            current = td
-            for _i in range(depth_from_td - 1):
-                intermediate = MockChainNode(tag_name="div", parent=current)
-                current = intermediate
-            target = MockChainNode(tag_name=tag_name, parent=current)
+        current = td
+        for _i in range(depth_from_td):
+            intermediate = MockChainNode(tag_name="div", parent=current)
+            current = intermediate
+        target = MockChainNode(tag_name=tag_name, parent=current)
         return MockSimplifiedNodeWithChain(original_node=target)
 
     def test_div_directly_in_td_not_excluded(self):
