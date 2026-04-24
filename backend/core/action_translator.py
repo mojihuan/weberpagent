@@ -610,12 +610,37 @@ class ActionTranslator:
 
     @staticmethod
     def _translate_unknown(action_type: str, params: dict) -> TranslatedAction:
-        """未知操作类型生成注释 (per D-09)。
+        """边缘操作生成有意义的参数摘要注释 (per D-07/D-08).
 
-        其他类型显示通用提示。
+        不在 _CORE_TYPES 中的操作类型按类型生成包含参数摘要的注释。
+        真正未知的操作类型生成通用回退注释。
         """
+        # 按操作类型定义参数摘要生成函数
+        summaries: dict[str, callable] = {
+            "switch": lambda p: f"切换到标签页 #{p.get('tab_id', '?')}",
+            "close": lambda p: f"关闭标签页 #{p.get('tab_id', '?')}",
+            "search_page": lambda p: f"搜索页面: {p.get('pattern', '')}",
+            "find_elements": lambda p: f"查找元素: {p.get('selector', '')}",
+            "find_text": lambda p: f"查找文本: {p.get('text', p.get('pattern', ''))}",
+            "screenshot": lambda p: f"截图 -> {p['file_name']}" if p.get("file_name") else "截图",
+            "save_as_pdf": lambda p: f"保存 PDF -> {p['file_name']}" if p.get("file_name") else "保存 PDF",
+            "done": lambda p: f"任务完成: {p.get('text', '')[:50]}",
+            "write_file": lambda p: f"写入文件: {p.get('file_name', '')}",
+            "read_file": lambda p: f"读取文件: {p.get('file_name', '')}",
+            "replace_file": lambda p: f"替换文件内容: {p.get('file_name', '')}",
+            "search": lambda p: f"搜索: {p.get('query', '')} ({p.get('engine', 'duckduckgo')})",
+            "dropdown_options": lambda p: f"获取下拉选项 (元素 #{p.get('index', '?')})",
+            "extract": lambda p: f"提取数据: {p.get('query', '')[:50]}",
+        }
+
+        summarizer = summaries.get(action_type)
+        if summarizer:
+            summary = summarizer(params)
+        else:
+            summary = "未翻译的操作类型"
+
         return TranslatedAction(
-            code="    # {}: 未翻译的操作类型".format(action_type),
+            code=f"    # {action_type}: {summary}",
             action_type=action_type,
             is_comment=True,
             has_locator=False,
