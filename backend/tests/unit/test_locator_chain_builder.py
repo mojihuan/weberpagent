@@ -52,7 +52,7 @@ class TestLocatorExtraction:
             node_name="BUTTON",
             attributes={"id": "submit-btn", "data-testid": "submit"},
         )
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         assert len(locators) == 3
         # XPath locator
@@ -71,38 +71,38 @@ class TestLocatorExtraction:
             node_name="BUTTON",
             ax_name="提交",
         )
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         assert len(locators) == 2
         assert 'page.locator("xpath=/html/body/div/button")' in locators[0]
         assert 'page.get_by_role("button", name="提交")' in locators[1]
 
-    def test_placeholder_locator_for_input_text(
+    def test_placeholder_locator_for_input(
         self, builder: LocatorChainBuilder
     ) -> None:
-        """INPUT 有 placeholder 时返回 get_by_placeholder 定位器（仅 input_text）。"""
+        """INPUT 有 placeholder 时返回 get_by_placeholder 定位器（仅 input）。"""
         elem = MockDOMElement(
             x_path="/html/body/div/input",
             node_name="INPUT",
             attributes={"placeholder": "请输入名称"},
         )
-        locators = builder.extract(elem, "input_text")
+        locators = builder.extract(elem, "input")
 
         # 应包含 get_by_placeholder
         placeholder_locators = [l for l in locators if "get_by_placeholder" in l]
         assert len(placeholder_locators) == 1
         assert "请输入名称" in placeholder_locators[0]
 
-    def test_no_placeholder_for_click_element(
+    def test_no_placeholder_for_click(
         self, builder: LocatorChainBuilder
     ) -> None:
-        """click_element 操作不包含 get_by_placeholder 定位器。"""
+        """click 操作不包含 get_by_placeholder 定位器。"""
         elem = MockDOMElement(
             x_path="/html/body/div/input",
             node_name="INPUT",
             attributes={"placeholder": "请输入名称"},
         )
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         placeholder_locators = [l for l in locators if "get_by_placeholder" in l]
         assert len(placeholder_locators) == 0
@@ -114,7 +114,7 @@ class TestLocatorExtraction:
             node_name="DIV",
             attributes=None,
         )
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         assert len(locators) == 1
         assert "xpath=/html/body/div" in locators[0]
@@ -122,7 +122,7 @@ class TestLocatorExtraction:
     def test_empty_xpath_returns_empty(self, builder: LocatorChainBuilder) -> None:
         """x_path 为空字符串时返回空列表。"""
         elem = MockDOMElement(x_path="", node_name="DIV")
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         assert locators == []
 
@@ -138,7 +138,7 @@ class TestLocatorExtraction:
             },
             ax_name="名称",
         )
-        locators = builder.extract(elem, "input_text")
+        locators = builder.extract(elem, "input")
 
         assert len(locators) == 3
 
@@ -149,7 +149,7 @@ class TestLocatorExtraction:
             node_name="A",
             ax_name="点击这里",
         )
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         role_locators = [l for l in locators if "get_by_role" in l]
         assert len(role_locators) == 1
@@ -162,31 +162,31 @@ class TestNodeToRoleMapping:
     def test_button_to_button(self, builder: LocatorChainBuilder) -> None:
         """BUTTON -> "button"。"""
         elem = MockDOMElement(x_path="/btn", node_name="BUTTON", ax_name="OK")
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
         assert any("get_by_role" in l and '"button"' in l for l in locators)
 
     def test_a_to_link(self, builder: LocatorChainBuilder) -> None:
         """A -> "link"。"""
         elem = MockDOMElement(x_path="/a", node_name="A", ax_name="Home")
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
         assert any("get_by_role" in l and '"link"' in l for l in locators)
 
     def test_input_to_textbox(self, builder: LocatorChainBuilder) -> None:
         """INPUT -> "textbox"。"""
         elem = MockDOMElement(x_path="/input", node_name="INPUT", ax_name="用户名")
-        locators = builder.extract(elem, "input_text")
+        locators = builder.extract(elem, "input")
         assert any("get_by_role" in l and '"textbox"' in l for l in locators)
 
     def test_no_role_without_ax_name(self, builder: LocatorChainBuilder) -> None:
         """ax_name 为 None 时不生成 get_by_role 定位器。"""
         elem = MockDOMElement(x_path="/btn", node_name="BUTTON", ax_name=None)
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         assert not any("get_by_role" in l for l in locators)
 
     def test_unknown_node_no_role(self, builder: LocatorChainBuilder) -> None:
         """未知 node_name 不生成 get_by_role 定位器。"""
         elem = MockDOMElement(x_path="/div", node_name="SPAN", ax_name="text")
-        locators = builder.extract(elem, "click_element")
+        locators = builder.extract(elem, "click")
 
         assert not any("get_by_role" in l for l in locators)

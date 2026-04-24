@@ -49,11 +49,11 @@ def translator() -> ActionTranslator:
 
 
 class TestClickTranslation:
-    """click_element 操作翻译测试。"""
+    """click 操作翻译测试。"""
 
     def test_translate_click(self, translator: ActionTranslator) -> None:
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/div[2]/form/button",
                 node_name="BUTTON",
@@ -61,18 +61,18 @@ class TestClickTranslation:
         }
         result = translator.translate(action)
 
-        assert result.action_type == "click_element"
+        assert result.action_type == "click"
         assert result.is_comment is False
         assert result.has_locator is True
         assert 'page.locator("xpath=/html/body/div[2]/form/button").click()' in result.code
 
 
 class TestInputTranslation:
-    """input_text 操作翻译测试。"""
+    """input 操作翻译测试。"""
 
     def test_translate_input(self, translator: ActionTranslator) -> None:
         action = {
-            "input_text": {"index": 12, "text": "测试数据", "clear": True},
+            "input": {"index": 12, "text": "测试数据", "clear": True},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/div[2]/form/input[1]",
                 node_name="INPUT",
@@ -80,7 +80,7 @@ class TestInputTranslation:
         }
         result = translator.translate(action)
 
-        assert result.action_type == "input_text"
+        assert result.action_type == "input"
         assert result.is_comment is False
         assert result.has_locator is True
         assert '.fill("测试数据")' in result.code or ".fill('测试数据')" in result.code
@@ -181,12 +181,12 @@ class TestMissingLocator:
     def test_missing_locator_placeholder(self, translator: ActionTranslator) -> None:
         """interacted_element 为 None 时生成占位符。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": None,
         }
         result = translator.translate(action)
 
-        assert result.action_type == "click_element"
+        assert result.action_type == "click"
         assert result.has_locator is False
         assert "page.wait_for_timeout(1000)" in result.code
         assert "# TODO: 定位器缺失" in result.code
@@ -194,7 +194,7 @@ class TestMissingLocator:
     def test_empty_xpath_placeholder(self, translator: ActionTranslator) -> None:
         """x_path 为空字符串时生成占位符。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(x_path=""),
         }
         result = translator.translate(action)
@@ -242,7 +242,7 @@ class TestXPathExtraction:
         """确认 x_path 通过属性访问 (elem.x_path) 提取，而非字典访问。"""
         elem = MockDOMElement(x_path="/html/body/div[2]/form/button")
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": elem,
         }
         result = translator.translate(action)
@@ -264,7 +264,7 @@ class TestLocatorFallback:
     ) -> None:
         """click 操作有 xpath + id 两个定位器时，生成 try-except 结构。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/div/button",
                 node_name="BUTTON",
@@ -283,7 +283,7 @@ class TestLocatorFallback:
     ) -> None:
         """click 操作有 3 个定位器时，生成两级嵌套 try-except。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/form/button",
                 node_name="BUTTON",
@@ -306,7 +306,7 @@ class TestLocatorFallback:
     ) -> None:
         """click 操作只有 1 个定位器时，不生成 try-except，保持单行格式。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/div/button",
                 node_name="BUTTON",
@@ -321,9 +321,9 @@ class TestLocatorFallback:
     def test_input_two_locators_generates_try_except(
         self, translator: ActionTranslator
     ) -> None:
-        """input_text 有多定位器时生成 try-except，每个定位器用 .fill(text)。"""
+        """input 有多定位器时生成 try-except，每个定位器用 .fill(text)。"""
         action = {
-            "input_text": {"index": 12, "text": "hello"},
+            "input": {"index": 12, "text": "hello"},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/input",
                 node_name="INPUT",
@@ -340,9 +340,9 @@ class TestLocatorFallback:
     def test_input_single_locator_no_try_except(
         self, translator: ActionTranslator
     ) -> None:
-        """input_text 只有 1 个定位器时不生成 try-except。"""
+        """input 只有 1 个定位器时不生成 try-except。"""
         action = {
-            "input_text": {"index": 12, "text": "hello"},
+            "input": {"index": 12, "text": "hello"},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/input",
                 node_name="INPUT",
@@ -358,7 +358,7 @@ class TestLocatorFallback:
     ) -> None:
         """try-except 最终 except 块包含 raise HealerError。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/button",
                 node_name="BUTTON",
@@ -377,7 +377,7 @@ class TestLocatorFallback:
     ) -> None:
         """非最终 except 块包含 warning 级别日志。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/button",
                 node_name="BUTTON",
@@ -394,7 +394,7 @@ class TestLocatorFallback:
     ) -> None:
         """2-locator 场景的生成代码包含 raise HealerError。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/button",
                 node_name="BUTTON",
@@ -410,7 +410,7 @@ class TestLocatorFallback:
     ) -> None:
         """3-locator 场景的生成代码包含 _healer.error 和 raise HealerError。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/form/button",
                 node_name="BUTTON",
@@ -479,7 +479,7 @@ class TestLocatorFallback:
     ) -> None:
         """interacted_element 为 None 时仍生成占位符，不变。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": None,
         }
         result = translator.translate(action)
@@ -493,7 +493,7 @@ class TestLocatorFallback:
     ) -> None:
         """生成的 try-except 代码是合法 Python (ast.parse 通过)。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/form/button",
                 node_name="BUTTON",
@@ -511,7 +511,7 @@ class TestLocatorFallback:
     ) -> None:
         """TranslatedAction.locators 字段包含提取的定位器元数据。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/button",
                 node_name="BUTTON",
@@ -529,7 +529,7 @@ class TestLocatorFallback:
     ) -> None:
         """单定位器时 locators 元数据为空（保持与 Phase 82 一致）。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/div/button",
                 node_name="BUTTON",
@@ -562,7 +562,7 @@ class TestLLMFallbackLayer:
         code = translator._build_fallback_code(
             locators=locators,
             action_suffix=".click()",
-            action_type="click_element",
+            action_type="click",
             llm_snippet=llm_snippet,
         )
 
@@ -595,7 +595,7 @@ class TestLLMFallbackLayer:
         code = translator._build_fallback_code(
             locators=locators,
             action_suffix=".click()",
-            action_type="click_element",
+            action_type="click",
             llm_snippet=llm_snippet,
         )
 
@@ -621,14 +621,14 @@ class TestLLMFallbackLayer:
         code_with_empty = translator._build_fallback_code(
             locators=locators,
             action_suffix=".click()",
-            action_type="click_element",
+            action_type="click",
             llm_snippet="",
         )
 
         code_without = translator._build_fallback_code(
             locators=locators,
             action_suffix=".click()",
-            action_type="click_element",
+            action_type="click",
         )
 
         # 空字符串和未提供参数结果相同
@@ -642,7 +642,7 @@ class TestLLMFallbackLayer:
     ) -> None:
         """translate_with_llm() click 操作完整流程：2 个定位器 + LLM snippet。"""
         action = {
-            "click_element": {"index": 5},
+            "click": {"index": 5},
             "interacted_element": MockDOMElement(
                 x_path="/html/body/div/button",
                 node_name="BUTTON",
@@ -653,7 +653,7 @@ class TestLLMFallbackLayer:
 
         result = translator.translate_with_llm(action, llm_snippet=llm_snippet)
 
-        assert result.action_type == "click_element"
+        assert result.action_type == "click"
         assert result.has_locator is True
         # 应包含 LLM 层
         assert "LLM 修复" in result.code
@@ -674,7 +674,7 @@ class TestLLMFallbackLayer:
         code = translator._build_fallback_code(
             locators=locators,
             action_suffix=".click()",
-            action_type="click_element",
+            action_type="click",
             llm_snippet=llm_snippet,
         )
 
