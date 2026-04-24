@@ -15,12 +15,12 @@ class TestHealerErrorFields:
     def test_fields_stored(self) -> None:
         """HealerError 包含 action_type, locators, original_error 字段。"""
         err = HealerError(
-            action_type="click_element",
+            action_type="click",
             locators=("page.locator('xpath=/html/body/div')", "page.locator('#btn')"),
             original_error="Timeout: 5000ms exceeded",
         )
 
-        assert err.action_type == "click_element"
+        assert err.action_type == "click"
         assert err.locators == ("page.locator('xpath=/html/body/div')", "page.locator('#btn')")
         assert err.original_error == "Timeout: 5000ms exceeded"
 
@@ -32,12 +32,12 @@ class TestHealerErrorFields:
         """HealerError 可以被 raise 和 except 捕获。"""
         with pytest.raises(HealerError) as exc_info:
             raise HealerError(
-                action_type="input_text",
+                action_type="input",
                 locators=("page.locator('xpath=/input')",),
                 original_error="Element not found",
             )
 
-        assert exc_info.value.action_type == "input_text"
+        assert exc_info.value.action_type == "input"
 
 
 class TestHealerErrorStr:
@@ -46,18 +46,18 @@ class TestHealerErrorStr:
     def test_str_contains_action_type(self) -> None:
         """__str__() 包含操作类型。"""
         err = HealerError(
-            action_type="click_element",
+            action_type="click",
             locators=("page.locator('xpath=/btn')",),
             original_error="timeout",
         )
         text = str(err)
 
-        assert "click_element" in text
+        assert "click" in text
 
     def test_str_contains_locators(self) -> None:
         """__str__() 包含尝试过的定位器列表。"""
         err = HealerError(
-            action_type="click_element",
+            action_type="click",
             locators=("loc_a", "loc_b", "loc_c"),
             original_error="timeout",
         )
@@ -70,7 +70,7 @@ class TestHealerErrorStr:
     def test_str_contains_original_error(self) -> None:
         """__str__() 包含原始错误信息。"""
         err = HealerError(
-            action_type="input_text",
+            action_type="input",
             locators=("loc1",),
             original_error="Connection refused",
         )

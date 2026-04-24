@@ -39,13 +39,13 @@ def _make_actions() -> list[TranslatedAction]:
         ),
         TranslatedAction(
             code='    page.locator("xpath=/html/body/div[2]/form/button").click()',
-            action_type="click_element",
+            action_type="click",
             is_comment=False,
             has_locator=True,
         ),
         TranslatedAction(
             code='    page.locator("xpath=/html/body/div[2]/form/input[1]").fill("test_user")',
-            action_type="input_text",
+            action_type="input",
             is_comment=False,
             has_locator=True,
         ),
@@ -301,11 +301,11 @@ def _make_fallback_actions() -> list[TranslatedAction]:
                 "        try:\n"
                 '            page.locator("[id=\'submit\']").click()\n'
                 "        except Exception as _e2:\n"
-                '            _healer.error("定位器全部失败 [click_element]: ...")\n'
-                '            raise HealerError(action_type="click_element", '
+                '            _healer.error("定位器全部失败 [click]: ...")\n'
+                '            raise HealerError(action_type="click", '
                 'locators=("..."), original_error=str(_e2))'
             ),
-            action_type="click_element",
+            action_type="click",
             is_comment=False,
             has_locator=True,
             locators=(
@@ -333,7 +333,7 @@ def _make_no_fallback_actions() -> list[TranslatedAction]:
         ),
         TranslatedAction(
             code='    page.locator("xpath=/html/body/button").click()',
-            action_type="click_element",
+            action_type="click",
             is_comment=False,
             has_locator=True,
         ),
@@ -499,7 +499,7 @@ class TestLLMHealingIntegration:
         """interacted_element=None 时触发 LLM healing。"""
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
-            {"click_element": {"index": 5}, "interacted_element": None},
+            {"click": {"index": 5}, "interacted_element": None},
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -544,7 +544,7 @@ class TestLLMHealingIntegration:
 
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
-            {"click_element": {"index": 5}, "interacted_element": mock_elem},
+            {"click": {"index": 5}, "interacted_element": mock_elem},
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -588,7 +588,7 @@ class TestLLMHealingIntegration:
 
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
-            {"click_element": {"index": 5}, "interacted_element": mock_elem},
+            {"click": {"index": 5}, "interacted_element": mock_elem},
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -642,7 +642,7 @@ class TestLLMHealingIntegration:
         """LLM 修复成功时，生成文件包含 LLM-healed 代码。"""
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
-            {"click_element": {"index": 5}, "interacted_element": None},
+            {"click": {"index": 5}, "interacted_element": None},
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -680,7 +680,7 @@ class TestLLMHealingIntegration:
         """LLM 修复失败时，生成文件仍包含有效代码（原始占位符保留）。"""
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
-            {"click_element": {"index": 5}, "interacted_element": None},
+            {"click": {"index": 5}, "interacted_element": None},
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -720,7 +720,7 @@ class TestLLMHealingIntegration:
         """DOM snapshot 文件缺失时，跳过 healing 不报错。"""
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
-            {"click_element": {"index": 5}, "interacted_element": None},
+            {"click": {"index": 5}, "interacted_element": None},
         ]
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -758,8 +758,8 @@ class TestLLMHealingIntegration:
         mock_history = MagicMock()
         mock_history.model_actions.return_value = [
             {"navigate": {"url": "https://example.com"}, "interacted_element": None},
-            {"click_element": {"index": 5}, "interacted_element": None},
-            {"input_text": {"index": 12, "text": "hello"}, "interacted_element": mock_elem},
+            {"click": {"index": 5}, "interacted_element": None},
+            {"input": {"index": 12, "text": "hello"}, "interacted_element": mock_elem},
             {"scroll": {"down": True, "pages": 1.0}, "interacted_element": None},
         ]
 
@@ -775,7 +775,7 @@ class TestLLMHealingIntegration:
                 mock_instance = AsyncMock()
 
                 async def mock_heal(action_type, failed_locators, dom_snapshot, action_params):
-                    if action_type == "click_element":
+                    if action_type == "click":
                         return MagicMock(
                             success=True,
                             code_snippet='page.locator("button").click()',

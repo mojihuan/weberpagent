@@ -27,7 +27,7 @@ LLM_CONFIG = {
 }
 
 SYSTEM_PROMPT_FRAGMENT = "Playwright"
-USER_PROMPT_ACTION_TYPE = "click_element"
+USER_PROMPT_ACTION_TYPE = "click"
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ async def test_heal_success_returns_valid_result(healer, mock_llm):
     mock_llm.ainvoke.return_value = _make_completion(code)
 
     result = await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('xpath=//button[@id=\"old\"]')",),
         dom_snapshot="<div><button>Submit</button></div>",
         action_params={},
@@ -85,7 +85,7 @@ async def test_heal_timeout_returns_failure(healer, mock_llm):
     mock_llm.ainvoke.side_effect = asyncio.TimeoutError()
 
     result = await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('button')",),
         dom_snapshot="<div>btn</div>",
         action_params={},
@@ -106,7 +106,7 @@ async def test_heal_invalid_syntax_returns_failure(healer, mock_llm):
     mock_llm.ainvoke.return_value = _make_completion(broken_code)
 
     result = await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('btn')",),
         dom_snapshot="<div>btn</div>",
         action_params={},
@@ -126,7 +126,7 @@ async def test_heal_strips_markdown_fences(healer, mock_llm):
     mock_llm.ainvoke.return_value = _make_completion(fenced)
 
     result = await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('old')",),
         dom_snapshot="<div><button>OK</button></div>",
         action_params={},
@@ -146,7 +146,7 @@ async def test_heal_empty_response_returns_failure(healer, mock_llm):
     mock_llm.ainvoke.return_value = _make_completion("")
 
     result = await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('x')",),
         dom_snapshot="<div>x</div>",
         action_params={},
@@ -167,7 +167,7 @@ async def test_heal_truncates_large_dom(healer, mock_llm):
     mock_llm.ainvoke.return_value = _make_completion(code)
 
     await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('btn')",),
         dom_snapshot=long_dom,
         action_params={},
@@ -219,7 +219,7 @@ async def test_heal_prompt_contains_required_fields(healer, mock_llm):
 
     dom = "<button>Click me</button>"
     await healer.heal(
-        action_type="click_element",
+        action_type="click",
         failed_locators=("page.locator('old')",),
         dom_snapshot=dom,
         action_params={},
@@ -237,6 +237,6 @@ async def test_heal_prompt_contains_required_fields(healer, mock_llm):
     user_msgs = [m for m in messages if getattr(m, "role", None) == "user"]
     assert len(user_msgs) == 1
     user_content = user_msgs[0].content
-    assert "click_element" in user_content
+    assert "click" in user_content
     assert "page.locator('old')" in user_content
     assert "<button>Click me</button>" in user_content
