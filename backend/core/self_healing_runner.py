@@ -29,6 +29,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from backend.core.auth_service import TokenFetchError, auth_service
+from backend.core.error_classifier import classify_pytest_error
 from backend.core.llm_healer import LLMHealer
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,7 @@ class HealingResult:
     attempts: int
     error_message: str
     repaired_code_path: str
+    error_category: str = ""  # 分类结果 (ENV_INTERRUPT/ENV_PYTEST_ERROR/ENV_NO_TESTS/CODE_ERROR/CODE_RUNTIME)
 
 
 class SelfHealingRunner:
@@ -175,6 +177,7 @@ class SelfHealingRunner:
         self._generate_conftest(output_dir)
 
         last_error = ""
+        classification = None  # 错误分类结果
         max_iterations = 3  # 1 initial + 2 retries (per D-07)
 
         try:
@@ -223,6 +226,7 @@ class SelfHealingRunner:
                         attempts=iteration,
                         error_message="",
                         repaired_code_path=test_file_path,
+                        error_category="passed",
                     )
 
                 # pytest 失败: 提取错误输出
@@ -235,6 +239,24 @@ class SelfHealingRunner:
                     f"[{run_id}] pytest 失败 (第 {iteration} 次): "
                     f"{last_error[:200]}"
                 )
+
+                # 错误分类: 环境错误直接终止, 不调 LLM
+                classification = classify_pytest_error(
+                    proc_result.returncode, last_error
+                )
+                if classification.skip_llm_healing:
+                    self._logger.info(
+                        f"[{run_id}] 环境错误, 跳过 LLM 修复: "
+                        f"{classification.user_message}"
+                    )
+                    self._cleanup(output_dir)
+                    return HealingResult(
+                        final_status="failed",
+                        attempts=iteration,
+                        error_message=self._truncate_error(last_error),
+                        repaired_code_path=test_file_path,
+                        error_category=classification.category.value,
+                    )
 
                 # D-06: 非最后一次迭代时调用 LLM 修复
                 if iteration < max_iterations:
@@ -256,6 +278,9 @@ class SelfHealingRunner:
                 attempts=max_iterations,
                 error_message=self._truncate_error(last_error),
                 repaired_code_path=test_file_path,
+                error_category=(
+                    classification.category.value if classification else ""
+                ),
             )
         except Exception as exc:
             self._logger.error(
@@ -267,6 +292,7 @@ class SelfHealingRunner:
                 attempts=0,
                 error_message=str(exc),
                 repaired_code_path=test_file_path,
+                error_category="",
             )
 
     async def _llm_repair(

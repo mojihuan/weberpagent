@@ -433,6 +433,7 @@ def test_healing_result_is_frozen():
         error_message="",
         repaired_code_path="/tmp/test.py",
     )
+    assert result.error_category == ""  # 默认值为空字符串
     assert dataclasses.is_dataclass(result)
     with pytest.raises(dataclasses.FrozenInstanceError):
         result.final_status = "failed"  # type: ignore[misc]
@@ -534,3 +535,103 @@ async def test_get_storage_state_for_role_unknown_role():
             await _get_storage_state_for_role("nonexistent")
 
     assert "nonexistent" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# Tests for error classifier integration (per HEAL-01)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_env_error_skips_llm_repair(
+    runner: SelfHealingRunner, tmp_test_dir: Path
+):
+    """退出码 2 时跳过 LLM 修复, 直接返回 failed."""
+    test_file = str(tmp_test_dir / "test_example.py")
+    with (
+        patch(
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
+        patch(
+            "backend.core.self_healing_runner.asyncio.to_thread",
+            new_callable=AsyncMock,
+        ) as mock_to_thread,
+        patch(
+            "backend.core.self_healing_runner.LLMHealer"
+        ) as mock_healer_cls,
+    ):
+        mock_to_thread.return_value = _make_completed_process(
+            returncode=2, stderr="KeyboardInterrupt"
+        )
+        result = await runner.run("run1", test_file, login_role="main")
+    assert result.final_status == "failed"
+    assert result.attempts == 1
+    assert result.error_category == "ENV_INTERRUPT"
+    mock_healer_cls.assert_not_called()  # 环境错误不调 LLM
+
+
+@pytest.mark.asyncio
+async def test_env_error_exit_code_4(
+    runner: SelfHealingRunner, tmp_test_dir: Path
+):
+    """退出码 4 (pytest error) 时跳过 LLM 修复."""
+    test_file = str(tmp_test_dir / "test_example.py")
+    with (
+        patch(
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
+        patch(
+            "backend.core.self_healing_runner.asyncio.to_thread",
+            new_callable=AsyncMock,
+        ) as mock_to_thread,
+        patch(
+            "backend.core.self_healing_runner.LLMHealer"
+        ) as mock_healer_cls,
+    ):
+        mock_to_thread.return_value = _make_completed_process(
+            returncode=4, stderr="usage error"
+        )
+        result = await runner.run("run1", test_file, login_role="main")
+    assert result.final_status == "failed"
+    assert result.error_category == "ENV_PYTEST_ERROR"
+    mock_healer_cls.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_code_error_attempts_llm_repair(
+    runner: SelfHealingRunner, tmp_test_dir: Path
+):
+    """退出码 1 + SyntaxError 时归类为代码错误, 尝试 LLM 修复."""
+    test_file = str(tmp_test_dir / "test_example.py")
+    with (
+        patch(
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
+        patch(
+            "backend.core.self_healing_runner.asyncio.to_thread",
+            new_callable=AsyncMock,
+        ) as mock_to_thread,
+        patch(
+            "backend.core.self_healing_runner.LLMHealer"
+        ) as mock_healer_cls,
+    ):
+        mock_to_thread.return_value = _make_completed_process(
+            returncode=1, stderr="E   SyntaxError: invalid syntax"
+        )
+        mock_healer = MagicMock()
+        mock_healer.heal = AsyncMock(
+            return_value=LLMHealResult(
+                success=False, code_snippet="", raw_response="", locator="",
+            )
+        )
+        mock_healer_cls.return_value = mock_healer
+        result = await runner.run("run1", test_file, login_role="main")
+    assert result.final_status == "failed"
+    assert result.error_category == "CODE_ERROR"
+    mock_healer_cls.assert_called()  # 代码错误调了 LLM
