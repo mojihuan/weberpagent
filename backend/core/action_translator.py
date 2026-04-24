@@ -31,7 +31,7 @@ class ActionTranslator:
     """将 browser-use actions 翻译为 Playwright Python 代码。
 
     处理 6 种核心操作类型 (per D-08):
-    click_element, input_text, navigate, scroll, send_keys, go_back
+    click, input, navigate, scroll, send_keys, go_back
 
     其他类型生成注释 (per D-09)。
 
@@ -41,8 +41,8 @@ class ActionTranslator:
     VIEWPORT_HEIGHT: int = 1000  # 滚动像素计算基准 (per Pitfall 3)
 
     _CORE_TYPES: set[str] = frozenset({
-        "click_element",
-        "input_text",
+        "click",
+        "input",
         "navigate",
         "scroll",
         "send_keys",
@@ -72,9 +72,9 @@ class ActionTranslator:
         elem = action.get("interacted_element")
 
         # 核心操作分派
-        if action_type == "click_element":
+        if action_type == "click":
             return self._translate_click(params, elem)
-        if action_type == "input_text":
+        if action_type == "input":
             return self._translate_input(params, elem)
         if action_type == "navigate":
             return self._translate_navigate(params)
@@ -111,9 +111,9 @@ class ActionTranslator:
 
         elem = action.get("interacted_element")
 
-        if action_type == "click_element":
+        if action_type == "click":
             return self._translate_click(params, elem, llm_snippet=llm_snippet)
-        if action_type == "input_text":
+        if action_type == "input":
             return self._translate_input(params, elem, llm_snippet=llm_snippet)
         if action_type == "navigate":
             return self._translate_navigate(params)
@@ -133,7 +133,7 @@ class ActionTranslator:
         """识别 action dict 中的操作类型键。
 
         model_actions() 返回的 dict 格式：
-        {"click_element": {"index": 5}, "interacted_element": ...}
+        {"click": {"index": 5}, "interacted_element": ...}
         操作类型键是除 "interacted_element" 以外的键。
         """
         for key in action:
@@ -194,7 +194,7 @@ class ActionTranslator:
     def _translate_click(
         self, params: dict, elem: Any, *, llm_snippet: str = ""
     ) -> TranslatedAction:
-        """click_element -> page.locator("xpath=...").click()
+        """click -> page.locator("xpath=...").click()
 
         有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
         当 llm_snippet 非空时，作为第 4 层 LLM 回退插入。
@@ -202,32 +202,32 @@ class ActionTranslator:
         """
         if elem is None:
             if llm_snippet:
-                return self._build_llm_only_code("click_element", llm_snippet)
-            return self._build_placeholder("click_element")
+                return self._build_llm_only_code("click", llm_snippet)
+            return self._build_placeholder("click")
 
-        locators = self._chain_builder.extract(elem, "click_element")
+        locators = self._chain_builder.extract(elem, "click")
         if not locators:
             if llm_snippet:
-                return self._build_llm_only_code("click_element", llm_snippet)
-            return self._build_placeholder("click_element")
+                return self._build_llm_only_code("click", llm_snippet)
+            return self._build_placeholder("click")
 
         # 单定位器: 保持 Phase 82 格式 (per Pitfall 5)
         if len(locators) == 1:
             escaped = self._escape_string(elem.x_path)
             return TranslatedAction(
                 code=f'    page.locator("xpath={escaped}").click()',
-                action_type="click_element",
+                action_type="click",
                 is_comment=False,
                 has_locator=True,
             )
 
         # 多定位器: 生成 try-except 回退代码 (含可选 LLM 第 4 层)
         code = self._build_fallback_code(
-            locators, ".click()", "click_element", llm_snippet=llm_snippet
+            locators, ".click()", "click", llm_snippet=llm_snippet
         )
         return TranslatedAction(
             code=code,
-            action_type="click_element",
+            action_type="click",
             is_comment=False,
             has_locator=True,
             locators=tuple(locators),
@@ -236,7 +236,7 @@ class ActionTranslator:
     def _translate_input(
         self, params: dict, elem: Any, *, llm_snippet: str = ""
     ) -> TranslatedAction:
-        """input_text -> page.locator("xpath=...").fill(text)
+        """input -> page.locator("xpath=...").fill(text)
 
         有多定位器时生成 try-except 回退代码 (per D-04/D-05)。
         当 llm_snippet 非空时，作为第 4 层 LLM 回退插入。
@@ -244,14 +244,14 @@ class ActionTranslator:
         """
         if elem is None:
             if llm_snippet:
-                return self._build_llm_only_code("input_text", llm_snippet)
-            return self._build_placeholder("input_text")
+                return self._build_llm_only_code("input", llm_snippet)
+            return self._build_placeholder("input")
 
-        locators = self._chain_builder.extract(elem, "input_text")
+        locators = self._chain_builder.extract(elem, "input")
         if not locators:
             if llm_snippet:
-                return self._build_llm_only_code("input_text", llm_snippet)
-            return self._build_placeholder("input_text")
+                return self._build_llm_only_code("input", llm_snippet)
+            return self._build_placeholder("input")
 
         text = params.get("text", "")
         escaped_text = self._escape_string(text)
@@ -262,18 +262,18 @@ class ActionTranslator:
             escaped_xpath = self._escape_string(elem.x_path)
             return TranslatedAction(
                 code=f'    page.locator("xpath={escaped_xpath}").fill("{escaped_text}")',
-                action_type="input_text",
+                action_type="input",
                 is_comment=False,
                 has_locator=True,
             )
 
         # 多定位器: 生成 try-except 回退代码 (含可选 LLM 第 4 层)
         code = self._build_fallback_code(
-            locators, action_suffix, "input_text", llm_snippet=llm_snippet
+            locators, action_suffix, "input", llm_snippet=llm_snippet
         )
         return TranslatedAction(
             code=code,
-            action_type="input_text",
+            action_type="input",
             is_comment=False,
             has_locator=True,
             locators=tuple(locators),

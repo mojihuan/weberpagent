@@ -37,7 +37,7 @@ class LocatorChainBuilder:
 
         Args:
             elem: DOMInteractedElement 实例 (属性访问 x_path, node_name, attributes, ax_name)。
-            action_type: 操作类型 ("click_element" 或 "input_text")。
+            action_type: 操作类型 ("click" or "input")。
 
         Returns:
             Playwright 定位器表达式字符串列表，如 ['page.locator("xpath=...")', ...]。
@@ -76,8 +76,8 @@ class LocatorChainBuilder:
                     f'page.get_by_role("{role}", name="{escaped_name}")'
                 )
 
-        # 5. get_by_placeholder (仅 input_text 操作且有 placeholder)
-        if action_type == "input_text":
+        # 5. get_by_placeholder (仅 input 操作且有 placeholder)
+        if action_type == "input":
             placeholder = attrs.get("placeholder", "")
             if placeholder:
                 escaped_placeholder = _escape_string(placeholder)

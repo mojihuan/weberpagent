@@ -1,5 +1,18 @@
 # Milestones
 
+## v0.10.4 Playwright 代码验证与任务管理集成 (Shipped: 2026-04-24)
+
+**Phases completed:** 2 phases, 4 plans, 8 tasks
+
+**Key accomplishments:**
+
+- GET /runs/{run_id}/code endpoint returning line-numbered Python code with path traversal protection and TaskUpdate schema expansion
+- POST /execute-code endpoint with Semaphore(1) concurrency guard, async SelfHealingRunner execution, and automatic Task.status="success" on passed result
+- Backend TaskResponse extended with has_code/latest_run_id computed from runs, frontend Task type updated, context-aware StatusBadge, and code API functions for Plan 02 UI components
+- TaskTable "代码" column with blue/gray Code2 icons, CodeViewerModal with react-syntax-highlighter Python display, and execution controls with 2-second polling
+
+---
+
 ## v0.10.3 DOM 深度修复 - 表格单元格选择精确性 (Shipped: 2026-04-23)
 
 **Phases completed:** 3 phases, 4 plans

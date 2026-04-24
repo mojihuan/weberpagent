@@ -1,71 +1,63 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.4
-milestone_name: Playwright 代码验证与任务管理集成
-status: Ready to execute
-stopped_at: Completed 98-01-PLAN.md
-last_updated: "2026-04-24T00:25:32.356Z"
+milestone: none
+milestone_name: ""
+status: Between milestones
+stopped_at: v0.10.4 archived, awaiting next milestone
+last_updated: "2026-04-24T01:10:00.000Z"
 progress:
-  total_phases: 2
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-23)
+See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 98 — 前端UI
+**Current focus:** Planning next milestone
 
 ## Last Shipped
 
-**v0.10.3 DOM 深度修复 - 表格单元格选择精确性** (2026-04-23)
+**v0.10.4 Playwright 代码验证与任务管理集成** (2026-04-24)
 
-- Phase 94: DOM Patch 增强 — td 内部子元素 bbox 保护 + 列标题映射注入 (Patch 8)
-- Phase 95: Prompt 更新 — Section 9 四段式交叉定位重写
-- Phase 96: E2E 验证 — Agent 正确选择销售金额列
+- Phase 97: 后端 API — 代码查看/执行 API + 任务状态扩展
+- Phase 98: 前端 UI — 代码列/查看器/执行按钮 + 状态徽章
 
 **Server online**: 121.40.191.49
 
 ## Current Position
 
-Phase: 98 (前端UI) — EXECUTING
-Plan: 2 of 2
+Milestone: None (awaiting next)
+Phase: None
+Plan: None
 
 ## Accumulated Context
 
 ### Decisions
 
-Recent decisions affecting current work:
-
-- SelfHealingRunner is fully reusable for code execution endpoint (no new subprocess infrastructure)
-- Task.status String(20) already supports "success" value, no DB migration needed
-- has_code should be computed at read time from latest run's generated_code_path (no denormalization)
-- react-syntax-highlighter (Prism build) chosen for read-only code display (40KB gzipped, zero-config)
-- asyncio.Semaphore(1) for concurrent code execution protection on 2GB server
-- [Phase 97-api]: Used FastAPI app.dependency_overrides instead of patch() for test injection
-- [Phase 97-api]: Path traversal check runs before file existence in _validate_code_path
-- [Phase 97-api]: SelfHealingRunner imported at module level for test patching compatibility
-- [Phase 97-api]: status_code=202 set explicitly on POST /execute-code decorator (FastAPI defaults 200)
-- [Phase 98]: Route handlers construct dicts for computed fields (has_code/latest_run_id) rather than extending ORM validator
-- [Phase 98]: getRunCode uses raw fetch + response.text() because apiClient calls response.json() which fails on PlainTextResponse
-- [Phase 98]: StatusBadge uses context prop for entity-specific labels, keeping statusConfig backward compatible
+Key v0.10.4 decisions:
+- FastAPI dependency_overrides for test injection
+- asyncio.Semaphore(1) for code execution concurrency
+- BackgroundTasks.add_task with new DB session
+- Computed fields in route handlers (has_code/latest_run_id)
+- StatusBadge context prop for entity-specific labels
+- react-syntax-highlighter Prism for code display
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- Orphaned Chrome processes from subprocess pytest — need start_new_session=True + os.killpg() process group kill
-- Path traversal risk in code-serving endpoint — must validate resolved path is within outputs/
+- Orphaned Chrome processes from subprocess pytest — need start_new_session=True + os.killpg()
+- Path traversal risk in code-serving endpoint — validated with _validate_code_path
 
 ## Session Continuity
 
-Last session: 2026-04-24T00:25:32.354Z
-Stopped at: Completed 98-01-PLAN.md
-Resume file: None
+Last session: 2026-04-24T01:10:00.000Z
+Stopped at: v0.10.4 milestone archived

@@ -13,22 +13,11 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: v0.10.4 Playwright 代码验证与任务管理集成
-
-**Goal:** 验证生成的 Playwright 代码可执行测试任务，并在任务管理中提供代码查看和运行能力
-
-**Target features:**
-- Playwright 代码可用性验证 — 生成代码能成功回放执行
-- 任务状态扩展 — 任务有 Playwright 代码时可标记为成功
-- 任务列表新增"代码"列 — 显示该任务是否有可用代码
-- 查看代码按钮 — 查看已生成的 Playwright 代码（只读）
-- 运行代码按钮 — 直接执行 Playwright 测试
-
 ## Current State
 
-**最新版本:** v0.10.4 Playwright 代码验证与任务管理集成 (in progress)
+**最新版本:** v0.10.4 Playwright 代码验证与任务管理集成 (shipped 2026-04-24)
 **Server online**: 121.40.191.49
-**当前进度:** v0.10.3 已交付，开始 v0.10.4
+**当前状态:** 等待下一个 milestone 规划
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -42,6 +31,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.9.2: Cookie 预注入免登录 (2026-04-17)
 - v0.10.0: Agent 执行速度优化 (2026-04-18)
 - v0.10.1: 代码登录及 Agent 复用登录的浏览器状态 (2026-04-21)
+- v0.10.4: Playwright 代码验证与任务管理集成 (2026-04-24)
 - v0.10.3: DOM 深度修复 - 表格单元格选择精确性 (2026-04-23)
 - v0.10.2: 测试验证与代码可用性修复 (2026-04-23)
 
@@ -49,14 +39,18 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-**v0.10.4 Playwright 代码验证与任务管理集成 (2026-04-23):**
-- CODE-01: 生成的 Playwright pytest 代码可独立执行对应测试任务
-- UI-01: 任务列表新增"代码"列，显示任务是否有可用的 Playwright 代码
-- UI-02: "查看代码"按钮 — 打开代码查看面板，只读显示已生成代码
-- UI-03: "运行代码"按钮 — 直接执行 Playwright 测试并显示执行结果
-- STATUS-01: 任务执行成功后，任务状态可标记为"成功"
+_No active requirements — awaiting next milestone._
 
 ### Validated
+
+**v0.10.4 Playwright 代码验证与任务管理集成 (2026-04-24):**
+- ✓ CODE-01: GET /runs/{run_id}/code 返回已生成的 Playwright 代码文件内容 — Phase 97
+- ✓ CODE-02: POST /execute-code 触发 pytest 执行，复用 SelfHealingRunner — Phase 97
+- ✓ CODE-03: healing_status/healing_error 反映执行结果 — Phase 97
+- ✓ STATUS-01: Task.status 扩展为 draft/ready/success，执行成功自动标记 — Phase 97
+- ✓ UI-01: 任务列表"代码"列，蓝色/灰色 Code2 图标 — Phase 98
+- ✓ UI-02: CodeViewerModal 语法高亮只读显示 Python 代码 — Phase 98
+- ✓ UI-03: "运行代码"按钮 + 执行状态轮询 + 错误展示 — Phase 98
 
 **v0.10.3 DOM 深度修复 - 表格单元格选择精确性 (2026-04-23):**
 - ✓ DEPTH-01: td 内部子元素 bbox 保护 — 防止 `<div>/<span>` 被 `excluded_by_parent` 扁平化 — Phase 94
@@ -195,7 +189,7 @@ v0.1-v0.4.2 核心功能:
 - 数据库 SQLite (aiosqlite)
 
 **代码质量:**
-- 测试套件: 891 tests (876 unit/integration + 4 e2e + 12 xfailed), 0 failed, 0 errors
+- 测试套件: 755+ unit tests passed, 0 failed, 0 errors (Phase 97 regression gate)
 - E2E 回归测试: 4 个覆盖完整链路
 
 **技术栈:**
@@ -243,10 +237,17 @@ v0.1-v0.4.2 核心功能:
 | td 内部子元素 bbox 保护（ant-table-cell-inner 等）| `_apply_bounding_box_filtering` 将 td 内 div/span 标记为 `excluded_by_parent` 导致扁平化 | ✓ Good |
 | 列标题映射注入到 DOM dump | Agent 无法区分相邻同值 td 列 | ✓ Good |
 | httpx AsyncClient + ASGITransport 进程内 E2E 测试 | 无需真实服务器，快速可靠 | ✓ Good |
+| FastAPI dependency_overrides 替代 patch() 测试注入 | patch 不影响已解析的 Depends() | ✓ Good |
+| asyncio.Semaphore(1) 代码执行并发保护 | 2GB 服务器内存安全边界 | ✓ Good |
+| BackgroundTasks.add_task + 新 DB session | 请求 session 在响应后关闭 | ✓ Good |
+| 路由层构造 computed fields dict | has_code/latest_run_id 非 ORM 字段 | ✓ Good |
+| getRunCode 原始 fetch 替代 apiClient | apiClient 调 response.json() 对 PlainTextResponse 失败 | ✓ Good |
+| StatusBadge context prop 实体感知标签 | Task='成功' vs Run='已完成'，保持向后兼容 | ✓ Good |
+| react-syntax-highlighter Prism build 只读代码展示 | 40KB gzipped，零配置 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-23 — v0.10.4 milestone started*
+*Last updated: 2026-04-24 — v0.10.4 milestone archived*
