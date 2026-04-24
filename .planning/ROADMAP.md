@@ -221,11 +221,11 @@ Plans:
   2. wait/select_dropdown/evaluate 翻译有独立单元测试覆盖
   3. _heal_weak_steps() 单元测试验证 click/input 键名触发 LLM healing 路径
   4. AI 执行完整任务后，生成的代码文件包含可执行的 Playwright click/input 调用
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 101-01: 单元测试 — 键名修复 + 新翻译覆盖
-- [ ] 101-02: 端到端验证 — 完整任务执行后生成可运行代码
+- [x] 101-01-PLAN.md — 集成测试：translator->generator 全链路验证 click/input/wait/evaluate 翻译 + healing 触发 (TEST-01/02/03)
+- [ ] 101-02-PLAN.md — E2E 测试：AI 执行登录任务，验证生成代码包含可执行 Playwright 调用 (TEST-04)
 
 ## Progress
 
@@ -233,7 +233,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 99. 核心键名修复 | 2/2 | Complete    | 2026-04-24 |
 | 100. 操作翻译扩展 | 2/2 | Complete   | 2026-04-24 |
-| 101. 测试验证 | 0/2 | Not started | - |
+| 101. 测试验证 | 1/2 | In Progress|  |
 
 ---
-*Roadmap updated: 2026-04-24 -- Phase 100 planned*
+*Roadmap updated: 2026-04-24 -- Phase 101 planned*

@@ -32,9 +32,9 @@
 
 ### 测试验证
 
-- [ ] **TEST-01**: 单元测试使用 browser-use 实际输出的键名（click/input 而非 click_element/input_text）
-- [ ] **TEST-02**: 新增 wait/select_dropdown/evaluate 翻译的单元测试
-- [ ] **TEST-03**: _heal_weak_steps() 测试验证 click/input 的 LLM healing 路径可触发
+- [x] **TEST-01**: 单元测试使用 browser-use 实际输出的键名（click/input 而非 click_element/input_text）
+- [x] **TEST-02**: 新增 wait/select_dropdown/evaluate 翻译的单元测试
+- [x] **TEST-03**: _heal_weak_steps() 测试验证 click/input 的 LLM healing 路径可触发
 - [ ] **TEST-04**: 端到端验证 — AI 执行任务后，生成的代码包含可执行的 Playwright click/input 调用
 
 ## Out of Scope
@@ -65,9 +65,9 @@
 | EDGE-06 | Phase 100 | Complete |
 | EDGE-07 | Phase 100 | Complete |
 | EDGE-08 | Phase 100 | Complete |
-| TEST-01 | Phase 101 | Pending |
-| TEST-02 | Phase 101 | Pending |
-| TEST-03 | Phase 101 | Pending |
+| TEST-01 | Phase 101 | Complete |
+| TEST-02 | Phase 101 | Complete |
+| TEST-03 | Phase 101 | Complete |
 | TEST-04 | Phase 101 | Pending |
 
 **Coverage:**
