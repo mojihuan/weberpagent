@@ -49,6 +49,8 @@ class TaskResponse(BaseModel):
     preconditions: Optional[List[str]] = None
     assertions: Optional[List[dict[str, Any]]] = None
     login_role: Optional[str] = None
+    has_code: bool = False
+    latest_run_id: Optional[str] = None
 
     @model_validator(mode='before')
     @classmethod

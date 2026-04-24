@@ -192,7 +192,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 97-01-PLAN.md -- GET /code endpoint + schema expansion + CODE-01 tests
-- [ ] 97-02-PLAN.md -- POST /execute-code + concurrency guard + status auto-update + CODE-02/03/STATUS-01 tests
+- [x] 97-02-PLAN.md -- POST /execute-code + concurrency guard + status auto-update + CODE-02/03/STATUS-01 tests
 
 ### Phase 98: 前端 UI
 **Goal**: QA 在任务列表中能看到哪些任务有可用代码，点击即可查看代码或运行 Playwright 测试
@@ -213,7 +213,7 @@ Phases execute in numeric order: 97 → 98
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 97. 后端 API | v0.10.4 | 1/2 | In Progress|  |
+| 97. 后端 API | v0.10.4 | 2/2 | Complete   | 2026-04-23 |
 | 98. 前端 UI | v0.10.4 | 0/? | Not started | - |
 
 ---

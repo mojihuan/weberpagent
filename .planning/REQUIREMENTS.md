@@ -8,8 +8,8 @@
 ### 代码执行验证 (CODE)
 
 - [x] **CODE-01**: GET /runs/{run_id}/code 返回已生成的 Playwright 代码文件内容（从 Run.generated_code_path 读取）
-- [ ] **CODE-02**: POST /runs/{run_id}/execute-code 触发 pytest 执行，复用 SelfHealingRunner 基础设施（storage_state 注入 + 超时保护）
-- [ ] **CODE-03**: 代码执行结果（成功/失败/错误信息/耗时）可通过 GET /runs/{run_id} 获取，包含 healing_status 和 healing_error 字段
+- [x] **CODE-02**: POST /runs/{run_id}/execute-code 触发 pytest 执行，复用 SelfHealingRunner 基础设施（storage_state 注入 + 超时保护）
+- [x] **CODE-03**: 代码执行结果（成功/失败/错误信息/耗时）可通过 GET /runs/{run_id} 获取，包含 healing_status 和 healing_error 字段
 
 ### 任务管理 UI (UI)
 
@@ -19,7 +19,7 @@
 
 ### 任务状态 (STATUS)
 
-- [ ] **STATUS-01**: Task.status 扩展为 draft/ready/success 三种状态，success 由系统在 Playwright 代码执行成功后自动设置，前端 StatusBadge 显示"成功"标签（绿色）
+- [x] **STATUS-01**: Task.status 扩展为 draft/ready/success 三种状态，success 由系统在 Playwright 代码执行成功后自动设置，前端 StatusBadge 显示"成功"标签（绿色）
 
 ## Future Requirements
 
@@ -50,9 +50,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CODE-01 | Phase 97 | Complete |
-| CODE-02 | Phase 97 | Pending |
-| CODE-03 | Phase 97 | Pending |
-| STATUS-01 | Phase 97 | Pending |
+| CODE-02 | Phase 97 | Complete |
+| CODE-03 | Phase 97 | Complete |
+| STATUS-01 | Phase 97 | Complete |
 | UI-01 | Phase 98 | Pending |
 | UI-02 | Phase 98 | Pending |
 | UI-03 | Phase 98 | Pending |

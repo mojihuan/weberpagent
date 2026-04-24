@@ -47,12 +47,14 @@ class TaskRepository:
         return task
 
     async def get(self, task_id: str) -> Optional[Task]:
-        stmt = select(Task).where(Task.id == task_id).options(selectinload(Task.assertions))
+        stmt = select(Task).where(Task.id == task_id).options(
+            selectinload(Task.assertions), selectinload(Task.runs)
+        )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def list(self, status: Optional[str] = None) -> List[Task]:
-        stmt = select(Task).options(selectinload(Task.assertions))
+        stmt = select(Task).options(selectinload(Task.assertions), selectinload(Task.runs))
         if status:
             stmt = stmt.where(Task.status == status)
         stmt = stmt.order_by(Task.created_at.desc())

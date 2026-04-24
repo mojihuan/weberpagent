@@ -105,7 +105,30 @@ async def import_confirm(file: UploadFile = File(...), db: AsyncSession = Depend
 async def list_tasks(
     repo: TaskRepository = Depends(get_task_repo),
 ):
-    return await repo.list()
+    tasks = await repo.list()
+    results = []
+    for task in tasks:
+        task_dict = {
+            'id': task.id,
+            'name': task.name,
+            'description': task.description,
+            'target_url': task.target_url,
+            'max_steps': task.max_steps,
+            'status': task.status,
+            'created_at': task.created_at,
+            'updated_at': task.updated_at,
+            'preconditions': task.preconditions,
+            'assertions': task.external_assertions,
+            'login_role': task.login_role,
+            'has_code': False,
+            'latest_run_id': None,
+        }
+        if task.runs:
+            latest_run = max(task.runs, key=lambda r: r.created_at)
+            task_dict['latest_run_id'] = latest_run.id
+            task_dict['has_code'] = bool(latest_run.generated_code_path)
+        results.append(TaskResponse.model_validate(task_dict))
+    return results
 
 
 @router.post("", response_model=TaskResponse)
@@ -124,7 +147,26 @@ async def get_task(
     task = await repo.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    return task
+    task_dict = {
+        'id': task.id,
+        'name': task.name,
+        'description': task.description,
+        'target_url': task.target_url,
+        'max_steps': task.max_steps,
+        'status': task.status,
+        'created_at': task.created_at,
+        'updated_at': task.updated_at,
+        'preconditions': task.preconditions,
+        'assertions': task.external_assertions,
+        'login_role': task.login_role,
+        'has_code': False,
+        'latest_run_id': None,
+    }
+    if task.runs:
+        latest_run = max(task.runs, key=lambda r: r.created_at)
+        task_dict['latest_run_id'] = latest_run.id
+        task_dict['has_code'] = bool(latest_run.generated_code_path)
+    return TaskResponse.model_validate(task_dict)
 
 
 @router.put("/{task_id}", response_model=TaskResponse)
