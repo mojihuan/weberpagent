@@ -639,8 +639,16 @@ class ActionTranslator:
         else:
             summary = "未翻译的操作类型"
 
+        # 处理 summary 中的换行符，确保每行都有 # 前缀 (per EXEC-02)
+        if "\n" in summary:
+            lines = summary.split("\n")
+            prefixed_lines = [f"    # {action_type}: {lines[0]}"] + [f"    # {line}" for line in lines[1:]]
+            comment_code = "\n".join(prefixed_lines)
+        else:
+            comment_code = f"    # {action_type}: {summary}"
+
         return TranslatedAction(
-            code=f"    # {action_type}: {summary}",
+            code=comment_code,
             action_type=action_type,
             is_comment=True,
             has_locator=False,

@@ -984,3 +984,33 @@ class TestEdgeComments:
         assert result.action_type == "custom_action"
         assert result.is_comment is True
         assert "custom_action" in result.code
+
+    def test_done_comment_with_newlines(self, translator: ActionTranslator) -> None:
+        """done 文本包含换行符时，每行都有 # 前缀 (per EXEC-02)."""
+        action = {"done": {"text": "任务完成\n详细说明", "success": True}, "interacted_element": None}
+        result = translator.translate(action)
+        lines = result.code.split("\n")
+        for line in lines:
+            assert line.strip().startswith("#"), f"行缺少 # 前缀: {line}"
+
+    def test_extract_comment_with_newlines(self, translator: ActionTranslator) -> None:
+        """extract query 包含换行符时，每行都有 # 前缀 (per EXEC-02)."""
+        action = {"extract": {"query": "提取\n数据"}, "interacted_element": None}
+        result = translator.translate(action)
+        lines = result.code.split("\n")
+        for line in lines:
+            assert line.strip().startswith("#"), f"行缺少 # 前缀: {line}"
+
+    def test_unknown_comment_single_line_unchanged(self, translator: ActionTranslator) -> None:
+        """单行 summary 的注释格式与修改前完全一致 (per EXEC-02)."""
+        action = {"done": {"text": "简单文本"}, "interacted_element": None}
+        result = translator.translate(action)
+        assert "\n" not in result.code  # 单行无换行
+        assert result.code == "    # done: 任务完成: 简单文本"
+
+    def test_newline_comment_is_valid_python(self, translator: ActionTranslator) -> None:
+        """多行注释代码在函数体内通过 ast.parse (per EXEC-02)."""
+        action = {"done": {"text": "完成\n多行\n文本"}, "interacted_element": None}
+        result = translator.translate(action)
+        wrapped = f"def test_func():\n    pass\n{result.code}"
+        ast.parse(wrapped)
