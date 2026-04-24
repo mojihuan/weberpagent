@@ -206,11 +206,11 @@ Plans:
   3. evaluate action 生成 `page.evaluate(code)` 显示 JavaScript 执行代码
   4. upload_file action 生成 `page.locator("xpath=...").set_input_files(path)` 使用元素定位器
   5. 其余 8 种边缘 action (switch/close/search_page/screenshot/done/search/dropdown_options/extract) 生成有意义的注释而非空行
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 100-01: 常用操作翻译 (wait/select_dropdown/evaluate/upload_file)
-- [ ] 100-02: 边缘操作翻译 (switch/close/search_page 等 8 种)
+- [x] 100-01-PLAN.md — 新增 wait/evaluate/select_dropdown/upload_file 4 种可执行操作翻译及单元测试
+- [ ] 100-02-PLAN.md — 重构 _translate_unknown() 为 14 种边缘操作生成参数摘要注释及单元测试
 
 ### Phase 101: 测试验证
 **Goal**: 通过单元测试和端到端验证确认代码生成系统对真实 browser-use 输出正确工作
@@ -231,9 +231,9 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 99. 核心键名修复 | 2/2 | Complete   | 2026-04-24 |
-| 100. 操作翻译扩展 | 0/2 | Not started | - |
+| 99. 核心键名修复 | 2/2 | Complete    | 2026-04-24 |
+| 100. 操作翻译扩展 | 1/2 | In Progress|  |
 | 101. 测试验证 | 0/2 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-24 -- Phase 99 planned*
+*Roadmap updated: 2026-04-24 -- Phase 100 planned*

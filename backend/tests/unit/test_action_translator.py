@@ -825,3 +825,162 @@ class TestLLMFallbackLayer:
         # 包装在函数体中以通过 ast.parse
         wrapped = f"def test_func():\n{code}"
         ast.parse(wrapped)
+
+
+# ---------------------------------------------------------------------------
+# 边缘操作注释翻译测试 (EDGE-01~08)
+# ---------------------------------------------------------------------------
+
+
+class TestEdgeComments:
+    """14 种边缘操作 + 1 种真正未知操作的有意义注释翻译测试。"""
+
+    def test_switch_comment(self, translator: ActionTranslator) -> None:
+        """switch 生成包含 tab_id 的注释。"""
+        action = {"switch": {"tab_id": "A1B2"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "switch"
+        assert result.is_comment is True
+        assert "# switch" in result.code
+        assert "A1B2" in result.code
+
+    def test_close_comment(self, translator: ActionTranslator) -> None:
+        """close 生成包含 tab_id 的注释。"""
+        action = {"close": {"tab_id": "C3D4"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "close"
+        assert result.is_comment is True
+        assert "# close" in result.code
+        assert "C3D4" in result.code
+
+    def test_search_page_comment(self, translator: ActionTranslator) -> None:
+        """search_page 生成包含 pattern 的注释。"""
+        action = {"search_page": {"pattern": "价格"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "search_page"
+        assert result.is_comment is True
+        assert "价格" in result.code
+
+    def test_find_elements_comment(self, translator: ActionTranslator) -> None:
+        """find_elements 生成包含 selector 的注释。"""
+        action = {"find_elements": {"selector": "div.item"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "find_elements"
+        assert result.is_comment is True
+        assert "div.item" in result.code
+
+    def test_find_text_comment(self, translator: ActionTranslator) -> None:
+        """find_text 生成包含 text 的注释。"""
+        action = {"find_text": {"text": "提交"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "find_text"
+        assert result.is_comment is True
+        assert "提交" in result.code
+
+    def test_screenshot_comment_with_filename(
+        self, translator: ActionTranslator
+    ) -> None:
+        """screenshot 有 file_name 时生成包含文件名的注释。"""
+        action = {"screenshot": {"file_name": "shot.png"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "screenshot"
+        assert result.is_comment is True
+        assert "shot.png" in result.code
+
+    def test_screenshot_comment_no_filename(
+        self, translator: ActionTranslator
+    ) -> None:
+        """screenshot 无 file_name 时仍生成有意义的注释。"""
+        action = {"screenshot": {}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "screenshot"
+        assert result.is_comment is True
+        assert "# screenshot" in result.code
+
+    def test_save_as_pdf_comment(self, translator: ActionTranslator) -> None:
+        """save_as_pdf 生成包含 file_name 的注释。"""
+        action = {"save_as_pdf": {"file_name": "report.pdf"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "save_as_pdf"
+        assert result.is_comment is True
+        assert "report.pdf" in result.code
+
+    def test_done_comment(self, translator: ActionTranslator) -> None:
+        """done 生成包含完成文本的注释。"""
+        action = {"done": {"text": "任务完成", "success": True}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "done"
+        assert result.is_comment is True
+        assert "任务完成" in result.code
+
+    def test_write_file_comment(self, translator: ActionTranslator) -> None:
+        """write_file 生成包含 file_name 的注释。"""
+        action = {"write_file": {"file_name": "test.py", "content": "pass"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "write_file"
+        assert result.is_comment is True
+        assert "test.py" in result.code
+
+    def test_read_file_comment(self, translator: ActionTranslator) -> None:
+        """read_file 生成包含 file_name 的注释。"""
+        action = {"read_file": {"file_name": "data.json"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "read_file"
+        assert result.is_comment is True
+        assert "data.json" in result.code
+
+    def test_replace_file_comment(self, translator: ActionTranslator) -> None:
+        """replace_file 生成包含 file_name 的注释。"""
+        action = {"replace_file": {"file_name": "cfg.py", "old_str": "a", "new_str": "b"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "replace_file"
+        assert result.is_comment is True
+        assert "cfg.py" in result.code
+
+    def test_search_comment(self, translator: ActionTranslator) -> None:
+        """search 生成包含 query 的注释。"""
+        action = {"search": {"query": "测试", "engine": "duckduckgo"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "search"
+        assert result.is_comment is True
+        assert "测试" in result.code
+
+    def test_dropdown_options_comment(self, translator: ActionTranslator) -> None:
+        """dropdown_options 生成包含 index 的注释。"""
+        action = {"dropdown_options": {"index": 5}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "dropdown_options"
+        assert result.is_comment is True
+        assert "5" in result.code
+
+    def test_extract_comment(self, translator: ActionTranslator) -> None:
+        """extract 生成包含 query 的注释。"""
+        action = {"extract": {"query": "提取链接", "extract_links": True}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "extract"
+        assert result.is_comment is True
+        assert "提取链接" in result.code
+
+    def test_truly_unknown_comment(self, translator: ActionTranslator) -> None:
+        """真正未知的操作类型生成通用回退注释。"""
+        action = {"custom_action": {"foo": "bar"}, "interacted_element": None}
+        result = translator.translate(action)
+
+        assert result.action_type == "custom_action"
+        assert result.is_comment is True
+        assert "custom_action" in result.code

@@ -14,10 +14,10 @@
 
 ### 常用操作翻译
 
-- [ ] **TRANS-01**: wait → page.wait_for_timeout(seconds * 1000)，显示有意义的等待代码
-- [ ] **TRANS-02**: select_dropdown → page.locator("xpath=...").select_option(text)，使用元素定位器
-- [ ] **TRANS-03**: evaluate → page.evaluate(code)，显示 JavaScript 执行代码
-- [ ] **TRANS-04**: upload_file → page.locator("xpath=...").set_input_files(path)，使用元素定位器而非注释
+- [x] **TRANS-01**: wait → page.wait_for_timeout(seconds * 1000)，显示有意义的等待代码
+- [x] **TRANS-02**: select_dropdown → page.locator("xpath=...").select_option(text)，使用元素定位器
+- [x] **TRANS-03**: evaluate → page.evaluate(code)，显示 JavaScript 执行代码
+- [x] **TRANS-04**: upload_file → page.locator("xpath=...").set_input_files(path)，使用元素定位器而非注释
 
 ### 边缘操作翻译
 
@@ -53,10 +53,10 @@
 | KEY-02 | Phase 99 | Complete |
 | KEY-03 | Phase 99 | Complete |
 | KEY-04 | Phase 99 | Complete |
-| TRANS-01 | Phase 100 | Pending |
-| TRANS-02 | Phase 100 | Pending |
-| TRANS-03 | Phase 100 | Pending |
-| TRANS-04 | Phase 100 | Pending |
+| TRANS-01 | Phase 100 | Complete |
+| TRANS-02 | Phase 100 | Complete |
+| TRANS-03 | Phase 100 | Complete |
+| TRANS-04 | Phase 100 | Complete |
 | EDGE-01 | Phase 100 | Pending |
 | EDGE-02 | Phase 100 | Pending |
 | EDGE-03 | Phase 100 | Pending |
