@@ -1,9 +1,10 @@
 """ActionTranslator -- 将 browser-use model_actions() 操作翻译为 Playwright Python 代码。
 
 每个 model_actions() 条目翻译为一条 TranslatedAction，包含 Playwright API 调用字符串。
-处理 6 种核心操作类型 (per D-08)，其他类型生成注释 (per D-09)。
+处理 10 种核心操作类型 (per D-08)，其他类型生成注释 (per D-09)。
 
 Phase 83 扩展: click/input 操作支持多定位器 try-except 回退 (per D-04/D-05)。
+Phase 100 扩展: 新增 wait/evaluate/select_dropdown/upload_file 4 种可执行类型。
 """
 
 from __future__ import annotations
@@ -30,12 +31,14 @@ class TranslatedAction:
 class ActionTranslator:
     """将 browser-use actions 翻译为 Playwright Python 代码。
 
-    处理 6 种核心操作类型 (per D-08):
-    click, input, navigate, scroll, send_keys, go_back
+    处理 10 种核心操作类型 (per D-08):
+    click, input, navigate, scroll, send_keys, go_back,
+    wait, evaluate, select_dropdown, upload_file
 
     其他类型生成注释 (per D-09)。
 
     Phase 83: click/input 操作支持多定位器 try-except 回退 (per D-04/D-05)。
+    Phase 100: 新增 wait/evaluate/select_dropdown/upload_file 翻译。
     """
 
     VIEWPORT_HEIGHT: int = 1000  # 滚动像素计算基准 (per Pitfall 3)
@@ -47,6 +50,10 @@ class ActionTranslator:
         "scroll",
         "send_keys",
         "go_back",
+        "wait",
+        "evaluate",
+        "select_dropdown",
+        "upload_file",
     })
 
     def __init__(self) -> None:
@@ -84,6 +91,14 @@ class ActionTranslator:
             return self._translate_send_keys(params)
         if action_type == "go_back":
             return self._translate_go_back()
+        if action_type == "wait":
+            return self._translate_wait(params)
+        if action_type == "evaluate":
+            return self._translate_evaluate(params)
+        if action_type == "select_dropdown":
+            return self._translate_select_dropdown(params, elem)
+        if action_type == "upload_file":
+            return self._translate_upload_file(params, elem)
 
         # 不应到达此处（已在 _CORE_TYPES 检查中过滤）
         return self._translate_unknown(action_type, params)
@@ -123,6 +138,14 @@ class ActionTranslator:
             return self._translate_send_keys(params)
         if action_type == "go_back":
             return self._translate_go_back()
+        if action_type == "wait":
+            return self._translate_wait(params)
+        if action_type == "evaluate":
+            return self._translate_evaluate(params)
+        if action_type == "select_dropdown":
+            return self._translate_select_dropdown(params, elem)
+        if action_type == "upload_file":
+            return self._translate_upload_file(params, elem)
 
         return self._translate_unknown(action_type, params)
 
@@ -496,21 +519,101 @@ class ActionTranslator:
         )
 
     @staticmethod
+    def _translate_wait(params: dict) -> TranslatedAction:
+        """wait -> page.wait_for_timeout(seconds * 1000)
+
+        browser-use wait(seconds=3) -- seconds defaults to 3.
+        model_dump() outputs {"wait": {}} or {"wait": {"seconds": 5}}.
+        """
+        seconds = params.get("seconds", 3)
+        ms = int(seconds * 1000)
+        return TranslatedAction(
+            code=f"    page.wait_for_timeout({ms})",
+            action_type="wait",
+            is_comment=False,
+            has_locator=False,
+        )
+
+    @staticmethod
+    def _translate_evaluate(params: dict) -> TranslatedAction:
+        """evaluate -> page.evaluate(code)
+
+        browser-use evaluate(code="...") -- JavaScript code string.
+        Defensively escape newlines and quotes to prevent syntax errors.
+        """
+        code_str = params.get("code", "")
+        escaped = ActionTranslator._escape_string(code_str).replace("\n", "\\n")
+        return TranslatedAction(
+            code=f'    page.evaluate("{escaped}")',
+            action_type="evaluate",
+            is_comment=False,
+            has_locator=False,
+        )
+
+    def _translate_select_dropdown(
+        self, params: dict, elem: Any
+    ) -> TranslatedAction:
+        """select_dropdown -> page.locator("xpath=...").select_option(text)
+
+        Uses single locator mode (per D-04). Falls back to comment when
+        elem=None or no xpath (per D-05). No multi-locator fallback (per D-06).
+        """
+        if elem is None:
+            return self._build_edge_comment("select_dropdown", params)
+        locators = self._chain_builder.extract(elem, "select_dropdown")
+        if not locators:
+            return self._build_edge_comment("select_dropdown", params)
+        text = params.get("text", "")
+        escaped_text = self._escape_string(text)
+        return TranslatedAction(
+            code=f'    {locators[0]}.select_option("{escaped_text}")',
+            action_type="select_dropdown",
+            is_comment=False,
+            has_locator=True,
+        )
+
+    def _translate_upload_file(
+        self, params: dict, elem: Any
+    ) -> TranslatedAction:
+        """upload_file -> page.locator("xpath=...").set_input_files(path)
+
+        Uses single locator mode (per D-04). Falls back to comment when
+        elem=None or no xpath (per D-05). No multi-locator fallback (per D-06).
+        """
+        if elem is None:
+            return self._build_edge_comment("upload_file", params)
+        locators = self._chain_builder.extract(elem, "upload_file")
+        if not locators:
+            return self._build_edge_comment("upload_file", params)
+        path = params.get("path", "")
+        escaped_path = self._escape_string(path)
+        return TranslatedAction(
+            code=f'    {locators[0]}.set_input_files("{escaped_path}")',
+            action_type="upload_file",
+            is_comment=False,
+            has_locator=True,
+        )
+
+    @staticmethod
+    def _build_edge_comment(action_type: str, params: dict) -> TranslatedAction:
+        """生成定位器缺失时的注释回退 (per D-05).
+
+        select_dropdown/upload_file 无定位器时使用此方法，
+        不触发 LLM healing (per D-06)。
+        """
+        return TranslatedAction(
+            code=f"    # {action_type}: 定位器缺失 {params}",
+            action_type=action_type,
+            is_comment=True,
+            has_locator=False,
+        )
+
+    @staticmethod
     def _translate_unknown(action_type: str, params: dict) -> TranslatedAction:
         """未知操作类型生成注释 (per D-09)。
 
-        upload_file 特殊处理：显示文件路径。
         其他类型显示通用提示。
         """
-        if action_type == "upload_file":
-            path = params.get("path", "")
-            return TranslatedAction(
-                code=f"    # upload_file: {path}",
-                action_type="upload_file",
-                is_comment=True,
-                has_locator=False,
-            )
-
         return TranslatedAction(
             code="    # {}: 未翻译的操作类型".format(action_type),
             action_type=action_type,
