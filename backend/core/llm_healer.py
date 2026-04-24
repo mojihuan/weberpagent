@@ -121,7 +121,7 @@ class LLMHealer:
         """Attempt LLM-based healing for a failed locator.
 
         Args:
-            action_type: The type of action that failed (e.g. "click_element").
+            action_type: The type of action that failed (e.g. "click").
             failed_locators: Tuple of locator expressions that were attempted.
             dom_snapshot: Current page DOM snapshot.
             action_params: Additional action parameters (e.g. input text).

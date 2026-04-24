@@ -134,7 +134,7 @@ class PlaywrightCodeGenerator:
         """识别弱步骤并调用 LLMHealer 修复。
 
         弱步骤条件 (per D-07): elem=None 或 <=1 locator。
-        仅处理 click_element 和 input_text 操作。
+        仅处理 click 和 input 操作。
 
         Args:
             raw_actions: model_actions() 返回的原始操作列表。
@@ -152,7 +152,7 @@ class PlaywrightCodeGenerator:
             action_type = self._translator._identify_action_type(action)
 
             # 仅处理 click/input (per D-07)
-            if action_type not in ("click_element", "input_text"):
+            if action_type not in ("click", "input"):
                 continue
 
             elem = action.get("interacted_element")
