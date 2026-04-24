@@ -21,14 +21,14 @@
 
 ### 边缘操作翻译
 
-- [ ] **EDGE-01**: switch → page.bring_to_front() 或 tab 切换注释
-- [ ] **EDGE-02**: close → page.close() 或 tab 关闭注释
-- [ ] **EDGE-03**: search_page / find_elements / find_text → 有意义的注释（非核心 Playwright 操作）
-- [ ] **EDGE-04**: screenshot / save_as_pdf → 有意义的注释
-- [ ] **EDGE-05**: done / write_file / read_file / replace_file → 有意义的注释
-- [ ] **EDGE-06**: search → page.goto(search_url) 或有意义的注释
-- [ ] **EDGE-07**: dropdown_options → page.locator(...).evaluate() 或有意义的注释
-- [ ] **EDGE-08**: extract → 有意义的注释（数据提取非 Playwright 回放操作）
+- [x] **EDGE-01**: switch → page.bring_to_front() 或 tab 切换注释
+- [x] **EDGE-02**: close → page.close() 或 tab 关闭注释
+- [x] **EDGE-03**: search_page / find_elements / find_text → 有意义的注释（非核心 Playwright 操作）
+- [x] **EDGE-04**: screenshot / save_as_pdf → 有意义的注释
+- [x] **EDGE-05**: done / write_file / read_file / replace_file → 有意义的注释
+- [x] **EDGE-06**: search → page.goto(search_url) 或有意义的注释
+- [x] **EDGE-07**: dropdown_options → page.locator(...).evaluate() 或有意义的注释
+- [x] **EDGE-08**: extract → 有意义的注释（数据提取非 Playwright 回放操作）
 
 ### 测试验证
 
@@ -57,14 +57,14 @@
 | TRANS-02 | Phase 100 | Complete |
 | TRANS-03 | Phase 100 | Complete |
 | TRANS-04 | Phase 100 | Complete |
-| EDGE-01 | Phase 100 | Pending |
-| EDGE-02 | Phase 100 | Pending |
-| EDGE-03 | Phase 100 | Pending |
-| EDGE-04 | Phase 100 | Pending |
-| EDGE-05 | Phase 100 | Pending |
-| EDGE-06 | Phase 100 | Pending |
-| EDGE-07 | Phase 100 | Pending |
-| EDGE-08 | Phase 100 | Pending |
+| EDGE-01 | Phase 100 | Complete |
+| EDGE-02 | Phase 100 | Complete |
+| EDGE-03 | Phase 100 | Complete |
+| EDGE-04 | Phase 100 | Complete |
+| EDGE-05 | Phase 100 | Complete |
+| EDGE-06 | Phase 100 | Complete |
+| EDGE-07 | Phase 100 | Complete |
+| EDGE-08 | Phase 100 | Complete |
 | TEST-01 | Phase 101 | Pending |
 | TEST-02 | Phase 101 | Pending |
 | TEST-03 | Phase 101 | Pending |

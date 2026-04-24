@@ -176,7 +176,7 @@
 **Milestone Goal:** 修复代码生成系统，使 AI 执行后自动生成的 Playwright 测试代码可直接运行
 
 - [x] **Phase 99: 核心键名修复** - 修复 action_translator 的键名不匹配，使 click/input 正确生成 Playwright 代码 (completed 2026-04-24)
-- [ ] **Phase 100: 操作翻译扩展** - 补充 wait/select_dropdown/evaluate/upload_file 等 12 种缺失操作翻译
+- [x] **Phase 100: 操作翻译扩展** - 补充 wait/select_dropdown/evaluate/upload_file 等 12 种缺失操作翻译 (completed 2026-04-24)
 - [ ] **Phase 101: 测试验证** - 单元测试 + 端到端验证代码生成质量
 
 ## Phase Details
@@ -210,7 +210,7 @@ Plans:
 
 Plans:
 - [x] 100-01-PLAN.md — 新增 wait/evaluate/select_dropdown/upload_file 4 种可执行操作翻译及单元测试
-- [ ] 100-02-PLAN.md — 重构 _translate_unknown() 为 14 种边缘操作生成参数摘要注释及单元测试
+- [x] 100-02-PLAN.md — 重构 _translate_unknown() 为 14 种边缘操作生成参数摘要注释及单元测试
 
 ### Phase 101: 测试验证
 **Goal**: 通过单元测试和端到端验证确认代码生成系统对真实 browser-use 输出正确工作
@@ -232,7 +232,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 99. 核心键名修复 | 2/2 | Complete    | 2026-04-24 |
-| 100. 操作翻译扩展 | 1/2 | In Progress|  |
+| 100. 操作翻译扩展 | 2/2 | Complete   | 2026-04-24 |
 | 101. 测试验证 | 0/2 | Not started | - |
 
 ---
