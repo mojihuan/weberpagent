@@ -155,6 +155,39 @@ async def test_passed_on_first_try(runner: SelfHealingRunner, tmp_test_dir: Path
 
 
 # ---------------------------------------------------------------------------
+# Test 3b: pytest args exclude --headed (EXEC-01)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_pytest_args_no_headed(runner: SelfHealingRunner, tmp_test_dir: Path):
+    """subprocess.run args 不包含 --headed 或 --headed=false (per EXEC-01)."""
+    test_file = str(tmp_test_dir / "test_example.py")
+
+    with (
+        patch(
+            "backend.core.self_healing_runner._get_storage_state_for_role",
+            new_callable=AsyncMock,
+            return_value=STORAGE_STATE,
+        ),
+        patch(
+            "backend.core.self_healing_runner.asyncio.to_thread",
+            new_callable=AsyncMock,
+        ) as mock_to_thread,
+    ):
+        mock_to_thread.return_value = _make_completed_process(returncode=0)
+
+        await runner.run("run1", test_file, login_role="main")
+
+    # 提取 subprocess.run 的 args 参数
+    call_args = mock_to_thread.call_args
+    # asyncio.to_thread(subprocess.run, [args...], ...) -> call_args[0][1] is the list
+    pytest_args = call_args[0][1]
+    headed_args = [arg for arg in pytest_args if str(arg).startswith("--headed")]
+    assert headed_args == [], f"pytest args 包含 --headed 参数: {headed_args}"
+
+
+# ---------------------------------------------------------------------------
 # Test 4: Retry on failure then pass (D-06, D-07)
 # ---------------------------------------------------------------------------
 

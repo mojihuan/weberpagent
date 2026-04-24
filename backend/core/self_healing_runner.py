@@ -190,7 +190,6 @@ class SelfHealingRunner:
                         [
                             "uv", "run", "pytest",
                             test_file_path,
-                            "--headed=false",
                             "--timeout=60",
                             "-v",
                         ],

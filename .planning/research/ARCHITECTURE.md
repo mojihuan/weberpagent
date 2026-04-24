@@ -1,534 +1,299 @@
-# Architecture Research
+# Architecture Research: Generated Test Code Output Isolation
 
-**Domain:** Playwright code verification and task management UI integration
-**Researched:** 2026-04-23
-**Confidence:** HIGH (based on direct codebase analysis of existing patterns)
+**Domain:** Bug fix -- isolating AI-generated test code output to prevent server reload interference and syntax errors
+**Researched:** 2026-04-24
+**Confidence:** HIGH (direct codebase analysis, verified with sample generated files)
 
-## Recommended Architecture
+## Problem Statement
 
-### System Overview -- Current + New Components
+Three bugs in the generated test code execution pipeline:
 
-```
-                            FRONTEND (React)
-┌─────────────────────────────────────────────────────────────────┐
-│  Tasks Page                                                      │
-│  ┌───────────────────────────────────────────────────────────┐   │
-│  │  TaskTable                                                 │   │
-│  │  ┌─────────┬────────┬──────────┬───────┬──────┬────────┐  │   │
-│  │  │ check   │ name   │ url      │status │ code │ actions│  │   │
-│  │  │ box     │        │          │       │ NEW  │        │  │   │
-│  │  └─────────┴────────┴──────────┴───────┴──────┴────────┘  │   │
-│  │  TaskRow  ──── "has code" indicator ──── view/run btns     │   │
-│  └───────────────────────────────────────────────────────────┘   │
-│                                                                   │
-│  CodeViewerModal (NEW)        RunCodeDialog (NEW)                │
-│  ┌───────────────────────┐    ┌──────────────────────────┐      │
-│  │ react-syntax-highlighter│    │ Execution status display │      │
-│  │ Read-only Python code  │    │ stdout/stderr output     │      │
-│  │ Line numbers + themes  │    │ Pass/Fail result         │      │
-│  └───────────────────────┘    └──────────────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-         | REST (GET code, POST execute)
-         v
-┌─────────────────────────────────────────────────────────────────┐
-│  BACKEND (FastAPI)                                                │
-│                                                                   │
-│  routes/runs.py (MODIFY)                                          │
-│  ┌──────────────────────────┐  ┌────────────────────────────┐    │
-│  │ GET /runs/{id}/code      │  │ POST /runs/{id}/run-code   │    │
-│  │ Read file -> return text │  │ subprocess pytest + status │    │
-│  └──────────────────────────┘  └────────────────────────────┘    │
-│                                                                   │
-│  routes/tasks.py (MODIFY)                                         │
-│  ┌──────────────────────────┐                                     │
-│  │ TaskResponse + has_code  │  Task status: + "success"          │
-│  │ from latest run          │                                     │
-│  └──────────────────────────┘                                     │
-│                                                                   │
-│  SelfHealingRunner (EXISTING -- reuse)                            │
-│  ┌──────────────────────────────────────────────────────────┐    │
-│  │ Already handles: pytest subprocess + storage_state        │    │
-│  │ + timeout + LLM retry. Reuse for "run code" button.      │    │
-│  └──────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────┘
-         |
-         v
-┌─────────────────────────────────────────────────────────────────┐
-│  STORAGE (SQLite + Filesystem)                                    │
-│  ┌─────────────┐  ┌──────────────────────────────────────┐      │
-│  │ tasks table  │  │ outputs/{run_id}/generated/          │      │
-│  │ status +     │  │   test_{run_id}.py                   │      │
-│  │ "success"    │  │ outputs/{run_id}/.storage_state.json │      │
-│  └─────────────┘  │ outputs/{run_id}/conftest.py          │      │
-│                    └──────────────────────────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-```
+1. **EXEC-02:** The `done` action from `browser-use` produces multi-line text in its `text` parameter. `_translate_unknown` truncates to 50 chars but does not strip newlines, causing raw non-Python text to appear after the comment line in the generated `.py` file.
+2. **EXEC-03:** `conftest.py` written inside `outputs/{run_id}/` triggers WatchFiles reload during local development (`uvicorn --reload`), interrupting the running server.
+3. **EXEC-01 (related):** `--headed=false` is not a valid pytest-playwright flag (covered in `STACK-v0.10.6.md`).
 
-### Component Boundaries
+This document addresses the architectural decisions for EXEC-02 and EXEC-03.
 
-| Component | Responsibility | New/Modified | Communicates With |
-|-----------|---------------|-------------|-------------------|
-| TaskTable | Add "code" column header | MODIFIED | TaskRow |
-| TaskRow | Show code indicator + view/run buttons | MODIFIED | CodeViewerModal, RunCodeDialog, API |
-| CodeViewerModal | Read-only Python code display | NEW | runs API |
-| RunCodeDialog | Trigger code execution, show result | NEW | runs API |
-| GET /runs/{id}/code | Serve generated code file content | NEW (endpoint) | Filesystem |
-| POST /runs/{id}/run-code | Execute Playwright code via pytest | NEW (endpoint) | SelfHealingRunner |
-| TaskResponse schema | Add `has_code` computed field | MODIFIED | runs query |
-| Task.status field | Extend to include "success" | MODIFIED | DB, schemas |
-| StatusBadge | Add "success" status display | MODIFIED (already exists) | TaskRow |
-| SelfHealingRunner | Reuse for single-run code execution | UNCHANGED (reuse) | subprocess |
+## Current Architecture
 
-### Data Flow
-
-#### Flow 1: "Has Code" Indicator in Task List
+### File Layout (Current -- Problematic)
 
 ```
-Tasks page loads
-    |
-    v
-GET /tasks (existing)
-    |
-    v
-TaskResponse includes computed has_code: boolean
-    |
-    v
-For each task, check: does latest run have generated_code_path that exists?
-    |
-    v
-TaskRow renders code indicator (icon/badge) based on has_code
+project_root/
+  outputs/                          <-- inside project root, watched by WatchFiles
+    {run_id}/
+      generated/
+        test_{run_id}.py            <-- generated Playwright test (with syntax errors)
+      dom/
+        step_1.txt ... step_N.txt
+      screenshots/
+        step_1.png ... step_N.png
+      logs/
+  backend/
+    core/
+      code_generator.py             <-- writes to outputs/{run_id}/generated/
+      self_healing_runner.py        <-- writes conftest.py + .storage_state.json to same dir
 ```
 
-**Key decision:** `has_code` is computed on the backend from the task's latest run's `generated_code_path` field. This avoids N+1 file existence checks on the frontend.
-
-#### Flow 2: View Code (read-only)
+### The "done" Action Bug -- Root Cause Trace
 
 ```
-User clicks "view code" button on TaskRow
+browser-use Agent finishes
     |
     v
-CodeViewerModal opens with run_id from latest run with code
+model_actions() returns list including:
+  {"done": {"text": "销售出库流程已完成！\n\n所有步骤执行成功：\n✓ 步骤1：..."}, "interacted_element": None}
     |
     v
-GET /runs/{run_id}/code
+ActionTranslator._identify_action_type() returns "done"
     |
     v
-Backend reads generated_code_path file from disk
+_translate_unknown("done", params) at action_translator.py:627
+    summary = f"任务完成: {p.get('text', '')[:50]}"
+    # text[:50] contains newlines: "销售出库流程已完成！\n\n所有步骤执行成功：\n✓ 步骤1：点击库存管理\n✓ 步骤2"
+    code = f"    # done: {summary}"
+    # Result: "    # done: 任务完成: 销售出库流程已完成！\n\n所有步骤执行成功：\n✓ 步骤1：点击库存管理\n✓ 步骤2"
     |
     v
-Returns { code: string, language: "python", task_name: string }
+TranslatedAction.code has embedded newlines WITHOUT comment prefix
     |
     v
-CodeViewerModal renders with react-syntax-highlighter
+_build_body joins with "\n" -- raw text lines appear outside comments
+    |
+    v
+Generated .py file has syntax errors from line 158+ (non-Python text)
 ```
 
-#### Flow 3: Run Code (execute)
+**Evidence from real output** (`outputs/5a96ad7f/generated/test_5a96ad7f.py`):
+```python
+# Line 156 (correct):
+    # done: 任务完成: 销售出库流程已完成！
+
+# Lines 158-162 (syntax error -- raw text without comment prefix):
+所有步骤执行成功：
+✓ 步骤1：点击库存管理
+✓ 步骤2：点击出库管理
+```
+
+### The WatchFiles Bug -- Trigger Sequence
 
 ```
-User clicks "run code" button on TaskRow
+Local dev: uv run uvicorn backend.api.main:app --reload --port 8080
     |
     v
-RunCodeDialog opens, shows confirmation
+watchfiles monitors CWD for *.py changes
     |
     v
-POST /runs/{run_id}/run-code
+SelfHealingRunner.run() writes conftest.py to outputs/{run_id}/
     |
     v
-Backend reuses SelfHealingRunner.run() with max_iterations=1 (no LLM retry)
+watchfiles detects new .py file --> triggers server reload
     |
     v
-Returns { status: "passed"|"failed", stdout: string, stderr: string }
-    |
-    v
-RunCodeDialog shows execution result
-    |
-    v
-If passed -> update task status to "success"
+Server restarts mid-execution, killing in-flight requests
 ```
 
-#### Flow 4: Task Status State Machine
+**Note:** Production uses `reload=False` in `run_server.py:36`, so this is **development-only**.
 
-```
-Current:
-  draft --> ready    (user sets ready)
-  ready --> draft    (user sets draft back)
+## Recommended Architecture: Bug Fixes
 
-New (STATUS-01):
-  draft --> ready --> success
-                    ^         |
-                    |         v
-                    +- (re-run fails) <-- ready
+### Fix 1: EXEC-02 -- Strip Newlines in "done" Action Comment
 
-Rules:
-  - "success" set automatically when Playwright code execution passes
-  - "success" reverted to "ready" if user re-runs and it fails
-  - User cannot manually set "success" -- only system sets it
+**File:** `backend/core/action_translator.py`, line 627
+
+**Current code:**
+```python
+"done": lambda p: f"任务完成: {p.get('text', '')[:50]}",
 ```
 
-## Integration Points -- Detailed
+**Problem:** `text[:50]` preserves `\n` characters. The comment line `# done: 任务完成: ...` gets broken into multiple lines, and only the first line has the `#` prefix.
 
-### Backend Changes
-
-#### 1. New Endpoint: GET /runs/{run_id}/code
-
-Add to `backend/api/routes/runs.py`:
-
-```
-Purpose: Return generated Playwright code content for a run
-Input: run_id (path param)
-Output: { code: str, task_name: str, generated_at: str } or 404
-Logic:
-  1. Fetch run from DB, get generated_code_path
-  2. If no path or file doesn't exist -> 404
-  3. Read file content
-  4. Return JSON response
-```
-
-This follows the existing pattern of `GET /runs/{run_id}/screenshots/{step_index}` which serves file-based content from disk.
-
-#### 2. New Endpoint: POST /runs/{run_id}/run-code
-
-Add to `backend/api/routes/runs.py`:
-
-```
-Purpose: Execute the generated Playwright code for a run
-Input: run_id (path param)
-Output: { status: "passed"|"failed", stdout: str, stderr: str, attempts: int }
-Logic:
-  1. Fetch run, get generated_code_path + task.login_role
-  2. Instantiate SelfHealingRunner (existing class)
-  3. Call runner.run() with max_iterations=1 (single attempt, no LLM retry)
-  4. Return HealingResult as JSON
-  5. If passed -> update task status to "success"
-```
-
-**Why reuse SelfHealingRunner instead of writing new subprocess code:**
-- SelfHealingRunner already handles: storage_state injection, conftest generation, subprocess timeout, pytest invocation, error capture, cleanup
-- Setting max_iterations=1 effectively disables LLM retry while keeping all other infrastructure
-- Single responsibility: no code duplication
-
-**Implementation approach for disabling LLM retry:**
-Add a `max_iterations` parameter to `SelfHealingRunner.run()` with default 3. When called from the "run code" endpoint, pass `max_iterations=1`. This is a minimal change to the existing class.
-
-#### 3. Modified: TaskResponse Schema
-
-Add computed field `has_code` to `TaskResponse` in `backend/db/schemas.py`:
+**Fix:** Replace newlines with spaces before truncation.
 
 ```python
-has_code: bool = False
+"done": lambda p: f"任务完成: {p.get('text', '').replace(chr(10), ' ').replace(chr(13), ' ')[:50]}",
 ```
 
-Populate in the list endpoint by checking if the task's latest run has a non-null `generated_code_path`. This requires modifying the `list_tasks` route to join with runs and compute this field.
-
-**Efficient approach:** Add a subquery or hybrid property that checks `exists(select 1 from runs where task_id = :id and generated_code_path is not null)`. Alternatively, load the latest run per task and check in the response serializer. Given the small dataset (typically < 100 tasks), the simpler approach of loading latest runs is acceptable.
-
-#### 4. Modified: Task.status Field
-
-Extend `Task.status` column comment from `# draft, ready` to `# draft, ready, success`. No schema migration needed -- the column is `String(20)` which already supports "success".
-
-Update `TaskUpdate.status` regex pattern from `^(draft|ready)$` to `^(draft|ready|success)$`.
-
-Update frontend `Task` type:
-```typescript
-status: 'draft' | 'ready' | 'success'
+Or more readably, extract to a helper:
+```python
+def _summarize_done(params: dict) -> str:
+    text = params.get('text', '').replace('\n', ' ').replace('\r', ' ')
+    return f"任务完成: {text[:50]}"
 ```
 
-#### 5. Modified: Task Status Update After Code Execution
+**Alternative (deeper fix):** Apply newline stripping to ALL unknown action type summaries, not just "done". The `_translate_unknown` method already truncates to prevent long lines, but no other action type has been observed with multi-line text. However, defensive programming suggests stripping newlines at the point where the comment is constructed:
 
-In the `POST /runs/{run_id}/run-code` endpoint, after `SelfHealingRunner` returns with `final_status="passed"`:
-- Update `Task.status` to `"success"` via `TaskRepository.update_status()`
-- If `final_status="failed"`, revert `Task.status` from `"success"` back to `"ready"` (only if currently "success")
-
-### Frontend Changes
-
-#### 1. New Component: CodeViewerModal
-
-Location: `frontend/src/components/CodeViewer/CodeViewerModal.tsx`
-
-```
-Props:
-  - open: boolean
-  - onClose: () => void
-  - runId: string | null
-
-Behavior:
-  - When opened with runId, fetches GET /runs/{runId}/code
-  - Displays Python code with react-syntax-highlighter (v3 light build)
-  - Read-only -- no editing capability
-  - Shows task name in header
-  - Copy-to-clipboard button
-
-Dependencies: react-syntax-highlighter + @types/react-syntax-highlighter
-```
-
-**Why react-syntax-highlighter over prism-react-renderer:**
-- The project needs a simple, drop-in code viewer -- not a highly customized rendering pipeline
-- react-syntax-highlighter provides built-in line numbers, themes, and language detection out of the box
-- The bundle size difference is negligible for this project (single-page app, no SSR concerns)
-- Fewer API surface decisions = faster implementation
-
-#### 2. New Component: RunCodeDialog
-
-Location: `frontend/src/components/CodeViewer/RunCodeDialog.tsx`
-
-```
-Props:
-  - open: boolean
-  - onClose: () => void
-  - runId: string | null
-  - onSuccess: () => void  // callback to refresh task list
-
-Behavior:
-  - Shows confirmation dialog before execution
-  - On confirm, calls POST /runs/{runId}/run-code
-  - Shows loading spinner during execution (pytest can take 30-120s)
-  - On complete, shows pass/fail result with stdout/stderr
-  - If passed, calls onSuccess to refresh task status
-
-Pattern: Same as existing ConfirmModal + loading state pattern used in BatchExecuteDialog
-```
-
-#### 3. Modified: TaskTable
-
-Add "code" column header between "status" and "steps" columns.
-
-#### 4. Modified: TaskRow
-
-Add code indicator cell and view/run buttons:
-
-```
-New column cell:
-  - If task.has_code: show green code icon
-  - If !task.has_code: show gray dash
-
-New buttons (in existing actions column):
-  - "View Code" button (eye icon) -- only visible when has_code
-  - "Run Code" button (play-code icon) -- only visible when has_code
-```
-
-#### 5. Modified: StatusBadge
-
-Already has `success` mapping (line 14): `{ label: '已完成', className: 'bg-green-100 text-green-700' }`. May want to change label to `'成功'` for the new Task.status = "success" semantic, but the visual styling is already correct.
-
-#### 6. New API Functions
-
-Add to `frontend/src/api/runs.ts`:
-
-```typescript
-getCode(runId: string): Promise<{ code: string; task_name: string }>
-runCode(runId: string): Promise<{ status: string; stdout: string; stderr: string }>
-```
-
-#### 7. Modified: Task Type
-
-Update in `frontend/src/types/index.ts`:
-
-```typescript
-export interface Task {
-  ...
-  status: 'draft' | 'ready' | 'success'  // add 'success'
-  has_code?: boolean  // NEW computed field
-}
-```
-
-## Architectural Patterns
-
-### Pattern 1: File-Based Code Storage (Existing)
-
-**What:** Generated Playwright code is stored as `.py` files on disk at `outputs/{run_id}/generated/test_{run_id}.py`. The Run model stores the path in `generated_code_path`.
-
-**Why this works:** Files can be directly executed by pytest subprocess without any serialization/deserialization. The `SelfHealingRunner` writes a `conftest.py` and `.storage_state.json` alongside the test file, which pytest auto-discovers.
-
-**Implication for new features:** The "view code" endpoint reads the file from disk. The "run code" endpoint passes the same file path to `SelfHealingRunner`. No new storage mechanism needed.
-
-### Pattern 2: Subprocess Execution with Timeout (Existing)
-
-**What:** `SelfHealingRunner.run()` executes `uv run pytest {test_file} --headed=false --timeout=60 -v` via `subprocess.run` wrapped in `asyncio.to_thread`, with a 120-second overall timeout.
-
-**Why this works for code execution button:** The same subprocess mechanism serves both the automatic self-healing pipeline and the manual "run code" trigger. The only difference is max_iterations (3 vs 1).
-
-### Pattern 3: Request-Response for Bounded Operations (New)
-
-**What:** The "run code" endpoint uses a standard REST request-response cycle, not BackgroundTasks or SSE.
-
-**Why:** Unlike agent execution (which takes minutes and uses SSE for streaming), code execution is bounded (120s max timeout) and the user expects an immediate result. `SelfHealingRunner.run()` already wraps subprocess in `asyncio.to_thread` so it won't block the event loop. The HTTP request stays open during execution (up to 120s), which is acceptable for this use case.
-
-**Contrast with existing patterns:** The existing `create_run` uses `BackgroundTasks` + SSE because agent execution is unbounded and produces incremental step events. Code execution produces a single binary result (passed/failed), making SSE overkill.
-
-### Pattern 4: Computed Fields on List Endpoints (New)
-
-**What:** The `has_code` field on `TaskResponse` is computed from associated Run data, not stored on the Task model itself.
-
-**Why:** Avoids data duplication and keeps the Task model simple. The relationship is Task -> Runs (1:many), and `has_code` depends on whether any Run has a valid `generated_code_path`. Computed on read rather than stored on write.
-
-**Implementation:** In `list_tasks`, after fetching tasks, batch-fetch the latest run per task and check `generated_code_path`. Use a single query with a window function or subquery to avoid N+1:
-
-```sql
-SELECT r.task_id, r.generated_code_path
-FROM runs r
-WHERE r.id = (
-    SELECT r2.id FROM runs r2
-    WHERE r2.task_id = r.task_id
-    ORDER BY r2.created_at DESC
-    LIMIT 1
+```python
+return TranslatedAction(
+    code=f"    # {action_type}: {summary.replace(chr(10), ' ').replace(chr(13), ' ')}",
+    ...
 )
-AND r.generated_code_path IS NOT NULL
 ```
+
+**Recommendation:** Strip newlines at the return site in `_translate_unknown` rather than in individual summarizer lambdas. This is a single-point fix that covers all unknown action types.
+
+**Change scope:** 1 line in `_translate_unknown` return statement (line 644).
+
+### Fix 2: EXEC-03 -- Exclude outputs/ from WatchFiles
+
+**Two options evaluated:**
+
+#### Option A: `--reload-exclude` on dev command (RECOMMENDED)
+
+```bash
+uv run uvicorn backend.api.main:app --reload --port 8080 --reload-exclude "outputs/*"
+```
+
+**Why this is sufficient:**
+- `outputs/` only contains generated test artifacts (`.py`, `.json`, `.png`, `.txt`), never source code
+- The `--reload-exclude` flag accepts glob patterns (verified uvicorn docs)
+- `.storage_state.json` is already excluded by default pattern `.*`, but `conftest.py` is not
+- Production is unaffected (`reload=False` already set in `run_server.py:36`)
+- Zero code changes required
+
+**Files to update:**
+- `CLAUDE.md` line 34: update the dev startup command
+- `README.md`: update any documented dev commands
+
+#### Option B: Move output directory to /tmp/ (NOT RECOMMENDED)
+
+Moving `outputs/` to `/tmp/weberpagent/{run_id}/` would also prevent WatchFiles triggers.
+
+**Why NOT recommended:**
+- Requires changing `base_dir` parameter threaded through `code_generator.py`, `self_healing_runner.py`, and the route layer
+- Breaks the existing path convention where `outputs/{run_id}/generated/` is relative to project root
+- The "view code" endpoint (`GET /runs/{id}/code`) reads from the stored `generated_code_path` -- if this changes to `/tmp/...`, file cleanup on restart becomes a concern
+- The `outputs/` directory contains screenshots and DOM dumps used by the reporting UI -- moving these breaks existing URL patterns
+
+**Conclusion:** Option A is a one-line documentation fix. Option B is an architectural change with cascading effects. The simpler fix is correct here.
+
+### Fix 3 (Supporting): Add validate_syntax Guard Before Write
+
+**File:** `backend/core/code_generator.py`, after line 115
+
+The `PlaywrightCodeGenerator` already has a `validate_syntax()` method (line 257) that runs `ast.parse()`. It should be used in `generate_and_save()` before writing to disk:
+
+```python
+content = self.generate(run_id, task_name, task_id, translated)
+
+# Guard: validate before write
+if not self.validate_syntax(content):
+    logger.warning(f"[{run_id}] Generated code has syntax errors, attempting cleanup")
+    # The fix to _translate_unknown should prevent this,
+    # but log as a safety net
+
+output_path.write_text(content, encoding="utf-8")
+```
+
+This is a defensive measure. With Fix 1 applied, syntax errors from multi-line text should not occur, but the guard catches any future regressions.
+
+## Revised Data Flow (After Fixes)
+
+### Code Generation Flow (Fixed)
+
+```
+browser-use Agent completes
+    |
+    v
+model_actions() -> list of action dicts
+    |
+    v
+ActionTranslator.translate_with_llm() for each action
+    |
+    v
+_translate_unknown("done", {"text": "multi\nline\ntext"})
+    |
+    v  [FIX: newlines replaced with spaces]
+    code = "    # done: 任务完成: multi line text (first 50 chars, single line)"
+    |
+    v
+PlaywrightCodeGenerator.generate() assembles full file
+    |
+    v  [FIX: validate_syntax guard before write]
+ast.parse(content) -- verify syntactically valid Python
+    |
+    v
+Write to outputs/{run_id}/generated/test_{run_id}.py
+```
+
+### Code Execution Flow (Fixed)
+
+```
+User triggers "Run Code"
+    |
+    v
+POST /runs/{id}/run-code
+    |
+    v
+SelfHealingRunner.run()
+    |
+    v
+Write conftest.py + .storage_state.json to outputs/{run_id}/
+    |                                             ^
+    |   (WatchFiles does NOT reload because       |
+    |    --reload-exclude "outputs/*")            |
+    v                                            |
+subprocess: uv run pytest test_{run_id}.py       |
+    --timeout=60 -v                              |
+    (no --headed=false)                          |
+    |
+    v
+_cleanup() deletes conftest.py + .storage_state.json
+```
+
+## Component Boundaries (After Fixes)
+
+| Component | Change | Impact |
+|-----------|--------|--------|
+| `action_translator.py:644` | Strip newlines in `_translate_unknown` return | Prevents syntax errors in generated code |
+| `code_generator.py:115` | Add `validate_syntax()` guard before file write | Safety net for regressions |
+| `CLAUDE.md:34` | Add `--reload-exclude "outputs/*"` to dev command | Prevents WatchFiles reload |
+| `self_healing_runner.py:193` | Remove `--headed=false` from subprocess args | Already documented in STACK-v0.10.6.md |
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Storing Code Content in the Database
+### Anti-Pattern 1: Filtering "done" Actions from model_actions()
 
-**What people do:** Read the generated .py file and store its content as a TEXT column in the Run table.
+**What people do:** Strip the `done` action entirely from `raw_actions` before translation.
 
-**Why it's wrong:** Duplication with filesystem, larger DB, SQLite bloat, and the code already exists on disk where pytest can directly execute it.
+**Why it is wrong:** The `done` action is a legitimate action that marks task completion. Removing it loses information. The comment it generates (`# done: 任务完成: ...`) is useful for understanding the generated test file.
 
-**Do this instead:** Keep code on disk. Use `generated_code_path` as the reference. The "view code" endpoint reads the file at request time. File size is small (typically 2-20 KB) so disk I/O is negligible.
+**Do this instead:** Fix the newline handling in `_translate_unknown` so the comment is valid Python.
 
-### Anti-Pattern 2: Creating a New Subprocess Execution Mechanism
+### Anti-Pattern 2: Moving outputs/ to /tmp/ Just for WatchFiles
 
-**What people do:** Write a new function that calls `subprocess.run(["pytest", ...])` specifically for the "run code" button.
+**What people do:** Relocate the entire output directory to `/tmp/` to escape WatchFiles monitoring.
 
-**Why it's wrong:** Duplicates all the infrastructure SelfHealingRunner already handles: storage_state injection, conftest generation, timeout protection, error capture, cleanup.
+**Why it is wrong:** Breaks path conventions used by the code viewer endpoint, screenshot serving, DOM snapshot reading, and the reporting UI. Creates cascading changes across multiple modules.
 
-**Do this instead:** Reuse `SelfHealingRunner` with `max_iterations=1`. Add the parameter to the existing `run()` method.
+**Do this instead:** Use `--reload-exclude "outputs/*"` on the uvicorn command. Zero code changes.
 
-### Anti-Pattern 3: SSE for Code Execution Results
+### Anti-Pattern 3: Sanitizing at File Write Time Instead of Translation Time
 
-**What people do:** Use the existing SSE event stream to push code execution results.
+**What people do:** Post-process the entire generated file to strip non-Python text after assembly.
 
-**Why it's wrong:** The SSE infrastructure is designed for long-running agent executions with real-time step updates. Code execution is a single request-response cycle (run pytest, return result). SSE adds unnecessary complexity and requires the frontend to subscribe/unsubscribe to a stream.
+**Why it is wrong:** Fragile heuristic (what counts as "non-Python text"?). Breaks if valid Python code happens to look like natural language. The fix belongs at the source: the translation layer that constructs each line.
 
-**Do this instead:** Use a standard REST request-response. POST /runs/{id}/run-code awaits the result and returns it directly.
+**Do this instead:** Fix `_translate_unknown` to produce single-line comments. The translation layer is the correct place to enforce "one TranslatedAction = one logical line of code."
 
-### Anti-Pattern 4: Adding "success" Status from Agent Execution
+## Summary of Required Changes
 
-**What people do:** Set Task.status = "success" whenever the agent-based run completes successfully.
+| Bug | File | Line(s) | Change | Complexity |
+|-----|------|---------|--------|------------|
+| EXEC-02 | `action_translator.py` | 644 | Strip `\n`/`\r` in `_translate_unknown` return statement | 1 line |
+| EXEC-02 (guard) | `code_generator.py` | 115-116 | Add `validate_syntax()` check + warning log before write | 3 lines |
+| EXEC-03 | `CLAUDE.md` | 34 | Add `--reload-exclude "outputs/*"` to uvicorn command | 1 line |
+| EXEC-01 | `self_healing_runner.py` | 193 | Remove `"--headed=false"` from subprocess args | 1 line |
 
-**Why it's wrong:** The requirement (STATUS-01) is specifically about *Playwright code* execution success, not agent execution success. Agent execution and code execution are different things -- the agent uses browser-use LLM, while code execution runs the generated pytest file. Conflating them creates ambiguity.
-
-**Do this instead:** Only set Task.status = "success" when the generated Playwright pytest code successfully executes via the "run code" mechanism (SelfHealingRunner with max_iterations=1 returns "passed").
-
-### Anti-Pattern 5: has_code Flag Stored on Task Model
-
-**What people do:** Add a `has_code` boolean column to the tasks table, updated whenever code is generated.
-
-**Why it's wrong:** Denormalized data that can drift out of sync. If a run is deleted or the file is manually removed, the flag becomes stale. Adds write-path complexity (must update Task on every code generation).
-
-**Do this instead:** Compute `has_code` on read from the runs relationship. The query cost is negligible for the current dataset size.
-
-## Build Order (Dependency-Aware)
-
-The following build order ensures each phase has its dependencies met:
-
-### Phase 1: Backend Data Layer (no frontend deps)
-
-1. Extend Task.status to support "success" (model comment + schema regex)
-2. Add `max_iterations` parameter to `SelfHealingRunner.run()`
-3. Add GET /runs/{run_id}/code endpoint
-4. Add POST /runs/{run_id}/run-code endpoint
-5. Add `has_code` computed field to TaskResponse + list_tasks route
-
-**Tests:** Unit tests for both new endpoints, test that max_iterations=1 skips LLM retry.
-
-### Phase 2: Frontend Infrastructure (depends on Phase 1 APIs)
-
-1. Install react-syntax-highlighter
-2. Add API functions: `getCode()`, `runCode()`
-3. Update Task type (status union + has_code field)
-4. Update StatusBadge if needed
-
-### Phase 3: Frontend UI Components (depends on Phase 2)
-
-1. Build CodeViewerModal
-2. Build RunCodeDialog
-3. Modify TaskTable (add column header)
-4. Modify TaskRow (code indicator + buttons)
-5. Wire up Tasks page to host new modals
-
-**Tests:** Component rendering tests for each new component.
-
-### Phase 4: Integration Testing
-
-1. E2E test: task with generated code -> view code -> verify display
-2. E2E test: task with generated code -> run code -> verify status update
-3. E2E test: task status state machine (draft -> ready -> success -> re-run -> ready)
-
-## Project Structure Changes
-
-### New Files
-
-```
-frontend/src/
-├── components/
-│   └── CodeViewer/
-│       ├── CodeViewerModal.tsx    # NEW: read-only Python code display
-│       └── RunCodeDialog.tsx      # NEW: execute code confirmation + result
-```
-
-### Modified Files
-
-```
-backend/
-├── api/routes/
-│   ├── runs.py                    # MODIFY: add GET /code + POST /run-code endpoints
-│   └── tasks.py                   # MODIFY: add has_code to list response
-├── core/
-│   └── self_healing_runner.py     # MODIFY: add max_iterations param to run()
-├── db/
-│   ├── models.py                  # MODIFY: Task.status comment -> add "success"
-│   ├── schemas.py                 # MODIFY: TaskUpdate regex + TaskResponse has_code
-│   └── repository.py              # MODIFY: add task status update method
-
-frontend/src/
-├── api/
-│   └── runs.ts                    # MODIFY: add getCode(), runCode()
-├── components/
-│   ├── TaskList/
-│   │   ├── TaskTable.tsx          # MODIFY: add "code" column header
-│   │   └── TaskRow.tsx            # MODIFY: add code indicator + view/run buttons
-│   └── shared/
-│       └── StatusBadge.tsx        # MODIFY: update "success" label if needed
-├── pages/
-│   └── Tasks.tsx                  # MODIFY: add state for CodeViewerModal + RunCodeDialog
-└── types/
-    └── index.ts                   # MODIFY: add has_code + "success" to Task type
-```
-
-### Structure Rationale
-
-- **CodeViewer/ folder** (new): Groups CodeViewerModal and RunCodeDialog together as they share a domain concern (code viewing/execution). Follows the existing pattern of feature-based folders (TaskList/, RunMonitor/, ImportModal/).
-- **No new backend services:** SelfHealingRunner is reused, not duplicated. The new endpoints are thin wrappers.
-- **Minimal model changes:** Task.status String(20) already fits "success". No migration needed.
-
-## Scalability Considerations
-
-| Concern | Current (single server) | If scaling needed |
-|---------|------------------------|-------------------|
-| Code file reads | Direct disk I/O, <1ms per file | Already fine for 100s of tasks |
-| Concurrent code executions | Single pytest at a time (subprocess) | Add Semaphore like batch execution (existing pattern) |
-| Task list has_code computation | SQL subquery per list request | Add cached column on Task if list becomes slow |
-
-**No scaling concerns for current use case.** This is a single-user QA tool with < 1000 tasks.
-
-## Key Design Decisions Summary
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Code viewer library | react-syntax-highlighter | Drop-in simple, built-in themes/line numbers, adequate for read-only use |
-| Code execution mechanism | Reuse SelfHealingRunner | Already handles all subprocess infrastructure, max_iterations=1 disables retry |
-| Run-code API style | REST request-response (not SSE) | Bounded operation (120s max), single result, no streaming needed |
-| has_code field | Computed on read from runs | Avoids denormalization, no stale data risk |
-| Task "success" status | System-set only (not user) | Matches semantic: success = Playwright code passed |
-| New frontend dependency | react-syntax-highlighter | One new npm package, widely used, well-maintained |
-| Storage of code content | Filesystem only (not DB) | Files already exist on disk for pytest, no duplication |
+Total: 4 files, approximately 6 lines changed. No new dependencies, no architectural restructuring.
 
 ## Sources
 
-- Direct codebase analysis: `backend/db/models.py`, `backend/api/routes/runs.py`, `backend/api/routes/tasks.py`, `backend/core/self_healing_runner.py`, `backend/core/code_generator.py`, `backend/db/repository.py`, `backend/db/schemas.py`
-- Frontend analysis: `frontend/src/types/index.ts`, `frontend/src/components/TaskList/TaskTable.tsx`, `frontend/src/components/TaskList/TaskRow.tsx`, `frontend/src/components/shared/StatusBadge.tsx`, `frontend/src/api/runs.ts`, `frontend/package.json`
-- [FastAPI Custom Response Docs](https://fastapi.tiangolo.com/advanced/custom-response/) -- for serving file content patterns
+- Direct codebase analysis: `backend/core/action_translator.py` (lines 612-647), `backend/core/code_generator.py` (lines 83-125, 240-255), `backend/core/self_healing_runner.py` (lines 168-176, 186-197, 340-358)
+- Generated file analysis: `outputs/5a96ad7f/generated/test_5a96ad7f.py` (lines 156-162), `outputs/0dddee85/generated/test_0dddee85.py` (lines 12-15)
+- Configuration: `pyproject.toml` (lines 42-47), `backend/run_server.py` (line 36), `backend/api/main.py`
+- Existing research: `.planning/research/STACK-v0.10.6.md` (EXEC-01 and EXEC-03 solutions)
 
 ---
-*Architecture research for: Playwright code verification and task management UI integration*
-*Researched: 2026-04-23*
+*Architecture research for: Generated test code output isolation and execution pipeline fixes*
+*Researched: 2026-04-24*

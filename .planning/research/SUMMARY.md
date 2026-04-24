@@ -1,175 +1,149 @@
 # Project Research Summary
 
-**Project:** aiDriveUITest v0.10.4 -- Playwright Code Verification and Task Management UI
-**Domain:** AI-driven UI test automation -- Playwright code lifecycle (view, execute, verify)
-**Researched:** 2026-04-23
+**Project:** aiDriveUITest -- v0.10.6 milestone: bug fixes for generated test code execution pipeline
+**Domain:** Self-healing Playwright test execution pipeline (5 interrelated bugs)
+**Researched:** 2026-04-24
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This is an incremental feature release for an existing AI-driven UI test automation platform. The v0.10.4 milestone adds Playwright code visibility and manual re-execution to the task management workflow. The core challenge is not building new infrastructure -- it is correctly exposing what already exists (SelfHealingRunner subprocess execution, generated code files on disk, Run.healing_status tracking) through new API endpoints and frontend components.
+This research covers five bugs in the AI-generated Playwright test code execution pipeline of aiDriveUITest. The bugs fall into two categories: three "execution blockers" (EXEC-01/02/03) that prevent generated code from running at all, and two "healing improvements" (HEAL-01, E2E-01) that make the self-healing pipeline smarter and more cost-efficient. All five bugs are traced to specific lines in specific files, with root causes verified by code analysis and (in the case of EXEC-01) direct execution against the installed pytest-playwright plugin.
 
-The recommended approach is reuse-heavy: the backend adds two thin endpoints (GET code content, POST execute code) that delegate entirely to existing SelfHealingRunner and filesystem patterns. The frontend adds one new dependency (react-syntax-highlighter for read-only code display) and two new components (CodeViewerModal, RunCodeDialog) that follow established modal patterns. The Task.status extension to include "success" is the most architecturally sensitive change -- research strongly recommends deriving success from Run status rather than extending the Task status enum, to avoid conflating editorial state with execution outcome.
+The recommended approach is surgical line-level fixes across four files (`self_healing_runner.py`, `action_translator.py`, `code_generator.py`, and documentation), plus one new small module (`pytest_error_classifier.py`) for error categorization. Total scope: approximately 6 lines changed in existing files plus one new ~50-line module. No new dependencies, no version bumps, no architectural restructuring. The fixes are ordered by dependency: EXEC-01 and EXEC-02 must land before HEAL-01 (because HEAL-01's classifier will categorize the errors these fixes eliminate, and we want to verify the classifier works against clean post-fix behavior).
 
-The primary risks are operational, not architectural. Orphaned Chrome processes from subprocess pytest execution can exhaust the 2GB deployment server's memory. Path traversal in the code-serving endpoint could expose secrets. Concurrent "Run Code" clicks without a semaphore gate could crash the server. All three have straightforward mitigations documented in the pitfalls research.
+The key risk is in HEAL-01: over-aggressive error categorization could skip legitimate LLM healing opportunities. The mitigation is to anchor regex patterns to pytest's specific output format (`E   SyntaxError:` not just `SyntaxError`) and default all unrecognized `returncode == 1` errors to `CODE_RUNTIME` (the healable category). A secondary risk is that the `_escape_string` method does not handle newlines in string literal contexts beyond the `evaluate` action, which could cause future syntax errors from other action types.
 
 ## Key Findings
 
-### Recommended Stack
+### Recommended Stack (No Changes Needed)
 
-Only one new dependency is needed. The entire backend change reuses stdlib and existing infrastructure.
+Current versions in `pyproject.toml` are fully compatible with all fixes. No upgrades required.
 
 **Core technologies:**
-- **react-syntax-highlighter 16.1.1 (Prism build):** Read-only Python code viewer component -- chosen over Monaco/CodeMirror (4MB+ overkill), Shiki (async complexity), and prism-react-renderer (more boilerplate). 40KB gzipped, zero-config line numbers and themes.
-- **@types/react-syntax-highlighter 15.5.13:** TypeScript definitions for the above.
-- **subprocess + asyncio.to_thread (stdlib, existing):** Code execution reuses the established SelfHealingRunner pattern -- no new subprocess code.
-- **pathlib.Path (stdlib, existing):** File reading for code content serving, using `generated_code_path` from the Run model.
+- pytest-playwright >=0.7.0: headless is the default; `--headed` is the only toggle (no `--headed=false`, no `--headless`)
+- uvicorn[standard] >=0.34.0: `--reload-exclude` accepts glob patterns for dev-mode isolation
+- pytest >=8.0.0: exit codes 0-5 are stable and well-documented for error categorization
+- Python 3.11+: `enum.Enum`, `ast.parse`, `re.search` -- all standard library, no new deps
 
 ### Expected Features
 
-**Must have (P1 -- table stakes):**
-- UI-01: Task list "code" column -- icon/badge showing whether a task has generated Playwright code
-- UI-02: View generated code modal -- read-only Python viewer with syntax highlighting and line numbers
-- UI-03: Run code button -- triggers pytest execution via SelfHealingRunner, shows pass/fail result
-- STATUS-01: Task status "success" -- marks task as verified after code execution passes
+**Must have (table stakes for v0.10.6):**
+- EXEC-01: Remove `--headed=false` from subprocess args -- single line deletion in `self_healing_runner.py:193`
+- EXEC-02: Strip newlines in `_translate_unknown` return -- single line change in `action_translator.py:644`
+- EXEC-03: Add `--reload-exclude "outputs/*"` to dev uvicorn command -- documentation change only
+- HEAL-01: Error categorization with 8 categories (4 ENV, 4 CODE) -- new `pytest_error_classifier.py` module + integration into healing loop
+- E2E-01: End-to-end validation that generated code runs and produces meaningful results
 
-**Should have (P2 -- differentiators):**
-- Code status badge on task row -- color-coded indicator (green/yellow/red/gray) for code health
-- Inline execution feedback -- real-time pytest output in the code viewer
+**Should have (competitive improvements):**
+- Pre-flight syntax check: run `ast.parse()` on generated code before invoking pytest subprocess
+- Healing telemetry: track "skipped LLM for ENV error" vs "invoked LLM for CODE error" counts
+- Error category logging: structured metrics on failure type distribution
 
 **Defer (v2+):**
-- In-place code editing -- breaks AI-driven workflow; edits get overwritten on re-run
-- Full IDE in browser -- scope creep beyond QA tester needs
-- Automatic status promotion on healing pass -- hides uncertainty from flaky results
+- Syntax-only LLM repair mode (separate prompt without DOM snapshot overhead)
+- Complex error taxonomy beyond 8 categories
+- LLM-based import fixing (should be fixed at the code generator level, not the healer)
 
 ### Architecture Approach
 
-The architecture follows a strict reuse pattern. Two new FastAPI endpoints wrap existing infrastructure: GET /runs/{id}/code reads from the filesystem (no database storage of code content), and POST /runs/{id}/run-code delegates to SelfHealingRunner with max_iterations=1 (disabling LLM retry). The frontend adds a CodeViewer/ component folder following the established feature-folder pattern. The TaskResponse gains a computed has_code field from a SQL subquery, avoiding denormalization.
+The fixes preserve the existing component boundaries. The new `pytest_error_classifier.py` module is a pure function with no side effects, following the project's pattern of small, focused modules. The classifier sits between "pytest subprocess failed" and "call LLM repair" in the `SelfHealingRunner.run()` loop, acting as a gate that prevents wasteful LLM calls for environment and infrastructure errors.
 
-**Major components:**
-1. **CodeViewerModal** -- read-only Python display using react-syntax-highlighter, follows existing modal pattern (ConfirmModal, ImageViewer)
-2. **RunCodeDialog** -- confirmation + execution result display, reuses ConfirmModal + loading state pattern from BatchExecuteDialog
-3. **GET /runs/{id}/code endpoint** -- reads generated_code_path from DB, validates path within outputs/, serves file content as JSON
-4. **POST /runs/{id}/run-code endpoint** -- instantiates SelfHealingRunner, executes pytest, updates Task.status on pass, uses asyncio.Semaphore(1) for concurrency control
+**Major components (changes):**
+1. `self_healing_runner.py` -- remove `--headed=false` (EXEC-01), integrate error classifier before LLM calls (HEAL-01)
+2. `action_translator.py` -- strip newlines in `_translate_unknown` return statement (EXEC-02)
+3. `code_generator.py` -- add `validate_syntax()` guard before file write (supporting fix for EXEC-02)
+4. `pytest_error_classifier.py` (NEW) -- pure function categorizing pytest exit codes + stderr patterns into 8 error categories
+5. Documentation (`CLAUDE.md`, `README.md`) -- add `--reload-exclude "outputs/*"` to dev commands (EXEC-03)
 
 ### Critical Pitfalls
 
-1. **Orphaned Chrome processes from subprocess pytest** -- Use `start_new_session=True` + `os.killpg()` for process group kill on timeout. Add `_active_code_runs` tracking dict. Register FastAPI shutdown handler.
-2. **Path traversal in code file serving** -- Never accept raw file paths as API parameters. Resolve from DB, validate with `Path.is_relative_to(OUTPUTS_DIR)`. Only serve .py files.
-3. **Task status "success" conflating editorial state with execution outcome** -- Strongly consider deriving success from latest Run.healing_status instead of extending Task.status. If extending, update ALL validation layers (schema regex, TypeScript type, StatusBadge).
-4. **Concurrent code execution exhausting server memory** -- Use `asyncio.Semaphore(1)`. Return HTTP 409 Conflict for concurrent requests. Debounce frontend button.
-5. **XSS via generated code content** -- Use react-syntax-highlighter (renders text nodes, not raw HTML). Never use dangerouslySetInnerHTML. Set Content-Type to text/plain.
+1. **Replacing `--headed=false` with the wrong flag** -- The fix is to remove the flag entirely, not replace it. `--headless` does not exist. `--headed` (without `=false`) enables headed mode, which is catastrophic on a headless server. Prevention: unit test that subprocess args contain no variant of `--headed`.
+
+2. **Newlines in `done` action text breaking code generation** -- The `text[:50]` truncation preserves `\n` characters, producing multi-line "comments" where only the first line has the `#` prefix. Prevention: strip newlines at the `_translate_unknown` return site so all unknown action types benefit.
+
+3. **WatchFiles hot-reload triggered by conftest generation** -- Development-only; production uses `reload=False`. Prevention: `--reload-exclude "outputs/*"` on the dev command. Do NOT move outputs to `/tmp/` -- it breaks path conventions across multiple modules.
+
+4. **Over-aggressive error categorization skipping legitimate LLM healing** -- If regex patterns match false positives (e.g., "SyntaxError" appearing in a Playwright error), healable errors get classified as unhealable. Prevention: anchor regexes to pytest output format (`E   SyntaxError:`) and default unrecognized `returncode == 1` to `CODE_RUNTIME`.
+
+5. **`ast.parse` rejecting valid generated code with Chinese identifiers** -- Chinese characters are valid Python 3 identifiers but may surprise some tools. Prevention: validate the full file after splice, not individual snippets; test with Chinese function names.
 
 ## Implications for Roadmap
 
-### Phase 1: Backend Data Layer and API Endpoints
+Based on research, suggested phase structure:
 
-**Rationale:** Backend changes have zero frontend dependencies and establish the API contract. Building this first allows frontend work to proceed against real endpoints.
-**Delivers:** Two new endpoints, schema extensions, SelfHealingRunner parameterization.
-**Addresses:** UI-02 (code serving), UI-03 (code execution), STATUS-01 (status extension), UI-01 (has_code field).
-**Avoids:** Pitfalls 1 (process group kill), 2 (path validation), 4 (semaphore gate), 9 (SQLite contention), 10 (output truncation).
+### Phase 1: Execution Blockers (EXEC-01 + EXEC-02 + EXEC-03)
+**Rationale:** These three fixes are prerequisites for everything else. Until `--headed=false` is removed and done-action newlines are stripped, no generated code can run successfully. They are all trivial single-line changes with no dependencies between them.
+**Delivers:** AI-generated Playwright code that can execute through pytest without immediate crashes
+**Addresses:** EXEC-01 (subprocess args), EXEC-02 (newline sanitization), EXEC-03 (WatchFiles isolation)
+**Avoids:** Pitfall 1 (wrong flag replacement), Pitfall 2 (newline leakage), Pitfall 3 (WatchFiles reload)
+**Files changed:** `self_healing_runner.py`, `action_translator.py`, `code_generator.py`, `CLAUDE.md`
 
-Key changes:
-- Add `max_iterations` parameter to SelfHealingRunner.run()
-- Add GET /runs/{run_id}/code with path traversal protection
-- Add POST /runs/{run_id}/run-code with Semaphore(1) and process group tracking
-- Extend TaskResponse with computed `has_code` field (SQL subquery)
-- Extend Task.status validation to include "success" (or implement derived approach)
-- Add `asyncio.Semaphore(1)` + `_active_code_runs` tracking module
+### Phase 2: Self-Healing Error Categorization (HEAL-01)
+**Rationale:** Depends on Phase 1 being complete so the classifier can be tested against clean post-fix behavior. With EXEC-01 fixed, every run no longer triggers exit code 4, so the classifier's ENV detection can be validated against real scenarios rather than the current "everything is an ENV error" state.
+**Delivers:** Smart error categorization that skips LLM calls for ENV/import errors and preserves healing for genuine locator failures. Estimated 100% LLM cost savings on ENV errors.
+**Addresses:** HEAL-01 -- exit-code fast-fail, error pattern classification, skip-healing for ENV errors, categorized error messages
+**Avoids:** Pitfall 4 (over-aggressive skipping), Pitfall 9 (HealingResult schema breakage), Pitfall 10 (LLM repair on timeout)
+**Files changed:** New `pytest_error_classifier.py`, modified `self_healing_runner.py`
 
-### Phase 2: Frontend Infrastructure and API Integration
-
-**Rationale:** Depends on Phase 1 endpoints being available. Installs the single new dependency and wires up API functions.
-**Delivers:** react-syntax-highlighter installed, TypeScript types updated, API functions ready.
-**Uses:** react-syntax-highlighter, existing lucide-react icons.
-**Implements:** Frontend data layer for code viewing/execution.
-
-Key changes:
-- Install react-syntax-highlighter + @types/react-syntax-highlighter
-- Add `getCode()` and `runCode()` to frontend/src/api/runs.ts
-- Update Task type: add `'success'` to status union, add `has_code?: boolean`
-- Update StatusBadge config for "success" status
-
-### Phase 3: Frontend UI Components
-
-**Rationale:** Depends on Phase 2 for API wiring. Builds the user-facing components.
-**Delivers:** CodeViewerModal, RunCodeDialog, task list "code" column.
-**Addresses:** UI-01, UI-02, UI-03 frontend implementation.
-**Avoids:** Pitfall 5 (XSS via react-syntax-highlighter), Pitfall 6 (large file rendering with line cap), Pitfall 8 (race condition with healing_status gate).
-
-Key changes:
-- Build CodeViewerModal with react-syntax-highlighter Prism build
-- Build RunCodeDialog with confirmation, loading state, result display
-- Add "code" column to TaskTable
-- Add code indicator and view/run buttons to TaskRow
-- Wire Tasks page to host new modals
-
-### Phase 4: Integration and Security Testing
-
-**Rationale:** Validates the full flow end-to-end and catches the "looks done but isn't" items from pitfalls research.
-**Delivers:** E2E tests, security tests, concurrency tests.
-**Addresses:** All pitfalls from the "Looks Done But Isn't" checklist.
-
-Key tests:
-- E2E: task with code -> view code -> verify display
-- E2E: task with code -> run code -> verify status update to "success"
-- Security: path traversal payloads return 404
-- Security: XSS payloads in code content do not execute
-- Concurrency: two simultaneous run-code requests -> one 409
-- Edge case: file not found -> 404 with clear message
-- Edge case: code generation in progress -> button disabled
+### Phase 3: End-to-End Validation (E2E-01)
+**Rationale:** Must come last because it validates that the entire pipeline works correctly after all fixes. This is the "did we actually fix it" phase.
+**Delivers:** Confidence that AI-generated code runs end-to-end: agent executes task, code is generated without syntax errors, pytest runs in headless mode, self-healing categorizes errors correctly, and meaningful results are returned.
+**Addresses:** E2E-01 -- full pipeline validation
+**Avoids:** Pitfall 5 (ast.parse false rejection), Pitfall 6 (string escape gaps), Pitfall 7 (line number off-by-one)
+**Files changed:** Test files only; potential minor fixes discovered during validation
 
 ### Phase Ordering Rationale
 
-- Phase 1 before Phase 2-3: Backend API contract must exist before frontend can integrate. No mock server needed.
-- Phase 2 before Phase 3: API functions and types must be ready before components consume them.
-- Phase 4 last: Integration testing requires both backend and frontend complete.
-- STATUS-01 in Phase 1: The status extension is a prerequisite for the "mark as success" flow in UI-03.
+- Phase 1 comes first because EXEC-01 and EXEC-02 are hard blockers: no code can run at all until they are fixed
+- Phase 2 depends on Phase 1: the error classifier needs to be tested against a pipeline where the basic execution works
+- Phase 3 depends on both: end-to-end validation is meaningless if individual fixes are still in progress
+- EXEC-03 (documentation fix) is bundled with Phase 1 because it is trivial and related to the execution environment
+- All three phases are small: Phase 1 is ~6 lines, Phase 2 is one new module, Phase 3 is testing
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 1 (Task status decision):** The choice between deriving success from Run.status vs. extending Task.status is an architectural decision that should be finalized during requirements. Both research files recommend deriving, but the milestone description says "extend status."
-- **Phase 1 (SelfHealingRunner parameterization):** Adding `max_iterations` to an existing class needs careful testing to ensure it doesn't break the self-healing pipeline (which uses max_iterations=3).
+- **Phase 2 (HEAL-01):** The regex patterns for error classification need validation against real pytest output from the project's specific test cases. The FEATURES-HEAL01.md provides a solid starting point, but edge cases (Chinese characters in error messages, Playwright-specific error formatting) may need iterative tuning.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 2:** Standard npm install + TypeScript type updates. Well-documented patterns.
-- **Phase 3:** Standard React component development following existing project conventions (modal pattern, TaskRow pattern).
-- **Phase 4:** Standard Playwright E2E + security testing patterns.
+- **Phase 1 (EXEC-01/02/03):** All three fixes are fully specified with exact line numbers and code snippets. No additional research needed.
+- **Phase 3 (E2E-01):** Standard integration testing patterns. The test plan in PITFALLS.md covers the required cases.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Only one new dependency (react-syntax-highlighter). All alternatives evaluated against specific requirements. Backend uses 100% existing infrastructure. |
-| Features | HIGH | Feature specifications derived from direct codebase analysis. Dependencies mapped with existing code references. Priority matrix based on user value vs. cost. |
-| Architecture | HIGH | Architecture is primarily reuse of existing patterns (SelfHealingRunner, modal components, subprocess execution). All component boundaries mapped to existing files. |
-| Pitfalls | HIGH | Critical pitfalls identified with CVE references, GitHub issues, and direct codebase analysis. Recovery strategies documented. "Looks Done But Isn't" checklist provided. |
+| Stack | HIGH | Verified by direct execution (`uv run pytest --headed=false`), official docs, installed version compatibility confirmed |
+| Features | HIGH | Error categorization taxonomy verified against official pytest exit code docs and direct codebase analysis of 4 modules |
+| Architecture | HIGH | Component boundaries unchanged; new module follows existing project patterns; data flow traced from browser-use through code generation to pytest execution |
+| Pitfalls | HIGH | 12 pitfalls identified from direct code analysis; 5 critical, 4 moderate, 3 minor; all traced to specific lines with concrete detection strategies |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Task "success" status semantics:** Research recommends deriving from Run.status (Option A), but the milestone says "extend Task.status" (Option C). This decision must be finalized during requirements definition. Option A is cleaner architecturally; Option C is simpler to query.
-- **SelfHealingRunner.run() thread safety:** Adding `max_iterations` parameter and potentially calling run() from a new endpoint context needs verification that the class is stateless between calls or properly resets.
-- **Deployment server memory headroom:** The 2GB server constraint (121.40.191.49) means the Semaphore(1) gate is critical. Verify current memory usage during normal operation to confirm one additional Chrome process (~300MB) fits within available headroom.
+- **Regex pattern tuning for HEAL-01:** The proposed patterns (`_SYNTAX_PATTERNS`, `_IMPORT_PATTERNS`) are based on standard pytest output, but the project generates Chinese-language test names and uses browser-use with Qwen 3.5 Plus, which may produce non-standard error output. Patterns should be validated against 5-10 real pytest outputs from generated test files before finalizing.
+- **`_escape_string` completeness for non-`evaluate` actions:** Pitfall 6 identifies that `navigate`, `send_keys`, `input`, `select_dropdown`, and `upload_file` actions do not escape newlines in their string parameters. While these parameters rarely contain newlines today, this is a latent bug. Can be deferred past v0.10.6 but should be tracked.
+- **Timeout branch cleanup:** The timeout handler at `self_healing_runner.py:201-214` currently calls `_llm_repair()` and continues the loop. HEAL-01 should change this to immediate failure, but the cleanup (`_cleanup()`) must still run. Verify all code paths execute cleanup.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Codebase analysis: `backend/core/self_healing_runner.py`, `backend/core/code_generator.py`, `backend/api/routes/runs.py`, `backend/db/models.py`, `backend/db/schemas.py`, `backend/db/repository.py`, `frontend/src/types/index.ts`, `frontend/src/components/TaskList/`
-- [react-syntax-highlighter NPM](https://www.npmjs.com/package/react-syntax-highlighter) -- version 16.1.1, Python support confirmed
-- [pytest-timeout subprocess leak](https://github.com/pytest-dev/pytest-timeout/issues/159) -- orphaned process behavior documented
-- [Playwright Python zombie threads](https://github.com/microsoft/playwright-python/issues/2397) -- server environment issue
-- [FastAPI path traversal CVE-2025-55526](https://www.sentinelone.com/vulnerability-database/cve-2025-55526/) -- exact vulnerability pattern
+- [Playwright Python - Pytest Plugin Reference](https://playwright.dev/python/docs/test-runners) -- CLI arguments, headless default behavior
+- [Playwright Python - Running Tests](https://playwright.dev/python/docs/running-tests) -- Confirmation that headless is default
+- [pytest Exit Codes -- Official Documentation](https://docs.pytest.org/en/stable/reference/exit-codes.html) -- Exit codes 0-5 definition
+- [Uvicorn Settings](https://uvicorn.dev/settings/) -- `--reload-exclude` glob pattern support
+- Direct code analysis: `self_healing_runner.py`, `action_translator.py`, `code_generator.py`, `llm_healer.py`
+- Direct execution: `uv run pytest --headed=false` producing `error: argument --headed: ignored explicit argument 'false'`
 
 ### Secondary (MEDIUM confidence)
-- [Shiki vs Prism vs highlight.js comparison](https://www.pkgpulse.com/blog/shiki-vs-prismjs-vs-highlightjs-syntax-highlighting-javascript-2026) -- feature comparison
-- [react-syntax-highlighter large file issue](https://github.com/react-syntax-highlighter/react-syntax-highlighter/issues/545) -- DOM bloat for 500+ lines
-- [Playwright in production memory issues](https://medium.com/@onurmaciit/8gb-was-a-lie-playwright-in-production-c2bdbe4429d6) -- production memory analysis
-- [TestRail Code-first workflow](https://support.testrail.com/hc/en-us/articles/12609674354068-Code-first-workflow) -- competitor reference
-- [FastAPI Background Tasks docs](https://fastapi.tiangolo.com/tutorial/background-tasks/) -- existing async pattern
+- [pytest INTERNALERROR -- GitHub Issue #11765](https://github.com/pytest-dev/pytest/issues/11765) -- Internal error patterns
+- [pytest-playwright headed mode -- Stack Overflow](https://stackoverflow.com/questions/78767744) -- Community confirmation
+- [Uvicorn GitHub Discussion #1978](https://github.com/Kludex/uvicorn/discussions/1978) -- WatchFiles exclude patterns
+
+### Tertiary (LOW confidence)
+- [CallSphere blog -- headless vs headed](https://callsphere.tech/blog/headless-vs-headed-playwright-when-ai-agents-need-visible-browser) -- Blog post, not authoritative
 
 ---
-*Research completed: 2026-04-23*
+*Research completed: 2026-04-24*
 *Ready for roadmap: yes*
