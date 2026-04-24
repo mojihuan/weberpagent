@@ -1,15 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: ""
-status: Between milestones
-stopped_at: v0.10.4 archived, awaiting next milestone
-last_updated: "2026-04-24T01:10:00.000Z"
+milestone: v0.10.5
+milestone_name: 生成测试代码修复与优化
+status: Ready to execute
+last_updated: "2026-04-24T02:56:08.426Z"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -19,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 99 — 核心键名修复
 
 ## Last Shipped
 
@@ -32,21 +31,20 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Milestone: None (awaiting next)
-Phase: None
-Plan: None
+Phase: 99 (核心键名修复) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
 ### Decisions
 
-Key v0.10.4 decisions:
-- FastAPI dependency_overrides for test injection
-- asyncio.Semaphore(1) for code execution concurrency
-- BackgroundTasks.add_task with new DB session
-- Computed fields in route handlers (has_code/latest_run_id)
-- StatusBadge context prop for entity-specific labels
-- react-syntax-highlighter Prism for code display
+Key v0.10.5 context:
+
+- Root cause: browser-use model_actions() outputs "click"/"input", but _CORE_TYPES expects "click_element"/"input_text"
+- _heal_weak_steps() also uses wrong names, so click/input never triggers healing
+- Pipeline: model_actions() -> action_translator.py -> code_generator.py
+- [Phase 99]: Renamed action type strings from click_element/input_text to click/input to match browser-use model_actions() output
+- [Phase 99]: Kept private method names _translate_click/_translate_input unchanged (internal convention)
 
 ### Pending Todos
 
@@ -54,10 +52,10 @@ None.
 
 ### Blockers/Concerns
 
-- Orphaned Chrome processes from subprocess pytest — need start_new_session=True + os.killpg()
-- Path traversal risk in code-serving endpoint — validated with _validate_code_path
+None.
 
 ## Session Continuity
 
-Last session: 2026-04-24T01:10:00.000Z
-Stopped at: v0.10.4 milestone archived
+Last session: 2026-04-24T02:56:08.424Z
+Roadmap created — 3 phases (99-101), 20 requirements mapped, ready to plan Phase 99
+Resume file: None
