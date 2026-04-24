@@ -93,6 +93,7 @@ async def test_e2e_code_generation_login(api_client):
     has_fill = ".fill(" in content
     has_goto = "page.goto" in content
     has_actions = has_locator or has_click or has_fill or has_goto
+    assert has_actions, "Generated code missing any Playwright action calls"
     print(f"[E2E-CodeGen] Content validation: "
           f"locator={has_locator}, click={has_click}, fill={has_fill}, goto={has_goto}")
 
