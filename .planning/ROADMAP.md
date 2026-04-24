@@ -186,7 +186,7 @@
 **Milestone Goal:** 修复测试代码执行链路中的所有阻塞问题，使 AI 生成的 Playwright 测试代码可直接运行并得到有意义的结果
 
 - [x] **Phase 102: 执行修复** - 修复 pytest 调用参数、代码生成器文本输出、开发环境热重载干扰 (completed 2026-04-24)
-- [ ] **Phase 103: 自愈改进** - 错误分类器区分执行环境错误和代码错误，环境错误跳过 LLM 修复
+- [x] **Phase 103: 自愈改进** - 错误分类器区分执行环境错误和代码错误，环境错误跳过 LLM 修复 (completed 2026-04-24)
 - [ ] **Phase 104: E2E 验证** - 端到端验证 AI 生成的测试代码可被 pytest 成功执行并返回有意义结果
 
 ## Phase Details
@@ -214,7 +214,10 @@ Plans:
   2. pytest 退出码为 1 (test failures) 且 stderr 包含 `E   SyntaxError:` 或 `E   ImportError:` 时，归类为代码错误并尝试 LLM 修复
   3. pytest 退出码为 1 但 stderr 不匹配任何已知模式时，默认归类为 CODE_RUNTIME（可修复类别），不遗漏 LLM 修复机会
   4. 错误分类器是纯函数，有独立单元测试覆盖全部 8 种分类路径
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [x] 103-01-PLAN.md — 错误分类器 + SelfHealingRunner 集成 + 单元测试 (HEAL-01)
 
 ### Phase 104: E2E 验证
 **Goal**: 确认整个测试代码执行管线端到端工作正常 — AI 执行任务、生成代码、pytest 运行、结果返回全流程通畅
@@ -233,9 +236,9 @@ Phases execute in numeric order: 102 -> 103 -> 104
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 102. 执行修复 | 1/1 | Complete   | 2026-04-24 |
-| 103. 自愈改进 | 0/? | Not started | - |
+| 102. 执行修复 | 1/1 | Complete    | 2026-04-24 |
+| 103. 自愈改进 | 1/1 | Complete   | 2026-04-24 |
 | 104. E2E 验证 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-24 -- Phase 102 planned (1 plan, 3 tasks)*
+*Roadmap updated: 2026-04-24 -- Phase 103 planned (1 plan, 2 tasks)*

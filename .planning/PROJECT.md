@@ -15,9 +15,20 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.4 Playwright 代码验证与任务管理集成 (shipped 2026-04-24)
+**最新版本:** v0.10.6 生成测试代码稳定可用 (in progress)
 **Server online**: 121.40.191.49
-**当前状态:** 等待下一个 milestone 规划
+**当前状态:** Phase 102 完成 — 执行修复（3 个阻塞 bug 已修复），Phase 103 自愈改进待执行
+
+## Current Milestone: v0.10.6 生成测试代码稳定可用
+
+**Goal:** 修复测试代码执行链路中的所有阻塞问题，使 AI 生成的 Playwright 测试代码可以直接运行并得到有意义的结果
+
+**Target features:**
+- 修复 pytest 调用参数（`--headed=false` → 正确的 headless 配置）
+- 修复代码生成器输出非 Python 文本导致的语法错误
+- 隔离 conftest.py 输出目录，避免 WatchFiles 热重载干扰
+- 改进自愈逻辑：区分"代码错误"和"执行环境错误"
+- 端到端验证：生成代码可被 pytest 成功执行并返回结果
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -31,6 +42,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.9.2: Cookie 预注入免登录 (2026-04-17)
 - v0.10.0: Agent 执行速度优化 (2026-04-18)
 - v0.10.1: 代码登录及 Agent 复用登录的浏览器状态 (2026-04-21)
+- v0.10.5: 生成测试代码修复与优化 (2026-04-24)
 - v0.10.4: Playwright 代码验证与任务管理集成 (2026-04-24)
 - v0.10.3: DOM 深度修复 - 表格单元格选择精确性 (2026-04-23)
 - v0.10.2: 测试验证与代码可用性修复 (2026-04-23)
@@ -39,9 +51,24 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-_No active requirements — awaiting next milestone._
+**v0.10.6 生成测试代码稳定可用 (2026-04-24):**
+- EXEC-01: 修复 pytest 调用参数 `--headed=false` 为正确的 headless 配置
+- EXEC-02: 修复代码生成器输出非 Python 文本（done action 末尾的纯文本注释）
+- EXEC-03: 隔离输出目录，避免 conftest.py 触发 WatchFiles 热重载
+- HEAL-01: 自愈逻辑区分"代码语法错误"和"执行环境/调用参数错误"
+- E2E-01: 端到端验证 — AI 执行后生成的代码可被 pytest 成功执行并返回结果
 
 ### Validated
+
+**v0.10.5 生成测试代码修复与优化 (2026-04-24):**
+- ~~KEY-01~~: ✓ _CORE_TYPES 键名重命名 click_element→click, input_text→input — Phase 99
+- ~~KEY-02~~: ✓ translate/translate_with_llm dispatch + LocatorChainBuilder 对齐 — Phase 99
+- ~~KEY-03~~: ✓ _heal_weak_steps 类型检查修复，LLM healing 实际触发 — Phase 99
+- ~~KEY-04~~: ✓ 所有测试文件更新，758 tests passed，旧键名零残留 — Phase 99
+- ~~CODE-01~~: ✓ 修复 action_translator 键名不匹配 — click/input 映射到正确的 Playwright 代码 — Phase 100
+- ~~CODE-02~~: ✓ 补充缺失 action 类型翻译 — wait/done/write_file/switch/extract/search 等非核心操作 — Phase 100
+- ~~CODE-03~~: ✓ 测试用例使用真实 model_actions() 键名验证 — Phase 101
+- ~~CODE-04~~: ✓ 端到端验证 — AI 执行后生成代码可被 pytest 运行 — Phase 101
 
 **v0.10.4 Playwright 代码验证与任务管理集成 (2026-04-24):**
 - ✓ CODE-01: GET /runs/{run_id}/code 返回已生成的 Playwright 代码文件内容 — Phase 97
@@ -189,7 +216,7 @@ v0.1-v0.4.2 核心功能:
 - 数据库 SQLite (aiosqlite)
 
 **代码质量:**
-- 测试套件: 755+ unit tests passed, 0 failed, 0 errors (Phase 97 regression gate)
+- 测试套件: 967 tests passed, 0 failed, 0 errors (Phase 101 regression gate)
 - E2E 回归测试: 4 个覆盖完整链路
 
 **技术栈:**
@@ -250,4 +277,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-24 — v0.10.4 milestone archived*
+*Last updated: 2026-04-24 — Phase 102 执行修复完成*

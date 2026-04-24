@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.10.6
 milestone_name: 生成测试代码稳定可用
 status: Phase complete — ready for verification
-stopped_at: Completed 102-01-PLAN.md
-last_updated: "2026-04-24T09:01:26.022Z"
+stopped_at: Completed 103-01-PLAN.md
+last_updated: "2026-04-24T12:40:34.771Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-24)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 102 — 执行修复
+**Current focus:** Phase 103 — 自愈改进
 
 ## Last Shipped
 
@@ -33,7 +33,7 @@ See: .planning/PROJECT.md (updated 2026-04-24)
 
 ## Current Position
 
-Phase: 102 (执行修复) — EXECUTING
+Phase: 103 (自愈改进) — EXECUTING
 Plan: 1 of 1
 
 ## Accumulated Context
@@ -50,6 +50,9 @@ Key v0.10.6 context from research:
 - [Phase 102]: Remove --headed=false entirely (pytest-playwright defaults to headless)
 - [Phase 102]: Prefix every line with # for newline-safe comments in _translate_unknown()
 - [Phase 102]: Use watchfiles native .watchfiles_ignore over --reload-exclude CLI flag
+- [Phase 103]: ErrorCategoryResult uses frozen dataclass per project immutability convention
+- [Phase 103]: Unknown exit codes default to CODE_RUNTIME to avoid missing LLM repair opportunities
+- [Phase 103]: error_category default empty string on HealingResult for backward compatibility
 
 ### Pending Todos
 
@@ -61,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-24T09:01:26.020Z
-Stopped at: Completed 102-01-PLAN.md
+Last session: 2026-04-24T12:40:34.769Z
+Stopped at: Completed 103-01-PLAN.md
 Resume file: None

@@ -13,7 +13,7 @@
 
 ### 自愈改进 (Healing Improvement)
 
-- [ ] **HEAL-01**: SelfHealingRunner 区分"执行环境错误"（pytest 退出码 2/4/5）和"代码错误"（退出码 1），环境错误直接跳过 LLM 修复
+- [x] **HEAL-01**: SelfHealingRunner 区分"执行环境错误"（pytest 退出码 2/4/5）和"代码错误"（退出码 1），环境错误直接跳过 LLM 修复
 
 ### 端到端验证 (E2E Verification)
 
@@ -42,7 +42,7 @@
 | EXEC-01 | Phase 102 | Complete |
 | EXEC-02 | Phase 102 | Complete |
 | EXEC-03 | Phase 102 | Complete |
-| HEAL-01 | Phase 103 | Pending |
+| HEAL-01 | Phase 103 | Complete |
 | E2E-01 | Phase 104 | Pending |
 
 **Coverage:**
