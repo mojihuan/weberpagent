@@ -8,9 +8,9 @@
 ### 核心键名修复
 
 - [x] **KEY-01**: ActionTranslator._CORE_TYPES 使用 browser-use 实际输出的键名 click/input（而非 click_element/input_text）
-- [ ] **KEY-02**: translate() 和 translate_with_llm() 的 action_type 分派使用正确键名
+- [x] **KEY-02**: translate() 和 translate_with_llm() 的 action_type 分派使用正确键名
 - [x] **KEY-03**: _heal_weak_steps() 中 action_type 检查使用正确键名，LLM healing 对 click/input 生效
-- [ ] **KEY-04**: _build_fallback_code / _build_llm_only_code 中 action_type 参数使用正确键名
+- [x] **KEY-04**: _build_fallback_code / _build_llm_only_code 中 action_type 参数使用正确键名
 
 ### 常用操作翻译
 
@@ -50,9 +50,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | KEY-01 | Phase 99 | Complete |
-| KEY-02 | Phase 99 | Pending |
+| KEY-02 | Phase 99 | Complete |
 | KEY-03 | Phase 99 | Complete |
-| KEY-04 | Phase 99 | Pending |
+| KEY-04 | Phase 99 | Complete |
 | TRANS-01 | Phase 100 | Pending |
 | TRANS-02 | Phase 100 | Pending |
 | TRANS-03 | Phase 100 | Pending |

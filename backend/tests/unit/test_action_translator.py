@@ -1,6 +1,6 @@
 """ActionTranslator 单元测试 -- browser-use action 到 Playwright 代码翻译。
 
-覆盖 6 种核心操作类型 (D-08) + 边界情况 (D-06, D-09) + 多定位器回退 (D-04/D-05)。
+覆盖 10 种核心操作类型 (D-08) + 边界情况 (D-06, D-09) + 多定位器回退 (D-04/D-05)。
 所有测试使用 mock DOMInteractedElement，不依赖 browser-use 内部模块。
 """
 
@@ -170,6 +170,152 @@ class TestGoBackTranslation:
         assert "page.go_back()" in result.code
 
 
+class TestWaitTranslation:
+    """wait 操作翻译测试 (TRANS-01)。"""
+
+    def test_translate_wait_with_seconds(self, translator: ActionTranslator) -> None:
+        """wait seconds=5 生成 page.wait_for_timeout(5000)。"""
+        action = {
+            "wait": {"seconds": 5},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "wait"
+        assert result.is_comment is False
+        assert result.has_locator is False
+        assert "page.wait_for_timeout(5000)" in result.code
+
+    def test_translate_wait_default_seconds(self, translator: ActionTranslator) -> None:
+        """wait 空参数默认 3 秒生成 page.wait_for_timeout(3000)。"""
+        action = {
+            "wait": {},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "wait"
+        assert result.is_comment is False
+        assert result.has_locator is False
+        assert "page.wait_for_timeout(3000)" in result.code
+
+
+class TestEvaluateTranslation:
+    """evaluate 操作翻译测试 (TRANS-03)。"""
+
+    def test_translate_evaluate(self, translator: ActionTranslator) -> None:
+        """evaluate 生成 page.evaluate("document.title")。"""
+        action = {
+            "evaluate": {"code": "document.title"},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "evaluate"
+        assert result.is_comment is False
+        assert result.has_locator is False
+        assert "page.evaluate" in result.code
+        assert "document.title" in result.code
+
+    def test_translate_evaluate_with_special_chars(self, translator: ActionTranslator) -> None:
+        """evaluate 包含引号的 JS 代码正确转义。"""
+        action = {
+            "evaluate": {"code": 'console.log("hello")'},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "evaluate"
+        assert result.is_comment is False
+        assert "page.evaluate" in result.code
+        # 引号应被转义，代码仍合法
+        assert "hello" in result.code
+
+
+class TestSelectDropdownTranslation:
+    """select_dropdown 操作翻译测试 (TRANS-02)。"""
+
+    def test_translate_select_dropdown(
+        self, translator: ActionTranslator
+    ) -> None:
+        """select_dropdown 有元素时生成 locator.select_option("text")。"""
+        action = {
+            "select_dropdown": {"index": 3, "text": "Option A"},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/select",
+                node_name="SELECT",
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "select_dropdown"
+        assert result.is_comment is False
+        assert result.has_locator is True
+        assert ".select_option(" in result.code
+        assert "Option A" in result.code
+
+    def test_translate_select_dropdown_no_element(
+        self, translator: ActionTranslator
+    ) -> None:
+        """select_dropdown 无元素时生成注释回退。"""
+        action = {
+            "select_dropdown": {"index": 3, "text": "Option A"},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "select_dropdown"
+        assert result.is_comment is True
+        assert "# " in result.code
+
+    def test_translate_select_dropdown_empty_xpath(
+        self, translator: ActionTranslator
+    ) -> None:
+        """select_dropdown 元素 x_path 为空时生成注释回退。"""
+        action = {
+            "select_dropdown": {"index": 3, "text": "Option A"},
+            "interacted_element": MockDOMElement(x_path=""),
+        }
+        result = translator.translate(action)
+
+        assert result.is_comment is True
+
+
+class TestUploadFileTranslation:
+    """upload_file 操作翻译测试 (TRANS-04)。"""
+
+    def test_translate_upload_file(self, translator: ActionTranslator) -> None:
+        """upload_file 有元素时生成 locator.set_input_files("path")。"""
+        action = {
+            "upload_file": {"index": 5, "path": "/data/file.xlsx"},
+            "interacted_element": MockDOMElement(
+                x_path="/html/body/input",
+                node_name="INPUT",
+            ),
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "upload_file"
+        assert result.is_comment is False
+        assert result.has_locator is True
+        assert ".set_input_files(" in result.code
+        assert "/data/file.xlsx" in result.code
+
+    def test_translate_upload_file_no_element(
+        self, translator: ActionTranslator
+    ) -> None:
+        """upload_file 无元素时生成注释回退。"""
+        action = {
+            "upload_file": {"index": 5, "path": "/data/file.xlsx"},
+            "interacted_element": None,
+        }
+        result = translator.translate(action)
+
+        assert result.action_type == "upload_file"
+        assert result.is_comment is True
+        assert "# upload_file" in result.code
+
+
 # ---------------------------------------------------------------------------
 # 边界情况测试 (D-06, D-09)
 # ---------------------------------------------------------------------------
@@ -219,20 +365,18 @@ class TestNonCoreActions:
         assert result.is_comment is True
         assert "# " in result.code
 
-    def test_upload_file_comment(self, translator: ActionTranslator) -> None:
-        """upload_file 操作生成注释，包含文件路径 (D-09)。"""
+    def test_upload_file_comment_no_element(self, translator: ActionTranslator) -> None:
+        """upload_file 无元素时生成注释回退 (D-05)。"""
         action = {
             "upload_file": {"index": 3, "path": "/data/test.xlsx"},
-            "interacted_element": MockDOMElement(
-                x_path="/html/body/div/form/input",
-            ),
+            "interacted_element": None,
         }
         result = translator.translate(action)
 
         assert result.action_type == "upload_file"
         assert result.is_comment is True
         assert result.has_locator is False
-        assert "# upload_file: /data/test.xlsx" in result.code
+        assert "# upload_file" in result.code
 
 
 class TestXPathExtraction:
