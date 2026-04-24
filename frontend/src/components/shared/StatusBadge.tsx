@@ -24,14 +24,18 @@ export type Status = keyof typeof statusConfig
 
 interface StatusBadgeProps {
   status: Status
+  context?: 'task' | 'run'
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status, context }: StatusBadgeProps) {
   const config = statusConfig[status]
+
+  // D-01: Task.status='success' displays '成功', Run.status='success' displays '已完成'
+  const label = (context === 'task' && status === 'success') ? '成功' : config.label
 
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${config.className}`}>
-      {config.label}
+      {label}
     </span>
   )
 }

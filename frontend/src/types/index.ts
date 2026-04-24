@@ -8,7 +8,9 @@ export interface Task {
   preconditions?: string[]
   assertions?: AssertionConfig[]
   login_role?: string | null
-  status: 'draft' | 'ready'
+  status: 'draft' | 'ready' | 'success'
+  has_code?: boolean
+  latest_run_id?: string | null
   created_at: string
   updated_at: string
 }
