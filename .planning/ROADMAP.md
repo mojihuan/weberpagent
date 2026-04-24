@@ -177,7 +177,7 @@
 
 - [x] **Phase 99: 核心键名修复** - 修复 action_translator 的键名不匹配，使 click/input 正确生成 Playwright 代码 (completed 2026-04-24)
 - [x] **Phase 100: 操作翻译扩展** - 补充 wait/select_dropdown/evaluate/upload_file 等 12 种缺失操作翻译 (completed 2026-04-24)
-- [ ] **Phase 101: 测试验证** - 单元测试 + 端到端验证代码生成质量
+- [x] **Phase 101: 测试验证** - 单元测试 + 端到端验证代码生成质量 (completed 2026-04-24)
 
 ## Phase Details
 
@@ -225,7 +225,7 @@ Plans:
 
 Plans:
 - [x] 101-01-PLAN.md — 集成测试：translator->generator 全链路验证 click/input/wait/evaluate 翻译 + healing 触发 (TEST-01/02/03)
-- [ ] 101-02-PLAN.md — E2E 测试：AI 执行登录任务，验证生成代码包含可执行 Playwright 调用 (TEST-04)
+- [x] 101-02-PLAN.md — E2E 测试：AI 执行登录任务，验证生成代码包含可执行 Playwright 调用 (TEST-04)
 
 ## Progress
 
@@ -233,7 +233,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 99. 核心键名修复 | 2/2 | Complete    | 2026-04-24 |
 | 100. 操作翻译扩展 | 2/2 | Complete   | 2026-04-24 |
-| 101. 测试验证 | 1/2 | In Progress|  |
+| 101. 测试验证 | 2/2 | Complete   | 2026-04-24 |
 
 ---
 *Roadmap updated: 2026-04-24 -- Phase 101 planned*

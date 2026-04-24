@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.10.5
 milestone_name: 生成测试代码修复与优化
-status: Ready to execute
-last_updated: "2026-04-24T06:00:15.988Z"
+status: Phase complete — ready for verification
+last_updated: "2026-04-24T06:07:14.027Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -50,6 +50,7 @@ Key v0.10.5 context:
 - [Phase 100]: wait/evaluate: static methods, no locator; select_dropdown/upload_file: single locator via LocatorChainBuilder, comment fallback
 - [Phase 100]: Edge operations: summarizer-dict pattern for per-type parameter-aware comments (14 edge types + generic fallback)
 - [Phase 101]: Integration tests use MockDOMElement + mock_history.model_actions() pattern for full chain translator->generator verification
+- [Phase 101]: E2E code generation test with 180s polling timeout, non-blocking ast.parse validation, line-number prefix stripping for _format_code_with_line_numbers format
 
 ### Pending Todos
 
@@ -61,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-24T06:00:15.986Z
+Last session: 2026-04-24T06:07:14.022Z
 Phase 100 complete — 4 executable types + 14 edge comments, 60 tests, 783 unit tests all green
 Resume file: None
