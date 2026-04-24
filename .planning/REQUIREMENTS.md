@@ -13,9 +13,9 @@
 
 ### 任务管理 UI (UI)
 
-- [ ] **UI-01**: 任务列表 TaskTable 新增"代码"列，通过 latest run 的 generated_code_path 判断是否显示代码可用标识
-- [ ] **UI-02**: "查看代码"按钮 — 打开 CodeViewerModal 只读显示 Python 代码，使用 react-syntax-highlighter 语法高亮，显示行号
-- [ ] **UI-03**: "运行代码"按钮 — 在 CodeViewerModal 内触发 Playwright 执行，异步反馈执行状态（等待/运行中/成功/失败），显示错误信息
+- [x] **UI-01**: 任务列表 TaskTable 新增"代码"列，通过 latest run 的 generated_code_path 判断是否显示代码可用标识
+- [x] **UI-02**: "查看代码"按钮 — 打开 CodeViewerModal 只读显示 Python 代码，使用 react-syntax-highlighter 语法高亮，显示行号
+- [x] **UI-03**: "运行代码"按钮 — 在 CodeViewerModal 内触发 Playwright 执行，异步反馈执行状态（等待/运行中/成功/失败），显示错误信息
 
 ### 任务状态 (STATUS)
 
@@ -53,9 +53,9 @@
 | CODE-02 | Phase 97 | Complete |
 | CODE-03 | Phase 97 | Complete |
 | STATUS-01 | Phase 97 | Complete |
-| UI-01 | Phase 98 | Pending |
-| UI-02 | Phase 98 | Pending |
-| UI-03 | Phase 98 | Pending |
+| UI-01 | Phase 98 | Complete |
+| UI-02 | Phase 98 | Complete |
+| UI-03 | Phase 98 | Complete |
 
 **Coverage:**
 - v0.10.4 requirements: 7 total

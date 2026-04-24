@@ -203,8 +203,11 @@ Plans:
   2. 点击"查看代码"按钮打开 CodeViewerModal，以语法高亮 + 行号方式只读展示 Python 代码
   3. 点击"运行代码"按钮触发 Playwright 执行，显示执行状态（等待/运行中/成功/失败），执行失败时展示错误信息
   4. Task.status 为 "success" 时，StatusBadge 显示绿色"成功"标签
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
+
+Plans:
+- [x] 98-01-PLAN.md -- Backend schema extension (has_code/latest_run_id) + frontend types + StatusBadge + API functions
+- [ ] 98-02-PLAN.md -- TaskTable code column + CodeViewerModal + CodeExecutionStatus + human verification
 
 ## Progress
 
@@ -213,8 +216,8 @@ Phases execute in numeric order: 97 → 98
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 97. 后端 API | v0.10.4 | 2/2 | Complete   | 2026-04-23 |
-| 98. 前端 UI | v0.10.4 | 0/? | Not started | - |
+| 97. 后端 API | v0.10.4 | 2/2 | Complete    | 2026-04-23 |
+| 98. 前端 UI | v0.10.4 | 1/2 | In Progress|  |
 
 ---
-*Roadmap updated: 2026-04-23 -- Phase 97 plans created (2 plans)*
+*Roadmap updated: 2026-04-23 -- Phase 98 plans created (2 plans)*

@@ -8,6 +8,7 @@ interface TaskTableProps {
   onToggleSelect: (id: string) => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  onViewCode: (task: Task) => void
 }
 
 export function TaskTable({
@@ -17,6 +18,7 @@ export function TaskTable({
   onToggleSelect,
   onEdit,
   onDelete,
+  onViewCode,
 }: TaskTableProps) {
   const allSelected = tasks.length > 0 && selectedIds.length === tasks.length
   const someSelected = selectedIds.length > 0 && selectedIds.length < tasks.length
@@ -41,6 +43,7 @@ export function TaskTable({
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">目标 URL</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">状态</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">步数</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">代码</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">操作</th>
           </tr>
         </thead>
@@ -53,6 +56,7 @@ export function TaskTable({
               onSelect={() => onToggleSelect(task.id)}
               onEdit={() => onEdit(task)}
               onDelete={() => onDelete(task)}
+              onViewCode={() => onViewCode(task)}
             />
           ))}
         </tbody>

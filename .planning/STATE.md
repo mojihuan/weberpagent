@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.4
 milestone_name: Playwright 代码验证与任务管理集成
-status: Phase complete — ready for verification
-stopped_at: Completed 97-02-PLAN.md
-last_updated: "2026-04-23T13:28:53.307Z"
+status: Ready to execute
+stopped_at: Completed 98-01-PLAN.md
+last_updated: "2026-04-24T00:25:32.356Z"
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 97 — api
+**Current focus:** Phase 98 — 前端UI
 
 ## Last Shipped
 
@@ -33,7 +33,7 @@ See: .planning/PROJECT.md (updated 2026-04-23)
 
 ## Current Position
 
-Phase: 97 (api) — EXECUTING
+Phase: 98 (前端UI) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -51,6 +51,9 @@ Recent decisions affecting current work:
 - [Phase 97-api]: Path traversal check runs before file existence in _validate_code_path
 - [Phase 97-api]: SelfHealingRunner imported at module level for test patching compatibility
 - [Phase 97-api]: status_code=202 set explicitly on POST /execute-code decorator (FastAPI defaults 200)
+- [Phase 98]: Route handlers construct dicts for computed fields (has_code/latest_run_id) rather than extending ORM validator
+- [Phase 98]: getRunCode uses raw fetch + response.text() because apiClient calls response.json() which fails on PlainTextResponse
+- [Phase 98]: StatusBadge uses context prop for entity-specific labels, keeping statusConfig backward compatible
 
 ### Pending Todos
 
@@ -63,6 +66,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T13:28:53.305Z
-Stopped at: Completed 97-02-PLAN.md
+Last session: 2026-04-24T00:25:32.354Z
+Stopped at: Completed 98-01-PLAN.md
 Resume file: None

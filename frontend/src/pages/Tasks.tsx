@@ -14,6 +14,7 @@ import { ImportModal } from '../components/ImportModal'
 import { Pagination, EmptyState, LoadingSpinner, ConfirmModal } from '../components/shared'
 import { tasksApi } from '../api/tasks'
 import { batchesApi } from '../api/batches'
+import { CodeViewerModal } from '../components/TaskDetail/CodeViewerModal'
 import type { Task, CreateTaskDto } from '../types'
 
 export function Tasks() {
@@ -46,6 +47,7 @@ export function Tasks() {
   const [deleting, setDeleting] = useState(false)
   const [batchExecuteOpen, setBatchExecuteOpen] = useState(false)
   const [batchExecuting, setBatchExecuting] = useState(false)
+  const [viewCodeTask, setViewCodeTask] = useState<Task | null>(null)
 
   const handleCreate = () => {
     setModalMode('create')
@@ -151,6 +153,7 @@ export function Tasks() {
           onToggleSelect={toggleSelect}
           onEdit={handleEdit}
           onDelete={task => setDeleteConfirm(task)}
+          onViewCode={task => setViewCodeTask(task)}
         />
       )}
 
@@ -199,6 +202,10 @@ export function Tasks() {
         onClose={() => setImportModalOpen(false)}
         onImportComplete={fetchTasks}
       />
+
+      {viewCodeTask && (
+        <CodeViewerModal task={viewCodeTask} onClose={() => setViewCodeTask(null)} />
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Play, FileText, Pencil, Trash2 } from 'lucide-react'
+import { Play, FileText, Pencil, Trash2, Code2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { Task } from '../../types'
 import { StatusBadge } from '../shared'
@@ -11,9 +11,10 @@ interface TaskRowProps {
   onSelect: () => void
   onEdit: () => void
   onDelete: () => void
+  onViewCode: () => void
 }
 
-export function TaskRow({ task, selected, onSelect, onEdit, onDelete }: TaskRowProps) {
+export function TaskRow({ task, selected, onSelect, onEdit, onDelete, onViewCode }: TaskRowProps) {
   const navigate = useNavigate()
   const [isStarting, setIsStarting] = useState(false)
 
@@ -73,9 +74,30 @@ export function TaskRow({ task, selected, onSelect, onEdit, onDelete }: TaskRowP
       </td>
       <td className="px-4 py-3 text-gray-500 text-sm">{domain}</td>
       <td className="px-4 py-3">
-        <StatusBadge status={task.status} />
+        <StatusBadge status={task.status} context="task" />
       </td>
       <td className="px-4 py-3 text-gray-500 text-sm">{task.max_steps}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-center">
+          {task.has_code ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewCode() }}
+              className="p-1.5 rounded hover:bg-gray-100 text-blue-500 hover:text-blue-600"
+              title="查看代码"
+            >
+              <Code2 className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              disabled
+              className="p-1.5 rounded cursor-not-allowed text-gray-300"
+              title="暂无代码"
+            >
+              <Code2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-1">
           <button
