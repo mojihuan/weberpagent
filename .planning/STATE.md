@@ -1,58 +1,58 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.6
-milestone_name: 生成测试代码稳定可用
-status: Phase complete — ready for verification
-stopped_at: Completed 103-01-PLAN.md
-last_updated: "2026-04-24T12:40:34.771Z"
+milestone: v0.10.7
+milestone_name: 生成测试代码行为优化
+status: In progress
+stopped_at: Planning
+last_updated: "2026-04-25T12:00:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-24)
+See: .planning/PROJECT.md (updated 2026-04-25)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 103 — 自愈改进
+**Current focus:** v0.10.7 — 修复代码生成管道 8 个根因
 
 ## Last Shipped
 
-**v0.10.5 生成测试代码修复与优化** (2026-04-24)
+**v0.10.6 生成测试代码稳定可用** (2026-04-25)
 
-- Phase 99: 核心键名修复 — click/input action 正确生成 Playwright 代码
-- Phase 100: 操作翻译扩展 — 12 种缺失操作翻译
-- Phase 101: 测试验证 — 单元测试 + E2E 验证代码生成质量
+- Phase 102: 执行修复 — pytest 参数/注释换行/热重载
+- Phase 103: 自愈改进 — 错误分类器区分环境/代码错误
+- Phase 104: E2E 验证 — 代码执行管道 + error_category 全链路
 
 **Server online**: 121.40.191.49
 
 ## Current Position
 
-Phase: 103 (自愈改进) — EXECUTING
-Plan: 1 of 1
+Phase: None (ready for Phase 105)
+Plan: None
 
 ## Accumulated Context
 
 ### Decisions
 
-Key v0.10.6 context from research:
+Key v0.10.6 context carried forward:
 
-- Root cause 1: `--headed=false` is invalid for pytest-playwright; headless is already the default, just remove it
-- Root cause 2: done action text with newlines produces multi-line "comments" where only the first line has `#` prefix
-- Root cause 3: conftest.py in outputs/ triggers WatchFiles; `--reload-exclude` fixes dev mode only
-- Root cause 4: LLM healer cannot fix environment/config errors; error classifier prevents wasteful calls
-- All fixes are surgical (single lines or small new module), no architectural changes
-- [Phase 102]: Remove --headed=false entirely (pytest-playwright defaults to headless)
-- [Phase 102]: Prefix every line with # for newline-safe comments in _translate_unknown()
-- [Phase 102]: Use watchfiles native .watchfiles_ignore over --reload-exclude CLI flag
-- [Phase 103]: ErrorCategoryResult uses frozen dataclass per project immutability convention
-- [Phase 103]: Unknown exit codes default to CODE_RUNTIME to avoid missing LLM repair opportunities
-- [Phase 103]: error_category default empty string on HealingResult for backward compatibility
+- ErrorClassifier 区分环境/代码错误
+- pytest --timeout=60 + headless default
+- conftest.py 输出目录隔离
+- HealingResult frozen dataclass
+
+v0.10.7 new context:
+
+- 8 root causes identified across code generation pipeline
+- 64 generated test files analyzed: ~30% empty translations, ~10% indentation errors
+- deepseek-v4-pro as code gen LLM via CODE_GEN_* env vars
+- LocatorChainBuilder priority: text → role → placeholder → ID → testid → XPath
 
 ### Pending Todos
 
@@ -64,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-24T12:40:34.769Z
-Stopped at: Completed 103-01-PLAN.md
+Last session: 2026-04-25
+Stopped at: v0.10.7 milestone created, ready for /gsd:plan-phase 105
 Resume file: None

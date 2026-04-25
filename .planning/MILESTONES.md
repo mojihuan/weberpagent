@@ -1,5 +1,40 @@
 # Milestones
 
+## v0.10.7 生成测试代码行为优化 (In progress: 2026-04-25)
+
+**Phases planned:** 3 phases (105-107)
+
+**Goal:** 修复代码生成管道 8 个根因，使 AI 生成的 Playwright 测试代码首次运行即可通过
+
+**Root causes addressed:**
+1. 操作翻译缺失（~30% 文件为空操作）
+2. 代码缩进错误（~10% 文件 SyntaxError）
+3. exact=True 脆弱匹配
+4. 绝对 XPath 极度脆弱
+5. 自愈单行修复破坏 try-except 结构
+6. DOM 快照猜测匹配
+7. LLM prompt 上下文不足
+8. icon font 私有区字符污染定位器
+
+**Phases:**
+- Phase 105: 代码生成质量修复（翻译 + 缩进）
+- Phase 106: 定位器质量优化（exact/XPath/icon font）
+- Phase 107: 自愈修复增强 + E2E 验证
+
+---
+
+## v0.10.6 生成测试代码稳定可用 (Shipped: 2026-04-25)
+
+**Phases completed:** 3 phases, 3 plans, 7 tasks
+
+**Key accomplishments:**
+
+- Fix 3 blocking issues in test code execution pipeline: invalid pytest args, newline syntax errors in generated comments, and outputs/ hot-reload interference
+- Pure function error classifier that distinguishes pytest environment errors (exit 2/3/4/5) from code errors (exit 1), saving LLM calls on unfixable failures
+- E2E test validating execute-code pipeline with error_category propagation from SelfHealingRunner through DB to API response
+
+---
+
 ## v0.10.4 Playwright 代码验证与任务管理集成 (Shipped: 2026-04-24)
 
 **Phases completed:** 2 phases, 4 plans, 8 tasks

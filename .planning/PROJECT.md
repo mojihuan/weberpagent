@@ -15,20 +15,19 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.6 生成测试代码稳定可用 (in progress)
+**最新版本:** v0.10.6 生成测试代码稳定可用 (complete)
 **Server online**: 121.40.191.49
-**当前状态:** Phase 102 完成 — 执行修复（3 个阻塞 bug 已修复），Phase 103 自愈改进待执行
+**当前状态:** v0.10.7 进行中 — 生成测试代码行为优化
 
-## Current Milestone: v0.10.6 生成测试代码稳定可用
+## Current Milestone: v0.10.7 生成测试代码行为优化
 
-**Goal:** 修复测试代码执行链路中的所有阻塞问题，使 AI 生成的 Playwright 测试代码可以直接运行并得到有意义的结果
+**Goal:** 修复测试代码生成管道的 8 个根因，使 AI 生成的 Playwright 测试代码在首次生成时即具备高质量定位器，且自愈修复成功率显著提升
 
 **Target features:**
-- 修复 pytest 调用参数（`--headed=false` → 正确的 headless 配置）
-- 修复代码生成器输出非 Python 文本导致的语法错误
-- 隔离 conftest.py 输出目录，避免 WatchFiles 热重载干扰
-- 改进自愈逻辑：区分"代码错误"和"执行环境错误"
-- 端到端验证：生成代码可被 pytest 成功执行并返回结果
+- 修复操作翻译缺失（write_file/replace_file/find_elements 等生成注释而非代码）
+- 修复代码缩进错误（Playwright 语句出现在函数体外）
+- 优化定位器质量（去掉 exact=True、改用相对 XPath、过滤 icon font 字符）
+- 增强自愈修复（支持多行修复、DOM 快照精准匹配、LLM prompt 优化）
 
 **已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
@@ -42,6 +41,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.9.2: Cookie 预注入免登录 (2026-04-17)
 - v0.10.0: Agent 执行速度优化 (2026-04-18)
 - v0.10.1: 代码登录及 Agent 复用登录的浏览器状态 (2026-04-21)
+- v0.10.6: 生成测试代码稳定可用 (2026-04-25)
 - v0.10.5: 生成测试代码修复与优化 (2026-04-24)
 - v0.10.4: Playwright 代码验证与任务管理集成 (2026-04-24)
 - v0.10.3: DOM 深度修复 - 表格单元格选择精确性 (2026-04-23)
@@ -51,14 +51,24 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-**v0.10.6 生成测试代码稳定可用 (2026-04-24):**
-- EXEC-01: 修复 pytest 调用参数 `--headed=false` 为正确的 headless 配置
-- EXEC-02: 修复代码生成器输出非 Python 文本（done action 末尾的纯文本注释）
-- EXEC-03: 隔离输出目录，避免 conftest.py 触发 WatchFiles 热重载
-- HEAL-01: 自愈逻辑区分"代码语法错误"和"执行环境/调用参数错误"
-- E2E-01: 端到端验证 — AI 执行后生成的代码可被 pytest 成功执行并返回结果
+**v0.10.7 生成测试代码行为优化 (2026-04-25):**
+- TRANSLATE-01: 修复操作翻译 — write_file/replace_file 等非核心操作生成注释占位而非未翻译
+- INDENT-01: 修复代码缩进 — _build_body 生成的 Playwright 语句必须在函数体内
+- LOCATOR-01: 去掉 get_by_text 的 exact=True，改用模糊匹配
+- LOCATOR-02: 用相对 XPath 替换绝对 XPath（基于 data-testid/class 等语义属性）
+- LOCATOR-03: 过滤 ax_name 中的 icon font 私有区字符（\ue000-\uf8ff）
+- HEAL-01: 自愈修复支持多行替换（当前只替换单行，try-except 块修复会破坏结构）
+- HEAL-02: DOM 快照精准匹配 — 从错误行代码中提取步骤号，而非从 error_output 正则猜测
+- HEAL-03: LLM prompt 优化 — 提供更多上下文（前后 20 行而非 10 行），明确告诉 LLM 目标元素描述
 
 ### Validated
+
+**v0.10.6 生成测试代码稳定可用 (2026-04-25):**
+- ~~EXEC-01~~: ✓ 修复 pytest 调用参数 `--headed=false` 为正确的 headless 配置 — Phase 102
+- ~~EXEC-02~~: ✓ 修复代码生成器输出非 Python 文本 — Phase 102
+- ~~EXEC-03~~: ✓ 隔离输出目录，避免 conftest.py 触发 WatchFiles 热重载 — Phase 102
+- ~~HEAL-01~~: ✓ 纯函数错误分类器 — 区分环境错误(跳过LLM)与代码错误(继续修复) — Phase 103
+- ~~E2E-01~~: ✓ E2E 测试验证代码执行管道 + error_category 全链路传播 — Phase 104
 
 **v0.10.5 生成测试代码修复与优化 (2026-04-24):**
 - ~~KEY-01~~: ✓ _CORE_TYPES 键名重命名 click_element→click, input_text→input — Phase 99
@@ -268,6 +278,11 @@ v0.1-v0.4.2 核心功能:
 | asyncio.Semaphore(1) 代码执行并发保护 | 2GB 服务器内存安全边界 | ✓ Good |
 | BackgroundTasks.add_task + 新 DB session | 请求 session 在响应后关闭 | ✓ Good |
 | 路由层构造 computed fields dict | has_code/latest_run_id 非 ORM 字段 | ✓ Good |
+| ErrorCategoryResult frozen dataclass | 项目不可变约定 | ✓ Good |
+| Unknown exit codes 默认 CODE_RUNTIME | 不遗漏 LLM 修复机会 | ✓ Good |
+| error_category default empty string | HealingResult 向后兼容 | ✓ Good |
+| Patch account_service at source module | E2E test lazy import fix | ✓ Good |
+| pytest-timeout dev dependency | SelfHealingRunner --timeout flag | ✓ Good |
 | getRunCode 原始 fetch 替代 apiClient | apiClient 调 response.json() 对 PlainTextResponse 失败 | ✓ Good |
 | StatusBadge context prop 实体感知标签 | Task='成功' vs Run='已完成'，保持向后兼容 | ✓ Good |
 | react-syntax-highlighter Prism build 只读代码展示 | 40KB gzipped，零配置 | ✓ Good |
@@ -277,4 +292,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-24 — Phase 102 执行修复完成*
+*Last updated: 2026-04-25 — v0.10.7 milestone created*
