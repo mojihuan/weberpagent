@@ -27,9 +27,10 @@
 <details open>
 <summary>🔄 v0.10.7 生成测试代码行为优化 (Phases 105-107) — IN PROGRESS</summary>
 
-- [ ] Phase 105: 代码生成质量修复 (2/2 plans) — TRANSLATE + INDENT
-  - Plan A: ActionTranslator 翻译质量修复（非核心操作注释完善 + 缩进保证）
-  - Plan B: 单元测试更新
+- [ ] Phase 105: 代码生成质量修复 — TRANSLATE + INDENT
+  **Plans:** 2 plans (Wave 1 parallel)
+  - [x] 105-01-PLAN.md — ActionTranslator 翻译质量修复：未知操作参数摘要 + 核心类型回归测试 (TRANSLATE-01, TRANSLATE-02)
+  - [ ] 105-02-PLAN.md — PlaywrightCodeGenerator 缩进修正 + validate_syntax 集成 (INDENT-01, INDENT-02, INDENT-03)
 - [ ] Phase 106: 定位器质量优化 (2/2 plans) — LOCATOR
   - Plan A: LocatorChainBuilder 优化（exact 去除 + 相对 XPath + icon font 过滤）
   - Plan B: 单元测试更新
@@ -113,4 +114,4 @@
 </details>
 
 ---
-*Roadmap updated: 2026-04-25 — v0.10.7 milestone created*
+*Roadmap updated: 2026-04-25 — Phase 105 plans created*
