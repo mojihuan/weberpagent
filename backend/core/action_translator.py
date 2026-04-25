@@ -465,6 +465,11 @@ class ActionTranslator:
         if placeholder_match:
             return f"placeholder={placeholder_match.group(1)}"
 
+        # page.get_by_text("...", exact=True) -> text=...
+        text_match = re.search(r'page\.get_by_text\("(.+?)"', locator)
+        if text_match:
+            return f"text={text_match.group(1)}"
+
         # 通用回退: 截断到合理长度
         return locator[:50]
 
@@ -637,7 +642,8 @@ class ActionTranslator:
         if summarizer:
             summary = summarizer(params)
         else:
-            summary = "未翻译的操作类型"
+            # D-01: 显示原始参数摘要，QA 可从参数看出发生了什么
+            summary = f"参数={params}"
 
         # 处理 summary 中的换行符，确保每行都有 # 前缀 (per EXEC-02)
         if "\n" in summary:
