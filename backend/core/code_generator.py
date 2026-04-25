@@ -78,7 +78,18 @@ class PlaywrightCodeGenerator:
         if body:
             parts.append(body)
 
-        return "\n".join(parts) + "\n"
+        content = "\n".join(parts) + "\n"
+
+        # D-05: 防御性语法验证 -- 记录 warning 但不阻止生成
+        if not self.validate_syntax(content):
+            try:
+                ast.parse(content)
+            except SyntaxError as e:
+                logger.warning(
+                    f"[{run_id}] 生成代码语法验证失败: {e.msg} (line {e.lineno})"
+                )
+
+        return content
 
     async def generate_and_save(
         self,
@@ -113,6 +124,12 @@ class PlaywrightCodeGenerator:
             for i, a in enumerate(raw_actions)
         ]
         content = self.generate(run_id, task_name, task_id, translated)
+
+        # D-06: write_text() 前额外验证
+        if self.validate_syntax(content):
+            logger.info(f"[{run_id}] 生成代码语法验证通过")
+        else:
+            logger.warning(f"[{run_id}] 生成代码语法验证失败，仍写入文件")
 
         output_dir = Path(base_dir) / run_id / "generated"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -252,7 +269,17 @@ class PlaywrightCodeGenerator:
             lines.append(action.code)
             prev_type = action.action_type
 
-        return "\n".join(lines)
+        raw = "\n".join(lines)
+
+        # D-04: 缩进后处理 -- 确保非空行以 4 空格开头
+        fixed_lines: list[str] = []
+        for line in raw.split("\n"):
+            if line.strip() and not line.startswith("    "):
+                fixed_lines.append(f"    {line}")
+            else:
+                fixed_lines.append(line)
+
+        return "\n".join(fixed_lines)
 
     def validate_syntax(self, code: str) -> bool:
         """验证生成的代码是否为合法 Python。"""

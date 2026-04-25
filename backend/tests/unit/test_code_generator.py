@@ -326,8 +326,8 @@ async def test_generate_and_save_validates_before_write() -> None:
                 base_dir=tmpdir,
             )
 
-        # validate_syntax was called
-        mock_vs.assert_called_once()
+        # validate_syntax was called (once in generate() + once in generate_and_save())
+        assert mock_vs.call_count == 2
 
         # File was still written even when validate_syntax returned False
         assert os.path.exists(code_path)
