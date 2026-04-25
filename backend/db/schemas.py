@@ -117,6 +117,7 @@ class RunResponse(BaseModel):
     healing_status: str = "pending"
     healing_attempts: int = 0
     healing_error: Optional[str] = None
+    healing_error_category: str = ""
 
     class Config:
         from_attributes = True
@@ -241,6 +242,7 @@ class ReportDetailResponse(ReportResponse):
     healing_status: str = "pending"
     healing_attempts: int = 0
     healing_error: Optional[str] = None
+    healing_error_category: str = ""
 
 
 class ReportListParams(BaseModel):

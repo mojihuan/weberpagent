@@ -171,6 +171,7 @@ class RunRepository:
         attempts: int,
         error: str | None = None,
         code_path: str | None = None,
+        error_category: str = "",
     ) -> None:
         """更新自愈状态 (Phase 85, HEAL-03)"""
         run = await self.get(run_id)
@@ -178,6 +179,7 @@ class RunRepository:
             run.healing_status = status
             run.healing_attempts = attempts
             run.healing_error = error
+            run.healing_error_category = error_category
             if code_path is not None:
                 run.generated_code_path = code_path
             await self.session.commit()

@@ -87,3 +87,7 @@ async def init_db():
             await conn.execute(text(
                 "ALTER TABLE runs ADD COLUMN healing_error TEXT"
             ))
+        if "healing_error_category" not in columns:
+            await conn.execute(text(
+                "ALTER TABLE runs ADD COLUMN healing_error_category VARCHAR(50) DEFAULT ''"
+            ))

@@ -131,6 +131,7 @@ async def _execute_code_background(
                     attempts=result.attempts,
                     error=result.error_message or None,
                     code_path=result.repaired_code_path or None,
+                    error_category=result.error_category,
                 )
                 # D-09: Update Task.status on success
                 if result.final_status == "passed":

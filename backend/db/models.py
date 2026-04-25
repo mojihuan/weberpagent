@@ -73,6 +73,7 @@ class Run(Base):
     healing_status: Mapped[str] = mapped_column(String(20), default="pending")
     healing_attempts: Mapped[int] = mapped_column(Integer, default=0)
     healing_error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    healing_error_category: Mapped[str] = mapped_column(String(50), default="")
 
     # 关系
     task: Mapped["Task"] = relationship("Task", back_populates="runs")
