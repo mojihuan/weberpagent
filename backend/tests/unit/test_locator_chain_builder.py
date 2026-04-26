@@ -227,6 +227,6 @@ class TestLocatorExtraction:
         assert "data-testid" in xpath_loc, (
             f"XPath 应优先使用 data-testid: {xpath_loc}"
         )
-        assert "id=" not in xpath_loc, (
+        assert '[@id=' not in xpath_loc, (
             f"XPath 不应使用 id (data-testid 优先): {xpath_loc}"
         )
