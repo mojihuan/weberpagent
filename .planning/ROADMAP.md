@@ -27,13 +27,14 @@
 <details open>
 <summary>🔄 v0.10.7 生成测试代码行为优化 (Phases 105-107) — IN PROGRESS</summary>
 
-- [ ] Phase 105: 代码生成质量修复 — TRANSLATE + INDENT
+- [x] Phase 105: 代码生成质量修复 — TRANSLATE + INDENT
   **Plans:** 2 plans (Wave 1 parallel)
   - [x] 105-01-PLAN.md — ActionTranslator 翻译质量修复：未知操作参数摘要 + 核心类型回归测试 (TRANSLATE-01, TRANSLATE-02)
-  - [ ] 105-02-PLAN.md — PlaywrightCodeGenerator 缩进修正 + validate_syntax 集成 (INDENT-01, INDENT-02, INDENT-03)
-- [ ] Phase 106: 定位器质量优化 (2/2 plans) — LOCATOR
-  - Plan A: LocatorChainBuilder 优化（exact 去除 + 相对 XPath + icon font 过滤）
-  - Plan B: 单元测试更新
+  - [x] 105-02-PLAN.md — PlaywrightCodeGenerator 缩进修正 + validate_syntax 集成 (INDENT-01, INDENT-02, INDENT-03)
+- [ ] Phase 106: 定位器质量优化 — LOCATOR
+  **Plans:** 2 plans (Wave 1 → Wave 2)
+  - [ ] 106-01-PLAN.md — TDD: icon font 过滤 + exact 阈值 + 相对 XPath 实现 (LOCATOR-01, LOCATOR-02, LOCATOR-03, LOCATOR-04)
+  - [ ] 106-02-PLAN.md — 下游测试断言同步 + 全量回归验证 (LOCATOR-01, LOCATOR-02, LOCATOR-03, LOCATOR-04)
 - [ ] Phase 107: 自愈修复增强 + E2E (2/2 plans) — HEAL + E2E
   - Plan A: SelfHealingRunner 多行修复 + DOM 精准匹配 + LLM prompt 优化
   - Plan B: E2E 验证 + 回归测试
@@ -114,4 +115,4 @@
 </details>
 
 ---
-*Roadmap updated: 2026-04-25 — Phase 105 plans created*
+*Roadmap updated: 2026-04-26 — Phase 106 plans created*
