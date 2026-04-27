@@ -70,6 +70,23 @@ def get_llm_config() -> dict:
     }
 
 
+def get_code_gen_llm_config() -> dict:
+    """获取代码生成专用 LLM 配置。
+
+    优先使用 code_gen_* 配置（如 DeepSeek-V4-Pro），
+    未配置时 fallback 到默认 LLM 配置。
+    """
+    settings = get_settings()
+    if settings.code_gen_model:
+        return {
+            "model": settings.code_gen_model,
+            "api_key": settings.code_gen_api_key,
+            "base_url": settings.code_gen_base_url,
+            "temperature": settings.code_gen_temperature,
+        }
+    return get_llm_config()
+
+
 router = APIRouter(prefix="/runs", tags=["runs"])
 
 
@@ -115,7 +132,7 @@ async def _execute_code_background(
     async with _code_execution_semaphore:
         _active_code_execution[run_id] = datetime.now().isoformat()
         try:
-            runner = SelfHealingRunner(get_llm_config())
+            runner = SelfHealingRunner(get_code_gen_llm_config())
             result = await runner.run(
                 run_id=run_id,
                 test_file_path=test_file_path,
@@ -574,12 +591,19 @@ async def run_agent_background(
             try:
                 from backend.core.code_generator import PlaywrightCodeGenerator
                 code_generator = PlaywrightCodeGenerator()
+                # PREC-02: 传递 effective_target_url 作为前置条件
+                _precondition_config = (
+                    {"target_url": effective_target_url}
+                    if effective_target_url
+                    else None
+                )
                 code_path = await code_generator.generate_and_save(
                     run_id=run_id,
                     task_name=task_name,
                     task_id=task_id,
                     agent_history=result,
-                    llm_config=get_llm_config(),
+                    llm_config=get_code_gen_llm_config(),
+                    precondition_config=_precondition_config,
                 )
                 await run_repo.update_generated_code_path(run_id, code_path)
                 logger.info(f"[{run_id}] 生成 Playwright 代码: {code_path}")
@@ -592,7 +616,7 @@ async def run_agent_background(
                 run_obj = await run_repo.get(run_id)
                 if run_obj and run_obj.generated_code_path:
                     from backend.core.self_healing_runner import SelfHealingRunner
-                    healing_runner = SelfHealingRunner(get_llm_config())
+                    healing_runner = SelfHealingRunner(get_code_gen_llm_config())
                     healing_result = await healing_runner.run(
                         run_id=run_id,
                         test_file_path=run_obj.generated_code_path,

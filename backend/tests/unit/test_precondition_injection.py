@@ -224,3 +224,59 @@ class TestPreconditionInjection:
             content = Path(code_path).read_text(encoding="utf-8")
             assert 'page.goto("https://erp.example.com")' in content
             ast.parse(content)
+
+
+# ---------------------------------------------------------------------------
+# PREC-03: SelfHealingRunner storage_state + page.goto() compatibility
+# ---------------------------------------------------------------------------
+
+
+def test_storage_state_goto_compatibility() -> None:
+    """PREC-03: 验证生成的 page.goto() 代码与 SelfHealingRunner storage_state 兼容。
+
+    SelfHealingRunner conftest 注入 storage_state (localStorage token)，
+    生成的 page.goto() 加载 ERP 页面后 Vue app 读取 token 自动登录。
+    验证代码结构正确：goto 在最前面，后续操作在其之后。
+    """
+    generator = PlaywrightCodeGenerator()
+    actions = [
+        TranslatedAction(
+            code='page.locator("#menu-item").click()',
+            action_type="click",
+            is_comment=False,
+            has_locator=True,
+        ),
+    ]
+    code = generator.generate(
+        run_id="prec03",
+        task_name="storage_state兼容",
+        task_id="t_prec03",
+        actions=actions,
+        precondition_config={"target_url": "https://erp.example.com"},
+    )
+
+    # 验证 page.goto 是函数体第一个操作（在 docstring 之后）
+    lines = code.splitlines()
+    goto_line = None
+    click_line = None
+    for i, line in enumerate(lines):
+        if "page.goto(" in line:
+            goto_line = i
+        if "page.locator(" in line:
+            click_line = i
+
+    assert goto_line is not None, "page.goto() should be in generated code"
+    assert click_line is not None, "click action should be in generated code"
+    assert goto_line < click_line, "page.goto() must appear before action steps"
+
+    # 验证完整代码通过语法检查
+    ast.parse(code)
+
+    # 验证 storage_state 注入后执行顺序：
+    # 1. conftest -> browser_context_args 设置 storage_state
+    # 2. pytest 创建 page (自动加载 storage_state 到 localStorage)
+    # 3. test 函数 -> page.goto() 加载 ERP 页面
+    # 4. Vue app 初始化 -> 读取 localStorage Admin-Token -> 自动登录
+    # 5. 后续操作在已认证页面上执行
+    assert "page.goto(" in code
+    assert "wait_for_load_state" in code
