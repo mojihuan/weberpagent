@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.7
 milestone_name: milestone
-status: Ready to execute
-stopped_at: Completed 107-01-PLAN.md
-last_updated: "2026-04-27T01:39:06.630Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 107-02-PLAN.md
+last_updated: "2026-04-27T03:21:28.989Z"
 progress:
   total_phases: 83
-  completed_phases: 82
+  completed_phases: 83
   total_plans: 194
-  completed_plans: 193
+  completed_plans: 194
 ---
 
 # Project State
@@ -63,6 +63,8 @@ v0.10.7 new context:
 - [Phase 107]: Content-matching _apply_fix replaces line-number fix (HEAL-01/HEAL-04), enables multi-line repair with ast.parse rollback
 - [Phase 107]: Code locator extraction from failing line for DOM search (HEAL-02), replaces step-number guessing from error_output
 - [Phase 107]: Structured JSON LLM repair response {target_snippet, replacement} with 20-line context (HEAL-03)
+- [Phase 107]: Mock LLMHealer at class level for E2E healing tests, patch at backend.core.self_healing_runner.LLMHealer
+- [Phase 107]: test_execute_code_failing updated to accept passed/failed since Plan 01 content-matching _apply_fix enables LLM repair of previously unfixable assertions
 
 ### Pending Todos
 
@@ -74,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T01:39:06.626Z
-Stopped at: Completed 107-01-PLAN.md
+Last session: 2026-04-27T03:21:28.985Z
+Stopped at: Completed 107-02-PLAN.md
 Resume file: None
