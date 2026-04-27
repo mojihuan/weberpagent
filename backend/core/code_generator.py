@@ -42,6 +42,7 @@ class PlaywrightCodeGenerator:
         task_name: str,
         task_id: str,
         actions: list[TranslatedAction],
+        precondition_config: dict | None = None,
     ) -> str:
         """生成完整的测试文件内容。
 
@@ -75,6 +76,10 @@ class PlaywrightCodeGenerator:
         if needs_logging:
             parts.append('    _healer = logging.getLogger("healer")')
 
+        # 前置条件注入 (per PREC-01)
+        if precondition_config and precondition_config.get("target_url"):
+            parts.append(self._build_precondition(precondition_config["target_url"]))
+
         if body:
             parts.append(body)
 
@@ -99,6 +104,7 @@ class PlaywrightCodeGenerator:
         agent_history: Any,
         base_dir: str = "outputs",
         llm_config: dict | None = None,
+        precondition_config: dict | None = None,
     ) -> str:
         """从 agent 执行历史生成代码文件并保存到磁盘。
 
@@ -123,7 +129,7 @@ class PlaywrightCodeGenerator:
             self._translator.translate_with_llm(a, llm_snippets.get(i, ""))
             for i, a in enumerate(raw_actions)
         ]
-        content = self.generate(run_id, task_name, task_id, translated)
+        content = self.generate(run_id, task_name, task_id, translated, precondition_config=precondition_config)
 
         # D-06: write_text() 前额外验证
         if self.validate_syntax(content):
@@ -280,6 +286,27 @@ class PlaywrightCodeGenerator:
                 fixed_lines.append(line)
 
         return "\n".join(fixed_lines)
+
+    def _build_precondition(self, target_url: str) -> str:
+        """生成 page.goto 前置条件代码 (per PREC-01).
+
+        输出 page.goto + wait_for_load_state("networkidle") 带超时保护。
+        wait_for_load_state 用 try-except 包裹，超时不影响后续操作。
+
+        Args:
+            target_url: 目标 ERP URL。
+
+        Returns:
+            缩进的代码块字符串。
+        """
+        lines = [
+            f'    page.goto("{target_url}")',
+            "    try:",
+            '        page.wait_for_load_state("networkidle", timeout=10000)',
+            "    except Exception:",
+            "        pass  # 超时不影响后续操作",
+        ]
+        return "\n".join(lines)
 
     def validate_syntax(self, code: str) -> bool:
         """验证生成的代码是否为合法 Python。"""
