@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🔵 **v0.10.8 生成测试代码前置条件与断言步骤** — Phases 108-110 (active)
 - ✅ **v0.10.7 生成测试代码行为优化** — Phases 105-107 (shipped 2026-04-27)
 - ✅ **v0.10.6 生成测试代码稳定可用** — Phases 102-104 (shipped 2026-04-25)
 - ✅ **v0.10.5 生成测试代码修复与优化** — Phases 99-101 (shipped 2026-04-24)
@@ -23,6 +24,16 @@
 - ✅ **v0.6.2 回归原生 browser-use** — Phases 45-47 (shipped 2026-04-03)
 
 ## Phases
+
+<details>
+<summary>🔵 v0.10.8 生成测试代码前置条件与断言步骤 (Phases 108-110) — ACTIVE</summary>
+
+- [x] Phase 108: 前置条件注入 (1/1 plans) — completed 2026-04-27
+  - [x] 108-01-PLAN.md — _build_precondition() + runs.py 传递 + 单元测试
+- [ ] Phase 109: 断言步骤生成 (2/2 plans) — ASRT-01, ASRT-02, ASRT-03
+- [ ] Phase 110: E2E 验证 (1/1 plans) — E2E-01
+
+</details>
 
 <details>
 <summary>✅ v0.10.7 生成测试代码行为优化 (Phases 105-107) — SHIPPED 2026-04-27</summary>
@@ -107,4 +118,4 @@
 </details>
 
 ---
-*Roadmap updated: 2026-04-27 — v0.10.7 shipped*
+*Roadmap updated: 2026-04-27 — v0.10.8 active*

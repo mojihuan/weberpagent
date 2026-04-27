@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: Planning next milestone
-stopped_at: v0.10.7 milestone complete
-last_updated: "2026-04-27T03:50:00.000Z"
+milestone: v0.10.8
+milestone_name: milestone
+status: Phase 108 Complete
+stopped_at: Completed 108-01-PLAN.md
+last_updated: "2026-04-27T06:40:26Z"
 progress:
-  total_phases: 83
-  completed_phases: 83
-  total_plans: 194
-  completed_plans: 194
+  total_phases: 84
+  completed_phases: 84
+  total_plans: 195
+  completed_plans: 195
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-27)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 108 — 前置条件注入
 
 ## Last Shipped
 
@@ -33,21 +33,20 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 
 ## Current Position
 
-Phase: None (milestone shipped)
-Plan: Planning next milestone
+Phase: 108 (前置条件注入) — COMPLETE
+Plan: 1 of 1
 
 ## Accumulated Context
 
 ### Decisions
 
-Key v0.10.7 context:
+Key v0.10.8 context from debug analysis:
 
-- Content-matching _apply_fix enables multi-line repair with ast.parse rollback
-- LocatorChainBuilder: text → role → placeholder → ID → testid → relative XPath
-- PUA filtering at extract() entry (U+E000-U+F8FF)
-- Short text (≤4 chars) exact=True, long text fuzzy match
-- validate_syntax defensive dual-call in generate() + generate_and_save()
-- Structured JSON LLM repair {target_snippet, replacement} with 20-line context
+- code_generator.py 只处理 model_actions()，不含 pre_navigate() 的导航步骤
+- runs.py:594 调用代码生成时 effective_target_url 在作用域内但未传递
+- assertion_service 运行时评估断言，结果只存数据库，不注入生成的代码
+- SelfHealingRunner conftest 注入 storage_state 但无 page.goto()
+- 4 种断言类型: url_contains, text_exists, no_errors, element_exists
 
 ### Pending Todos
 
@@ -59,6 +58,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27
-Stopped at: v0.10.7 milestone complete
-Resume file: None
+Last session: 2026-04-27T06:40:26Z
+Stopped at: Completed 108-01-PLAN.md
+Resume file: .planning/phases/108-前置条件注入/108-01-SUMMARY.md
