@@ -43,6 +43,7 @@ class PlaywrightCodeGenerator:
         task_id: str,
         actions: list[TranslatedAction],
         precondition_config: dict | None = None,
+        assertions_config: list[dict] | None = None,
     ) -> str:
         """生成完整的测试文件内容。
 
@@ -61,10 +62,22 @@ class PlaywrightCodeGenerator:
         needs_logging = self._needs_logging(actions)
 
         parts = [header, ""]
-        parts.append("from playwright.sync_api import Page")
 
-        # 条件 logging import (per D-08): 有回退定位器时添加
-        if needs_logging:
+        # 条件 import: expect when assertions present (per D-03)
+        if assertions_config:
+            parts.append("from playwright.sync_api import Page, expect")
+        else:
+            parts.append("from playwright.sync_api import Page")
+
+        # 条件 import re for url_contains (per D-10)
+        if assertions_config and any(
+            a.get("type") == "url_contains" for a in assertions_config
+        ):
+            parts.append("import re")
+
+        # 条件 logging import (per D-08): 有回退定位器或有断言时添加
+        _needs_logger = needs_logging or bool(assertions_config)
+        if _needs_logger:
             parts.append("import logging")
             parts.append("from backend.core.healer_error import HealerError")
 
@@ -73,8 +86,15 @@ class PlaywrightCodeGenerator:
         parts.append(f'    """Auto-generated test from agent execution: {task_name}"""')
 
         # 条件 healer logger 初始化 (per D-08)
-        if needs_logging:
+        if _needs_logger:
             parts.append('    _healer = logging.getLogger("healer")')
+
+        # no_errors js_errors collector (per D-08/D-09): 在前置条件之前注入
+        if assertions_config and any(
+            a.get("type") == "no_errors" for a in assertions_config
+        ):
+            parts.append("    js_errors = []")
+            parts.append('    page.on("pageerror", lambda e: js_errors.append(str(e)))')
 
         # 前置条件注入 (per PREC-01)
         if precondition_config and precondition_config.get("target_url"):
@@ -82,6 +102,12 @@ class PlaywrightCodeGenerator:
 
         if body:
             parts.append(body)
+
+        # 断言步骤注入 (per ASRT-01)
+        if assertions_config:
+            assertions_code = self._build_assertions(assertions_config)
+            if assertions_code:
+                parts.append(assertions_code)
 
         content = "\n".join(parts) + "\n"
 
@@ -105,6 +131,7 @@ class PlaywrightCodeGenerator:
         base_dir: str = "outputs",
         llm_config: dict | None = None,
         precondition_config: dict | None = None,
+        assertions_config: list[dict] | None = None,
     ) -> str:
         """从 agent 执行历史生成代码文件并保存到磁盘。
 
@@ -129,7 +156,11 @@ class PlaywrightCodeGenerator:
             self._translator.translate_with_llm(a, llm_snippets.get(i, ""))
             for i, a in enumerate(raw_actions)
         ]
-        content = self.generate(run_id, task_name, task_id, translated, precondition_config=precondition_config)
+        content = self.generate(
+            run_id, task_name, task_id, translated,
+            precondition_config=precondition_config,
+            assertions_config=assertions_config,
+        )
 
         # D-06: write_text() 前额外验证
         if self.validate_syntax(content):
@@ -307,6 +338,82 @@ class PlaywrightCodeGenerator:
             "        pass  # 超时不影响后续操作",
         ]
         return "\n".join(lines)
+
+    def _build_assertions(self, assertions_config: list[dict]) -> str:
+        """生成断言 expect()/assert 代码块 (per ASRT-01).
+
+        每个断言用 try-except 包裹，失败时记录日志但不停止测试。
+
+        Args:
+            assertions_config: 断言配置列表，每个 dict 含 type/expected/name。
+
+        Returns:
+            缩进的代码块字符串。
+        """
+        lines = ["", "    # Assertions"]
+        for assertion in assertions_config:
+            atype = assertion.get("type", "")
+            expected = assertion.get("expected", "")
+            if atype == "url_contains":
+                lines.extend(self._translate_url_contains(str(expected)))
+            elif atype == "text_exists":
+                lines.extend(self._translate_text_exists(str(expected)))
+            elif atype == "no_errors":
+                lines.extend(self._translate_no_errors())
+            elif atype == "element_exists":
+                lines.extend(self._translate_element_exists(str(expected)))
+            else:
+                lines.append(f"    # unknown assertion: {atype}")
+            lines.append("")
+        return "\n".join(lines)
+
+    def _translate_url_contains(self, expected: str) -> list[str]:
+        """翻译 url_contains 断言为 expect(page).to_have_url(re.compile(...))."""
+        return [
+            "    try:",
+            f'        expect(page).to_have_url(re.compile(".*{expected}.*"))',
+            "    except AssertionError as e:",
+            f'        _healer.warning(f"Assertion failed (url_contains): {{e}}")',
+        ]
+
+    def _translate_text_exists(self, expected: str) -> list[str]:
+        """翻译 text_exists 断言为 expect(page.locator('body')).to_contain_text(...)."""
+        return [
+            "    try:",
+            f'        expect(page.locator("body")).to_contain_text("{expected}")',
+            "    except AssertionError as e:",
+            f'        _healer.warning(f"Assertion failed (text_exists): {{e}}")',
+        ]
+
+    def _translate_no_errors(self) -> list[str]:
+        """翻译 no_errors 断言为 assert len(js_errors) == 0."""
+        return [
+            "    try:",
+            '        assert len(js_errors) == 0, f"JS errors: {js_errors}"',
+            "    except AssertionError as e:",
+            f'        _healer.warning(f"Assertion failed (no_errors): {{e}}")',
+        ]
+
+    def _translate_element_exists(self, expected: str) -> list[str]:
+        """翻译 element_exists 断言为 expect(locator).to_be_visible().
+
+        Locator 推断逻辑 (per D-06):
+        - CSS 选择器 (# . [ xpath= //) -> page.locator(expected)
+        - 纯文本短 (<=4 chars) -> page.get_by_text(expected, exact=True)
+        - 纯文本长 (>4 chars) -> page.get_by_text(expected)
+        """
+        if expected.startswith(("#", ".", "[", "xpath=", "//")):
+            locator = f'page.locator("{expected}")'
+        elif len(expected) <= 4:
+            locator = f'page.get_by_text("{expected}", exact=True)'
+        else:
+            locator = f'page.get_by_text("{expected}")'
+        return [
+            "    try:",
+            f"        expect({locator}).to_be_visible()",
+            "    except AssertionError as e:",
+            f'        _healer.warning(f"Assertion failed (element_exists): {{e}}")',
+        ]
 
     def validate_syntax(self, code: str) -> bool:
         """验证生成的代码是否为合法 Python。"""
