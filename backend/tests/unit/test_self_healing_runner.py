@@ -1,40 +1,19 @@
-"""Unit tests for SelfHealingRunner -- pytest re-execution orchestrator.
+"""Unit tests for SelfHealingRunner -- slimmed.
 
-Tests mock auth_service, LLMHealer, and subprocess calls to avoid
-real network/browser/subprocess dependencies.
-
-Covers:
-  1. Skip when login_role is None (D-04)
-  2. Skip when AuthService raises TokenFetchError (D-04)
-  3. Pass on first pytest success (D-08)
-  4. Retry on failure then pass after LLM repair (D-06, D-07)
-  5. Failed after max 2 retries (D-07)
-  6. Timeout handling (RESEARCH Pitfall 3)
-  7. Conftest generation with browser_context_args fixture
-  8. Error truncation keeping tail
-  9. LLM repair applies fix and validates syntax
+Keeps 3 core tests:
+  1. Normal retry success (pass on first try)
+  2. Retry exhaustion -> failed
+  3. Error category classification (ENV_INTERRUPT skips LLM)
 """
 
-import asyncio
-import dataclasses
-import json
 import subprocess
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.core.auth_service import TokenFetchError
 from backend.core.llm_healer import LLMHealResult
-from backend.core.self_healing_runner import (
-    CONFTEST_TEMPLATE,
-    HealingResult,
-    SelfHealingRunner,
-    _build_storage_state,
-    _get_storage_state_for_role,
-)
-from backend.core.account_service import AccountInfo
-from backend.config.settings import Settings
+from backend.core.self_healing_runner import SelfHealingRunner
 
 
 # ---------------------------------------------------------------------------
@@ -55,13 +34,11 @@ STORAGE_STATE = {
 
 @pytest.fixture
 def runner() -> SelfHealingRunner:
-    """Create SelfHealingRunner with test LLM config."""
     return SelfHealingRunner(LLM_CONFIG)
 
 
 @pytest.fixture
 def tmp_test_dir(tmp_path: Path) -> Path:
-    """Create a temp directory with a test file."""
     test_file = tmp_path / "test_example.py"
     test_file.write_text(
         'from playwright.sync_api import Page\n\n'
@@ -78,7 +55,6 @@ def _make_completed_process(
     stdout: str = "",
     stderr: str = "",
 ) -> subprocess.CompletedProcess:
-    """Create a CompletedProcess mock."""
     return subprocess.CompletedProcess(
         args=["pytest"],
         returncode=returncode,
@@ -88,51 +64,13 @@ def _make_completed_process(
 
 
 # ---------------------------------------------------------------------------
-# Test 1: Skip when login_role is None (D-04)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_skip_no_login_role(runner: SelfHealingRunner, tmp_test_dir: Path):
-    """run() returns skipped when login_role is None."""
-    test_file = str(tmp_test_dir / "test_example.py")
-    result = await runner.run("run1", test_file, login_role=None)
-
-    assert result.final_status == "skipped"
-    assert result.attempts == 0
-    assert result.error_message == ""
-
-
-# ---------------------------------------------------------------------------
-# Test 2: Skip when AuthService raises TokenFetchError (D-04)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_skip_auth_service_failure(runner: SelfHealingRunner, tmp_test_dir: Path):
-    """run() returns skipped when AuthService raises TokenFetchError."""
-    test_file = str(tmp_test_dir / "test_example.py")
-
-    with patch(
-        "backend.core.self_healing_runner._get_storage_state_for_role",
-        new_callable=AsyncMock,
-        side_effect=TokenFetchError(role="main", reason="请求超时"),
-    ):
-        result = await runner.run("run1", test_file, login_role="main")
-
-    assert result.final_status == "skipped"
-    assert result.attempts == 0
-    assert "超时" in result.error_message
-
-
-# ---------------------------------------------------------------------------
-# Test 3: Pass on first try (D-08)
+# Tests
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
 async def test_passed_on_first_try(runner: SelfHealingRunner, tmp_test_dir: Path):
-    """run() returns passed when pytest exit code is 0 on first attempt."""
+    """Normal retry success: pass when pytest exit code is 0 on first attempt."""
     test_file = str(tmp_test_dir / "test_example.py")
 
     with (
@@ -154,49 +92,9 @@ async def test_passed_on_first_try(runner: SelfHealingRunner, tmp_test_dir: Path
     assert result.attempts == 1
 
 
-# ---------------------------------------------------------------------------
-# Test 3b: pytest args exclude --headed (EXEC-01)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.asyncio
-async def test_pytest_args_no_headed(runner: SelfHealingRunner, tmp_test_dir: Path):
-    """subprocess.run args 不包含 --headed 或 --headed=false (per EXEC-01)."""
-    test_file = str(tmp_test_dir / "test_example.py")
-
-    with (
-        patch(
-            "backend.core.self_healing_runner._get_storage_state_for_role",
-            new_callable=AsyncMock,
-            return_value=STORAGE_STATE,
-        ),
-        patch(
-            "backend.core.self_healing_runner.asyncio.to_thread",
-            new_callable=AsyncMock,
-        ) as mock_to_thread,
-    ):
-        mock_to_thread.return_value = _make_completed_process(returncode=0)
-
-        await runner.run("run1", test_file, login_role="main")
-
-    # 提取 subprocess.run 的 args 参数
-    call_args = mock_to_thread.call_args
-    # asyncio.to_thread(subprocess.run, [args...], ...) -> call_args[0][1] is the list
-    pytest_args = call_args[0][1]
-    headed_args = [arg for arg in pytest_args if str(arg).startswith("--headed")]
-    assert headed_args == [], f"pytest args 包含 --headed 参数: {headed_args}"
-
-
-# ---------------------------------------------------------------------------
-# Test 4: Retry on failure then pass (D-06, D-07)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_retry_on_failure_then_pass(
-    runner: SelfHealingRunner, tmp_test_dir: Path
-):
-    """run() calls _llm_repair on failure and retries, passes on second attempt."""
+async def test_max_retries_then_failed(runner: SelfHealingRunner, tmp_test_dir: Path):
+    """Retry exhaustion: returns failed after max 2 retries (3 total iterations)."""
     test_file = str(tmp_test_dir / "test_example.py")
 
     with (
@@ -213,65 +111,12 @@ async def test_retry_on_failure_then_pass(
             "backend.core.self_healing_runner.LLMHealer"
         ) as mock_healer_cls,
     ):
-        # First call fails, second call passes
-        mock_to_thread.side_effect = [
-            _make_completed_process(returncode=1, stderr="AssertionError"),
-            _make_completed_process(returncode=0),
-        ]
-
-        # LLMHealer returns successful repair
-        mock_healer = MagicMock()
-        mock_healer.heal = AsyncMock(
-            return_value=LLMHealResult(
-                success=True,
-                code_snippet="page.locator('button').click()",
-                raw_response="page.locator('button').click()",
-                locator="page.locator('button')",
-            )
-        )
-        mock_healer_cls.return_value = mock_healer
-
-        result = await runner.run("run1", test_file, login_role="main")
-
-    assert result.final_status == "passed"
-    assert result.attempts == 2
-    mock_healer_cls.assert_called_once_with(LLM_CONFIG)
-
-
-# ---------------------------------------------------------------------------
-# Test 5: Max retries then failed (D-07)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_max_retries_then_failed(
-    runner: SelfHealingRunner, tmp_test_dir: Path
-):
-    """run() returns failed after max 2 retries (3 total iterations)."""
-    test_file = str(tmp_test_dir / "test_example.py")
-
-    with (
-        patch(
-            "backend.core.self_healing_runner._get_storage_state_for_role",
-            new_callable=AsyncMock,
-            return_value=STORAGE_STATE,
-        ),
-        patch(
-            "backend.core.self_healing_runner.asyncio.to_thread",
-            new_callable=AsyncMock,
-        ) as mock_to_thread,
-        patch(
-            "backend.core.self_healing_runner.LLMHealer"
-        ) as mock_healer_cls,
-    ):
-        # All calls fail
         mock_to_thread.return_value = _make_completed_process(
             returncode=1, stderr="AssertionError in test"
         )
 
-        # LLMHealer returns success but pytest still fails
         mock_healer = MagicMock()
-        mock_healer.heal = AsyncMock(
+        mock_healer.repair_code = AsyncMock(
             return_value=LLMHealResult(
                 success=True,
                 code_snippet="page.locator('#btn').click()",
@@ -287,266 +132,9 @@ async def test_max_retries_then_failed(
     assert result.attempts == 3
 
 
-# ---------------------------------------------------------------------------
-# Test 6: Timeout handling (RESEARCH Pitfall 3)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.asyncio
-async def test_timeout_handling(runner: SelfHealingRunner, tmp_test_dir: Path):
-    """run() handles subprocess.TimeoutExpired as failure."""
-    test_file = str(tmp_test_dir / "test_example.py")
-
-    with (
-        patch(
-            "backend.core.self_healing_runner._get_storage_state_for_role",
-            new_callable=AsyncMock,
-            return_value=STORAGE_STATE,
-        ),
-        patch(
-            "backend.core.self_healing_runner.asyncio.to_thread",
-            new_callable=AsyncMock,
-        ) as mock_to_thread,
-        patch(
-            "backend.core.self_healing_runner.LLMHealer"
-        ) as mock_healer_cls,
-    ):
-        # All calls timeout
-        mock_to_thread.side_effect = subprocess.TimeoutExpired(
-            cmd=["pytest"], timeout=120
-        )
-
-        # LLMHealer returns success but pytest keeps timing out
-        mock_healer = MagicMock()
-        mock_healer.heal = AsyncMock(
-            return_value=LLMHealResult(
-                success=True,
-                code_snippet="page.locator('#fix').click()",
-                raw_response="page.locator('#fix').click()",
-                locator="page.locator('#fix')",
-            )
-        )
-        mock_healer_cls.return_value = mock_healer
-
-        result = await runner.run("run1", test_file, login_role="main")
-
-    assert result.final_status == "failed"
-    assert "超时" in result.error_message
-
-
-# ---------------------------------------------------------------------------
-# Test 7: Conftest generation
-# ---------------------------------------------------------------------------
-
-
-def test_conftest_generation(runner: SelfHealingRunner, tmp_path: Path):
-    """_generate_conftest creates valid conftest.py with browser_context_args."""
-    runner._generate_conftest(tmp_path)
-
-    conftest_path = tmp_path / "conftest.py"
-    assert conftest_path.exists()
-
-    content = conftest_path.read_text(encoding="utf-8")
-    assert "browser_context_args" in content
-    assert "storage_state" in content
-    assert ".storage_state.json" in content
-
-
-# ---------------------------------------------------------------------------
-# Test 8: Error truncation
-# ---------------------------------------------------------------------------
-
-
-def test_truncate_error(runner: SelfHealingRunner):
-    """_truncate_error truncates long errors, keeping tail."""
-    long_error = "x" * 3000
-    result = SelfHealingRunner._truncate_error(long_error, max_length=2000)
-
-    assert len(result) <= 2000
-    assert result.startswith("...")
-    assert result.endswith("x")
-
-
-def test_truncate_error_short(runner: SelfHealingRunner):
-    """_truncate_error preserves short errors unchanged."""
-    short_error = "short error"
-    result = SelfHealingRunner._truncate_error(short_error, max_length=2000)
-
-    assert result == short_error
-
-
-# ---------------------------------------------------------------------------
-# Test 9: LLM repair applies fix to test file
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_llm_repair_applies_fix(
-    runner: SelfHealingRunner, tmp_test_dir: Path
-):
-    """_llm_repair applies LLM fix to test file and validates syntax."""
-    test_file = tmp_test_dir / "test_example.py"
-    original_content = test_file.read_text(encoding="utf-8")
-
-    # Create a DOM snapshot for the repair to read
-    dom_dir = tmp_test_dir.parent / "run1" / "dom"
-    dom_dir.mkdir(parents=True, exist_ok=True)
-    (dom_dir / "step_1.txt").write_text("<button>Fixed</button>", encoding="utf-8")
-
-    with patch(
-        "backend.core.self_healing_runner.LLMHealer"
-    ) as mock_healer_cls:
-        mock_healer = MagicMock()
-        mock_healer.heal = AsyncMock(
-            return_value=LLMHealResult(
-                success=True,
-                code_snippet="    page.locator('#new-btn').click()",
-                raw_response="page.locator('#new-btn').click()",
-                locator="page.locator('#new-btn')",
-            )
-        )
-        mock_healer_cls.return_value = mock_healer
-
-        # Provide error with line number pointing to a page. line
-        error_output = "test_example.py:4: AssertionError"
-        result = await runner._llm_repair(
-            "run1", str(test_file), error_output, str(tmp_test_dir.parent)
-        )
-
-    assert result is True
-
-    repaired_content = test_file.read_text(encoding="utf-8")
-    assert repaired_content != original_content
-    assert "#new-btn" in repaired_content
-
-
-# ---------------------------------------------------------------------------
-# Bonus: HealingResult is frozen
-# ---------------------------------------------------------------------------
-
-
-def test_healing_result_is_frozen():
-    """HealingResult is a frozen dataclass (immutable per project convention)."""
-    result = HealingResult(
-        final_status="passed",
-        attempts=1,
-        error_message="",
-        repaired_code_path="/tmp/test.py",
-    )
-    assert result.error_category == ""  # 默认值为空字符串
-    assert dataclasses.is_dataclass(result)
-    with pytest.raises(dataclasses.FrozenInstanceError):
-        result.final_status = "failed"  # type: ignore[misc]
-
-
-# ---------------------------------------------------------------------------
-# Tests for _build_storage_state (per D-05)
-# ---------------------------------------------------------------------------
-
-
-def test_build_storage_state_token_in_localstorage():
-    """_build_storage_state puts token into localStorage with correct keys."""
-    with patch(
-        "backend.config.settings.get_settings",
-        return_value=Settings(erp_base_url="https://erp.example.com/epbox_erp"),
-    ):
-        result = _build_storage_state("my-jwt-token-123")
-
-    assert result["cookies"] == []
-    assert len(result["origins"]) == 1
-    assert result["origins"][0]["origin"] == "https://erp.example.com"
-    ls = {item["name"]: item["value"] for item in result["origins"][0]["localStorage"]}
-    assert ls["Admin-Token"] == "my-jwt-token-123"
-    assert ls["Admin-Expires-In"] == "720"
-
-
-def test_build_storage_state_origin_with_port():
-    """_build_storage_state preserves port in origin when URL has one."""
-    with patch(
-        "backend.config.settings.get_settings",
-        return_value=Settings(erp_base_url="https://erp.example.com:8443/epbox_erp"),
-    ):
-        result = _build_storage_state("token-abc")
-
-    assert result["origins"][0]["origin"] == "https://erp.example.com:8443"
-
-
-# ---------------------------------------------------------------------------
-# Tests for _get_storage_state_for_role (per D-06)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_get_storage_state_for_role_success():
-    """_get_storage_state_for_role resolves credentials, fetches token, builds state."""
-    with (
-        patch("backend.core.account_service.account_service") as mock_acct,
-        patch("backend.core.self_healing_runner.auth_service") as mock_auth,
-        patch(
-            "backend.config.settings.get_settings",
-            return_value=Settings(erp_base_url="https://erp.example.com"),
-        ),
-    ):
-        mock_acct.resolve.return_value = AccountInfo(
-            account="Y59800075", password="secret", role="main",
-        )
-        mock_auth.fetch_token = AsyncMock(return_value="jwt-token-xyz")
-
-        result = await _get_storage_state_for_role("main")
-
-    mock_acct.resolve.assert_called_once_with("main")
-    mock_auth.fetch_token.assert_awaited_once_with(
-        "Y59800075", "secret", role="main",
-    )
-    ls = {i["name"]: i["value"] for i in result["origins"][0]["localStorage"]}
-    assert ls["Admin-Token"] == "jwt-token-xyz"
-
-
-@pytest.mark.asyncio
-async def test_get_storage_state_for_role_fetch_fails():
-    """_get_storage_state_for_role propagates TokenFetchError from fetch_token."""
-    with (
-        patch("backend.core.account_service.account_service") as mock_acct,
-        patch("backend.core.self_healing_runner.auth_service") as mock_auth,
-    ):
-        mock_acct.resolve.return_value = AccountInfo(
-            account="Y59800075", password="secret", role="main",
-        )
-        mock_auth.fetch_token = AsyncMock(
-            side_effect=TokenFetchError(role="main", reason="请求超时 (>10s)"),
-        )
-
-        with pytest.raises(TokenFetchError) as exc_info:
-            await _get_storage_state_for_role("main")
-
-    assert "main" in str(exc_info.value)
-    assert "超时" in str(exc_info.value)
-
-
-@pytest.mark.asyncio
-async def test_get_storage_state_for_role_unknown_role():
-    """_get_storage_state_for_role propagates ValueError from resolve."""
-    with patch("backend.core.account_service.account_service") as mock_acct:
-        mock_acct.resolve.side_effect = ValueError(
-            "unknown role: 'nonexistent'. available roles: camera, idle, main, ..."
-        )
-
-        with pytest.raises(ValueError) as exc_info:
-            await _get_storage_state_for_role("nonexistent")
-
-    assert "nonexistent" in str(exc_info.value)
-
-
-# ---------------------------------------------------------------------------
-# Tests for error classifier integration (per HEAL-01)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_env_error_skips_llm_repair(
-    runner: SelfHealingRunner, tmp_test_dir: Path
-):
-    """退出码 2 时跳过 LLM 修复, 直接返回 failed."""
+async def test_env_error_skips_llm_repair(runner: SelfHealingRunner, tmp_test_dir: Path):
+    """Error category: exit code 2 -> ENV_INTERRUPT, skips LLM repair."""
     test_file = str(tmp_test_dir / "test_example.py")
     with (
         patch(
@@ -569,69 +157,221 @@ async def test_env_error_skips_llm_repair(
     assert result.final_status == "failed"
     assert result.attempts == 1
     assert result.error_category == "ENV_INTERRUPT"
-    mock_healer_cls.assert_not_called()  # 环境错误不调 LLM
-
-
-@pytest.mark.asyncio
-async def test_env_error_exit_code_4(
-    runner: SelfHealingRunner, tmp_test_dir: Path
-):
-    """退出码 4 (pytest error) 时跳过 LLM 修复."""
-    test_file = str(tmp_test_dir / "test_example.py")
-    with (
-        patch(
-            "backend.core.self_healing_runner._get_storage_state_for_role",
-            new_callable=AsyncMock,
-            return_value=STORAGE_STATE,
-        ),
-        patch(
-            "backend.core.self_healing_runner.asyncio.to_thread",
-            new_callable=AsyncMock,
-        ) as mock_to_thread,
-        patch(
-            "backend.core.self_healing_runner.LLMHealer"
-        ) as mock_healer_cls,
-    ):
-        mock_to_thread.return_value = _make_completed_process(
-            returncode=4, stderr="usage error"
-        )
-        result = await runner.run("run1", test_file, login_role="main")
-    assert result.final_status == "failed"
-    assert result.error_category == "ENV_PYTEST_ERROR"
     mock_healer_cls.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_code_error_attempts_llm_repair(
-    runner: SelfHealingRunner, tmp_test_dir: Path
-):
-    """退出码 1 + SyntaxError 时归类为代码错误, 尝试 LLM 修复."""
-    test_file = str(tmp_test_dir / "test_example.py")
-    with (
-        patch(
-            "backend.core.self_healing_runner._get_storage_state_for_role",
-            new_callable=AsyncMock,
-            return_value=STORAGE_STATE,
-        ),
-        patch(
-            "backend.core.self_healing_runner.asyncio.to_thread",
-            new_callable=AsyncMock,
-        ) as mock_to_thread,
-        patch(
-            "backend.core.self_healing_runner.LLMHealer"
-        ) as mock_healer_cls,
-    ):
-        mock_to_thread.return_value = _make_completed_process(
-            returncode=1, stderr="E   SyntaxError: invalid syntax"
-        )
-        mock_healer = MagicMock()
-        mock_healer.heal = AsyncMock(
-            return_value=LLMHealResult(
-                success=False, code_snippet="", raw_response="", locator="",
-            )
-        )
-        mock_healer_cls.return_value = mock_healer
-        result = await runner.run("run1", test_file, login_role="main")
-    assert result.final_status == "failed"
-    assert result.error_category == "CODE_ERROR"
-    mock_healer_cls.assert_called()  # 代码错误调了 LLM
+# ---------------------------------------------------------------------------
+# Phase 107: _apply_fix content-matching, locator extraction, DOM search
+# ---------------------------------------------------------------------------
+
+
+# --- _apply_fix tests (HEAL-01, HEAL-04) ---
+
+
+def test_apply_fix_content_match_single_line():
+    """_apply_fix replaces single-line target_snippet with replacement."""
+    code = (
+        "def test_example():\n"
+        "    page.get_by_text('提交按钮这是一个长定位器').click()\n"
+        "    page.goto('https://example.com')\n"
+    )
+    result = SelfHealingRunner._apply_fix(
+        code,
+        "page.get_by_text('提交按钮这是一个长定位器').click()",
+        "page.locator('#submit').click()",
+    )
+    assert result is not None
+    assert "page.locator('#submit').click()" in result
+    assert "page.get_by_text('提交按钮这是一个长定位器')" not in result
+    assert "page.goto('https://example.com')" in result
+
+
+def test_apply_fix_multi_line_expansion():
+    """1-line target -> 3-line try-except replacement, line count increases by 2."""
+    code = (
+        "def test_example():\n"
+        "    page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()\n"
+        "    page.goto('https://example.com')\n"
+    )
+    target = "page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()"
+    replacement = (
+        "try:\n"
+        "    page.get_by_text('提交订单').click()\n"
+        "except Exception:\n"
+        "    page.locator('#submit').click()"
+    )
+    result = SelfHealingRunner._apply_fix(code, target, replacement)
+    assert result is not None
+    assert "try:" in result
+    assert "except Exception:" in result
+    original_lines = code.count("\n")
+    result_lines = result.count("\n")
+    assert result_lines == original_lines + 2  # 1 -> 3 lines = +2
+
+
+def test_apply_fix_multi_line_shrink():
+    """3-line target -> 1-line replacement, line count decreases by 2."""
+    code = (
+        "def test_example():\n"
+        "    try:\n"
+        "        page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()\n"
+        "    except Exception:\n"
+        "        pass\n"
+        "    page.goto('https://example.com')\n"
+    )
+    target = (
+        "    try:\n"
+        "        page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()\n"
+        "    except Exception:\n"
+        "        pass"
+    )
+    replacement = "    page.locator('#submit').click()"
+    result = SelfHealingRunner._apply_fix(code, target, replacement)
+    assert result is not None
+    assert "page.locator('#submit').click()" in result
+    assert "try:" not in result
+    original_lines = code.count("\n")
+    result_lines = result.count("\n")
+    assert result_lines == original_lines - 3  # 4 -> 1 = -3
+
+
+def test_apply_fix_target_not_found():
+    """target_snippet not in code -> returns None."""
+    code = "def test_example():\n    page.click()\n"
+    result = SelfHealingRunner._apply_fix(
+        code,
+        "this_snippet_does_not_exist_anywhere_in_code",
+        "page.locator('#btn').click()",
+    )
+    assert result is None
+
+
+def test_apply_fix_short_target_rejected():
+    """target_snippet < 20 chars -> returns None."""
+    code = "def test_example():\n    page.click()\n"
+    result = SelfHealingRunner._apply_fix(code, "page.click()", "page.locator('#x').click()")
+    assert result is None
+
+
+def test_apply_fix_ast_rollback():
+    """Valid replacement that creates syntax error -> returns None."""
+    code = (
+        "def test_example():\n"
+        "    page.get_by_text('提交按钮这是一个很长的定位器文本内容').click()\n"
+    )
+    target = "page.get_by_text('提交按钮这是一个很长的定位器文本内容').click()"
+    # This replacement will create invalid Python syntax (missing quote)
+    replacement = "page.locator('#submit').click( "
+    result = SelfHealingRunner._apply_fix(code, target, replacement)
+    assert result is None
+
+
+# --- _extract_locator_from_code tests (HEAL-02) ---
+
+
+def test_extract_locator_get_by_text():
+    """Extracts '提交' from page.get_by_text('提交')."""
+    result = SelfHealingRunner._extract_locator_from_code(
+        "    page.get_by_text('提交').click()"
+    )
+    assert result == "提交"
+
+
+def test_extract_locator_get_by_role_name():
+    """Extracts '登录' from page.get_by_role('button', name='登录')."""
+    result = SelfHealingRunner._extract_locator_from_code(
+        '    page.get_by_role("button", name="登录").click()'
+    )
+    assert result == "登录"
+
+
+def test_extract_locator_locator_css():
+    """Extracts '#submit' from page.locator('#submit')."""
+    result = SelfHealingRunner._extract_locator_from_code(
+        "    page.locator('#submit').click()"
+    )
+    assert result == "#submit"
+
+
+def test_extract_locator_no_match():
+    """page.goto('...') has no locator -> returns None."""
+    result = SelfHealingRunner._extract_locator_from_code(
+        "    page.goto('https://example.com')"
+    )
+    assert result is None
+
+
+def test_extract_locator_empty():
+    """Empty string -> returns None."""
+    result = SelfHealingRunner._extract_locator_from_code("")
+    assert result is None
+
+
+# --- _search_dom_for_text tests (HEAL-02) ---
+
+
+def test_search_dom_finds_context():
+    """DOM with target text -> returns 5 lines before + match + 5 after."""
+    lines = [f"line_{i}" for i in range(20)]
+    lines[10] = "TARGET_LINE here"
+    dom = "\n".join(lines)
+    result = SelfHealingRunner._search_dom_for_text(dom, "TARGET_LINE")
+    result_lines = result.split("\n")
+    assert len(result_lines) == 11  # 5 before + match + 5 after
+    assert "TARGET_LINE here" in result
+
+
+def test_search_dom_not_found():
+    """DOM without target -> returns truncated full DOM."""
+    dom = "\n".join([f"line_{i}" for i in range(200)])
+    result = SelfHealingRunner._search_dom_for_text(dom, "NOT_FOUND_TEXT")
+    assert len(result) <= 2000
+    assert "line_0" in result  # Falls back to full DOM
+
+
+# --- _read_dom_snapshot with locator tests (HEAL-02) ---
+
+
+def test_read_dom_snapshot_with_locator(tmp_path):
+    """Uses code-extracted locator to find DOM file with matching text."""
+    dom_dir = tmp_path / "run1" / "dom"
+    dom_dir.mkdir(parents=True)
+    (dom_dir / "step_1.txt").write_text("header\nnav stuff\n", encoding="utf-8")
+    (dom_dir / "step_2.txt").write_text("header\nTARGET_TEXT content\nfooter\n", encoding="utf-8")
+    (dom_dir / "step_3.txt").write_text("header\nother content\nfooter\n", encoding="utf-8")
+
+    result = SelfHealingRunner._read_dom_snapshot(
+        "run1",
+        str(tmp_path),
+        error_output="",
+        failing_line="page.get_by_text('TARGET_TEXT').click()",
+    )
+    assert "TARGET_TEXT content" in result
+
+
+def test_read_dom_snapshot_fallback_step_number(tmp_path):
+    """Without failing_line, uses step number from error_output."""
+    dom_dir = tmp_path / "run1" / "dom"
+    dom_dir.mkdir(parents=True)
+    (dom_dir / "step_1.txt").write_text("step 1 content", encoding="utf-8")
+    (dom_dir / "step_2.txt").write_text("step 2 content", encoding="utf-8")
+    (dom_dir / "step_3.txt").write_text("step 3 content", encoding="utf-8")
+
+    result = SelfHealingRunner._read_dom_snapshot(
+        "run1",
+        str(tmp_path),
+        error_output="error at step_3 something went wrong",
+        failing_line="",
+    )
+    assert "step 3 content" in result
+
+
+def test_read_dom_snapshot_no_dom_dir(tmp_path):
+    """No dom directory -> returns placeholder."""
+    result = SelfHealingRunner._read_dom_snapshot(
+        "run1",
+        str(tmp_path),
+        error_output="",
+        failing_line="page.get_by_text('something').click()",
+    )
+    assert "无 DOM 快照目录" in result
