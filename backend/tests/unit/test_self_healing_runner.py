@@ -177,8 +177,8 @@ def test_apply_fix_content_match_single_line():
     )
     result = SelfHealingRunner._apply_fix(
         code,
-        "page.get_by_text('提交按钮这是一个长定位器').click()",
-        "page.locator('#submit').click()",
+        "    page.get_by_text('提交按钮这是一个长定位器').click()",
+        "    page.locator('#submit').click()",
     )
     assert result is not None
     assert "page.locator('#submit').click()" in result
@@ -187,18 +187,19 @@ def test_apply_fix_content_match_single_line():
 
 
 def test_apply_fix_multi_line_expansion():
-    """1-line target -> 3-line try-except replacement, line count increases by 2."""
+    """1-line target -> 4-line try-except replacement, line count increases."""
     code = (
         "def test_example():\n"
         "    page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()\n"
         "    page.goto('https://example.com')\n"
     )
-    target = "page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()"
+    # Target includes the indentation so it matches exactly in code
+    target = "    page.get_by_text('提交订单按钮这是一个非常长的定位器文本').click()"
     replacement = (
-        "try:\n"
-        "    page.get_by_text('提交订单').click()\n"
-        "except Exception:\n"
-        "    page.locator('#submit').click()"
+        "    try:\n"
+        "        page.get_by_text('提交订单').click()\n"
+        "    except Exception:\n"
+        "        page.locator('#submit').click()"
     )
     result = SelfHealingRunner._apply_fix(code, target, replacement)
     assert result is not None
@@ -206,7 +207,7 @@ def test_apply_fix_multi_line_expansion():
     assert "except Exception:" in result
     original_lines = code.count("\n")
     result_lines = result.count("\n")
-    assert result_lines == original_lines + 2  # 1 -> 3 lines = +2
+    assert result_lines == original_lines + 3  # 1 line -> 4 lines = +3
 
 
 def test_apply_fix_multi_line_shrink():
@@ -232,7 +233,8 @@ def test_apply_fix_multi_line_shrink():
     assert "try:" not in result
     original_lines = code.count("\n")
     result_lines = result.count("\n")
-    assert result_lines == original_lines - 3  # 4 -> 1 = -3
+    # 4-line target replaced by 1-line = -3 newlines
+    assert result_lines == original_lines - 3
 
 
 def test_apply_fix_target_not_found():
@@ -259,9 +261,9 @@ def test_apply_fix_ast_rollback():
         "def test_example():\n"
         "    page.get_by_text('提交按钮这是一个很长的定位器文本内容').click()\n"
     )
-    target = "page.get_by_text('提交按钮这是一个很长的定位器文本内容').click()"
-    # This replacement will create invalid Python syntax (missing quote)
-    replacement = "page.locator('#submit').click( "
+    target = "    page.get_by_text('提交按钮这是一个很长的定位器文本内容').click()"
+    # This replacement will create invalid Python syntax (unmatched paren)
+    replacement = "    page.locator('#submit').click( "
     result = SelfHealingRunner._apply_fix(code, target, replacement)
     assert result is None
 

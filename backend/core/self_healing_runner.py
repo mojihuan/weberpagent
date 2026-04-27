@@ -323,39 +323,46 @@ class SelfHealingRunner:
         # 尝试从 pytest traceback 中提取行号
         line_number = self._extract_error_line(error_output)
 
-        # 读取 DOM snapshot (优先 step_1, 后备 step_1)
-        dom_content = self._read_dom_snapshot(run_id, base_dir, error_output)
+        # 从代码中提取失败行 (用于 DOM 定位器映射)
+        failing_line = ""
+        if line_number is not None and 1 <= line_number <= len(current_code.splitlines()):
+            failing_line = current_code.splitlines()[line_number - 1]
 
-        # 调用 LLMHealer
+        # 读取 DOM snapshot (优先使用定位器文本搜索)
+        dom_content = self._read_dom_snapshot(
+            run_id, base_dir, error_output, failing_line,
+        )
+
+        # 调用 LLMHealer.repair_code (专用测试修复方法)
         healer = LLMHealer(self._llm_config)
         try:
-            result = await healer.heal(
-                action_type="fix_test",
-                failed_locators=(error_output[:500],),
+            result = await healer.repair_code(
+                test_code=current_code,
+                error_line=line_number,
+                error_message=error_output[:1000],
                 dom_snapshot=dom_content,
-                action_params={},
             )
         except Exception as exc:
-            self._logger.warning(f"[{run_id}] LLM heal 异常: {exc}")
+            self._logger.warning(f"[{run_id}] LLM repair 异常: {exc}")
             return False
 
         if not result.success:
-            self._logger.warning(f"[{run_id}] LLM heal 返回失败")
+            self._logger.warning(f"[{run_id}] LLM repair 返回失败")
             return False
 
-        # 用 LLM 修复的代码替换失败行
+        # 检查结构化修复字段
+        if not result.target_snippet or not result.replacement:
+            self._logger.warning(
+                f"[{run_id}] LLM repair 返回空的 target_snippet/replacement"
+            )
+            return False
+
+        # 用 LLM 修复的代码替换目标片段 (内容匹配, 内含 ast.parse 验证)
         repaired_code = self._apply_fix(
-            current_code, result.code_snippet, line_number
+            current_code, result.target_snippet, result.replacement,
         )
         if repaired_code is None:
             self._logger.warning(f"[{run_id}] 无法应用 LLM 修复到测试文件")
-            return False
-
-        # ast.parse 验证
-        try:
-            ast.parse(repaired_code)
-        except SyntaxError:
-            self._logger.warning(f"[{run_id}] LLM 修复后语法验证失败")
             return False
 
         test_path.write_text(repaired_code, encoding="utf-8")
@@ -404,61 +411,123 @@ class SelfHealingRunner:
 
     @staticmethod
     def _read_dom_snapshot(
-        run_id: str, base_dir: str, error_output: str
+        run_id: str,
+        base_dir: str,
+        error_output: str = "",
+        failing_line: str = "",
     ) -> str:
         """读取 DOM 快照文件内容.
 
-        优先从错误输出中提取步骤号, 否则使用 step_1 作为后备.
+        Per D-04: 从失败行代码中提取定位器文本，搜索 DOM 快照.
+        Per D-05: 独立实现轻量级 DOM 搜索，不复用 dom_patch.py.
         """
-        # 尝试从错误输出中提取步骤号
+        # 1. 从失败行提取定位器文本
+        locator_text = SelfHealingRunner._extract_locator_from_code(failing_line)
+
+        # 2. 收集所有 DOM 快照文件
+        dom_dir = Path(base_dir) / run_id / "dom"
+        if not dom_dir.exists():
+            return "(无 DOM 快照目录)"
+
+        dom_files = sorted(dom_dir.glob("step_*.txt"))
+        if not dom_files:
+            return "(无 DOM 快照文件)"
+
+        # 3. 如果有定位器文本，搜索匹配的 DOM 文件
+        if locator_text:
+            for dom_file in dom_files:
+                content = dom_file.read_text(encoding="utf-8")
+                if locator_text in content:
+                    return SelfHealingRunner._search_dom_for_text(content, locator_text)
+            # 定位器未找到: 返回最后一个 step 的截断内容
+            last_content = dom_files[-1].read_text(encoding="utf-8")
+            return last_content[:2000] if len(last_content) > 2000 else last_content
+
+        # 4. 无定位器: 后备到 error_output 中的 step 号 (兼容旧路径)
         step_match = re.search(r"step[_\s](\d+)", error_output, re.IGNORECASE)
         step_num = int(step_match.group(1)) if step_match else 1
 
-        dom_path = Path(base_dir) / run_id / "dom" / f"step_{step_num}.txt"
+        dom_path = dom_dir / f"step_{step_num}.txt"
         if dom_path.exists():
             return dom_path.read_text(encoding="utf-8")
 
-        # 后备: step_1
-        fallback_path = Path(base_dir) / run_id / "dom" / "step_1.txt"
-        if fallback_path.exists():
-            return fallback_path.read_text(encoding="utf-8")
+        # 最后手段: 第一个 DOM 文件
+        fallback = dom_files[0].read_text(encoding="utf-8")
+        return fallback[:2000] if len(fallback) > 2000 else fallback
 
-        return f"(无 DOM 快照: step_{step_num})"
+    @staticmethod
+    def _extract_locator_from_code(failing_line: str) -> str | None:
+        """从失败行代码中提取定位器文本.
+
+        Per D-04: 从代码行中提取定位器字符串，用于 DOM 搜索.
+        """
+        if not failing_line:
+            return None
+        # Pattern 1: get_by_text("xxx") -> "xxx"
+        match = re.search(r'get_by_text\(["\']([^"\']+)["\']', failing_line)
+        if match:
+            return match.group(1)
+        # Pattern 2: name="xxx" in get_by_role
+        match = re.search(r'name=["\']([^"\']+)["\']', failing_line)
+        if match:
+            return match.group(1)
+        # Pattern 3: locator("xxx") or locator('xxx')
+        match = re.search(r'locator\(["\']([^"\']+)["\']', failing_line)
+        if match:
+            return match.group(1)
+        return None
+
+    @staticmethod
+    def _search_dom_for_text(dom_content: str, search_text: str) -> str:
+        """从 DOM 快照中搜索包含指定文本的上下文 (前后各 5 行)."""
+        lines = dom_content.splitlines()
+        for i, line in enumerate(lines):
+            if search_text in line:
+                start = max(0, i - 5)
+                end = min(len(lines), i + 6)
+                return "\n".join(lines[start:end])
+        # 后备: 截断的完整 DOM
+        return dom_content[:2000] if len(dom_content) > 2000 else dom_content
 
     @staticmethod
     def _apply_fix(
         current_code: str,
-        fix_snippet: str,
-        line_number: int | None,
+        target_snippet: str,
+        replacement: str,
     ) -> str | None:
-        """将 LLM 修复代码应用到源代码中.
+        """将 LLM 修复代码应用到源代码中 (内容匹配多行替换).
 
-        如果有行号, 替换该行. 否则追加到文件末尾的函数体内.
+        1. 在 current_code 中搜索 target_snippet
+        2. 替换为 replacement (可多行)
+        3. ast.parse 验证 -> 失败返回 None (回滚)
+
+        Args:
+            current_code: 完整源代码.
+            target_snippet: 要替换的原始代码片段 (LLM 从源码中识别).
+            replacement: 新代码 (可多行).
 
         Returns:
             修复后的代码, 或 None 如果无法应用.
         """
-        lines = current_code.splitlines()
+        # 防止过短的片段导致多处匹配 (最小 20 字符)
+        if len(target_snippet) < 20:
+            logger.warning(f"target_snippet 过短 ({len(target_snippet)} 字符), 跳过替换")
+            return None
 
-        if line_number is not None and 1 <= line_number <= len(lines):
-            # 替换指定行 (1-indexed)
-            new_lines = [
-                *lines[: line_number - 1],
-                fix_snippet,
-                *lines[line_number:],
-            ]
-            return "\n".join(new_lines)
+        # 1. 内容匹配: 精确子串搜索
+        pos = current_code.find(target_snippet)
+        if pos == -1:
+            logger.warning("target_snippet 在源代码中未找到")
+            return None
 
-        # 无行号: 在最后一个非空行之前插入
-        # 找到最后一个包含 "page." 的行并替换
-        for i in range(len(lines) - 1, -1, -1):
-            if "page." in lines[i]:
-                new_lines = [
-                    *lines[:i],
-                    fix_snippet,
-                    *lines[i + 1:],
-                ]
-                return "\n".join(new_lines)
+        # 2. 替换 (不可变: 返回新字符串)
+        new_code = current_code[:pos] + replacement + current_code[pos + len(target_snippet):]
 
-        # 最后手段: 追加到末尾
-        return current_code + "\n" + fix_snippet + "\n"
+        # 3. ast.parse 验证 (HEAL-04, per D-03)
+        try:
+            ast.parse(new_code)
+        except SyntaxError as e:
+            logger.warning(f"修复后 ast.parse 验证失败, 回滚: {e}")
+            return None
+
+        return new_code
