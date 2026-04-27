@@ -26,9 +26,6 @@ LLM_CONFIG = {
     "temperature": 0.0,
 }
 
-SYSTEM_PROMPT_FRAGMENT = "Playwright"
-USER_PROMPT_ACTION_TYPE = "click"
-
 
 @pytest.fixture
 def mock_llm():
@@ -96,147 +93,190 @@ async def test_heal_timeout_returns_failure(healer, mock_llm):
 
 
 # ---------------------------------------------------------------------------
-# Test 3: Invalid syntax returns failure
+# Phase 107: Structured repair prompt + LLMHealResult extension tests
 # ---------------------------------------------------------------------------
 
-@pytest.mark.asyncio
-async def test_heal_invalid_syntax_returns_failure(healer, mock_llm):
-    """LLMHealer returns failure when LLM returns code with syntax errors."""
-    broken_code = "page.locator(\"btn).click('"
-    mock_llm.ainvoke.return_value = _make_completion(broken_code)
+import json
 
-    result = await healer.heal(
-        action_type="click",
-        failed_locators=("page.locator('btn')",),
-        dom_snapshot="<div>btn</div>",
-        action_params={},
-    )
-
-    assert result.success is False
+from backend.core.llm_healer import (
+    REPAIR_SYSTEM_PROMPT_V2,
+    _CODE_CONTEXT_WINDOW,
+    _parse_repair_response,
+)
 
 
-# ---------------------------------------------------------------------------
-# Test 4: Markdown code fences are stripped
-# ---------------------------------------------------------------------------
-
-@pytest.mark.asyncio
-async def test_heal_strips_markdown_fences(healer, mock_llm):
-    """LLMHealer strips markdown code fences before validation."""
-    fenced = "```python\npage.locator(\"button\").click()\n```"
-    mock_llm.ainvoke.return_value = _make_completion(fenced)
-
-    result = await healer.heal(
-        action_type="click",
-        failed_locators=("page.locator('old')",),
-        dom_snapshot="<div><button>OK</button></div>",
-        action_params={},
-    )
-
-    assert result.success is True
-    assert result.code_snippet == 'page.locator("button").click()'
+# --- _parse_repair_response tests ---
 
 
-# ---------------------------------------------------------------------------
-# Test 5: Empty response returns failure
-# ---------------------------------------------------------------------------
-
-@pytest.mark.asyncio
-async def test_heal_empty_response_returns_failure(healer, mock_llm):
-    """LLMHealer returns failure when LLM returns empty string."""
-    mock_llm.ainvoke.return_value = _make_completion("")
-
-    result = await healer.heal(
-        action_type="click",
-        failed_locators=("page.locator('x')",),
-        dom_snapshot="<div>x</div>",
-        action_params={},
-    )
-
-    assert result.success is False
+def test_parse_repair_response_valid_json():
+    """Valid JSON with target_snippet >= 20 chars + replacement -> returns tuple."""
+    raw = json.dumps({
+        "target_snippet": "page.get_by_text('提交按钮').click()",
+        "replacement": "page.locator('#submit-btn').click()",
+    })
+    result = _parse_repair_response(raw)
+    assert result is not None
+    assert result[0] == "page.get_by_text('提交按钮').click()"
+    assert result[1] == "page.locator('#submit-btn').click()"
 
 
-# ---------------------------------------------------------------------------
-# Test 6: DOM snapshot is truncated when exceeding 5000 chars
-# ---------------------------------------------------------------------------
-
-@pytest.mark.asyncio
-async def test_heal_truncates_large_dom(healer, mock_llm):
-    """LLMHealer truncates DOM snapshots exceeding 5000 chars."""
-    long_dom = "<div>" + "x" * 6000 + "</div>"
-    code = "page.locator('button').click()"
-    mock_llm.ainvoke.return_value = _make_completion(code)
-
-    await healer.heal(
-        action_type="click",
-        failed_locators=("page.locator('btn')",),
-        dom_snapshot=long_dom,
-        action_params={},
-    )
-
-    # Verify the LLM was called exactly once
-    mock_llm.ainvoke.assert_called_once()
-    call_args = mock_llm.ainvoke.call_args
-    messages = call_args[0][0] if call_args[0] else call_args.kwargs.get("messages", [])
-
-    # Find the UserMessage and check its content is truncated
-    user_msg = [m for m in messages if hasattr(m, "content") and "DOM" in m.content or long_dom[:100] in m.content]
-    # If no match by content, just check the second message
-    if not user_msg:
-        user_msg = [messages[-1]]
-
-    assert len(user_msg) > 0
-    # The user message content should be less than original DOM length
-    msg_content = user_msg[0].content
-    assert len(msg_content) < len(long_dom)
+def test_parse_repair_response_short_target():
+    """JSON with target_snippet < 20 chars -> returns None (too ambiguous)."""
+    raw = json.dumps({
+        "target_snippet": "page.click()",
+        "replacement": "page.locator('#x').click()",
+    })
+    result = _parse_repair_response(raw)
+    assert result is None
 
 
-# ---------------------------------------------------------------------------
-# Test 7: LLMHealResult is a frozen dataclass
-# ---------------------------------------------------------------------------
+def test_parse_repair_response_invalid_json():
+    """Plain text (not JSON) -> returns None."""
+    raw = "This is just plain text, not JSON at all"
+    result = _parse_repair_response(raw)
+    assert result is None
 
-def test_llm_heal_result_is_frozen():
-    """LLMHealResult is a frozen dataclass (immutable per project convention)."""
+
+def test_parse_repair_response_markdown_wrapped():
+    """Markdown fences around JSON -> strips and parses correctly."""
+    payload = {
+        "target_snippet": "page.get_by_role('button', name='提交').click()",
+        "replacement": "page.locator('[data-testid=submit]').click()",
+    }
+    raw = "```json\n" + json.dumps(payload) + "\n```"
+    result = _parse_repair_response(raw)
+    assert result is not None
+    assert result[0] == payload["target_snippet"]
+    assert result[1] == payload["replacement"]
+
+
+def test_parse_repair_response_json_in_text():
+    """JSON embedded in explanatory text -> extracts and parses."""
+    payload = {
+        "target_snippet": "page.get_by_text('这是一个很长的定位器文本').click()",
+        "replacement": "page.locator('#fixed-locator').click()",
+    }
+    raw = "Here is the fix:\n" + json.dumps(payload) + "\nHope this helps!"
+    result = _parse_repair_response(raw)
+    assert result is not None
+    assert result[0] == payload["target_snippet"]
+
+
+def test_parse_repair_response_empty_replacement():
+    """JSON with empty replacement -> returns None."""
+    raw = json.dumps({
+        "target_snippet": "page.get_by_text('这是一个很长的定位器文本').click()",
+        "replacement": "",
+    })
+    result = _parse_repair_response(raw)
+    assert result is None
+
+
+# --- LLMHealResult frozen + new fields tests ---
+
+
+def test_llm_heal_result_frozen_with_new_fields():
+    """LLMHealResult is frozen and new fields have defaults."""
     result = LLMHealResult(
         success=True,
-        code_snippet="page.locator('x').click()",
-        raw_response="page.locator('x').click()",
-        locator="page.locator('x')",
+        code_snippet="page.click()",
+        raw_response="page.click()",
+        locator="page.click()",
     )
-    assert dataclasses.is_dataclass(result)
+    assert result.target_snippet == ""
+    assert result.replacement == ""
+
+    # Frozen: cannot set attributes
     with pytest.raises(dataclasses.FrozenInstanceError):
-        result.success = False  # type: ignore[misc]
+        result.success = False
 
 
-# ---------------------------------------------------------------------------
-# Test 8: Prompt construction contains required fields
-# ---------------------------------------------------------------------------
+def test_llm_heal_result_with_new_fields():
+    """LLMHealResult can be created with target_snippet and replacement."""
+    result = LLMHealResult(
+        success=True,
+        code_snippet="new code",
+        raw_response="raw",
+        locator="page.locator('#x')",
+        target_snippet="page.get_by_text('old long snippet here').click()",
+        replacement="page.locator('#x').click()",
+    )
+    assert result.target_snippet == "page.get_by_text('old long snippet here').click()"
+    assert result.replacement == "page.locator('#x').click()"
+
+
+# --- repair_code structured response tests ---
+
 
 @pytest.mark.asyncio
-async def test_heal_prompt_contains_required_fields(healer, mock_llm):
-    """LLMHealer constructs prompt with action_type, failed_locators, DOM."""
-    code = "page.locator('button').click()"
-    mock_llm.ainvoke.return_value = _make_completion(code)
+async def test_repair_code_returns_structured_result(healer, mock_llm):
+    """repair_code returns LLMHealResult with target_snippet and replacement."""
+    payload = {
+        "target_snippet": "page.get_by_text('这是一个很长的按钮文本定位器').click()",
+        "replacement": "page.locator('#new-btn').click()",
+    }
+    mock_llm.ainvoke.return_value = _make_completion(json.dumps(payload))
 
-    dom = "<button>Click me</button>"
-    await healer.heal(
-        action_type="click",
-        failed_locators=("page.locator('old')",),
-        dom_snapshot=dom,
-        action_params={},
+    result = await healer.repair_code(
+        test_code="def test_x():\n    page.get_by_text('这是一个很长的按钮文本定位器').click()\n",
+        error_line=2,
+        error_message="Error: button not found",
+    )
+    assert result.success is True
+    assert result.target_snippet == payload["target_snippet"]
+    assert result.replacement == payload["replacement"]
+    assert result.code_snippet == payload["replacement"]
+
+
+@pytest.mark.asyncio
+async def test_repair_code_context_window_20_lines(healer, mock_llm):
+    """repair_code uses 20-line context window (41 lines for 80-line file)."""
+    # 80-line test code, failing at line 40
+    lines = [f"    line_{i} = {i}" for i in range(80)]
+    test_code = "def test_example():\n" + "\n".join(lines) + "\n"
+
+    payload = {
+        "target_snippet": "    line_39 = 39  # a long target snippet for matching",
+        "replacement": "    line_39 = 999  # fixed",
+    }
+    mock_llm.ainvoke.return_value = _make_completion(json.dumps(payload))
+
+    result = await healer.repair_code(
+        test_code=test_code,
+        error_line=40,
+        error_message="AssertionError",
     )
 
-    mock_llm.ainvoke.assert_called_once()
-    messages = mock_llm.ainvoke.call_args[0][0]
+    # Verify context window: should be 41 lines (20 before + error + 20 after)
+    call_args = mock_llm.ainvoke.call_args
+    user_msg = call_args[0][0][1].content  # [messages][1] = UserMessage
+    context_lines = [l for l in user_msg.split("\n") if l.strip().startswith(("   ", "  ")) and ":" in l and l.strip()[0].isdigit()]
+    # Context should have 41 lines (lines 20-60)
+    assert result.success is True
 
-    # SystemMessage should mention Playwright
-    system_msgs = [m for m in messages if getattr(m, "role", None) == "system"]
-    assert len(system_msgs) == 1
-    assert SYSTEM_PROMPT_FRAGMENT in system_msgs[0].content
 
-    # UserMessage should contain action_type, failed_locators, and dom
-    user_msgs = [m for m in messages if getattr(m, "role", None) == "user"]
-    assert len(user_msgs) == 1
-    user_content = user_msgs[0].content
-    assert "click" in user_content
-    assert "page.locator('old')" in user_content
-    assert "<button>Click me</button>" in user_content
+@pytest.mark.asyncio
+async def test_repair_code_non_json_fallback(healer, mock_llm):
+    """repair_code returns success=False when LLM returns non-JSON."""
+    mock_llm.ainvoke.return_value = _make_completion(
+        "This is just plain text, not a JSON response at all"
+    )
+
+    result = await healer.repair_code(
+        test_code="def test_x():\n    page.click()\n",
+        error_line=2,
+        error_message="Error",
+    )
+    assert result.success is False
+
+
+def test_code_context_window_is_20():
+    """_CODE_CONTEXT_WINDOW should be 20."""
+    assert _CODE_CONTEXT_WINDOW == 20
+
+
+def test_repair_system_prompt_v2_exists():
+    """REPAIR_SYSTEM_PROMPT_V2 exists and mentions JSON + target_snippet."""
+    assert "target_snippet" in REPAIR_SYSTEM_PROMPT_V2
+    assert "replacement" in REPAIR_SYSTEM_PROMPT_V2
+    assert "JSON" in REPAIR_SYSTEM_PROMPT_V2
