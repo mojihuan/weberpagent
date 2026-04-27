@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.8
 milestone_name: milestone
-status: Phase 108 Complete
-stopped_at: Completed 108-01-PLAN.md
-last_updated: "2026-04-27T06:40:26Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 109-01-PLAN.md
+last_updated: "2026-04-27T08:11:19.114Z"
 progress:
-  total_phases: 84
-  completed_phases: 84
-  total_plans: 195
-  completed_plans: 195
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-27)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 108 — 前置条件注入
+**Current focus:** Phase 109 — 断言步骤生成
 
 ## Last Shipped
 
@@ -33,7 +33,7 @@ See: .planning/PROJECT.md (updated 2026-04-27)
 
 ## Current Position
 
-Phase: 108 (前置条件注入) — COMPLETE
+Phase: 109 (断言步骤生成) — EXECUTING
 Plan: 1 of 1
 
 ## Accumulated Context
@@ -47,6 +47,8 @@ Key v0.10.8 context from debug analysis:
 - assertion_service 运行时评估断言，结果只存数据库，不注入生成的代码
 - SelfHealingRunner conftest 注入 storage_state 但无 page.goto()
 - 4 种断言类型: url_contains, text_exists, no_errors, element_exists
+- [Phase 109]: Assertion steps use try-except with _healer.warning for non-fail-fast mode
+- [Phase 109]: element_exists smart locator: CSS->page.locator(), short text(<=4)->get_by_text(exact=True), long text->get_by_text()
 
 ### Pending Todos
 
@@ -58,6 +60,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-27T06:40:26Z
-Stopped at: Completed 108-01-PLAN.md
-Resume file: .planning/phases/108-前置条件注入/108-01-SUMMARY.md
+Last session: 2026-04-27T08:11:19.112Z
+Stopped at: Completed 109-01-PLAN.md
+Resume file: None

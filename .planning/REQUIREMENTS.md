@@ -60,7 +60,7 @@ page.wait_for_load_state("networkidle")
 - 生成的代码中 page.goto() 加载 ERP 页面后，localStorage token 生效
 - 页面加载后后续操作不再超时
 
-### ASRT-01: 断言 → Playwright expect() 翻译
+### ~~ASRT-01: 断言 → Playwright expect() 翻译~~ -- DONE (Phase 109)
 
 **Priority:** P1
 
@@ -82,7 +82,7 @@ page.wait_for_load_state("networkidle")
 - 断言语句追加在操作步骤之后，用空行分隔
 - 未知断言类型生成注释 `# unknown assertion: {type}`
 
-### ASRT-02: runs.py 传递任务断言
+### ~~ASRT-02: runs.py 传递任务断言~~ -- DONE (Phase 109)
 
 **Priority:** P1
 
@@ -93,7 +93,7 @@ page.wait_for_load_state("networkidle")
 - 无断言时传 None（向后兼容）
 - 断言数据在 agent 执行完成后可用（在 assertion_service.evaluate_all() 之后）
 
-### ASRT-03: 断言翻译单元测试
+### ~~ASRT-03: 断言翻译单元测试~~ -- DONE (Phase 109)
 
 **Priority:** P1
 

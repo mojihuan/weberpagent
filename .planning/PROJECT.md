@@ -15,9 +15,9 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.7 代码生成质量修复 (complete)
+**最新版本:** v0.10.8 生成测试代码前置条件与断言步骤 (Phase 109 complete)
 **Server online**: 121.40.191.49
-**当前状态:** v0.10.7 已交付 — 修复代码生成管道 8 个根因，自愈修复增强 E2E 验证通过
+**当前状态:** Phase 109 完成 — 4 种断言类型翻译为 Playwright expect() 语句
 
 ## 已交付版本:
 
@@ -38,12 +38,20 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.10.5: 生成测试代码修复与优化 (2026-04-24)
 - v0.10.6: 生成测试代码稳定可用 (2026-04-25)
 - v0.10.7: 生成测试代码行为优化 (2026-04-27)
+- v0.10.8: 生成测试代码前置条件与断言步骤 (in progress)
 
 ## Requirements
 
 ### Active
 
-(None — awaiting next milestone planning)
+**v0.10.8 生成测试代码前置条件与断言步骤 (2026-04-27):**
+- PREC-01: generate() 接受 precondition_config，注入 page.goto() + wait_for_load_state() — Phase 108
+- PREC-02: runs.py 传递 effective_target_url 给代码生成器 — Phase 108
+- PREC-03: SelfHealingRunner storage_state + page.goto() 组合验证 — Phase 108
+- ASRT-01: 4 种断言类型映射为 Playwright expect() 语句 — Phase 109
+- ASRT-02: runs.py 传递任务断言给代码生成器 — Phase 109
+- ASRT-03: 断言翻译单元测试 — Phase 109
+- E2E-01: 完整生成代码包含前置条件+操作+断言，语法验证通过 — Phase 110
 
 ### Validated
 
@@ -302,4 +310,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-27 — v0.10.7 milestone complete*
+*Last updated: 2026-04-27 — v0.10.8 milestone planning*

@@ -25,15 +25,19 @@
 
 ## Phases
 
-<details>
-<summary>🔵 v0.10.8 生成测试代码前置条件与断言步骤 (Phases 108-110) — ACTIVE</summary>
+### Phase 108: 前置条件注入
 
 - [x] Phase 108: 前置条件注入 (1/1 plans) — completed 2026-04-27
   - [x] 108-01-PLAN.md — _build_precondition() + runs.py 传递 + 单元测试
-- [ ] Phase 109: 断言步骤生成 (2/2 plans) — ASRT-01, ASRT-02, ASRT-03
-- [ ] Phase 110: E2E 验证 (1/1 plans) — E2E-01
 
-</details>
+### Phase 109: 断言步骤生成
+
+- [ ] Phase 109: 断言步骤生成 (1/1 plans) — ASRT-01, ASRT-02, ASRT-03
+  - [x] 109-01-PLAN.md — _build_assertions() + 4种断言翻译 + runs.py传递 + 单元测试
+
+### Phase 110: E2E 验证
+
+- [ ] Phase 110: E2E 验证 (1/1 plans) — E2E-01
 
 <details>
 <summary>✅ v0.10.7 生成测试代码行为优化 (Phases 105-107) — SHIPPED 2026-04-27</summary>
