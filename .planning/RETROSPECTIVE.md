@@ -41,16 +41,59 @@
 - Sessions: 1 (all 3 phases in single session)
 - Notable: 1 天完成 3 个阶段 4 个计划，含 TDD + E2E 验证
 
+## Milestone: v0.10.7 — 生成测试代码行为优化
+
+**Shipped:** 2026-04-27
+**Phases:** 3 | **Plans:** 6
+
+### What Was Built
+
+- ActionTranslator 未知操作参数摘要 + 10 核心类型回归守护
+- _build_body 缩进后处理 + validate_syntax 双重防御集成
+- LocatorChainBuilder: icon font PUA 过滤 + exact≤4 字符阈值 + 相对 XPath
+- _apply_fix 内容匹配多行替换 + 代码定位器 DOM 精准映射
+- 结构化 JSON LLM repair prompt {target_snippet, replacement} + 20 行上下文
+- E2E healing pipeline 测试: Mock LLM 修复 + ast.parse rollback 安全拒绝
+
+### What Worked
+
+- **8 根因分析驱动**: 64 个文件分析 → 8 个系统性根因 → 精准修复，不做猜测性改动
+- **TDD 节奏极快**: Phase 105-107 各 2-5 分钟完成，TDD RED/GREEN 流畅
+- **LocatorChainBuilder 渐进优化**: Phase 106 Plan 01 加功能，Plan 02 验证无回归，分离关注点
+
+### What Was Inefficient
+
+- gsd-tools milestone complete 输出了所有 83 phases 的 accomplishments，需手动精简
+- 跨阶段上下文累积导致 STATE.md 信息过载
+
+### Patterns Established
+
+- **内容匹配修复模式**: _apply_fix 用代码内容匹配替代行号定位，支持多行修复
+- **代码定位器提取**: 从失败行代码中提取定位器，比正则匹配 error_output 更精准
+- **结构化 LLM prompt**: JSON schema {target_snippet, replacement} 替代自由文本输出
+
+### Key Lessons
+
+1. 代码生成质量的提升需要全链路修复（翻译→缩进→定位器→自愈），单点修复不够
+2. Mock LLM 在 E2E 测试中效果好——避免真实 LLM 调用的非确定性和成本
+3. ast.parse rollback 是自愈修复的关键安全网——拒绝语法错误的修复结果
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~3 (105, 106, 107)
+- Notable: 2 天完成 3 个阶段 6 个计划，含 TDD + E2E
+
 ## Cross-Milestone Trends
 
-| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 |
-|--------|--------|--------|--------|--------|--------|--------|---------|---------|
-| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 |
-| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 |
-| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 |
-| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 | 0 |
-| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 | 1 (fix commit) |
-| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 |
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 |
+|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 | 3 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 | 6 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 | 2 |
+| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 | 1 (fix commit) | 1 (call count) |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 | ~4000 |
 
 ## Milestone: v0.10.1 — 代码登录及 Agent 复用登录的浏览器状态
 

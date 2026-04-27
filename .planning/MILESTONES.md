@@ -1,12 +1,28 @@
 # Milestones
 
-## v0.10.7 生成测试代码行为优化 (In progress: 2026-04-25)
+## v0.10.7 生成测试代码行为优化 (Shipped: 2026-04-27)
+
+**Phases:** 105-107 (3 phases, 6 plans)
+**Timeline:** 2026-04-25 → 2026-04-27 (2 days)
+
+**Key accomplishments:**
+
+1. ActionTranslator 未知操作显示参数摘要 f"参数={params}"，10 核心类型回归守护
+2. _build_body 缩进后处理 + validate_syntax 双重防御集成，ast.parse 通过率 100%
+3. LocatorChainBuilder: icon font PUA 过滤 + exact<=4 字符阈值 + 相对 XPath 优先级
+4. _apply_fix 内容匹配多行替换 + 代码定位器提取 DOM 精准映射 + 结构化 JSON LLM prompt
+5. E2E healing pipeline 测试: Mock LLM 修复验证 + ast.parse rollback 安全拒绝
+
+---
+
+## v0.10.7 生成测试代码行为优化 (Planned: 2026-04-25)
 
 **Phases planned:** 3 phases (105-107)
 
 **Goal:** 修复代码生成管道 8 个根因，使 AI 生成的 Playwright 测试代码首次运行即可通过
 
 **Root causes addressed:**
+
 1. 操作翻译缺失（~30% 文件为空操作）
 2. 代码缩进错误（~10% 文件 SyntaxError）
 3. exact=True 脆弱匹配
@@ -17,6 +33,7 @@
 8. icon font 私有区字符污染定位器
 
 **Phases:**
+
 - Phase 105: 代码生成质量修复（翻译 + 缩进）
 - Phase 106: 定位器质量优化（exact/XPath/icon font）
 - Phase 107: 自愈修复增强 + E2E 验证

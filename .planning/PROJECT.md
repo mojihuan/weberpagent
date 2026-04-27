@@ -15,21 +15,12 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.6 生成测试代码稳定可用 (complete)
+**最新版本:** v0.10.7 代码生成质量修复 (complete)
 **Server online**: 121.40.191.49
-**当前状态:** v0.10.7 进行中 — 生成测试代码行为优化
+**当前状态:** v0.10.7 已交付 — 修复代码生成管道 8 个根因，自愈修复增强 E2E 验证通过
 
-## Current Milestone: v0.10.7 生成测试代码行为优化
+## 已交付版本:
 
-**Goal:** 修复测试代码生成管道的 8 个根因，使 AI 生成的 Playwright 测试代码在首次生成时即具备高质量定位器，且自愈修复成功率显著提升
-
-**Target features:**
-- 修复操作翻译缺失（write_file/replace_file/find_elements 等生成注释而非代码）
-- 修复代码缩进错误（Playwright 语句出现在函数体外）
-- 优化定位器质量（去掉 exact=True、改用相对 XPath、过滤 icon font 字符）
-- 增强自愈修复（支持多行修复、DOM 快照精准匹配、LLM prompt 优化）
-
-**已交付版本:**
 - v0.1 ~ v0.5.0: 基础功能 → 断言系统 → 云端部署
 - v0.6.2: 回归原生 browser-use (2026-03-27)
 - v0.6.3: Agent 可靠性优化 (2026-03-28)
@@ -41,27 +32,37 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.9.2: Cookie 预注入免登录 (2026-04-17)
 - v0.10.0: Agent 执行速度优化 (2026-04-18)
 - v0.10.1: 代码登录及 Agent 复用登录的浏览器状态 (2026-04-21)
-- v0.10.6: 生成测试代码稳定可用 (2026-04-25)
-- v0.10.5: 生成测试代码修复与优化 (2026-04-24)
-- v0.10.4: Playwright 代码验证与任务管理集成 (2026-04-24)
-- v0.10.3: DOM 深度修复 - 表格单元格选择精确性 (2026-04-23)
 - v0.10.2: 测试验证与代码可用性修复 (2026-04-23)
+- v0.10.3: DOM 深度修复 - 表格单元格选择精确性 (2026-04-23)
+- v0.10.4: Playwright 代码验证与任务管理集成 (2026-04-24)
+- v0.10.5: 生成测试代码修复与优化 (2026-04-24)
+- v0.10.6: 生成测试代码稳定可用 (2026-04-25)
+- v0.10.7: 生成测试代码行为优化 (2026-04-27)
 
 ## Requirements
 
 ### Active
 
-**v0.10.7 生成测试代码行为优化 (2026-04-25):**
-- TRANSLATE-01: 修复操作翻译 — write_file/replace_file 等非核心操作生成注释占位而非未翻译
-- INDENT-01: 修复代码缩进 — _build_body 生成的 Playwright 语句必须在函数体内
-- LOCATOR-01: 去掉 get_by_text 的 exact=True，改用模糊匹配
-- LOCATOR-02: 用相对 XPath 替换绝对 XPath（基于 data-testid/class 等语义属性）
-- LOCATOR-03: 过滤 ax_name 中的 icon font 私有区字符（\ue000-\uf8ff）
-- HEAL-01: 自愈修复支持多行替换（当前只替换单行，try-except 块修复会破坏结构）
-- HEAL-02: DOM 快照精准匹配 — 从错误行代码中提取步骤号，而非从 error_output 正则猜测
-- HEAL-03: LLM prompt 优化 — 提供更多上下文（前后 20 行而非 10 行），明确告诉 LLM 目标元素描述
+(None — awaiting next milestone planning)
 
 ### Validated
+
+**v0.10.7 生成测试代码行为优化 (2026-04-27):**
+- ✓ TRANSLATE-01: 未知操作显示参数摘要 f"参数={params}" — Phase 105
+- ✓ TRANSLATE-02: 10 核心操作翻译质量回归守护 — Phase 105
+- ✓ INDENT-01: _build_body 缩进后处理确保 4 空格函数体 — Phase 105
+- ✓ INDENT-02: 多行 try-except 嵌套缩进正确对齐 — Phase 105
+- ✓ INDENT-03: generate() 输出 ast.parse 验证 — Phase 105
+- ✓ LOCATOR-01: get_by_text exact 仅对 ≤4 字符使用 — Phase 106
+- ✓ LOCATOR-02: 相对 XPath 优先级 — Phase 106
+- ✓ LOCATOR-03: _strip_pua_chars() 过滤 icon font 私有区 — Phase 106
+- ✓ LOCATOR-04: 定位器链优先级完整 — Phase 106
+- ✓ HEAL-01: _apply_fix 内容匹配多行替换 — Phase 107
+- ✓ HEAL-02: DOM 快照精准映射（代码定位器提取）— Phase 107
+- ✓ HEAL-03: 结构化 JSON LLM prompt + 20 行上下文 — Phase 107
+- ✓ HEAL-04: ast.parse rollback 安全验证 — Phase 107
+- ✓ E2E-01: E2E healing pipeline 测试通过 — Phase 107
+- ✓ E2E-02: 全量回归测试通过 — Phase 107
 
 **v0.10.6 生成测试代码稳定可用 (2026-04-25):**
 - ~~EXEC-01~~: ✓ 修复 pytest 调用参数 `--headed=false` 为正确的 headless 配置 — Phase 102
@@ -286,10 +287,19 @@ v0.1-v0.4.2 核心功能:
 | getRunCode 原始 fetch 替代 apiClient | apiClient 调 response.json() 对 PlainTextResponse 失败 | ✓ Good |
 | StatusBadge context prop 实体感知标签 | Task='成功' vs Run='已完成'，保持向后兼容 | ✓ Good |
 | react-syntax-highlighter Prism build 只读代码展示 | 40KB gzipped，零配置 | ✓ Good |
+| Unknown action types show f-string params summary | QA 可检查原始参数 | ✓ Good |
+| validate_syntax 防御性双重调用 | generate() + generate_and_save() 双重验证 | ✓ Good |
+| Short text (≤4 chars) exact=True, long text fuzzy | 短文本精确匹配，长文本模糊匹配 | ✓ Good |
+| 相对 XPath priority: data-testid > id > absolute fallback | 语义优先的定位器策略 | ✓ Good |
+| PUA filtering at extract() entry (U+E000-U+F8FF) | 过滤 icon font 渲染字符 | ✓ Good |
+| Content-matching _apply_fix replaces line-number fix | 启用多行修复 + ast.parse rollback | ✓ Good |
+| Code locator extraction from failing line | 替代 error_output 正则猜测 | ✓ Good |
+| Structured JSON LLM repair {target_snippet, replacement} | 明确修复结构 | ✓ Good |
+| Mock LLMHealer at class level for E2E tests | patch at backend.core.self_healing_runner.LLMHealer | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-25 — v0.10.7 milestone created*
+*Last updated: 2026-04-27 — v0.10.7 milestone complete*

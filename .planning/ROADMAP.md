@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🔄 **v0.10.7 生成测试代码行为优化** — Phases 105-107 (in progress)
+- ✅ **v0.10.7 生成测试代码行为优化** — Phases 105-107 (shipped 2026-04-27)
 - ✅ **v0.10.6 生成测试代码稳定可用** — Phases 102-104 (shipped 2026-04-25)
 - ✅ **v0.10.5 生成测试代码修复与优化** — Phases 99-101 (shipped 2026-04-24)
 - ✅ **v0.10.4 Playwright 代码验证与任务管理集成** — Phases 97-98 (shipped 2026-04-24)
@@ -24,20 +24,12 @@
 
 ## Phases
 
-<details open>
-<summary>🔄 v0.10.7 生成测试代码行为优化 (Phases 105-107) — IN PROGRESS</summary>
+<details>
+<summary>✅ v0.10.7 生成测试代码行为优化 (Phases 105-107) — SHIPPED 2026-04-27</summary>
 
-- [x] Phase 105: 代码生成质量修复 — TRANSLATE + INDENT
-  **Plans:** 2 plans (Wave 1 parallel)
-  - [x] 105-01-PLAN.md — ActionTranslator 翻译质量修复：未知操作参数摘要 + 核心类型回归测试 (TRANSLATE-01, TRANSLATE-02)
-  - [x] 105-02-PLAN.md — PlaywrightCodeGenerator 缩进修正 + validate_syntax 集成 (INDENT-01, INDENT-02, INDENT-03)
-- [x] Phase 106: 定位器质量优化 — LOCATOR (2/2 plans) — completed 2026-04-26
-  - [x] 106-01-PLAN.md — TDD: icon font 过滤 + exact 阈值 + 相对 XPath 实现 (LOCATOR-01, LOCATOR-02, LOCATOR-03, LOCATOR-04)
-  - [x] 106-02-PLAN.md — 下游测试断言同步 + 全量回归验证 (LOCATOR-01, LOCATOR-02, LOCATOR-03, LOCATOR-04)
-- [ ] Phase 107: 自愈修复增强 + E2E — HEAL + E2E
-  **Plans:** 2 plans
-  - [x] 107-01-PLAN.md — 自愈修复核心: 内容匹配多行替换 + DOM 精准映射 + LLM prompt 结构化 (HEAL-01, HEAL-02, HEAL-03, HEAL-04)
-  - [x] 107-02-PLAN.md — E2E healing pipeline 测试 + 全量回归验证 (E2E-01, E2E-02)
+- [x] Phase 105: 代码生成质量修复 (2/2 plans) — completed 2026-04-25
+- [x] Phase 106: 定位器质量优化 (2/2 plans) — completed 2026-04-26
+- [x] Phase 107: 自愈修复增强E2E (2/2 plans) — completed 2026-04-27
 
 </details>
 
@@ -115,4 +107,4 @@
 </details>
 
 ---
-*Roadmap updated: 2026-04-27 — Phase 107 plans created*
+*Roadmap updated: 2026-04-27 — v0.10.7 shipped*
