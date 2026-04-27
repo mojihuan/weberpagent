@@ -597,6 +597,13 @@ async def run_agent_background(
                     if effective_target_url
                     else None
                 )
+                # ASRT-02: 传递任务断言给代码生成器
+                _assertions_config = None
+                if run and run.task and run.task.assertions:
+                    _assertions_config = [
+                        {"type": a.type, "expected": a.expected, "name": a.name}
+                        for a in run.task.assertions
+                    ]
                 code_path = await code_generator.generate_and_save(
                     run_id=run_id,
                     task_name=task_name,
@@ -604,6 +611,7 @@ async def run_agent_background(
                     agent_history=result,
                     llm_config=get_code_gen_llm_config(),
                     precondition_config=_precondition_config,
+                    assertions_config=_assertions_config,
                 )
                 await run_repo.update_generated_code_path(run_id, code_path)
                 logger.info(f"[{run_id}] 生成 Playwright 代码: {code_path}")
