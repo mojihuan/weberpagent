@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10.7
 milestone_name: milestone
-status: Phase complete — ready for verification
-stopped_at: Completed 106-02-PLAN.md
-last_updated: "2026-04-26T14:33:58.231Z"
+status: Ready to execute
+stopped_at: Completed 107-01-PLAN.md
+last_updated: "2026-04-27T01:39:06.630Z"
 progress:
-  total_phases: 82
+  total_phases: 83
   completed_phases: 82
-  total_plans: 192
-  completed_plans: 192
+  total_plans: 194
+  completed_plans: 193
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-25)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 106 — 定位器质量优化
+**Current focus:** Phase 107 — 自愈修复增强E2E
 
 ## Last Shipped
 
@@ -33,8 +33,8 @@ See: .planning/PROJECT.md (updated 2026-04-25)
 
 ## Current Position
 
-Phase: 106 (定位器质量优化) — COMPLETE
-Plan: 2 of 2 (all done)
+Phase: 107 (自愈修复增强E2E) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -60,6 +60,9 @@ v0.10.7 new context:
 - [Phase 106]: D-03: Relative XPath priority: data-testid > id > absolute path fallback
 - [Phase 106]: D-05/D-06: PUA filtering at extract() entry, basic range U+E000-U+F8FF only
 - [Phase 106]: Plan 02: No downstream test changes needed -- all MockDOMElement instances lack semantic attributes, so Plan 01 absolute XPath fallback correctly applies
+- [Phase 107]: Content-matching _apply_fix replaces line-number fix (HEAL-01/HEAL-04), enables multi-line repair with ast.parse rollback
+- [Phase 107]: Code locator extraction from failing line for DOM search (HEAL-02), replaces step-number guessing from error_output
+- [Phase 107]: Structured JSON LLM repair response {target_snippet, replacement} with 20-line context (HEAL-03)
 
 ### Pending Todos
 
@@ -71,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-26T14:33:58.227Z
-Stopped at: Completed 106-02-PLAN.md
+Last session: 2026-04-27T01:39:06.626Z
+Stopped at: Completed 107-01-PLAN.md
 Resume file: None

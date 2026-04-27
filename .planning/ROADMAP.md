@@ -36,7 +36,7 @@
   - [x] 106-02-PLAN.md — 下游测试断言同步 + 全量回归验证 (LOCATOR-01, LOCATOR-02, LOCATOR-03, LOCATOR-04)
 - [ ] Phase 107: 自愈修复增强 + E2E — HEAL + E2E
   **Plans:** 2 plans
-  - [ ] 107-01-PLAN.md — 自愈修复核心: 内容匹配多行替换 + DOM 精准映射 + LLM prompt 结构化 (HEAL-01, HEAL-02, HEAL-03, HEAL-04)
+  - [x] 107-01-PLAN.md — 自愈修复核心: 内容匹配多行替换 + DOM 精准映射 + LLM prompt 结构化 (HEAL-01, HEAL-02, HEAL-03, HEAL-04)
   - [ ] 107-02-PLAN.md — E2E healing pipeline 测试 + 全量回归验证 (E2E-01, E2E-02)
 
 </details>
