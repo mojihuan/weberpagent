@@ -11,9 +11,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
 from backend.core.action_translator import ActionTranslator, TranslatedAction
 from backend.core.code_generator import PlaywrightCodeGenerator
+from backend.core.llm_healer import LLMHealer
+from backend.core.locator_chain_builder import LocatorChainBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +45,21 @@ class StepCodeBuffer:
     3. 所有步骤完成后调用 assemble() 组装完整测试文件
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        base_dir: str = "",
+        run_id: str = "",
+        llm_config: dict | None = None,
+    ) -> None:
         self._records: list[StepRecord] = []
         self._next_index: int = 0
         self._translator = ActionTranslator()
         self._generator = PlaywrightCodeGenerator()
+        self._chain_builder = LocatorChainBuilder()
+        self._base_dir = base_dir
+        self._run_id = run_id
+        self._llm_config = llm_config or {}
 
     def append_step(self, action_dict: dict, duration: float | None = None) -> None:
         """同步翻译 action_dict 并存储为 StepRecord。
@@ -69,6 +82,78 @@ class StepCodeBuffer:
         record = StepRecord(
             action=translated,
             wait_before=wait_code,
+            step_index=self._next_index,
+        )
+        self._records.append(record)
+        self._next_index += 1
+
+    def _is_weak_step(self, action_dict: dict, action_type: str) -> tuple[bool, tuple[str, ...]]:
+        """检测弱步骤，返回 (needs_healing, failed_locators)。
+
+        弱步骤条件 (per D-07): elem=None 或 <=1 locator。
+        仅对 click/input 操作有意义。
+
+        Args:
+            action_dict: model_actions() 返回的单步操作字典。
+            action_type: 操作类型（click, input 等）。
+
+        Returns:
+            元组 (needs_healing, failed_locators)。
+        """
+        elem = action_dict.get("interacted_element")
+        if elem is None:
+            return True, ()
+        locators = self._chain_builder.extract(elem, action_type)
+        if len(locators) <= 1:
+            return True, tuple(locators)
+        return False, ()
+
+    async def append_step_async(
+        self,
+        action_dict: dict,
+        duration: float | None = None,
+    ) -> None:
+        """翻译操作并尝试修复弱步骤（elem=None 或 <=1 locator）。
+
+        仅对 click/input 操作检测弱步骤。
+        DOM 快照路径: {base_dir}/{run_id}/dom/step_{n}.txt（1-indexed）。
+        修复失败时 fallback 到原始翻译结果。
+        """
+        action_type = ActionTranslator._identify_action_type(action_dict)
+        translated = self._translator.translate(action_dict)
+
+        # 仅 click/input 需要弱步骤检测（per code_generator.py D-07）
+        if action_type in ("click", "input"):
+            needs_healing, failed_locators = self._is_weak_step(action_dict, action_type)
+            if needs_healing:
+                # DOM 快照路径（1-indexed per Pitfall 1）
+                dom_path = Path(self._base_dir) / self._run_id / "dom" / f"step_{self._next_index + 1}.txt"
+                if dom_path.exists():
+                    dom_content = dom_path.read_text(encoding="utf-8")
+                    action_params = action_dict.get(action_type, {})
+                    try:
+                        healer = LLMHealer(self._llm_config)
+                        result = await healer.heal(
+                            action_type, failed_locators, dom_content, action_params
+                        )
+                        if result.success:
+                            translated = self._translator.translate_with_llm(
+                                action_dict, result.code_snippet
+                            )
+                            logger.info(
+                                f"[{self._run_id}] Step {self._next_index + 1} "
+                                f"LLM 修复成功"
+                            )
+                    except Exception as exc:
+                        logger.warning(
+                            f"[{self._run_id}] Step {self._next_index + 1} "
+                            f"LLM 修复异常: {exc}"
+                        )
+
+        wait_before = self._derive_wait(action_type, duration)
+        record = StepRecord(
+            action=translated,
+            wait_before=wait_before,
             step_index=self._next_index,
         )
         self._records.append(record)
