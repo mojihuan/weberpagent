@@ -314,27 +314,23 @@ class TestAssertionTranslation:
         assert "to_be_visible" in code
         assert "# Assertions" in code
 
-    # ASRT-02: generate_and_save() passes assertions_config through
+    # ASRT-02: StepCodeBuffer.assemble() passes assertions_config through
 
-    async def test_generate_and_save_passes_assertions_config(self) -> None:
-        """generate_and_save() passes assertions_config to generate()."""
-        generator = PlaywrightCodeGenerator()
-        mock_history = MagicMock()
-        mock_history.model_actions.return_value = [
-            {"click": {"index": 5}, "interacted_element": None},
-        ]
+    async def test_buffer_assemble_passes_assertions_config(self) -> None:
+        """StepCodeBuffer.assemble() passes assertions_config to generate()."""
+        from backend.core.step_code_buffer import StepCodeBuffer
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            code_path = await generator.generate_and_save(
-                run_id="asrt02",
-                task_name="断言传递",
-                task_id="t_asrt02",
-                agent_history=mock_history,
-                base_dir=tmpdir,
-                assertions_config=_url_contains_config(),
-            )
+        buffer = StepCodeBuffer()
+        navigate_action = {"navigate": {"url": "https://erp.example.com"}}
+        buffer.append_step(navigate_action)
 
-            content = Path(code_path).read_text(encoding="utf-8")
-            assert "re.compile" in content
-            assert "/sales" in content
-            ast.parse(content)
+        content = buffer.assemble(
+            run_id="asrt02",
+            task_name="断言传递",
+            task_id="t_asrt02",
+            assertions_config=_url_contains_config(),
+        )
+
+        assert "re.compile" in content
+        assert "/sales" in content
+        ast.parse(content)
