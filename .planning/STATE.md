@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.9
 milestone_name: 逐步代码生成
 status: planning
-last_updated: "2026-04-28T05:36:30.900Z"
+last_updated: "2026-04-28T06:24:36.312Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 112 — 集成接入
+**Current focus:** Phase 113 — e2e
 
 ## Last Shipped
 
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: 112 (集成接入) — EXECUTING
+Phase: 113 (e2e) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -56,6 +56,8 @@ Key v0.10.8 decisions (carried forward):
 - [Phase 112]: [Phase 112]: buffer.append_step_async failure is non-blocking, logged and swallowed
 - [Phase 112]: Removed generate_and_save/_heal_weak_steps from code_generator.py since logic moved to StepCodeBuffer.append_step_async
 - [Phase 112]: Downstream tests for config passthrough updated to use StepCodeBuffer.assemble() pattern
+- [Phase 113-e2e]: Replaced class Config with ConfigDict across all 8 Pydantic response models to eliminate deprecation warnings
+- [Phase 113-e2e]: Updated test docstrings to reference StepCodeBuffer.assemble() instead of removed generate_and_save()
 
 ### Pending Todos
 
@@ -67,5 +69,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T05:36:30.898Z
+Last session: 2026-04-28T06:24:36.310Z
 Status: Roadmap created, 3 phases (111-113), ready to plan Phase 111

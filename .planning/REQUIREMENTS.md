@@ -23,7 +23,7 @@
 
 - [x] **VAL-01**: StepCodeBuffer 单元测试 — append 同步/异步、wait 推导、assemble 组装、空 buffer、语法验证
 - [x] **VAL-02**: 集成测试 — buffer 在 step_callback 上下文中累积步骤、弱步骤异步修复
-- [ ] **VAL-03**: 全量回归测试通过 + code_generator 现有测试更新以匹配新 API
+- [x] **VAL-03**: 全量回归测试通过 + code_generator 现有测试更新以匹配新 API
 
 ## Future Requirements (Deferred)
 
@@ -49,7 +49,7 @@
 | INTEG-03 | 112 | Complete |
 | VAL-01 | 111 | Complete |
 | VAL-02 | 112 | Complete |
-| VAL-03 | 113 | Pending |
+| VAL-03 | 113 | Complete |
 
 ---
 *Last updated: 2026-04-28 — v0.10.9 requirements mapped to phases*

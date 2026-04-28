@@ -124,7 +124,10 @@ Plans:
   1. 全量 pytest 回归测试通过（0 failed, 0 errors）
   2. code_generator 现有测试全部更新 — generate_and_save 和 _heal_weak_steps 相关测试已删除，generate() 测试保留
   3. AI 执行任务后生成的 Playwright 代码文件包含正确的逐步翻译结果（非空操作），语法验证通过
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 113-01-PLAN.md — Docstring cleanup + Pydantic ConfigDict fix
+- [ ] 113-02-PLAN.md — E2E integration test + full regression
 
 ## Progress
 
@@ -134,8 +137,8 @@ Phases execute in numeric order: 111 -> 112 -> 113
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 111. StepCodeBuffer 核心实现 | 2/2 | Complete    | 2026-04-28 |
-| 112. 集成接入 | 2/2 | Complete   | 2026-04-28 |
-| 113. E2E 验证与回归 | 0/? | Not started | - |
+| 112. 集成接入 | 2/2 | Complete    | 2026-04-28 |
+| 113. E2E 验证与回归 | 1/2 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-04-28 — Phase 112 plans created (2 plans, 1 wave, parallel)*
