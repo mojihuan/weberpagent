@@ -34,6 +34,7 @@ from backend.core.report_service import ReportService
 from backend.core.assertion_service import AssertionService
 from backend.core.precondition_service import PreconditionService
 from backend.core.external_precondition_bridge import execute_all_assertions
+from backend.core.step_code_buffer import StepCodeBuffer
 from backend.db.repository import AssertionResultRepository, PreconditionResultRepository
 
 logger = logging.getLogger(__name__)
@@ -369,7 +370,14 @@ async def run_agent_background(
 
         step_count = 0
 
-        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None):
+        # Phase 112: 创建 StepCodeBuffer 逐步翻译 (per INTEG-01/D-01)
+        code_buffer = StepCodeBuffer(
+            base_dir="outputs",
+            run_id=run_id,
+            llm_config=get_code_gen_llm_config(),
+        )
+
+        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None, action_dict: dict | None = None):
             nonlocal step_count, global_seq
             step_count = step
             logger.info(f"[{run_id}] 步骤 {step}: action={action[:50]}...")
@@ -416,6 +424,21 @@ async def run_agent_background(
                 step_stats=step_stats_dict,
             )
             await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
+
+            # Phase 112: 逐步翻译 — buffer.append_step_async (per INTEG-01/D-02)
+            if action_dict is not None:
+                _duration = None
+                if step_stats_json:
+                    try:
+                        _stats = json.loads(step_stats_json)
+                        _ms = _stats.get("duration_ms", 0)
+                        _duration = _ms / 1000.0 if _ms > 0 else None
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+                try:
+                    await code_buffer.append_step_async(action_dict, duration=_duration)
+                except Exception as _buf_err:
+                    logger.error(f"[{run_id}] buffer append 失败（非阻塞）: {_buf_err}")
 
         try:
             logger.info(f"[{run_id}] 开始执行 agent_service.run_with_cleanup...")
@@ -587,34 +610,34 @@ async def run_agent_background(
             await report_service.generate_report(run_id)
             logger.info(f"[{run_id}] 报告已生成")
 
-            # === Code Generation (Phase 82, CODE-01 / Phase 84 LLM healing) ===
+            # === Code Generation: buffer.assemble() + write (Phase 112, INTEG-02/D-03) ===
             try:
-                from backend.core.code_generator import PlaywrightCodeGenerator
-                code_generator = PlaywrightCodeGenerator()
-                # PREC-02: 传递 effective_target_url 作为前置条件
+                from pathlib import Path as PathLib
                 _precondition_config = (
                     {"target_url": effective_target_url}
                     if effective_target_url
                     else None
                 )
-                # ASRT-02: 传递任务断言给代码生成器
                 _assertions_config = None
                 if run and run.task and run.task.assertions:
                     _assertions_config = [
                         {"type": a.type, "expected": a.expected, "name": a.name}
                         for a in run.task.assertions
                     ]
-                code_path = await code_generator.generate_and_save(
+                _content = code_buffer.assemble(
                     run_id=run_id,
                     task_name=task_name,
                     task_id=task_id,
-                    agent_history=result,
-                    llm_config=get_code_gen_llm_config(),
                     precondition_config=_precondition_config,
                     assertions_config=_assertions_config,
                 )
-                await run_repo.update_generated_code_path(run_id, code_path)
-                logger.info(f"[{run_id}] 生成 Playwright 代码: {code_path}")
+                _output_dir = PathLib("outputs") / run_id / "generated"
+                _output_dir.mkdir(parents=True, exist_ok=True)
+                _output_path = _output_dir / f"test_{run_id}.py"
+                _output_path.write_text(_content, encoding="utf-8")
+                _code_path = str(_output_path)
+                await run_repo.update_generated_code_path(run_id, _code_path)
+                logger.info(f"[{run_id}] 生成 Playwright 代码: {_code_path}")
             except Exception as e:
                 logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
 
