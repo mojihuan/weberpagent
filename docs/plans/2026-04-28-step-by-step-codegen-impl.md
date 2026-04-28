@@ -1,0 +1,831 @@
+# 逐步代码生成 Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** 将 Playwright 代码生成从"事后一次性翻译"改为"每步成功后即时翻译"，提高生成代码的可运行率。
+
+**Architecture:** 新增 `StepCodeBuffer` 类在 agent step_callback 中逐步翻译和缓存代码行。agent 完成后由 buffer 组装完整测试文件。复用现有 `ActionTranslator`，去掉 `_heal_weak_steps` 批量修复，改为即时 LLM 修复。
+
+**Tech Stack:** Python 3.11, dataclasses, asyncio, Playwright
+
+**Design doc:** `docs/plans/2026-04-28-step-by-step-codegen-design.md`
+
+---
+
+### Task 1: Create StepCodeBuffer — dataclass + append_step (synchronous, no LLM)
+
+**Files:**
+- Create: `backend/core/step_code_buffer.py`
+- Create: `backend/tests/unit/test_step_code_buffer.py`
+
+**Step 1: Write the failing test**
+
+```python
+# backend/tests/unit/test_step_code_buffer.py
+"""Tests for StepCodeBuffer — incremental Playwright code generation."""
+
+import pytest
+
+from backend.core.step_code_buffer import BufferedStep, StepCodeBuffer
+
+
+def _make_click_action(xpath: str = "/html/body/button", ax_name: str = "Submit") -> dict:
+    """Build a click action dict with minimal interacted_element."""
+    from unittest.mock import MagicMock
+    elem = MagicMock()
+    elem.x_path = xpath
+    elem.node_name = "BUTTON"
+    elem.attributes = {}
+    elem.ax_name = ax_name
+    return {"click": {"index": 5}, "interacted_element": elem}
+
+
+def _make_navigate_action(url: str = "https://example.com/page") -> dict:
+    return {"navigate": {"url": url}, "interacted_element": None}
+
+
+def _make_input_action(text: str = "hello", xpath: str = "/html/body/input",
+                       placeholder: str = "Enter text") -> dict:
+    from unittest.mock import MagicMock
+    elem = MagicMock()
+    elem.x_path = xpath
+    elem.node_name = "INPUT"
+    elem.attributes = {"placeholder": placeholder}
+    elem.ax_name = placeholder
+    return {"input": {"text": text, "index": 3}, "interacted_element": elem}
+
+
+class TestStepCodeBufferAppend:
+    def test_append_single_click(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        assert len(buf.steps) == 1
+        assert buf.steps[0].step_index == 1
+        assert buf.steps[0].action.action_type == "click"
+        assert not buf.steps[0].action.is_comment
+
+    def test_append_multiple_steps(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        buf.append_step(_make_navigate_action(), step_index=2)
+        buf.append_step(_make_input_action(), step_index=3)
+        assert len(buf.steps) == 3
+        assert buf.steps[0].action.action_type == "click"
+        assert buf.steps[1].action.action_type == "navigate"
+        assert buf.steps[2].action.action_type == "input"
+
+    def test_append_preserves_prev_action_type(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_navigate_action(), step_index=1)
+        buf.append_step(_make_click_action(), step_index=2)
+        # After navigate, should have smart wait
+        assert buf.steps[1].wait_before is not None
+        assert "wait_for_load_state" in buf.steps[1].wait_before
+
+
+class TestStepCodeBufferWaitDerivation:
+    def test_no_wait_first_step(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        assert buf.steps[0].wait_before is None
+
+    def test_wait_after_navigate(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_navigate_action(), step_index=1)
+        buf.append_step(_make_click_action(), step_index=2)
+        assert "wait_for_load_state" in buf.steps[1].wait_before
+
+    def test_wait_based_on_elapsed_time(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        buf.append_step(_make_click_action(ax_name="Next"), step_index=2, elapsed_ms=1500)
+        assert buf.steps[1].wait_before is not None
+        assert "1500" in buf.steps[1].wait_before
+
+    def test_no_wait_short_elapsed(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        buf.append_step(_make_click_action(ax_name="Next"), step_index=2, elapsed_ms=500)
+        assert buf.steps[0].wait_before is None
+        # 500ms is below 800ms threshold, but click->click with no elapsed
+        # may still get a small wait. Check the specific behavior.
+
+    def test_small_wait_after_click(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        buf.append_step(_make_click_action(ax_name="Next"), step_index=2)
+        # Click followed by click: should get small 300ms wait
+        assert buf.steps[1].wait_before is not None
+        assert "300" in buf.steps[1].wait_before
+
+
+class TestStepCodeBufferAssemble:
+    def test_assemble_basic(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_navigate_action(), step_index=1)
+        buf.append_step(_make_click_action(), step_index=2)
+
+        header = "# Generated by aiDriveUITest\n# Run ID: test123"
+        code = buf.assemble(header=header)
+        assert "# Generated by aiDriveUITest" in code
+        assert "page.goto" in code
+        assert "click()" in code
+
+    def test_assemble_with_precondition(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        code = buf.assemble(header="# Test", precondition='    page.goto("https://example.com")')
+        assert "page.goto" in code
+
+    def test_assemble_with_assertions(self):
+        buf = StepCodeBuffer()
+        buf.append_step(_make_click_action(), step_index=1)
+        assertions = "    # Assertions\n    try:\n        assert True\n    except Exception:\n        pass"
+        code = buf.assemble(header="# Test", assertions=assertions)
+        assert "Assertions" in code
+
+    def test_assemble_syntax_valid(self):
+        import ast
+        buf = StepCodeBuffer()
+        buf.append_step(_make_navigate_action(), step_index=1)
+        buf.append_step(_make_click_action(), step_index=2)
+        buf.append_step(_make_input_action(), step_index=3)
+        code = buf.assemble(header="# Test")
+        # Wrap in function for valid syntax
+        full = f"from playwright.sync_api import Page\ndef test_x(page: Page):\n{code}"
+        ast.parse(full)  # Should not raise
+
+    def test_assemble_empty_buffer(self):
+        buf = StepCodeBuffer()
+        code = buf.assemble(header="# Test")
+        assert "# Test" in code
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `uv run pytest backend/tests/unit/test_step_code_buffer.py -v`
+Expected: FAIL — `ModuleNotFoundError: No module named 'backend.core.step_code_buffer'`
+
+**Step 3: Write minimal implementation**
+
+```python
+# backend/core/step_code_buffer.py
+"""StepCodeBuffer — incremental Playwright code generation in agent step_callback.
+
+Translates each agent action to Playwright code immediately upon step completion,
+storing results in an in-memory buffer. After agent finishes, assembles the full
+test file from buffered steps.
+
+Replaces PlaywrightCodeGenerator._heal_weak_steps() with per-step immediate
+translation, providing fresher DOM context for weak step healing.
+"""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+
+from backend.core.action_translator import ActionTranslator, TranslatedAction
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BufferedStep:
+    """Single buffered step with its Playwright translation and optional wait."""
+
+    action: TranslatedAction
+    wait_before: str | None = None
+    step_index: int = 0
+
+
+class StepCodeBuffer:
+    """Incremental code buffer — append one step at a time in step_callback.
+
+    Usage:
+        buffer = StepCodeBuffer()
+        # In step_callback:
+        buffer.append_step(action_dict, step_index=n, elapsed_ms=ms)
+        # After agent completes:
+        code = buffer.assemble(header=header, precondition=prec, assertions=asserts)
+    """
+
+    _NAVIGATE_WAIT = '    page.wait_for_load_state("networkidle", timeout=10000)'
+    _CLICK_SMALL_WAIT_MS = 300
+    _ELAPSED_THRESHOLD_MS = 800
+
+    def __init__(self) -> None:
+        self.steps: list[BufferedStep] = []
+        self._translator = ActionTranslator()
+        self._prev_action_type: str | None = None
+
+    def append_step(
+        self,
+        action: dict,
+        step_index: int,
+        elapsed_ms: int = 0,
+        llm_snippet: str = "",
+    ) -> None:
+        """Translate a single agent action and append to buffer.
+
+        Args:
+            action: model_actions() entry with action params + interacted_element.
+            step_index: 1-based step number.
+            elapsed_ms: Milliseconds since previous step (for wait derivation).
+            llm_snippet: Optional LLM-healed code for weak steps.
+        """
+        translated = self._translator.translate_with_llm(action, llm_snippet)
+        wait = self._derive_wait(elapsed_ms, self._prev_action_type)
+        self.steps.append(BufferedStep(
+            action=translated,
+            wait_before=wait,
+            step_index=step_index,
+        ))
+        self._prev_action_type = translated.action_type
+
+    def _derive_wait(
+        self,
+        elapsed_ms: int,
+        prev_action_type: str | None,
+    ) -> str | None:
+        """Derive a Playwright wait line from timing and previous action type."""
+        if prev_action_type is None:
+            return None
+
+        if prev_action_type == "navigate":
+            return self._NAVIGATE_WAIT
+
+        if elapsed_ms > self._ELAPSED_THRESHOLD_MS:
+            return f"    page.wait_for_timeout({elapsed_ms})"
+
+        if prev_action_type == "click":
+            return f"    page.wait_for_timeout({self._CLICK_SMALL_WAIT_MS})"
+
+        return None
+
+    def assemble(
+        self,
+        header: str,
+        precondition: str | None = None,
+        assertions: str | None = None,
+    ) -> str:
+        """Assemble buffered steps into a complete test file body.
+
+        Returns the test file content (without imports — caller adds those).
+        """
+        parts: list[str] = [header, ""]
+
+        if precondition:
+            parts.append(precondition)
+
+        for step in self.steps:
+            if step.wait_before:
+                parts.append(step.wait_before)
+            parts.append(step.action.code)
+
+        if assertions:
+            parts.append(assertions)
+
+        return "\n".join(parts) + "\n"
+```
+
+**Step 4: Run test to verify it passes**
+
+Run: `uv run pytest backend/tests/unit/test_step_code_buffer.py -v`
+Expected: PASS (all tests green)
+
+**Step 5: Commit**
+
+```bash
+git add backend/core/step_code_buffer.py backend/tests/unit/test_step_code_buffer.py
+git commit -m "feat: add StepCodeBuffer for incremental code generation"
+```
+
+---
+
+### Task 2: Add async LLM healing to StepCodeBuffer.append_step
+
+**Files:**
+- Modify: `backend/core/step_code_buffer.py`
+- Modify: `backend/tests/unit/test_step_code_buffer.py`
+
+**Step 1: Write the failing test**
+
+```python
+# Add to backend/tests/unit/test_step_code_buffer.py
+
+class TestStepCodeBufferAsyncHealing:
+    @pytest.mark.asyncio
+    async def test_weak_step_gets_llm_healing(self):
+        """When interacted_element is None, async append triggers LLM healing."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        buf = StepCodeBuffer()
+        weak_action = {"click": {"index": 5}, "interacted_element": None}
+
+        # Mock LLMHealer to return a successful result
+        mock_result = MagicMock()
+        mock_result.success = True
+        mock_result.code_snippet = 'page.locator("table >> text=Submit").click()'
+
+        with patch("backend.core.step_code_buffer.LLMHealer") as MockHealer:
+            MockHealer.return_value.heal = AsyncMock(return_value=mock_result)
+            await buf.append_step_async(
+                weak_action, step_index=1,
+                dom_content="<button>Submit</button>",
+                llm_config={"model": "test"},
+            )
+
+        assert len(buf.steps) == 1
+        assert "Submit" in buf.steps[0].action.code
+
+    @pytest.mark.asyncio
+    async def test_strong_step_skips_healing(self):
+        """When element has good locators, no LLM call is made."""
+        from unittest.mock import patch
+
+        buf = StepCodeBuffer()
+        strong_action = _make_click_action()
+
+        with patch("backend.core.step_code_buffer.LLMHealer") as MockHealer:
+            await buf.append_step_async(
+                strong_action, step_index=1,
+                dom_content="<button>OK</button>",
+                llm_config={"model": "test"},
+            )
+            MockHealer.assert_not_called()
+
+        assert len(buf.steps) == 1
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `uv run pytest backend/tests/unit/test_step_code_buffer.py::TestStepCodeBufferAsyncHealing -v`
+Expected: FAIL — `AttributeError: 'StepCodeBuffer' has no attribute 'append_step_async'`
+
+**Step 3: Write implementation**
+
+Add to `StepCodeBuffer` class in `backend/core/step_code_buffer.py`:
+
+```python
+async def append_step_async(
+    self,
+    action: dict,
+    step_index: int,
+    elapsed_ms: int = 0,
+    dom_content: str = "",
+    llm_config: dict | None = None,
+) -> None:
+    """Async variant: detects weak steps and heals with LLM before translating.
+
+    Called from step_callback with fresh DOM content.
+    Falls back to sync translate if no LLM config or healing fails.
+    """
+    llm_snippet = ""
+
+    if llm_config is not None and dom_content:
+        elem = action.get("interacted_element")
+        action_type = self._translator._identify_action_type(action)
+
+        if action_type in ("click", "input") and self._is_weak(action, action_type):
+            llm_snippet = await self._heal_step(
+                action, action_type, dom_content, llm_config
+            )
+
+    self.append_step(action, step_index, elapsed_ms=elapsed_ms, llm_snippet=llm_snippet)
+
+def _is_weak(self, action: dict, action_type: str) -> bool:
+    """Check if a step is weak (elem=None or <=1 locator)."""
+    elem = action.get("interacted_element")
+    if elem is None:
+        return True
+    locators = self._translator._chain_builder.extract(elem, action_type)
+    return len(locators) <= 1
+
+async def _heal_step(
+    self,
+    action: dict,
+    action_type: str,
+    dom_content: str,
+    llm_config: dict,
+) -> str:
+    """Call LLMHealer for a single weak step. Returns code snippet or empty string."""
+    from backend.core.llm_healer import LLMHealer
+
+    elem = action.get("interacted_element")
+    failed_locators: tuple[str, ...] = ()
+    if elem is not None:
+        locators = self._translator._chain_builder.extract(elem, action_type)
+        failed_locators = tuple(locators)
+
+    action_params = action.get(action_type, {})
+
+    try:
+        healer = LLMHealer(llm_config)
+        result = await healer.heal(action_type, failed_locators, dom_content, action_params)
+        if result.success:
+            logger.info(f"Step LLM healing succeeded: {result.code_snippet[:60]}")
+            return result.code_snippet
+    except Exception as exc:
+        logger.warning(f"Step LLM healing failed: {exc}")
+
+    return ""
+```
+
+Also add `from backend.core.llm_healer import LLMHealer` import (inside method to avoid circular imports).
+
+**Step 4: Run test to verify it passes**
+
+Run: `uv run pytest backend/tests/unit/test_step_code_buffer.py -v`
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add backend/core/step_code_buffer.py backend/tests/unit/test_step_code_buffer.py
+git commit -m "feat: add async LLM healing to StepCodeBuffer for weak steps"
+```
+
+---
+
+### Task 3: Wire StepCodeBuffer into runs.py step_callback
+
+**Files:**
+- Modify: `backend/api/routes/runs.py:370-430` (step_callback) and `590-619` (code generation)
+- Create: `backend/tests/unit/test_step_codegen_integration.py`
+
+**Step 1: Write the failing test**
+
+```python
+# backend/tests/unit/test_step_codegen_integration.py
+"""Integration tests for StepCodeBuffer wired into run_agent_background."""
+
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from backend.core.step_code_buffer import StepCodeBuffer
+
+
+def _make_mock_agent_output(action_type="click", action_params=None, elem=None):
+    """Create a mock agent output with action and optional interacted_element."""
+    output = MagicMock()
+    action_model = MagicMock()
+    action_dict = {action_type: action_params or {"index": 5}}
+    if elem is not None:
+        action_dict["interacted_element"] = elem
+    action_model.model_dump.return_value = action_dict
+    output.action = [action_model]
+    output.evaluation_previous_goal = "Success"
+    output.memory = ""
+    output.next_goal = "Continue"
+    return output, action_dict
+
+
+class TestStepCodeBufferIntegration:
+    def test_buffer_accumulates_steps_from_actions(self):
+        """Verify buffer correctly accumulates multiple action translations."""
+        buf = StepCodeBuffer()
+
+        from unittest.mock import MagicMock
+        elem1 = MagicMock()
+        elem1.x_path = "/html/body/a"
+        elem1.node_name = "A"
+        elem1.attributes = {}
+        elem1.ax_name = "库存管理"
+
+        elem2 = MagicMock()
+        elem2.x_path = "/html/body/button"
+        elem2.node_name = "BUTTON"
+        elem2.attributes = {}
+        elem2.ax_name = "确认"
+
+        buf.append_step({"click": {"index": 5}, "interacted_element": elem1}, step_index=1)
+        buf.append_step({"click": {"index": 3}, "interacted_element": elem2}, step_index=2)
+
+        code = buf.assemble(header="# Test")
+        assert "库存管理" in code
+        assert "确认" in code
+        assert len(buf.steps) == 2
+
+    @pytest.mark.asyncio
+    async def test_async_healing_with_dom(self):
+        """Verify async append with DOM content triggers healing for weak steps."""
+        buf = StepCodeBuffer()
+        weak_action = {"click": {"index": 5}, "interacted_element": None}
+
+        mock_result = MagicMock()
+        mock_result.success = True
+        mock_result.code_snippet = 'page.locator("text=提交").click()'
+
+        with patch("backend.core.step_code_buffer.LLMHealer") as MockHealer:
+            MockHealer.return_value.heal = AsyncMock(return_value=mock_result)
+            await buf.append_step_async(
+                weak_action, step_index=1,
+                dom_content="<button>提交</button>",
+                llm_config={"model": "test"},
+            )
+
+        code = buf.assemble(header="# Test")
+        assert "提交" in code
+```
+
+**Step 2: Run test to verify it fails**
+
+Run: `uv run pytest backend/tests/unit/test_step_codegen_integration.py -v`
+Expected: These tests should PASS (they test the buffer in isolation, not the runs.py wiring)
+
+**Step 3: Wire buffer into runs.py**
+
+In `backend/api/routes/runs.py`, modify `run_agent_background()`:
+
+**A) Initialize buffer** — after `global_seq = 0` (around line 370), add:
+
+```python
+# Step-by-step code generation buffer
+from backend.core.step_code_buffer import StepCodeBuffer
+code_buffer = StepCodeBuffer()
+```
+
+**B) Populate buffer in step_callback** — in the inner `on_step` function (around line 372), before the SSE event, the step_callback in `agent_service.py` already has access to action dict. We need to pass it through.
+
+The key insight: `agent_service.py:step_callback` (line 393) already extracts `action_dict` (line 456-458). We need to pass this to the outer `on_step` callback.
+
+Modify `agent_service.py:step_callback` (line 586-590) to pass action_dict:
+
+```python
+# Current:
+if asyncio.iscoroutinefunction(on_step):
+    await on_step(step, action, reasoning, screenshot_path, step_stats_json)
+else:
+    on_step(step, action, reasoning, screenshot_path, step_stats_json)
+
+# Change to:
+if asyncio.iscoroutinefunction(on_step):
+    await on_step(step, action, reasoning, screenshot_path, step_stats_json, action_dict)
+else:
+    on_step(step, action, reasoning, screenshot_path, step_stats_json, action_dict)
+```
+
+**C) Append to buffer in runs.py on_step** — modify `on_step` signature (line 372) to accept `action_dict`:
+
+```python
+async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None, action_dict: dict | None = None):
+```
+
+Inside on_step, before SSE event (around line 416), add:
+
+```python
+# Step-by-step code generation: translate action immediately
+if action_dict is not None:
+    try:
+        elapsed_ms = 0
+        if step_stats_json:
+            try:
+                stats = json.loads(step_stats_json)
+                elapsed_ms = stats.get("duration_ms", 0)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        code_buffer.append_step(action_dict, step_index=step, elapsed_ms=elapsed_ms)
+    except Exception as e:
+        logger.warning(f"[{run_id}] 步骤 {step} 代码翻译失败（非阻塞）: {e}")
+```
+
+**D) Replace code generation block** — replace lines 590-619 (the `code_generator.generate_and_save()` block) with:
+
+```python
+# === Code Generation: assemble from buffer ===
+try:
+    from backend.core.code_generator import PlaywrightCodeGenerator
+    _precondition_config = (
+        {"target_url": effective_target_url}
+        if effective_target_url else None
+    )
+    _assertions_config = None
+    if run and run.task and run.task.assertions:
+        _assertions_config = [
+            {"type": a.type, "expected": a.expected, "name": a.name}
+            for a in run.task.assertions
+        ]
+
+    code_gen = PlaywrightCodeGenerator()
+    header = code_gen._build_header(run_id, task_name, task_id)
+    precondition = (
+        code_gen._build_precondition(_precondition_config["target_url"])
+        if _precondition_config and _precondition_config.get("target_url")
+        else None
+    )
+    assertions = (
+        code_gen._build_assertions(_assertions_config)
+        if _assertions_config else None
+    )
+
+    content = code_buffer.assemble(
+        header=header,
+        precondition=precondition,
+        assertions=assertions,
+    )
+
+    # Add imports based on content
+    import_lines = ["from playwright.sync_api import Page"]
+    if "expect(" in content:
+        import_lines[0] = "from playwright.sync_api import Page, expect"
+    if "re.compile" in content:
+        import_lines.append("import re")
+    if "_healer" in content:
+        import_lines.extend(["import logging", "from backend.core.healer_error import HealerError"])
+
+    func_name = code_gen._sanitize_function_name(task_name)
+    full_content = "\n".join(import_lines) + f"\n\ndef {func_name}(page: Page) -> None:\n"
+    if "_healer" in content:
+        full_content += '    """Auto-generated test from agent execution: ' + task_name + '"""\n'
+        full_content += '    _healer = logging.getLogger("healer")\n'
+    else:
+        full_content += '    """Auto-generated test from agent execution: ' + task_name + '"""\n'
+
+    # Remove header from content (we rebuilt it above), keep body lines
+    body_lines = content.split("\n")
+    # Find where the header ends (after the metadata comments)
+    body_start = 0
+    for i, line in enumerate(body_lines):
+        if line and not line.startswith("#") and line.strip():
+            body_start = i
+            break
+    body = "\n".join(body_lines[body_start:])
+    full_content += body + "\n"
+
+    if code_gen.validate_syntax(full_content):
+        logger.info(f"[{run_id}] 生成代码语法验证通过")
+    else:
+        logger.warning(f"[{run_id}] 生成代码语法验证失败，仍写入文件")
+
+    output_dir = Path("outputs") / run_id / "generated"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"test_{run_id}.py"
+    output_path.write_text(full_content, encoding="utf-8")
+
+    code_path = str(output_path)
+    await run_repo.update_generated_code_path(run_id, code_path)
+    logger.info(f"[{run_id}] 生成 Playwright 代码: {code_path}")
+except Exception as e:
+    logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
+```
+
+**Step 4: Run all tests**
+
+Run: `uv run pytest backend/tests/unit/test_step_code_buffer.py backend/tests/unit/test_step_codegen_integration.py -v`
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add backend/core/step_code_buffer.py backend/api/routes/runs.py backend/core/agent_service.py backend/tests/unit/test_step_codegen_integration.py
+git commit -m "feat: wire StepCodeBuffer into step_callback for incremental code generation"
+```
+
+---
+
+### Task 4: Simplify code_generator.py — remove _heal_weak_steps
+
+**Files:**
+- Modify: `backend/core/code_generator.py`
+- Modify: `backend/tests/unit/test_code_generator.py`
+
+**Step 1: Write failing tests for simplified generate_and_save**
+
+The existing `generate_and_save` used `agent_history.model_actions()` + `_heal_weak_steps`. We need to verify the simplified version works with pre-translated actions.
+
+```python
+# Add to backend/tests/unit/test_code_generator.py
+
+class TestCodeGeneratorSimplified:
+    def test_generate_with_translated_actions(self):
+        """Verify generate() works with pre-translated TranslatedAction list."""
+        from backend.core.action_translator import TranslatedAction
+
+        actions = [
+            TranslatedAction(
+                code='    page.goto("https://example.com")',
+                action_type="navigate",
+                is_comment=False,
+                has_locator=False,
+            ),
+            TranslatedAction(
+                code='    page.locator("xpath=/html/body/button").click()',
+                action_type="click",
+                is_comment=False,
+                has_locator=True,
+                locators=("page.locator('xpath=/html/body/button')",),
+            ),
+        ]
+
+        gen = PlaywrightCodeGenerator()
+        content = gen.generate(
+            run_id="test-run",
+            task_name="测试任务",
+            task_id="task-1",
+            actions=actions,
+        )
+
+        import ast
+        ast.parse(content)  # Should not raise
+        assert "page.goto" in content
+        assert "click()" in content
+```
+
+**Step 2: Run test**
+
+Run: `uv run pytest backend/tests/unit/test_code_generator.py::TestCodeGeneratorSimplified -v`
+Expected: PASS (generate() is unchanged, only generate_and_save is simplified)
+
+**Step 3: Remove _heal_weak_steps from generate_and_save**
+
+In `backend/core/code_generator.py`:
+- Remove the `_heal_weak_steps` method (lines 181-258)
+- Simplify `generate_and_save` to accept pre-translated actions from buffer
+- Keep `generate()` as-is (it still works with TranslatedAction list)
+
+Update `generate_and_save` signature to accept `list[TranslatedAction]` instead of `agent_history`:
+
+```python
+async def generate_and_save(
+    self,
+    run_id: str,
+    task_name: str,
+    task_id: str,
+    translated_actions: list[TranslatedAction],
+    precondition_config: dict | None = None,
+    assertions_config: list[dict] | None = None,
+) -> str:
+    """Save pre-translated actions to a test file.
+
+    Args:
+        translated_actions: Already-translated actions from StepCodeBuffer.
+
+    Returns:
+        Absolute path to generated file.
+    """
+    content = self.generate(
+        run_id, task_name, task_id, translated_actions,
+        precondition_config=precondition_config,
+        assertions_config=assertions_config,
+    )
+
+    if self.validate_syntax(content):
+        logger.info(f"[{run_id}] 生成代码语法验证通过")
+    else:
+        logger.warning(f"[{run_id}] 生成代码语法验证失败，仍写入文件")
+
+    output_dir = Path("outputs") / run_id / "generated"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"test_{run_id}.py"
+    output_path.write_text(content, encoding="utf-8")
+
+    result_path = str(output_path)
+    logger.info(f"[{run_id}] 生成 Playwright 代码: {result_path}")
+    return result_path
+```
+
+**Step 4: Run all code generator tests**
+
+Run: `uv run pytest backend/tests/unit/test_code_generator.py -v`
+Expected: Some tests referencing `_heal_weak_steps` or old `generate_and_save(agent_history=...)` may need updating. Fix them.
+
+**Step 5: Commit**
+
+```bash
+git add backend/core/code_generator.py backend/tests/unit/test_code_generator.py
+git commit -m "refactor: simplify code_generator by removing _heal_weak_steps"
+```
+
+---
+
+### Task 5: End-to-end validation
+
+**Files:**
+- No new files — manual testing
+
+**Step 1: Run full test suite**
+
+Run: `uv run pytest backend/tests/ -v --timeout=30`
+Expected: All tests pass. Some tests referencing old `_heal_weak_steps` or old `generate_and_save` API may need minor fixes.
+
+**Step 2: Manual test with real ERP**
+
+1. Start backend: `uv run uvicorn backend.api.main:app --reload --port 8080`
+2. Trigger a test run (e.g., 销售出库测试)
+3. Verify in logs:
+   - Each step shows no "代码翻译失败" warnings (or acceptable ones)
+   - Code is generated via buffer (not old batch method)
+   - Self-healing runs on the generated code
+4. Check generated code file: `outputs/{run_id}/generated/test_{run_id}.py`
+5. Verify:
+   - Smart waits present between steps
+   - No absolute XPath as primary locator (should use text/role/placeholder first)
+   - File is syntactically valid Python
+
+**Step 3: Commit any remaining fixes**
+
+```bash
+git add -A
+git commit -m "fix: address test failures from step-by-step codegen migration"
+```
