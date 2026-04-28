@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.9
 milestone_name: 逐步代码生成
 status: planning
-last_updated: "2026-04-28T05:26:56.209Z"
+last_updated: "2026-04-28T05:36:30.900Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -54,6 +54,8 @@ Key v0.10.8 decisions (carried forward):
 - [Phase 112]: Path imported as PathLib inside try block to avoid collision with top-level Path import
 - [Phase 112]: action_dict guarded with 'action_dict' in locals() since variable is inside conditional block
 - [Phase 112]: [Phase 112]: buffer.append_step_async failure is non-blocking, logged and swallowed
+- [Phase 112]: Removed generate_and_save/_heal_weak_steps from code_generator.py since logic moved to StepCodeBuffer.append_step_async
+- [Phase 112]: Downstream tests for config passthrough updated to use StepCodeBuffer.assemble() pattern
 
 ### Pending Todos
 
@@ -65,5 +67,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T05:26:56.207Z
+Last session: 2026-04-28T05:36:30.898Z
 Status: Roadmap created, 3 phases (111-113), ready to plan Phase 111

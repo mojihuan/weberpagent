@@ -17,12 +17,12 @@
 
 - [x] **INTEG-01**: runs.py step_callback 传递 action_dict 给 buffer.append_step()，每步即时翻译
 - [x] **INTEG-02**: runs.py 代码生成块替换为 buffer.assemble() + import/header 组装 + 文件写入
-- [ ] **INTEG-03**: code_generator.py 删除 generate_and_save 和 _heal_weak_steps 方法，runs.py 使用 buffer.assemble() + Path.write_text 写文件
+- [x] **INTEG-03**: code_generator.py 删除 generate_and_save 和 _heal_weak_steps 方法，runs.py 使用 buffer.assemble() + Path.write_text 写文件
 
 ### VALIDATION: 验证
 
 - [x] **VAL-01**: StepCodeBuffer 单元测试 — append 同步/异步、wait 推导、assemble 组装、空 buffer、语法验证
-- [ ] **VAL-02**: 集成测试 — buffer 在 step_callback 上下文中累积步骤、弱步骤异步修复
+- [x] **VAL-02**: 集成测试 — buffer 在 step_callback 上下文中累积步骤、弱步骤异步修复
 - [ ] **VAL-03**: 全量回归测试通过 + code_generator 现有测试更新以匹配新 API
 
 ## Future Requirements (Deferred)
@@ -46,9 +46,9 @@
 | CODEGEN-04 | 111 | Complete |
 | INTEG-01 | 112 | Complete |
 | INTEG-02 | 112 | Complete |
-| INTEG-03 | 112 | Pending |
+| INTEG-03 | 112 | Complete |
 | VAL-01 | 111 | Complete |
-| VAL-02 | 112 | Pending |
+| VAL-02 | 112 | Complete |
 | VAL-03 | 113 | Pending |
 
 ---
