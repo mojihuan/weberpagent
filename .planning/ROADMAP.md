@@ -101,7 +101,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. 单元测试覆盖 append 同步/异步、wait 推导 3 种策略、assemble 组装、空 buffer 边界、语法验证
 Plans:
 - [x] 111-01-PLAN.md — StepRecord + append_step 同步翻译 + _derive_wait 三策略 + assemble 组装 + 单元测试
-- [ ] 111-02-PLAN.md — append_step_async 弱步骤修复 + 异步修复单元测试
+- [x] 111-02-PLAN.md — append_step_async 弱步骤修复 + 异步修复单元测试
 
 ### Phase 112: 集成接入
 **Goal**: runs.py 使用 StepCodeBuffer 替代旧的一次性翻译，code_generator 接受预翻译结果
@@ -131,7 +131,7 @@ Phases execute in numeric order: 111 → 112 → 113
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 111. StepCodeBuffer 核心实现 | 1/2 | In Progress|  |
+| 111. StepCodeBuffer 核心实现 | 2/2 | Complete   | 2026-04-28 |
 | 112. 集成接入 | 0/? | Not started | - |
 | 113. E2E 验证与回归 | 0/? | Not started | - |
 

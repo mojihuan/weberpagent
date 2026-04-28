@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.9
 milestone_name: 逐步代码生成
 status: planning
-last_updated: "2026-04-28T02:43:56.183Z"
+last_updated: "2026-04-28T02:52:24.226Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -48,6 +48,9 @@ Key v0.10.8 decisions (carried forward):
 - [Phase 111]: StepRecord frozen dataclass with action/wait_before/step_index (per D-01)
 - [Phase 111]: navigate wait_for_load_state priority highest regardless of duration (per CODEGEN-03)
 - [Phase 111]: assemble() inserts wait TranslatedAction before main action when wait_before non-empty (per D-06)
+- [Phase 111]: __init__ uses keyword-only args (*, base_dir, run_id, llm_config) for backward compatibility
+- [Phase 111]: _is_weak_step() reuses LocatorChainBuilder.extract() matching code_generator pattern
+- [Phase 111]: append_step_async falls back silently on heal failure/exception/missing DOM
 
 ### Pending Todos
 
@@ -59,5 +62,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T02:43:56.181Z
+Last session: 2026-04-28T02:52:24.224Z
 Status: Roadmap created, 3 phases (111-113), ready to plan Phase 111

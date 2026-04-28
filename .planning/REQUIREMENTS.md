@@ -9,7 +9,7 @@
 ### CODEGEN: 代码生成核心
 
 - [x] **CODEGEN-01**: StepCodeBuffer.append_step() 同步翻译单步操作，复用 ActionTranslator，存储 TranslatedAction + wait_before + step_index
-- [ ] **CODEGEN-02**: append_step_async() 检测弱步骤（elem=None 或 ≤1 locator），即时调用 LLMHealer 修复，DOM 上下文最新
+- [x] **CODEGEN-02**: append_step_async() 检测弱步骤（elem=None 或 ≤1 locator），即时调用 LLMHealer 修复，DOM 上下文最新
 - [x] **CODEGEN-03**: _derive_wait() 智能等待推导 — navigate 后 wait_for_load_state、耗时 >800ms 用实际耗时、click 后 300ms
 - [x] **CODEGEN-04**: buffer.assemble(header, precondition, assertions) 组装完整测试文件内容
 
@@ -41,7 +41,7 @@
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | CODEGEN-01 | 111 | Complete |
-| CODEGEN-02 | 111 | Pending |
+| CODEGEN-02 | 111 | Complete |
 | CODEGEN-03 | 111 | Complete |
 | CODEGEN-04 | 111 | Complete |
 | INTEG-01 | 112 | Pending |
