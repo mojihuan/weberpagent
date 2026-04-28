@@ -1,16 +1,11 @@
 """PlaywrightCodeGenerator unit tests -- slimmed.
 
-Keeps 3 core tests:
-  1. Code generation success path (all action types)
-  2. Multi-opcode with fallback locators (file still valid Python)
-  3. Error handling (LLM healing failure preserves valid code)
+Tests generate(), _build_body, validate_syntax, and indent handling.
+generate_and_save and _heal_weak_steps removed (logic moved to StepCodeBuffer).
 """
 
 import ast
-import os
-import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -156,43 +151,6 @@ def test_fallback_complete_file_parses(generator: PlaywrightCodeGenerator) -> No
     assert "import logging" in code
 
 
-async def test_healing_failure_preserves_original(generator: PlaywrightCodeGenerator) -> None:
-    """Error handling: LLM healing failure still generates valid Python file."""
-    mock_history = MagicMock()
-    mock_history.model_actions.return_value = [
-        {"click": {"index": 5}, "interacted_element": None},
-    ]
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        run_id = "heal_test_6"
-        dom_dir = Path(tmpdir) / run_id / "dom"
-        dom_dir.mkdir(parents=True, exist_ok=True)
-        (dom_dir / "step_1.txt").write_text("<html><button>Submit</button></html>")
-
-        with patch("backend.core.code_generator.LLMHealer") as mock_cls:
-            mock_instance = AsyncMock()
-            mock_instance.heal.return_value = MagicMock(
-                success=False,
-                code_snippet="",
-                raw_response="timeout",
-                locator="",
-            )
-            mock_cls.return_value = mock_instance
-
-            code_path = await generator.generate_and_save(
-                run_id=run_id,
-                task_name="失败修复",
-                task_id="t_heal6",
-                agent_history=mock_history,
-                base_dir=tmpdir,
-                llm_config={"model": "test", "api_key": "key"},
-            )
-
-            content = Path(code_path).read_text()
-            ast.parse(content)
-            assert os.path.exists(code_path)
-
-
 # ---------------------------------------------------------------------------
 # Phase 105 Plan 02: INDENT-01 indent fix + INDENT-03 validate_syntax integration
 # ---------------------------------------------------------------------------
@@ -306,30 +264,3 @@ def test_generate_logs_warning_on_syntax_error(
     assert "语法验证失败" in call_args
     # generate() still returns content (does not raise)
     assert "def test_" in result
-
-
-async def test_generate_and_save_validates_before_write() -> None:
-    """INDENT-03: generate_and_save calls validate_syntax, writes file even on failure."""
-    gen = PlaywrightCodeGenerator()
-    mock_history = MagicMock()
-    mock_history.model_actions.return_value = [
-        {"navigate": {"url": "http://x"}, "interacted_element": None},
-    ]
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with patch.object(gen, "validate_syntax", return_value=False) as mock_vs:
-            code_path = await gen.generate_and_save(
-                run_id="vs_test",
-                task_name="验证测试",
-                task_id="t_vs",
-                agent_history=mock_history,
-                base_dir=tmpdir,
-            )
-
-        # validate_syntax was called (once in generate() + once in generate_and_save())
-        assert mock_vs.call_count == 2
-
-        # File was still written even when validate_syntax returned False
-        assert os.path.exists(code_path)
-        content = Path(code_path).read_text()
-        assert "def test_" in content

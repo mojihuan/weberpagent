@@ -15,9 +15,9 @@
 
 ### INTEGRATION: 集成
 
-- [ ] **INTEG-01**: runs.py step_callback 传递 action_dict 给 buffer.append_step()，每步即时翻译
-- [ ] **INTEG-02**: runs.py 代码生成块替换为 buffer.assemble() + import/header 组装 + 文件写入
-- [ ] **INTEG-03**: code_generator.py 去掉 _heal_weak_steps，generate_and_save 接受 list[TranslatedAction] 预翻译结果
+- [x] **INTEG-01**: runs.py step_callback 传递 action_dict 给 buffer.append_step()，每步即时翻译
+- [x] **INTEG-02**: runs.py 代码生成块替换为 buffer.assemble() + import/header 组装 + 文件写入
+- [ ] **INTEG-03**: code_generator.py 删除 generate_and_save 和 _heal_weak_steps 方法，runs.py 使用 buffer.assemble() + Path.write_text 写文件
 
 ### VALIDATION: 验证
 
@@ -44,8 +44,8 @@
 | CODEGEN-02 | 111 | Complete |
 | CODEGEN-03 | 111 | Complete |
 | CODEGEN-04 | 111 | Complete |
-| INTEG-01 | 112 | Pending |
-| INTEG-02 | 112 | Pending |
+| INTEG-01 | 112 | Complete |
+| INTEG-02 | 112 | Complete |
 | INTEG-03 | 112 | Pending |
 | VAL-01 | 111 | Complete |
 | VAL-02 | 112 | Pending |

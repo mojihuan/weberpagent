@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.9
 milestone_name: 逐步代码生成
 status: planning
-last_updated: "2026-04-28T02:52:24.226Z"
+last_updated: "2026-04-28T05:26:56.209Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-28)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 111 — stepcodebuffer
+**Current focus:** Phase 112 — 集成接入
 
 ## Last Shipped
 
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-04-28)
 
 ## Current Position
 
-Phase: 111 (stepcodebuffer) — EXECUTING
+Phase: 112 (集成接入) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -51,6 +51,9 @@ Key v0.10.8 decisions (carried forward):
 - [Phase 111]: __init__ uses keyword-only args (*, base_dir, run_id, llm_config) for backward compatibility
 - [Phase 111]: _is_weak_step() reuses LocatorChainBuilder.extract() matching code_generator pattern
 - [Phase 111]: append_step_async falls back silently on heal failure/exception/missing DOM
+- [Phase 112]: Path imported as PathLib inside try block to avoid collision with top-level Path import
+- [Phase 112]: action_dict guarded with 'action_dict' in locals() since variable is inside conditional block
+- [Phase 112]: [Phase 112]: buffer.append_step_async failure is non-blocking, logged and swallowed
 
 ### Pending Todos
 
@@ -62,5 +65,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T02:52:24.224Z
+Last session: 2026-04-28T05:26:56.207Z
 Status: Roadmap created, 3 phases (111-113), ready to plan Phase 111

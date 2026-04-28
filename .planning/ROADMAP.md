@@ -104,15 +104,17 @@ Plans:
 - [x] 111-02-PLAN.md — append_step_async 弱步骤修复 + 异步修复单元测试
 
 ### Phase 112: 集成接入
-**Goal**: runs.py 使用 StepCodeBuffer 替代旧的一次性翻译，code_generator 接受预翻译结果
+**Goal**: runs.py 使用 StepCodeBuffer 替代旧的一次性翻译，code_generator 简化删除废弃方法
 **Depends on**: Phase 111
 **Requirements**: INTEG-01, INTEG-02, INTEG-03, VAL-02
 **Success Criteria** (what must be TRUE):
   1. runs.py step_callback 中每步操作即时调用 buffer.append_step()，action_dict 正确传递
   2. runs.py 代码生成块使用 buffer.assemble() + import/header 组装替代旧 generate_and_save()，生成的 .py 文件语法正确
-  3. code_generator.py 去掉 _heal_weak_steps，generate_and_save 接受 list[TranslatedAction] 预翻译结果直接组装输出
+  3. code_generator.py 删除 generate_and_save 和 _heal_weak_steps 方法，runs.py 使用 buffer.assemble() + Path.write_text 写文件
   4. 集成测试验证 buffer 在 step_callback 上下文中累积步骤，弱步骤异步修复正常触发
-**Plans**: TBD
+**Plans**: 2 plans
+- [x] 112-01-PLAN.md — runs.py buffer 接入 + agent_service action_dict 传递 (INTEG-01, INTEG-02)
+- [ ] 112-02-PLAN.md — code_generator 清理 + 集成测试 (INTEG-03, VAL-02)
 
 ### Phase 113: E2E 验证与回归
 **Goal**: 全量回归通过，现有 code_generator 测试更新完毕，逐步代码生成端到端可用
@@ -120,20 +122,20 @@ Plans:
 **Requirements**: VAL-03
 **Success Criteria** (what must be TRUE):
   1. 全量 pytest 回归测试通过（0 failed, 0 errors）
-  2. code_generator 现有测试全部更新以匹配新 API（generate_and_save 接受 list[TranslatedAction]）
+  2. code_generator 现有测试全部更新 — generate_and_save 和 _heal_weak_steps 相关测试已删除，generate() 测试保留
   3. AI 执行任务后生成的 Playwright 代码文件包含正确的逐步翻译结果（非空操作），语法验证通过
 **Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 111 → 112 → 113
+Phases execute in numeric order: 111 -> 112 -> 113
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 111. StepCodeBuffer 核心实现 | 2/2 | Complete   | 2026-04-28 |
-| 112. 集成接入 | 0/? | Not started | - |
+| 111. StepCodeBuffer 核心实现 | 2/2 | Complete    | 2026-04-28 |
+| 112. 集成接入 | 1/2 | In Progress|  |
 | 113. E2E 验证与回归 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-28 — Phase 111 plans created (2 plans, 2 waves)*
+*Roadmap updated: 2026-04-28 — Phase 112 plans created (2 plans, 1 wave, parallel)*
