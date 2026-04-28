@@ -584,10 +584,14 @@ class AgentService:
 
             # 调用异步回调
             step_stats_json = step_stats_data["value"]
+            # Phase 112: Pass action_dict to on_step for incremental code translation (INTEG-01)
+            _action_dict_data = action_dict if 'action_dict' in locals() else None
             if asyncio.iscoroutinefunction(on_step):
-                await on_step(step, action, reasoning, screenshot_path, step_stats_json)
+                await on_step(step, action, reasoning, screenshot_path, step_stats_json,
+                              action_dict=_action_dict_data)
             else:
-                on_step(step, action, reasoning, screenshot_path, step_stats_json)
+                on_step(step, action, reasoning, screenshot_path, step_stats_json,
+                        action_dict=_action_dict_data)
 
         # 如果有目标 URL 且未预导航，拼接到任务描述前面
         actual_task = task
