@@ -1,7 +1,6 @@
 """PlaywrightCodeGenerator unit tests -- slimmed.
 
 Tests generate(), _build_body, validate_syntax, and indent handling.
-generate_and_save and _heal_weak_steps removed (logic moved to StepCodeBuffer).
 """
 
 import ast

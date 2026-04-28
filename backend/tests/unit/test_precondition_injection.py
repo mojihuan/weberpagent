@@ -2,7 +2,7 @@
 
 Tests PREC-01, PREC-02, PREC-03:
 - PREC-01: generate() accepts precondition_config, injects page.goto() + wait_for_load_state()
-- PREC-02: generate_and_save() passes precondition_config through to generate()
+- PREC-02: StepCodeBuffer.assemble() passes precondition_config through to generate()
 - PREC-03: Generated code compatible with SelfHealingRunner storage_state injection
 """
 

@@ -2,7 +2,7 @@
 
 Tests ASRT-01, ASRT-02, ASRT-03:
 - ASRT-01: 4 assertion types map to correct Playwright expect()/assert statements
-- ASRT-02: assertions_config parameter on generate() and generate_and_save()
+- ASRT-02: assertions_config parameter on generate() and StepCodeBuffer.assemble()
 - ASRT-03: Assertion translation unit tests
 """
 
