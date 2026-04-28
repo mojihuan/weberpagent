@@ -15,9 +15,9 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.8 生成测试代码前置条件与断言步骤 (Phase 109 complete)
+**最新版本:** v0.10.9 逐步代码生成 (Phase 113 complete)
 **Server online**: 121.40.191.49
-**当前状态:** Phase 109 完成 — 4 种断言类型翻译为 Playwright expect() 语句
+**当前状态:** StepCodeBuffer 逐步即时翻译替代事后一次性翻译，全量回归 316 passed
 
 ## 已交付版本:
 
@@ -38,22 +38,37 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.10.5: 生成测试代码修复与优化 (2026-04-24)
 - v0.10.6: 生成测试代码稳定可用 (2026-04-25)
 - v0.10.7: 生成测试代码行为优化 (2026-04-27)
-- v0.10.8: 生成测试代码前置条件与断言步骤 (in progress)
+- v0.10.8: 生成测试代码前置条件与断言步骤 (2026-04-27)
+- v0.10.9: 逐步代码生成 (2026-04-29)
 
 ## Requirements
 
 ### Active
 
-**v0.10.8 生成测试代码前置条件与断言步骤 (2026-04-27):**
-- PREC-01: generate() 接受 precondition_config，注入 page.goto() + wait_for_load_state() — Phase 108
-- PREC-02: runs.py 传递 effective_target_url 给代码生成器 — Phase 108
-- PREC-03: SelfHealingRunner storage_state + page.goto() 组合验证 — Phase 108
-- ASRT-01: 4 种断言类型映射为 Playwright expect() 语句 — Phase 109
-- ASRT-02: runs.py 传递任务断言给代码生成器 — Phase 109
-- ASRT-03: 断言翻译单元测试 — Phase 109
-- E2E-01: 完整生成代码包含前置条件+操作+断言，语法验证通过 — Phase 110
+(None — plan next milestone)
 
 ### Validated
+
+**v0.10.9 逐步代码生成 (2026-04-29):**
+- ✓ CODEGEN-01: StepCodeBuffer.append_step() 同步翻译，复用 ActionTranslator — Phase 111
+- ✓ CODEGEN-02: append_step_async() 弱步骤检测 + LLMHealer 修复 — Phase 111
+- ✓ CODEGEN-03: _derive_wait() 智能等待推导 (navigate/duration/click) — Phase 111
+- ✓ CODEGEN-04: buffer.assemble() 组装完整测试文件 — Phase 111
+- ✓ INTEG-01: runs.py step_callback 每步即时翻译 — Phase 112
+- ✓ INTEG-02: buffer.assemble() + 文件写入替代 generate_and_save — Phase 112
+- ✓ INTEG-03: code_generator.py 删除废弃方法 — Phase 112
+- ✓ VAL-01: StepCodeBuffer 单元测试覆盖 — Phase 111
+- ✓ VAL-02: 集成测试验证 step_callback 上下文 — Phase 112
+- ✓ VAL-03: 全量回归 316 passed — Phase 113
+
+**v0.10.8 生成测试代码前置条件与断言步骤 (2026-04-27):**
+- ✓ PREC-01: generate() 接受 precondition_config，注入 page.goto() + wait_for_load_state() — Phase 108
+- ✓ PREC-02: runs.py 传递 effective_target_url 给代码生成器 — Phase 108
+- ✓ PREC-03: SelfHealingRunner storage_state + page.goto() 组合验证 — Phase 108
+- ✓ ASRT-01: 4 种断言类型映射为 Playwright expect() 语句 — Phase 109
+- ✓ ASRT-02: runs.py 传递任务断言给代码生成器 — Phase 109
+- ✓ ASRT-03: 断言翻译单元测试 — Phase 109
+- ✓ E2E-01: 完整生成代码包含前置条件+操作+断言，语法验证通过 — Phase 110
 
 **v0.10.7 生成测试代码行为优化 (2026-04-27):**
 - ✓ TRANSLATE-01: 未知操作显示参数摘要 f"参数={params}" — Phase 105
@@ -235,8 +250,8 @@ v0.1-v0.4.2 核心功能:
 - 数据库 SQLite (aiosqlite)
 
 **代码质量:**
-- 测试套件: 967 tests passed, 0 failed, 0 errors (Phase 101 regression gate)
-- E2E 回归测试: 4 个覆盖完整链路
+- 测试套件: 316 tests passed, 0 failed, 0 errors (Phase 113 regression gate)
+- E2E 回归测试: 5 个 StepCodeBuffer 生命周期集成测试
 
 **技术栈:**
 | 层级 | 技术 |
@@ -304,10 +319,16 @@ v0.1-v0.4.2 核心功能:
 | Code locator extraction from failing line | 替代 error_output 正则猜测 | ✓ Good |
 | Structured JSON LLM repair {target_snippet, replacement} | 明确修复结构 | ✓ Good |
 | Mock LLMHealer at class level for E2E tests | patch at backend.core.self_healing_runner.LLMHealer | ✓ Good |
+| StepRecord frozen dataclass | 不可变性保证，action/wait_before/step_index | ✓ Good |
+| StepCodeBuffer keyword-only __init__ | *, base_dir, run_id, llm_config — 向后兼容 | ✓ Good |
+| navigate wait_for_load_state 最高优先级 | 不管 duration 多少，navigate 后一定等 networkidle | ✓ Good |
+| append_step_async 失败静默降级 | heal 失败/异常/缺 DOM 均不阻塞主流程 | ✓ Good |
+| Path imported as PathLib in try block | 避免顶层 Path import 冲突 | ✓ Good |
+| action_dict guarded with 'in locals()' | 变量在条件块内，需存在性检查 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-27 — v0.10.8 milestone planning*
+*Last updated: 2026-04-29 — v0.10.9 milestone complete*

@@ -1,5 +1,58 @@
 # Project Retrospective
 
+## Milestone: v0.10.9 — 逐步代码生成
+
+**Shipped:** 2026-04-29
+**Phases:** 3 | **Plans:** 6
+
+### What Was Built
+
+- StepCodeBuffer 数据结构: append_step 同步翻译 + _derive_wait 3 层等待策略 + assemble() 组装完整测试文件
+- append_step_async 弱步骤检测: elem=None 或 <=1 locator 时读取 DOM 快照，调用 LLMHealer 自愈
+- runs.py step_callback 逐步即时翻译: 替代事后一次性 generate_and_save，每步累积翻译结果
+- code_generator.py 废弃方法清理: 删除 generate_and_save + _heal_weak_steps，12 个任务精简
+- 全量回归 316 tests passed + 5 个 E2E 集成测试验证 StepCodeBuffer 完整生命周期
+
+### What Worked
+
+- **Phase 111 StepCodeBuffer 核心实现**: 先建数据结构后集成，解耦清晰
+- **Phase 112 集成**: action_dict guarded with 'in locals()' 避免条件块内变量未定义问题
+- **Phase 113 回归**: Pydantic ConfigDict 迁移 + docstring 清理 + E2E 一气呵成
+
+### What Was Inefficient
+
+- ROADMAP.md Phase 113 进度表标记 1/2 但实际 2/2 已完成（checkbox 未更新）
+- 4 个 debug session 文件残留未清理
+
+### Patterns Established
+
+- **StepCodeBuffer 逐步翻译模式**: 每步即时翻译 + 累积 + 最终组装，替代事后批量翻译
+- **弱步骤异步自愈**: 非阻塞 append_step_async，失败静默降级
+- **closure-captured buffer**: step_callback 通过闭包捕获 buffer 实例
+
+### Key Lessons
+
+1. StepCodeBuffer 的 _derive_wait 三策略（navigate→networkidle, duration>800ms→实际耗时, click→300ms）覆盖主要等待场景
+2. Path import 冲突需要用 PathLib 别名在 try block 内导入
+3. 全量回归测试是代码清理的安全网——删除废弃方法前先补集成测试
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~3 (111, 112, 113)
+- Notable: 2 天完成 3 个阶段 6 个计划，含全量回归验证
+
+## Cross-Milestone Trends
+
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 | v0.10.9 |
+|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|---------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 | 3 | 3 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 | 6 | 6 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 | 2 | 2 |
+| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 | 1 (fix commit) | 1 (call count) | 0 |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 | ~4000 | ~1500 |
+
 ## Milestone: v0.10.3 — DOM 深度修复 - 表格单元格选择精确性
 
 **Shipped:** 2026-04-23

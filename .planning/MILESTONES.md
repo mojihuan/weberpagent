@@ -1,5 +1,20 @@
 # Milestones
 
+## v0.10.9 逐步代码生成 (Shipped: 2026-04-28)
+
+**Phases completed:** 3 phases, 6 plans, 12 tasks
+
+**Key accomplishments:**
+
+- StepCodeBuffer with sync append_step via ActionTranslator, _derive_wait 3-tier strategy (navigate/duration/click), and assemble() delegation to PlaywrightCodeGenerator
+- append_step_async() detects weak steps (elem=None or <=1 locator), reads DOM snapshots, calls LLMHealer.heal() for click/input, falls back gracefully on failure
+- Wire StepCodeBuffer into runs.py step_callback for incremental per-step code translation, replacing post-hoc generate_and_save with buffer.assemble() + file write
+- Removed deprecated generate_and_save/_heal_weak_steps from code_generator.py, added 7 VAL-02 integration tests simulating step_callback context with closure-captured buffer pattern
+- Removed stale generate_and_save/_heal_weak_steps references from 3 test docstrings and migrated 8 Pydantic models from class Config to ConfigDict pattern
+- 5 E2E integration tests verifying StepCodeBuffer lifecycle (accumulate, assemble, file write, closure capture, precondition+assertion) with full regression 316 passed
+
+---
+
 ## v0.10.7 生成测试代码行为优化 (Shipped: 2026-04-27)
 
 **Phases:** 105-107 (3 phases, 6 plans)
