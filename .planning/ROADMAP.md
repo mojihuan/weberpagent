@@ -38,6 +38,7 @@
 ### Phase 110: E2E 验证
 
 - [ ] Phase 110: E2E 验证 (1/1 plans) — E2E-01
+  - [x] 110-01-PLAN.md — E2E组合验证测试 + 全量回归
 
 <details>
 <summary>✅ v0.10.7 生成测试代码行为优化 (Phases 105-107) — SHIPPED 2026-04-27</summary>
