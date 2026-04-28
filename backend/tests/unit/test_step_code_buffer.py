@@ -458,3 +458,244 @@ class TestAppendStepAsyncWeakHealing:
         assert records[0].step_index == 0
         assert records[1].step_index == 1
         assert records[2].step_index == 2
+
+
+# ---------------------------------------------------------------------------
+# Integration tests -- VAL-02: buffer in step_callback context
+# ---------------------------------------------------------------------------
+
+
+class TestIntegration:
+    """Integration tests simulating the step_callback context.
+
+    Tests verify that StepCodeBuffer accumulates steps correctly in a
+    step_callback-like context and that assemble() produces valid Python.
+    Covers INTEG-03 and VAL-02 requirements.
+    """
+
+    @pytest.mark.asyncio
+    async def test_accumulates_in_callback_context(self, tmp_path):
+        """Buffer accumulates multiple steps in simulated step_callback context."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={},
+        )
+
+        navigate_action = {"navigate": {"url": "https://example.com"}}
+        elem = MagicMock()
+        elem.attributes = {"id": "btn"}
+        elem.node_name = "BUTTON"
+        elem.x_path = "//button[@id='btn']"
+        elem.ax_name = "Submit"
+        click_action = {"click": {"index": 1}, "interacted_element": elem}
+
+        elem2 = MagicMock()
+        elem2.attributes = {}
+        elem2.node_name = "INPUT"
+        elem2.x_path = "//input[@name='field']"
+        elem2.ax_name = "Field"
+        input_action = {"input": {"text": "hello", "index": 2}, "interacted_element": elem2}
+
+        await buffer.append_step_async(navigate_action)
+        await buffer.append_step_async(click_action)
+        await buffer.append_step_async(input_action)
+
+        records = buffer.records
+        assert len(records) == 3
+        assert records[0].action.action_type == "navigate"
+        assert records[1].action.action_type == "click"
+        assert records[2].action.action_type == "input"
+
+    @pytest.mark.asyncio
+    async def test_assemble_after_accumulation(self, tmp_path):
+        """Buffer assemble after multi-step accumulation produces valid Python."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={},
+        )
+
+        navigate_action = {"navigate": {"url": "https://example.com"}}
+        elem = MagicMock()
+        elem.attributes = {}
+        elem.node_name = "INPUT"
+        elem.x_path = "//input[@name='q']"
+        elem.ax_name = "Search"
+        input_action = {"input": {"text": "test query", "index": 0}, "interacted_element": elem}
+
+        await buffer.append_step_async(navigate_action)
+        await buffer.append_step_async(input_action)
+
+        content = buffer.assemble("integ_run", "Integration Test", "t_integ")
+
+        assert "def test_" in content
+        ast.parse(content)
+
+    @pytest.mark.asyncio
+    async def test_weak_step_triggers_healer(self, tmp_path):
+        """Weak step (elem=None) with DOM present triggers LLMHealer."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={"model": "test"},
+        )
+
+        # Create DOM file
+        dom_dir = tmp_path / "integ_run" / "dom"
+        dom_dir.mkdir(parents=True)
+        (dom_dir / "step_1.txt").write_text("<html><button>Go</button></html>", encoding="utf-8")
+
+        click_no_elem = {"click": {"index": 3}, "interacted_element": None}
+
+        heal_result = LLMHealResult(
+            success=True,
+            code_snippet="    page.locator('.go-btn').click()",
+            raw_response="",
+            locator="page.locator('.go-btn')",
+        )
+
+        with patch("backend.core.step_code_buffer.LLMHealer") as MockHealer:
+            mock_instance = MockHealer.return_value
+            mock_instance.heal = AsyncMock(return_value=heal_result)
+
+            with patch.object(
+                buffer._translator, "translate_with_llm",
+                return_value=TranslatedAction(
+                    code="    page.locator('.go-btn').click()",
+                    action_type="click",
+                    is_comment=False,
+                    has_locator=True,
+                ),
+            ):
+                await buffer.append_step_async(click_no_elem)
+
+        mock_instance.heal.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_weak_step_heal_failure_graceful(self, tmp_path):
+        """Weak step heal failure falls back gracefully, buffer still has the step."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={"model": "test"},
+        )
+
+        dom_dir = tmp_path / "integ_run" / "dom"
+        dom_dir.mkdir(parents=True)
+        (dom_dir / "step_1.txt").write_text("<html><button>Go</button></html>", encoding="utf-8")
+
+        click_no_elem = {"click": {"index": 3}, "interacted_element": None}
+
+        heal_result = LLMHealResult(
+            success=False,
+            code_snippet="",
+            raw_response="timeout",
+            locator="",
+        )
+
+        with patch("backend.core.step_code_buffer.LLMHealer") as MockHealer:
+            mock_instance = MockHealer.return_value
+            mock_instance.heal = AsyncMock(return_value=heal_result)
+
+            await buffer.append_step_async(click_no_elem)
+
+        records = buffer.records
+        assert len(records) == 1
+        assert isinstance(records[0].action, TranslatedAction)
+
+    @pytest.mark.asyncio
+    async def test_assemble_with_precondition(self, tmp_path):
+        """Assemble with precondition_config produces page.goto in output."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={},
+        )
+
+        navigate_action = {"navigate": {"url": "https://example.com"}}
+        await buffer.append_step_async(navigate_action)
+
+        content = buffer.assemble(
+            "integ_run",
+            "Precondition Test",
+            "t_prec",
+            precondition_config={"target_url": "https://erp.example.com"},
+        )
+
+        assert "page.goto" in content
+        ast.parse(content)
+
+    @pytest.mark.asyncio
+    async def test_assemble_with_assertions(self, tmp_path):
+        """Assemble with assertions_config produces expect() in output."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={},
+        )
+
+        navigate_action = {"navigate": {"url": "https://example.com"}}
+        await buffer.append_step_async(navigate_action)
+
+        content = buffer.assemble(
+            "integ_run",
+            "Assertions Test",
+            "t_assert",
+            assertions_config=[{
+                "type": "text_exists",
+                "expected": "Dashboard",
+                "name": "Dashboard visible",
+            }],
+        )
+
+        assert "expect" in content
+        ast.parse(content)
+
+    @pytest.mark.asyncio
+    async def test_closure_captured_buffer(self, tmp_path):
+        """Closure-captured buffer pattern: buffer created outside closure,
+        action_dict passed through inner function, accumulation works correctly."""
+        buffer = StepCodeBuffer(
+            base_dir=str(tmp_path),
+            run_id="integ_run",
+            llm_config={},
+        )
+
+        # Simulate the on_step closure pattern from agent_service/runs.py
+        async def on_step(action_dict: dict) -> None:
+            """Simulates the step_callback closure that captures buffer."""
+            await buffer.append_step_async(action_dict)
+
+        # Create test action dicts
+        navigate_action = {"navigate": {"url": "https://erp.example.com"}}
+
+        elem_click = MagicMock()
+        elem_click.attributes = {"id": "save-btn"}
+        elem_click.node_name = "BUTTON"
+        elem_click.x_path = "//button[@id='save-btn']"
+        elem_click.ax_name = "Save"
+        click_action = {"click": {"index": 0}, "interacted_element": elem_click}
+
+        elem_input = MagicMock()
+        elem_input.attributes = {}
+        elem_input.node_name = "INPUT"
+        elem_input.x_path = "//input[@name='qty']"
+        elem_input.ax_name = "Quantity"
+        input_action = {"input": {"text": "100", "index": 1}, "interacted_element": elem_input}
+
+        # Call through closure indirection
+        await on_step(navigate_action)
+        await on_step(click_action)
+        await on_step(input_action)
+
+        records = buffer.records
+        assert len(records) == 3
+        assert records[0].action.action_type == "navigate"
+        assert records[1].action.action_type == "click"
+        assert records[2].action.action_type == "input"
+
+        # Also verify assemble works through closure pattern
+        content = buffer.assemble("integ_run", "Closure Test", "t_closure")
+        assert "def test_" in content
+        ast.parse(content)
