@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from typing import Optional, List, Any
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 # === Task Schemas ===
@@ -89,8 +89,7 @@ class TaskResponse(BaseModel):
                 return None
         return None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # === Run Schemas ===
@@ -119,8 +118,7 @@ class RunResponse(BaseModel):
     healing_error: Optional[str] = None
     healing_error_category: str = ""
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # === Step Schemas ===
@@ -154,8 +152,7 @@ class StepResponse(BaseModel):
                 return None
         return None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # === SSE Event Schemas ===
@@ -226,8 +223,7 @@ class ReportResponse(BaseModel):
     duration_ms: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReportDetailResponse(ReportResponse):
@@ -265,8 +261,7 @@ class AssertionResponse(BaseModel):
     expected: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssertionCreate(BaseModel):
@@ -289,8 +284,7 @@ class AssertionResultResponse(BaseModel):
     actual_value: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # === Batch Schemas ===
@@ -310,8 +304,7 @@ class BatchRunSummary(BaseModel):
     started_at: Optional[datetime] = None
     finished_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BatchResponse(BaseModel):
@@ -323,5 +316,4 @@ class BatchResponse(BaseModel):
     finished_at: Optional[datetime] = None
     runs: Optional[List[BatchRunSummary]] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
