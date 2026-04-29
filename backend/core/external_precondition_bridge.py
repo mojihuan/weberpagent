@@ -13,9 +13,10 @@ import re
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import Any, get_type_hints
+from typing import Any, get_type_hints, TYPE_CHECKING
 
-from backend.core.precondition_service import ContextWrapper
+if TYPE_CHECKING:
+    from backend.core.precondition_service import ContextWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -1274,7 +1275,7 @@ async def execute_assertion_method(
 
 async def execute_all_assertions(
     assertions: list[dict],
-    context: ContextWrapper,
+    context: 'ContextWrapper',
     timeout_per_assertion: float = 30.0
 ) -> dict:
     """Execute multiple assertions in sequence and store results in context.
