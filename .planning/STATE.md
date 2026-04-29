@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.10
 milestone_name: 表单填写优化
 status: planning
-last_updated: "2026-04-29T00:54:39.166Z"
+last_updated: "2026-04-29T01:36:54.885Z"
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 114 — DOM Patch 核心修复
+**Current focus:** Phase 115 — prompt-e2e
 
 ## Last Shipped
 
@@ -32,8 +32,8 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 114 (DOM Patch 核心修复) — EXECUTING
-Plan: 1 of 1
+Phase: 115 (prompt-e2e) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -64,6 +64,8 @@ Key v0.10.10 decisions:
 - [Phase 114]: Structural input detection (tag+type+visibility) replaces placeholder matching in _is_erp_table_cell_input
 - [Phase 114]: Belt-and-suspenders: _is_textual_td_cell guard + patched_is_interactive td guard for DOM-02
 - [Phase 114]: One-shot diagnostic log via _diagnostic_log_emitted flag, reset per traversal session
+- [Phase 115]: Mode judgment uses DOM element type (td vs input) matching dom_patch.py detection, not field name
+- [Phase 115]: Five-segment prompt structure (定位/判断模式/操作/验证/异常处理) for clear Agent decision flow
 
 ### Pending Todos
 
@@ -75,5 +77,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T00:54:39.163Z
+Last session: 2026-04-29T01:36:54.883Z
 Status: Roadmap created for v0.10.10, Phase 114 ready to plan

@@ -64,18 +64,18 @@ Plans:
   1. prompts.py Section 9 同时包含 click-to-edit 和始终可见 input 两种模式的操作指导，带有行+列注释定位示例
   2. 销售出库场景 E2E 测试中，销售金额、物流费用等表格字段被 Agent 正确填写（不再出现 10+ 步重试失败）
   3. 全量回归测试通过（pytest suite 0 failed, 0 errors）
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 115-01: 更新 Section 9 prompt 支持双模式表格 input
-- [ ] 115-02: E2E 验证 + 全量回归
+- [x] 115-01-PLAN.md — Rewrite Section 9 with dual-mode five-segment structure (PRMT-01)
+- [ ] 115-02-PLAN.md — Add logistics fee E2E test + full regression (VAL-01, VAL-02)
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 114. DOM Patch 核心修复 | v0.10.10 | 1/1 | Complete   | 2026-04-29 |
-| 115. Prompt 优化与 E2E 验证 | v0.10.10 | 0/2 | Not started | - |
+| 114. DOM Patch 核心修复 | v0.10.10 | 1/1 | Complete    | 2026-04-29 |
+| 115. Prompt 优化与 E2E 验证 | v0.10.10 | 1/2 | In Progress|  |
 
 <details>
 <summary>✅ v0.10.9 逐步代码生成 (Phases 111-113) — SHIPPED 2026-04-29</summary>
@@ -129,4 +129,4 @@ Plans:
 </details>
 
 ---
-*Roadmap updated: 2026-04-29 — Phase 114 planned*
+*Roadmap updated: 2026-04-29 — Phase 115 planned*

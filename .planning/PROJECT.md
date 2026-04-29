@@ -17,7 +17,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 **最新版本:** v0.10.10 表单填写优化 (进行中)
 **Server online**: 121.40.191.49
-**当前状态:** 修复 ERP 表格内 input DOM 检测机制，不再依赖 placeholder 精确匹配
+**当前状态:** Phase 114 DOM Patch 核心修复完成 — 98 tests pass, 结构化检测替代 placeholder 匹配。Phase 115 待规划。
 
 ## 已交付版本:
 
@@ -46,14 +46,16 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 ### Active
 
 **v0.10.10 表单填写优化:**
-- [ ] FORM-01: 重构 _is_erp_table_cell_input 检测逻辑 — 检测 td 内所有可见 input，不依赖 placeholder 精确匹配
-- [ ] FORM-02: 修复 _is_textual_td_cell — td 内已有 ERP input 时不再将 td 标记为 interactive
-- [ ] FORM-03: 增强 _patch_assign_interactive_indices — 列头注释语义化，支持任意 input
-- [ ] FORM-04: 新增 DOM 诊断日志 — 运行开始时记录实际发现的 input placeholder 值
 - [ ] FORM-05: 更新 prompts.py Section 9 — 同时支持 click-to-edit 和始终可见 input 两种模式
 - [ ] FORM-06: E2E 验证 — 销售出库场景表单填写回归
 
 ### Validated
+
+**v0.10.10 Phase 114 DOM Patch 核心修复 (2026-04-29):**
+- ✓ FORM-01: 重构 _is_erp_table_cell_input 检测逻辑 — 检测 td 内所有可见 input，不依赖 placeholder 精确匹配 — Phase 114
+- ✓ FORM-02: 修复 _is_textual_td_cell — td 内已有 ERP input 时不再将 td 标记为 interactive — Phase 114
+- ✓ FORM-03: 增强 _patch_assign_interactive_indices — 列头注释语义化，支持任意 input — Phase 114
+- ✓ FORM-04: 新增 DOM 诊断日志 — 运行开始时记录实际发现的 input placeholder 值 — Phase 114
 
 **v0.10.9 逐步代码生成 (2026-04-29):**
 - ✓ CODEGEN-01: StepCodeBuffer.append_step() 同步翻译，复用 ActionTranslator — Phase 111
@@ -256,7 +258,7 @@ v0.1-v0.4.2 核心功能:
 - 数据库 SQLite (aiosqlite)
 
 **代码质量:**
-- 测试套件: 316 tests passed, 0 failed, 0 errors (Phase 113 regression gate)
+- 测试套件: 98 dom_patch tests passed (Phase 114), 316 total (Phase 113 regression gate)
 - E2E 回归测试: 5 个 StepCodeBuffer 生命周期集成测试
 
 **技术栈:**
@@ -337,4 +339,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 — v0.10.10 milestone started*
+*Last updated: 2026-04-29 — Phase 114 complete*
