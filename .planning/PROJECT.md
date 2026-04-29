@@ -15,20 +15,13 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.11 移除自愈功能 (进行中)
+**最新版本:** v0.10.11 移除自愈功能 (已归档)
 **Server online**: 121.40.191.49
-**当前状态:** Phase 118 complete — API 端点和前端 healing UI 全部清理，execution_status 替代 healing 字段
+**当前状态:** 自愈功能完全移除，代码执行管道简化为一次性 pytest，928 测试通过
 
-## Current Milestone: v0.10.11 移除自愈功能
+## Next Milestone
 
-**Goal:** 移除代码执行管道中的 LLM 自愈重试机制，简化为一次性执行
-
-**Target features:**
-- 删除 SelfHealingRunner / LLMHealer / ErrorClassifier / HealerError 四个自愈模块
-- 移除 StepCodeBuffer.append_step_async() 内联修复
-- 简化 execute-code 端点为一次性 pytest 执行（保留代码查看和执行能力）
-- 清理 DB healing 字段、API schema、前端 healing UI
-- 删除所有自愈相关测试
+待规划。使用 `/gsd:new-milestone` 启动下一个里程碑。
 
 ## 已交付版本:
 
@@ -52,29 +45,23 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.10.8: 生成测试代码前置条件与断言步骤 (2026-04-27)
 - v0.10.9: 逐步代码生成 (2026-04-29)
 - v0.10.10: 表单填写优化 (2026-04-29)
+- v0.10.11: 移除自愈功能 (2026-04-29)
 
 ## Requirements
 
 ### Active
 
-**v0.10.11 移除自愈功能:**
-- REMOVE-01: 删除 self_healing_runner.py 模块
-- REMOVE-02: 删除 llm_healer.py 模块
-- REMOVE-03: 删除 error_classifier.py 模块
-- REMOVE-04: 删除 healer_error.py 模块
-- SIMPLIFY-01: 简化 runs.py 代码执行 — 去掉重试循环，一次性 pytest 执行 ✓ Phase 117
-- SIMPLIFY-02: 移除 StepCodeBuffer.append_step_async() 内联修复 ✓ Phase 117
-- SIMPLIFY-03: 移除 code_generator.py healing 引用 ✓ Phase 117
-- DB-01: 清理 DB Run 模型 healing 字段 ✓ Phase 117
-- DB-02: 清理 API schema healing 字段 ✓ Phase 117
-- DB-03: 移除 repository healing 方法 ✓ Phase 117
-- API-01: 简化 API 端点
-- API-02: 移除前端 healing UI 和类型
-- TEST-01: 删除自愈相关测试文件
-- TEST-02: 清理遗留 mock
-- TEST-03: 全量回归
+(None — milestone v0.10.11 complete)
 
 ### Validated
+
+**v0.10.11 移除自愈功能 (2026-04-29):**
+- ✓ REMOVE-01~04: 删除 SelfHealingRunner/LLMHealer/ErrorClassifier/HealerError 四个自愈模块 — Phase 116
+- ✓ SIMPLIFY-01~03: 简化 runs.py 执行管道 + 移除 append_step_async + 清理 code_generator — Phase 117
+- ✓ DB-01~03: 清理 Run 模型/schema/repository healing 字段 — Phase 117
+- ✓ API-01~02: 简化 API 端点 + 保留代码查看 — Phase 118
+- ✓ FE-01~05: 移除前端 healing UI/类型/StatusBadge/CodeViewerModal — Phase 118
+- ✓ TEST-01~03: 删除自愈测试 + 清理 mock + 全量回归 928 passed — Phase 119
 
 **v0.10.10 表单填写优化 (2026-04-29):**
 - ✓ FORM-01: 重构 _is_erp_table_cell_input 检测逻辑 — 检测 td 内所有可见 input，不依赖 placeholder 精确匹配 — Phase 114
@@ -289,8 +276,9 @@ v0.1-v0.4.2 核心功能:
 - 数据库 SQLite (aiosqlite)
 
 **代码质量:**
-- 测试套件: 98 dom_patch tests passed (Phase 114), 316 total (Phase 113 regression gate)
-- E2E 回归测试: 5 个 StepCodeBuffer 生命周期集成测试
+- 测试套件: 928 tests passed (Phase 119 regression gate)
+- 自愈功能完全移除，-2999 行代码
+- 执行管道简化为一次性 pytest (subprocess.run)
 
 **技术栈:**
 | 层级 | 技术 |
@@ -367,10 +355,15 @@ v0.1-v0.4.2 核心功能:
 | Five-segment prompt structure (定位/判断模式/操作/验证/异常处理) | 清晰的 Agent 决策流程 | ✓ Good |
 | DOM element type (td vs input) determines mode judgment | 与 dom_patch.py 检测对齐 | ✓ Good |
 | action_dict guarded with 'in locals()' | 变量在条件块内，需存在性检查 | ✓ Good |
+| Delete-first cleanup-second (v0.10.11) | 删除文件后再清理引用，减少跨文件依赖风险 | ✓ Good |
+| subprocess.run 替代 SelfHealingRunner (v0.10.11) | 一次性 pytest 执行，消除重试循环 | ✓ Good |
+| SQLite 列保留不 ALTER TABLE (v0.10.11) | ORM 停止读写 healing 列，DB 列保持不动 | ✓ Good |
+| run.status 单一执行状态源 (v0.10.11) | 替代 healing_status 多状态轮询 | ✓ Good |
+| logger name "healer" 保留 (v0.10.11) | 生成代码中 getLogger("healer") 不变，避免破坏已有测试文件 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 — Phase 117 complete*
+*Last updated: 2026-04-29 after v0.10.11 milestone*

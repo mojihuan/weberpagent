@@ -1,5 +1,22 @@
 # Milestones
 
+## v0.10.11 移除自愈功能 (Shipped: 2026-04-29)
+
+**Phases completed:** 4 phases, 8 plans, 14 tasks
+
+**Key accomplishments:**
+
+- Deleted four self-healing module files (SelfHealingRunner, LLMHealer, ErrorClassifier, HealerError) from backend/core/
+- Removed 5 import statements referencing deleted self-healing modules across 4 non-test source files; FastAPI app loads without ImportError
+- Replaced SelfHealingRunner retry loop with single-pass pytest execution using subprocess.run and storage_state login injection
+- Removed 4 healing fields from Run SQLAlchemy model, RunResponse/ReportDetailResponse Pydantic schemas, and deleted RunRepository.update_healing_status method
+- Replace dead healing getattr reads in reports.py with run.status-based execution_status field
+- Removed all healing references from 5 frontend files: Run type, StatusBadge, CodeViewerModal polling, ReportDetail display, and reports API layer
+- Deleted 6 self-healing test files and cleaned healing references from 4 remaining test files, replacing all append_step_async with append_step
+- Cleaned SelfHealingRunner/llm_healer comment references from 2 test files, fixed _healer->_logger variable assert regression, verified 928 unit/integration tests pass
+
+---
+
 ## v0.10.10 表单填写优化 (Shipped: 2026-04-29)
 
 **Phases completed:** 2 phases, 3 plans, 5 tasks

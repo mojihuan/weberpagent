@@ -1,5 +1,58 @@
 # Project Retrospective
 
+## Milestone: v0.10.11 — 移除自愈功能
+
+**Shipped:** 2026-04-29
+**Phases:** 4 | **Plans:** 8
+
+### What Was Built
+
+- 删除 SelfHealingRunner/LLMHealer/ErrorClassifier/HealerError 四个自愈模块
+- 执行管道简化: subprocess.run 一次性 pytest 替代重试循环
+- 数据层清理: Run model/schema/repository 移除所有 healing 字段
+- 前端 healing UI 清除: StatusBadge/CodeViewerModal/ReportDetail 零 healing 残留
+- 测试清理: 删除 6 测试文件、清理 7 文件，928 测试通过
+
+### What Worked
+
+- **Delete-first cleanup-second 策略**: Phase 116 先删文件，116-02 再清引用，减少跨文件依赖风险
+- **4 phase 线性清理**: 116→117→118→119 每层只关注自己范围，无跨层修复
+- **同日完成**: 4 个 phase 8 个 plan 在一天内完成（~4 小时），节奏极快
+
+### What Was Inefficient
+
+- Phase 117 重命名 _healer→_logger 时遗漏测试断言，Phase 119 才发现修复
+- action_translator.py 仍生成 _healer/HealerError fallback 代码（未清理，因为生成代码的消费者）
+
+### Patterns Established
+
+- **模块删除模式**: 删文件 → 清 import → 清用法 → 清数据层 → 清 UI → 清测试
+- **ORM 字段保留 SQLite 列**: 不做 ALTER TABLE，ORM 停止读写即可
+- **run.status 单一状态源**: 替代 healing 多状态轮询
+
+### Key Lessons
+
+1. 大规模模块删除（-2999 行）比添加代码更需要系统化计划——逐层清理避免遗漏
+2. 重命名变量时必须同步更新测试断言——否则回归测试会在后续 phase 才暴露
+3. 简化管道比优化管道更高效——subprocess.run 一次性执行比重试循环可靠得多
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: 4 (116, 117, 118, 119)
+- Notable: 1 天完成 4 个阶段 8 个计划，净删除 2999 行代码
+
+## Cross-Milestone Trends
+
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 | v0.10.9 | v0.10.11 |
+|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|---------|----------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 | 3 | 3 | 4 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 | 6 | 6 | 8 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 | 2 | 2 | <1 |
+| Tech Debt Added | 0 | 1 (cache assert) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 (auto-fixed) | 0 | 0 | 0 | 1 (fix commit) | 1 (call count) | 0 | 1 (_healer assert) |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 | ~4000 | ~1500 | -2999 |
+
 ## Milestone: v0.10.9 — 逐步代码生成
 
 **Shipped:** 2026-04-29
