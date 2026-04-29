@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T07:03:44.437Z"
+last_updated: "2026-04-29T07:11:03.718Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -51,6 +51,9 @@ Key v0.10.11 decisions:
 - [Phase 117]: SQLite columns kept (no ALTER TABLE) per D-03, ORM layer simply stops reading/writing them
 - [Phase 117]: update_healing_status deleted entirely, no replacement needed
 - [Phase 118]: execution_status defaults to Optional[str]=None in schema, reads run_obj.status with pending fallback
+- [Phase 118]: run.status polling replaces healing_status polling in CodeViewerModal (D-03)
+- [Phase 118]: execution_status replaces healing fields in frontend report types and display (D-01)
+- [Phase 118]: No new StatusBadge labels, existing success/failed/running cover execution results (D-04)
 
 ### Pending Todos
 
@@ -62,5 +65,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T07:03:44.434Z
+Last session: 2026-04-29T07:11:03.716Z
 Status: Roadmap created, ready to plan Phase 116

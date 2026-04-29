@@ -78,7 +78,7 @@
 
 - [x] **Phase 116: 自愈模块删除** — 删除 4 个自愈后端模块并清理所有导入引用 (completed 2026-04-29)
 - [x] **Phase 117: 管道与数据层简化** — 简化执行管道、移除 healing 数据字段 (completed 2026-04-29)
-- [ ] **Phase 118: API 与前端清理** — 简化 API 端点、移除前端 healing UI
+- [x] **Phase 118: API 与前端清理** — 简化 API 端点、移除前端 healing UI (completed 2026-04-29)
 - [ ] **Phase 119: 测试清理与回归** — 删除自愈测试、清理遗留 mock、全量回归
 
 ## Phase Details
@@ -129,7 +129,7 @@ Plans:
 
 Plans:
 - [x] 118-01: API 端点简化
-- [ ] 118-02: 前端 healing UI 和类型清理
+- [x] 118-02: 前端 healing UI 和类型清理
 
 ### Phase 119: 测试清理与回归
 **Goal**: 所有自愈相关测试删除，剩余测试套件全量通过
@@ -154,7 +154,7 @@ Phases execute in numeric order: 116 → 117 → 118 → 119
 |-------|----------------|--------|-----------|
 | 116. 自愈模块删除 | 2/2 | Complete    | 2026-04-29 |
 | 117. 管道与数据层简化 | 2/2 | Complete    | 2026-04-29 |
-| 118. API 与前端清理 | 1/2 | In Progress|  |
+| 118. API 与前端清理 | 2/2 | Complete   | 2026-04-29 |
 | 119. 测试清理与回归 | 0/2 | Not started | - |
 
 ---
