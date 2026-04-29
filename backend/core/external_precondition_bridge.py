@@ -161,7 +161,7 @@ def load_pre_front_class() -> tuple[type | None, str | None]:
     Returns:
         (class_or_none, error_or_none)
     """
-    def _import_pre_front():
+    def _import_pre_front() -> Any:
         from common.base_prerequisites import PreFront
         return PreFront
 
@@ -185,7 +185,7 @@ def load_base_params_class() -> tuple[type | None, str | None]:
     Returns:
         (class_or_none, error_or_none)
     """
-    def _import_base_params():
+    def _import_base_params() -> Any:
         from common.base_params import BaseImport
         return BaseImport
 
@@ -204,7 +204,7 @@ def load_base_assertions_class() -> tuple[dict[str, type] | None, str | None]:
     Returns:
         (dict mapping class names to classes, error_or_none)
     """
-    def _import_assertion_classes():
+    def _import_assertion_classes() -> Any:
         import common.base_assertions as _ba_mod
         classes_cache = {}
         for _name in ('PcAssert', 'MgAssert', 'McAssert'):
@@ -390,7 +390,7 @@ GROUP_RULES = [
 ]
 
 
-def _parse_data_options_from_source(method) -> list[dict]:
+def _parse_data_options_from_source(method: Any) -> list[dict]:
     """Extract data options from method source code with descriptions.
 
     Parses the methods = {...} dictionary to extract available keys
@@ -753,7 +753,7 @@ def _build_docstring_method_map() -> dict[str, dict[str, str]]:
         return _docstring_method_map
 
 
-def _remap_stale_module_map_classes(ImportApi):
+def _remap_stale_module_map_classes(ImportApi: Any) -> None:
     """Fix _module_map entries whose class names are stale after upstream obfuscation.
 
     Upstream webseleniumerp periodically obfuscates all API class names.
@@ -797,7 +797,7 @@ def _remap_stale_module_map_classes(ImportApi):
         logger.info(f"Remapped {updated_count} stale _module_map class names")
 
 
-def _scan_module_for_get_data_attrs(module) -> set[str]:
+def _scan_module_for_get_data_attrs(module: Any) -> set[str]:
     """Scan a module's classes for obfuscated _get_data/_get_cached_api attributes.
 
     Returns the set of obfuscated api_attr names found in method source code.
@@ -824,7 +824,7 @@ def _scan_module_for_get_data_attrs(module) -> set[str]:
     return attrs
 
 
-def _match_attr_to_module_map(attr_name: str, ImportApi) -> bool:
+def _match_attr_to_module_map(attr_name: str, ImportApi: Any) -> bool:
     """Try to add an obfuscated attr to _module_map by matching method names.
 
     Handles two patterns:
@@ -884,7 +884,7 @@ def _match_attr_to_module_map(attr_name: str, ImportApi) -> bool:
     return False
 
 
-def _patch_import_api_aliases():
+def _patch_import_api_aliases() -> None:
     """Add obfuscated api_attr aliases to ImportApi._module_map.
 
     Three-phase patching:
@@ -1016,13 +1016,13 @@ def get_assertion_methods_grouped() -> list[dict]:
         return _assertion_methods_cache
 
 
-def _get_login_api():
+def _get_login_api() -> Any:
     """Get or create LoginApi instance with caching.
 
     Returns:
         LoginApi instance or None if unavailable
     """
-    def _import_login_api():
+    def _import_login_api() -> Any:
         from api.api_login import LoginApi
         return LoginApi()
 
@@ -1591,7 +1591,7 @@ def execute_operations(operation_codes: list[str]) -> tuple[bool, str, dict[str,
         return False, str(e), {}
 
 
-def reset_cache():
+def reset_cache() -> None:
     """Reset all cached data (for testing)."""
     global _pre_front_class, _import_error, _operations_cache, _modules_cache, _path_configured
     global _base_params_class, _base_params_import_error, _data_methods_cache
@@ -1651,7 +1651,7 @@ class ParamDictVisitor(ast.NodeVisitor):
     def __init__(self):
         self.param_dict = None
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: ast.AST) -> Any:
         if node.name == 'assertive_field':
             for child in ast.walk(node):
                 if isinstance(child, ast.Assign):
@@ -1688,7 +1688,7 @@ def generate_field_description(field_name: str) -> str:
     return ''.join(translated) if translated else field_name
 
 
-def _is_time_field(field_name: str, default_node) -> bool:
+def _is_time_field(field_name: str, default_node: Any) -> bool:
     """Check if field is a time field based on name suffix or default value.
 
     Args:
