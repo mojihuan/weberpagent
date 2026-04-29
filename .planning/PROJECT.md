@@ -15,9 +15,9 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.9 逐步代码生成 (Phase 113 complete)
+**最新版本:** v0.10.10 表单填写优化 (进行中)
 **Server online**: 121.40.191.49
-**当前状态:** StepCodeBuffer 逐步即时翻译替代事后一次性翻译，全量回归 316 passed
+**当前状态:** 修复 ERP 表格内 input DOM 检测机制，不再依赖 placeholder 精确匹配
 
 ## 已交付版本:
 
@@ -45,7 +45,13 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-(None — plan next milestone)
+**v0.10.10 表单填写优化:**
+- [ ] FORM-01: 重构 _is_erp_table_cell_input 检测逻辑 — 检测 td 内所有可见 input，不依赖 placeholder 精确匹配
+- [ ] FORM-02: 修复 _is_textual_td_cell — td 内已有 ERP input 时不再将 td 标记为 interactive
+- [ ] FORM-03: 增强 _patch_assign_interactive_indices — 列头注释语义化，支持任意 input
+- [ ] FORM-04: 新增 DOM 诊断日志 — 运行开始时记录实际发现的 input placeholder 值
+- [ ] FORM-05: 更新 prompts.py Section 9 — 同时支持 click-to-edit 和始终可见 input 两种模式
+- [ ] FORM-06: E2E 验证 — 销售出库场景表单填写回归
 
 ### Validated
 
@@ -331,4 +337,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 — v0.10.9 milestone complete*
+*Last updated: 2026-04-29 — v0.10.10 milestone started*

@@ -209,3 +209,40 @@ class TestSection9Phase69:
         """DEPTH-04: Section 9 must contain column annotation cross-positioning rules."""
         assert "列:" in ENHANCED_SYSTEM_MESSAGE
         assert "交叉" in ENHANCED_SYSTEM_MESSAGE or "定位" in ENHANCED_SYSTEM_MESSAGE
+
+    def test_section9_dual_mode_guidance(self):
+        """FORM-05: Section 9 must contain dual-mode (A/B) guidance with judgment logic."""
+        # Mode A signal: click-to-edit
+        has_mode_a = (
+            "click-to-edit" in ENHANCED_SYSTEM_MESSAGE
+            or "CLICK td" in ENHANCED_SYSTEM_MESSAGE
+            or "模式 A" in ENHANCED_SYSTEM_MESSAGE
+        )
+        # Mode B signal: direct input
+        has_mode_b = (
+            "直接" in ENHANCED_SYSTEM_MESSAGE
+            or "input [index]" in ENHANCED_SYSTEM_MESSAGE
+            or "模式 B" in ENHANCED_SYSTEM_MESSAGE
+        )
+        # Mode judgment keyword
+        has_judgment = "判断" in ENHANCED_SYSTEM_MESSAGE
+
+        assert has_mode_a, "Section 9 missing Mode A (click-to-edit) signal"
+        assert has_mode_b, "Section 9 missing Mode B (direct input) signal"
+        assert has_judgment, "Section 9 missing mode judgment keyword '判断'"
+
+    def test_section9_line_count_under_30(self):
+        """FORM-05: Section 9 non-blank lines must not exceed 30."""
+        lines = ENHANCED_SYSTEM_MESSAGE.splitlines()
+        section_start = None
+        section_end = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("## 9."):
+                section_start = i
+            elif section_start is not None and line.strip().startswith("## "):
+                section_end = i
+                break
+        assert section_start is not None, "Section '## 9.' not found"
+        end = section_end if section_end is not None else len(lines)
+        non_blank = [l for l in lines[section_start:end] if l.strip()]
+        assert len(non_blank) <= 30

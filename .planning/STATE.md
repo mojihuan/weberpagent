@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.9
-milestone_name: 逐步代码生成
-status: shipped
-last_updated: "2026-04-29T07:31:00.000Z"
+milestone: v0.10.10
+milestone_name: 表单填写优化
+status: planning
+last_updated: "2026-04-29T00:54:39.166Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 2
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 114 — DOM Patch 核心修复
 
 ## Last Shipped
 
@@ -32,9 +32,21 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Milestone v0.10.9 shipped. Ready for next milestone.
+Phase: 114 (DOM Patch 核心修复) — EXECUTING
+Plan: 1 of 1
 
 ## Accumulated Context
+
+### Root Cause Analysis (v0.10.10)
+
+ERP 表格销售金额填写失败根因：
+
+1. `_ERP_TABLE_CELL_PLACEHOLDERS` 只含 "销售金额" 等通用名，但实际 placeholder 不含这些子串
+2. `_is_erp_table_cell_input` 因 placeholder 不匹配返回 False → input 不分配 index
+3. `_is_textual_td_cell` 将 td 标记为 interactive → Agent 点击 td 而非 input
+4. Agent 用 CSS selector `placeholder*='销售金额'` 搜索 → 0 结果
+5. 后续 evaluate JS 同样搜索 placeholder → 全部失败
+6. 关键证据：`find_elements('table tr td input')` 找到 21 个 input（存在），但 `placeholder*='销售金额'` 找到 0 个（不匹配）
 
 ### Decisions
 
@@ -42,13 +54,16 @@ Key v0.10.9 decisions:
 
 - StepRecord frozen dataclass with action/wait_before/step_index
 - navigate wait_for_load_state priority highest regardless of duration
-- assemble() inserts wait TranslatedAction before main action when wait_before non-empty
-- __init__ uses keyword-only args (*, base_dir, run_id, llm_config) for backward compatibility
-- _is_weak_step() reuses LocatorChainBuilder.extract() matching code_generator pattern
-- append_step_async falls back silently on heal failure/exception/missing DOM
-- Path imported as PathLib inside try block to avoid collision with top-level Path import
-- action_dict guarded with 'action_dict' in locals() since variable is inside conditional block
 - Removed generate_and_save/_heal_weak_steps from code_generator.py since logic moved to StepCodeBuffer
+
+Key v0.10.10 decisions:
+
+- 放弃 placeholder 子串匹配，改为检测 td 内所有可见 input (type=text/number)
+- 保留 _ERP_TABLE_CELL_PLACEHOLDERS 作为列语义提示但不再作为唯一检测依据
+- 用 _get_column_header() 注入列名注释替代 placeholder 语义识别
+- [Phase 114]: Structural input detection (tag+type+visibility) replaces placeholder matching in _is_erp_table_cell_input
+- [Phase 114]: Belt-and-suspenders: _is_textual_td_cell guard + patched_is_interactive td guard for DOM-02
+- [Phase 114]: One-shot diagnostic log via _diagnostic_log_emitted flag, reset per traversal session
 
 ### Pending Todos
 
@@ -60,5 +75,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T07:31:00.000Z
-Status: Milestone v0.10.9 shipped, ready for next milestone
+Last session: 2026-04-29T00:54:39.163Z
+Status: Roadmap created for v0.10.10, Phase 114 ready to plan

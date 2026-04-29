@@ -54,7 +54,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 1 plan
 
 Plans:
-- [ ] 114-01-PLAN.md — 重构 input 检测 + td guard + 诊断日志 + 列头注释 (DOM-01/02/03/04)
+- [x] 114-01-PLAN.md — 重构 input 检测 + td guard + 诊断日志 + 列头注释 (DOM-01/02/03/04)
 
 ### Phase 115: Prompt 优化与 E2E 验证
 **Goal**: Agent prompt 能指导两种表格 input 模式，销售出库场景表单填写 E2E 通过且全量回归无破坏
@@ -74,7 +74,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 114. DOM Patch 核心修复 | v0.10.10 | 0/1 | Planned | - |
+| 114. DOM Patch 核心修复 | v0.10.10 | 1/1 | Complete   | 2026-04-29 |
 | 115. Prompt 优化与 E2E 验证 | v0.10.10 | 0/2 | Not started | - |
 
 <details>
