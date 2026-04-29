@@ -90,6 +90,11 @@ def _is_textual_td_cell(node) -> bool:
     if not parent_tag or parent_tag.lower() != "tr":
         return False
 
+    # DOM-02: If td contains a visible input, do NOT mark td as interactive.
+    # The input should receive the interactive index instead.
+    if _has_visible_input_child(original):
+        return False
+
     # Check if the cell has meaningful text content (from nested <span>/<div> children)
     # get_all_children_text() recursively collects all TEXT_NODE values from descendants
     text = original.get_all_children_text()
@@ -378,15 +383,17 @@ def _get_column_header(td_original) -> str | None:
 
 
 def _is_erp_table_cell_input(node) -> bool:
-    """Check if a SimplifiedNode is an ERP table cell input with relevant placeholder.
+    """Check if a SimplifiedNode is a visible input inside a td cell.
 
-    Conditions: (1) inside <td>/<th>, (2) input tag, (3) has placeholder matching ERP fields.
+    Detects ANY visible input (type=text/number) inside <td>/<th>,
+    regardless of placeholder value. Replaces previous placeholder-matching
+    approach that missed inputs with unexpected placeholder text.
 
     Args:
         node: A SimplifiedNode instance.
 
     Returns:
-        True if the node is an ERP table cell input.
+        True if the node is a visible ERP table cell input.
     """
     if not _is_inside_table_cell(node):
         return False
@@ -399,14 +406,36 @@ def _is_erp_table_cell_input(node) -> bool:
     if not tag_name or tag_name.lower() != "input":
         return False
 
-    attributes = getattr(original, "attributes", None)
-    if not attributes:
+    # Only detect visible inputs with type=text or type=number
+    attributes = getattr(original, "attributes", None) or {}
+    input_type = attributes.get("type", "text").lower()
+    if input_type not in ("text", "number", ""):
         return False
 
-    placeholder = attributes.get("placeholder", "")
-    for erp_placeholder in _ERP_TABLE_CELL_PLACEHOLDERS:
-        if erp_placeholder in placeholder:
-            return True
+    # Must have snapshot_node (visible in accessibility tree)
+    snapshot_node = getattr(original, "snapshot_node", None)
+    if not snapshot_node:
+        return False
+
+    return True
+
+
+def _has_visible_input_child(td_original) -> bool:
+    """Check if a td AccessibilityNode has a visible input child.
+
+    Walks direct children looking for visible <input> tags with
+    type=text/number. Used to prevent td from being marked interactive
+    when it contains an input that should receive clicks instead.
+    """
+    for child in getattr(td_original, "children", []):
+        tag = getattr(child, "tag_name", "").lower()
+        if tag == "input":
+            attrs = getattr(child, "attributes", None) or {}
+            input_type = attrs.get("type", "text").lower()
+            if input_type in ("text", "number", ""):
+                snapshot = getattr(child, "snapshot_node", None)
+                if snapshot:
+                    return True
     return False
 
 
@@ -447,6 +476,12 @@ def _patch_is_interactive() -> None:
                     for erp_cls in _ERP_CLICKABLE_CLASSES:
                         if erp_cls in cls:
                             return True
+        # DOM-02: Skip td interactive marking if td contains visible input child.
+        # This ensures the Agent targets the input, not the td cell.
+        orig_node = getattr(node, "original_node", None)
+        if orig_node and getattr(orig_node, "tag_name", "").lower() == "td":
+            if _has_visible_input_child(orig_node):
+                return original_is_interactive(node)
         # Mark <td> cells with text content as interactive (click-to-edit entry point)
         if _is_textual_td_cell(node):
             return True
