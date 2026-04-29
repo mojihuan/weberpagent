@@ -69,9 +69,15 @@ def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
         return False, f"WEBSERP_PATH is not a directory: {weberp_path}"
 
     path_str = str(path.resolve())
+    parent_dir = str(path.resolve().parent)
+    # Add the project dir itself (for base_prerequisites imports)
     if path_str not in sys.path:
         sys.path.insert(0, path_str)
         logger.info(f"Added to sys.path: {path_str}")
+    # Add parent dir so Python can find the 'webseleniumerp' package
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+        logger.info(f"Added to sys.path: {parent_dir}")
 
     _path_configured = True
     return True, f"Path configured: {weberp_path}"

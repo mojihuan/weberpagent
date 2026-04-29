@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     llm_temperature: float = 0.0
 
+    # Code generation LLM (optional, falls back to default LLM config)
+    code_gen_model: str = ""
+    code_gen_api_key: str = ""
+    code_gen_base_url: str = ""
+    code_gen_temperature: float = 0.0
+
     # ERP Configuration
     erp_base_url: str = ""
     erp_username: str = ""

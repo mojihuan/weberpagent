@@ -38,7 +38,27 @@ class AccountService:
     }
 
     def __init__(self, config: dict[str, str] | None = None) -> None:
-        self._config = config if config is not None else self._load_config()
+        self._config = config
+        self._loaded = config is not None
+
+    def _ensure_loaded(self) -> None:
+        """Lazily load config on first resolve, after sys.path is ready."""
+        if self._loaded:
+            return
+        import sys
+        from backend.config import get_settings
+        settings = get_settings()
+        weberp_path = settings.weberp_path
+        if weberp_path:
+            from pathlib import Path
+            # Need the parent directory so Python can find the 'webseleniumerp' package
+            parent_dir = str(Path(weberp_path).resolve().parent)
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+                logger.info(f"Added to sys.path: {parent_dir}")
+        self._config = self._load_config()
+        logger.info(f"Loaded config with {len(self._config)} keys: {list(self._config.keys())[:5]}...")
+        self._loaded = True
 
     @staticmethod
     def _load_config() -> dict[str, str]:
@@ -47,8 +67,11 @@ class AccountService:
             from webseleniumerp.config.user_info import INFO
 
             return dict(INFO)
-        except ImportError:
-            logger.warning("webseleniumerp.config.user_info not available")
+        except ImportError as e:
+            logger.warning(f"webseleniumerp.config.user_info not available: {e}")
+            return {}
+        except Exception as e:
+            logger.warning(f"Failed to load user_info: {type(e).__name__}: {e}")
             return {}
 
     def resolve(self, role: str) -> AccountInfo:
@@ -57,6 +80,7 @@ class AccountService:
         Raises:
             ValueError: If role is unknown or config field is missing/empty.
         """
+        self._ensure_loaded()
         if role not in self.ROLE_MAP:
             available = ", ".join(sorted(self.ROLE_MAP.keys()))
             raise ValueError(f"unknown role: '{role}'. available roles: {available}")
