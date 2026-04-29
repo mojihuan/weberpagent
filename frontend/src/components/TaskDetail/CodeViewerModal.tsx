@@ -52,13 +52,11 @@ export function CodeViewerModal({ task, onClose }: CodeViewerModalProps) {
     const poll = setInterval(async () => {
       try {
         const run = await getRun(task.latest_run_id!)
-        if (run.healing_status === 'passed') {
+        if (run.status === 'success') {
           setExecState('success')
-        } else if (run.healing_status === 'failed') {
+        } else if (run.status === 'failed') {
           setExecState('failed')
-          setExecError(run.healing_error || '执行失败')
-        } else if (run.healing_status === 'healing') {
-          setExecState('running')
+          setExecError('执行失败')
         }
       } catch {
         // Non-fatal polling error: continue polling

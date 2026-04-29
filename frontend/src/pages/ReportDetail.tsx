@@ -30,14 +30,6 @@ export function ReportDetail() {
     return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`
   }
 
-  const healingStatusMap: Record<string, string> = {
-    pending: 'healing_pending',
-    healing: 'healing',
-    passed: 'healing_passed',
-    failed: 'healing_failed',
-    skipped: 'healing_skipped',
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -81,19 +73,11 @@ export function ReportDetail() {
         />
       </div>
 
-      {/* 自愈状态 (Phase 85, HEAL-03, per D-10) */}
-      {data.healing_status && data.healing_status !== 'pending' && (
+      {/* 执行状态 */}
+      {data.execution_status && data.execution_status !== 'pending' && (
         <div className="flex items-center gap-2 mb-6 px-4 py-2 bg-gray-50 rounded-lg">
-          <span className="text-sm text-gray-600">自愈状态:</span>
-          <StatusBadge status={(healingStatusMap[data.healing_status] || 'healing_pending') as Status} />
-          {data.healing_attempts != null && data.healing_attempts > 0 && (
-            <span className="text-xs text-gray-500">尝试 {data.healing_attempts} 次</span>
-          )}
-          {data.healing_error && (
-            <span className="text-xs text-red-500 truncate max-w-md" title={data.healing_error}>
-              {data.healing_error}
-            </span>
-          )}
+          <span className="text-sm text-gray-600">执行状态:</span>
+          <StatusBadge status={data.execution_status as Status} />
         </div>
       )}
 
