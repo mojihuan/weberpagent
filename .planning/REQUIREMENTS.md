@@ -23,9 +23,9 @@
 
 ### 重复逻辑合并
 
-- [ ] **DUP-01**: 识别并合并相同或高度相似的函数
-- [ ] **DUP-02**: 合并重复的错误处理模式
-- [ ] **DUP-03**: 统一重复的数据转换/序列化逻辑
+- [x] **DUP-01**: 识别并合并相同或高度相似的函数
+- [x] **DUP-02**: 合并重复的错误处理模式
+- [x] **DUP-03**: 统一重复的数据转换/序列化逻辑
 
 ### 命名规范化
 
@@ -67,9 +67,9 @@
 | DEAD-02 | Phase 121 | Complete |
 | DEAD-03 | Phase 121 | Complete |
 | DEAD-04 | Phase 121 | Complete |
-| DUP-01 | Phase 122 | Pending |
-| DUP-02 | Phase 122 | Pending |
-| DUP-03 | Phase 122 | Pending |
+| DUP-01 | Phase 122 | Complete |
+| DUP-02 | Phase 122 | Complete |
+| DUP-03 | Phase 122 | Complete |
 | NAME-01 | Phase 123 | Pending |
 | NAME-02 | Phase 123 | Pending |
 | NAME-03 | Phase 123 | Pending |

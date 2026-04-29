@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: 全面代码清理
-status: Phase complete — ready for verification
-stopped_at: Completed 121-02-PLAN.md
-last_updated: "2026-04-29T13:01:21.447Z"
+status: Ready to execute
+stopped_at: Completed 122-01-PLAN.md
+last_updated: "2026-04-29T14:01:37.503Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 121 — dead-code-cleanup
+**Current focus:** Phase 122 — 重复逻辑合并
 
 ## Last Shipped
 
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 121 (dead-code-cleanup) — EXECUTING
+Phase: 122 (重复逻辑合并) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -53,6 +53,7 @@ Recent decisions affecting current work:
 - [Phase 120]: D-07: FastAPI regression check confirms app starts after all test deletions
 - [Phase 121]: D-01: TYPE_CHECKING guard for ContextWrapper to avoid circular import
 - [Phase 121]: D-02: importlib.import_module for models side-effect import (pyflakes clean)
+- [Phase 122]: _check_attribute only applied to check_url_contains/check_text_exists; check_no_errors/check_element_exists kept as-is (different pattern, forcing abstraction reduces readability)
 
 ### Pending Todos
 
@@ -64,6 +65,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T13:01:21.445Z
-Stopped at: Completed 121-02-PLAN.md
+Last session: 2026-04-29T14:01:37.501Z
+Stopped at: Completed 122-01-PLAN.md
 Resume file: None

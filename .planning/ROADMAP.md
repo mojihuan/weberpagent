@@ -140,8 +140,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 122-01: 识别并合并重复函数和序列化逻辑
-- [ ] 122-02: 统一错误处理模式
+- [x] 122-01: 合并 API 路由重复 + BaseRepository + 断言服务重构 (dup #1, #2, #6, #7, #8, #9, #12)
+- [ ] 122-02: 合并 Bridge/Agent 重复 + 统一 lazy-load/503/error 模式 (dup #3, #4, #5, #10, #11, #13)
 
 ### Phase 123: 命名规范化与类型标注
 **Goal**: 所有公共 API 使用一致的 snake_case 命名和完整的类型标注
@@ -184,8 +184,8 @@ Phases execute in numeric order: 120 → 121 → 122 → 123 → 124
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 120. 删除测试基础设施 | 2/2 | Complete    | 2026-04-29 |
-| 121. 死代码清理 | 2/2 | Complete   | 2026-04-29 |
-| 122. 重复逻辑合并 | 0/2 | Not started | - |
+| 121. 死代码清理 | 2/2 | Complete    | 2026-04-29 |
+| 122. 重复逻辑合并 | 1/2 | In Progress|  |
 | 123. 命名规范化与类型标注 | 0/2 | Not started | - |
 | 124. 函数/模块优化 | 0/2 | Not started | - |
 
