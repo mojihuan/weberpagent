@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T06:13:18.196Z"
+last_updated: "2026-04-29T06:17:24.383Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -48,6 +48,8 @@ Key v0.10.11 decisions:
 - [Phase 116]: Import-only removal: removed 5 import lines from 4 files, usage code left for Phase 117
 - [Phase 117]: subprocess.run replaces SelfHealingRunner for one-shot pytest execution
 - [Phase 117]: Keep logger name healer in generated code to avoid breaking existing test files
+- [Phase 117]: SQLite columns kept (no ALTER TABLE) per D-03, ORM layer simply stops reading/writing them
+- [Phase 117]: update_healing_status deleted entirely, no replacement needed
 
 ### Pending Todos
 
@@ -59,5 +61,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T06:13:18.194Z
+Last session: 2026-04-29T06:17:24.381Z
 Status: Roadmap created, ready to plan Phase 116

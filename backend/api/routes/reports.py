@@ -63,13 +63,11 @@ async def get_report(
     report_service = ReportService(db)
     data = await report_service.get_report_data(report.run_id)
 
-    # Query associated Run for healing status (Phase 85, HEAL-03, per D-10)
+    # Query associated Run for execution status
     from backend.db.repository import RunRepository
     run_repo = RunRepository(db)
     run_obj = await run_repo.get(report.run_id)
-    healing_status = getattr(run_obj, 'healing_status', 'pending') if run_obj else 'pending'
-    healing_attempts = getattr(run_obj, 'healing_attempts', 0) if run_obj else 0
-    healing_error = getattr(run_obj, 'healing_error', None) if run_obj else None
+    execution_status = run_obj.status if run_obj else 'pending'
 
     if not data:
         raise HTTPException(status_code=404, detail="Report data not found")
@@ -123,7 +121,5 @@ async def get_report(
         pass_rate=data["pass_rate"],
         precondition_results=data.get("precondition_results"),
         timeline_items=data.get("timeline_items"),
-        healing_status=healing_status,
-        healing_attempts=healing_attempts,
-        healing_error=healing_error,
+        execution_status=execution_status,
     )

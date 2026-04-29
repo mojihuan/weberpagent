@@ -77,7 +77,7 @@
 **Milestone Goal:** 移除代码执行管道中的 LLM 自愈重试机制，简化为一次性执行
 
 - [x] **Phase 116: 自愈模块删除** — 删除 4 个自愈后端模块并清理所有导入引用 (completed 2026-04-29)
-- [ ] **Phase 117: 管道与数据层简化** — 简化执行管道、移除 healing 数据字段
+- [x] **Phase 117: 管道与数据层简化** — 简化执行管道、移除 healing 数据字段 (completed 2026-04-29)
 - [ ] **Phase 118: API 与前端清理** — 简化 API 端点、移除前端 healing UI
 - [ ] **Phase 119: 测试清理与回归** — 删除自愈测试、清理遗留 mock、全量回归
 
@@ -112,7 +112,7 @@ Plans:
 
 Plans:
 - [x] 117-01: 简化 runs.py 执行管道 + StepCodeBuffer/code_generator 清理
-- [ ] 117-02: DB 模型和 schema healing 字段清理
+- [x] 117-02: DB 模型和 schema healing 字段清理
 
 ### Phase 118: API 与前端清理
 **Goal**: API 端点反映简化后的执行模型，前端不再展示任何 healing 相关 UI
@@ -153,7 +153,7 @@ Phases execute in numeric order: 116 → 117 → 118 → 119
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 116. 自愈模块删除 | 2/2 | Complete    | 2026-04-29 |
-| 117. 管道与数据层简化 | 1/2 | In Progress|  |
+| 117. 管道与数据层简化 | 2/2 | Complete   | 2026-04-29 |
 | 118. API 与前端清理 | 0/2 | Not started | - |
 | 119. 测试清理与回归 | 0/2 | Not started | - |
 
