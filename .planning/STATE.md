@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T07:11:03.718Z"
+last_updated: "2026-04-29T08:22:57.491Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 118 — API 与前端清理
+**Current focus:** Phase 119 — test-cleanup
 
 ## Last Shipped
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 118 (API 与前端清理) — EXECUTING
+Phase: 119 (test-cleanup) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -54,6 +54,8 @@ Key v0.10.11 decisions:
 - [Phase 118]: run.status polling replaces healing_status polling in CodeViewerModal (D-03)
 - [Phase 118]: execution_status replaces healing fields in frontend report types and display (D-01)
 - [Phase 118]: No new StatusBadge labels, existing success/failed/running cover execution results (D-04)
+- [Phase 119]: TestTaskStatusSuccess class deleted entirely since _execute_code_background no longer uses SelfHealingRunner/HealingResult
+- [Phase 119]: execute_code status assertion changed from 'healing' to 'executing' to match runs.py actual return
 
 ### Pending Todos
 
@@ -65,5 +67,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T07:11:03.716Z
+Last session: 2026-04-29T08:22:57.489Z
 Status: Roadmap created, ready to plan Phase 116

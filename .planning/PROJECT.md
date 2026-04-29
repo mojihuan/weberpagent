@@ -17,7 +17,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 **最新版本:** v0.10.11 移除自愈功能 (进行中)
 **Server online**: 121.40.191.49
-**当前状态:** Phase 117 complete — 执行管道简化为一次性 pytest，DB/schema healing 字段已清理
+**当前状态:** Phase 118 complete — API 端点和前端 healing UI 全部清理，execution_status 替代 healing 字段
 
 ## Current Milestone: v0.10.11 移除自愈功能
 
