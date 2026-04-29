@@ -1,14 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.11
-milestone_name: 移除自愈功能
-status: complete
-last_updated: "2026-04-29T09:30:00.000Z"
+milestone: v0.11.0
+milestone_name: 全面代码清理
+status: Phase complete — ready for verification
+stopped_at: Completed 120-02-PLAN.md
+last_updated: "2026-04-29T12:03:30.413Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -18,29 +19,38 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 120 — delete-test-infra
 
 ## Last Shipped
 
 **v0.10.11 移除自愈功能** (2026-04-29)
 
-- Phase 116: 自愈模块删除 — 4 个模块文件 + 5 条 import 引用清除
+- Phase 116: 自治模块删除 — 4 个模块文件 + 5 条 import 引用清除
 - Phase 117: 管道与数据层简化 — subprocess.run 替代 SelfHealingRunner，DB/Schema 清理
 - Phase 118: API 与前端清理 — execution_status 替代 healing 字段，前端 healing UI 清除
 - Phase 119: 测试清理与回归 — 6 测试文件删除，928 测试通过
 
-**Server online**: 121.40.191.49
-
 ## Current Position
 
-Phase: None (milestone complete)
-Plan: None
+Phase: 120 (delete-test-infra) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
 ### Decisions
 
 See .planning/PROJECT.md Key Decisions for full decision log.
+
+Recent decisions affecting current work:
+
+- v0.11.0: Delete-first strategy — tests removed before any other cleanup
+- v0.11.0: No new features, no architecture restructuring, no performance optimization
+- v0.11.0: Server 121.40.191.49 can be ignored
+- [Phase 120]: D-01: Delete entire backend/tests/ (87 files) from git and filesystem
+- [Phase 120]: D-03: Remove [tool.pytest.ini_options] from pyproject.toml — config no longer needed
+- [Phase 120]: D-02/D-04: Preserve pytest/pytest-asyncio/pytest-playwright/httpx/pytest-timeout as runtime dependencies
+- [Phase 120]: D-05: Clear outputs/ (~291 subdirs, ~406MB) — gitignored, zero git impact
+- [Phase 120]: D-07: FastAPI regression check confirms app starts after all test deletions
 
 ### Pending Todos
 
@@ -52,5 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T09:30:00.000Z
-Status: Milestone v0.10.11 archived, ready for /gsd:new-milestone
+Last session: 2026-04-29T12:03:30.411Z
+Stopped at: Completed 120-02-PLAN.md
+Resume file: None

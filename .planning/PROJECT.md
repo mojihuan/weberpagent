@@ -13,15 +13,16 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current State
+## Current Milestone: v0.11.0 全面代码清理
 
-**最新版本:** v0.10.11 移除自愈功能 (已归档)
-**Server online**: 121.40.191.49
-**当前状态:** 自愈功能完全移除，代码执行管道简化为一次性 pytest，928 测试通过
+**Goal:** 清除所有测试代码 + 深度清理死代码/冗余代码/乱代码，使代码库精简、一致、可维护
 
-## Next Milestone
-
-待规划。使用 `/gsd:new-milestone` 启动下一个里程碑。
+**Target features:**
+- 删除整个 tests/ 目录（pytest 配置、conftest.py、所有测试文件、测试依赖）
+- 死代码清理（未使用的 import、函数、变量、文件）
+- 重复逻辑合并与架构优化
+- 命名规范化 + 全面类型标注
+- 清理测试相关依赖（pytest、pytest-asyncio、pytest-timeout 等）
 
 ## 已交付版本:
 
@@ -52,6 +53,13 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 ### Active
 
 (None — milestone v0.10.11 complete)
+
+### Active (v0.11.0)
+
+- [ ] 删除整个 tests/ 目录及所有测试相关配置和依赖
+- [ ] 清理未使用的 import、函数、变量、文件
+- [ ] 合并重复逻辑，优化架构
+- [ ] 命名规范化 + 全面类型标注
 
 ### Validated
 
@@ -366,4 +374,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 after v0.10.11 milestone*
+*Last updated: 2026-04-29 after v0.11.0 milestone started*
