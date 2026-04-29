@@ -123,56 +123,102 @@ async def _execute_code_background(
     login_role: str,
     task_id: str,
 ) -> None:
-    """Background task: run SelfHealingRunner and update healing status + Task status.
+    """Background task: execute generated Playwright code via pytest once and update run status."""
+    import subprocess
+    from urllib.parse import urlparse
 
-    Per D-04: reuses SelfHealingRunner.run() completely.
-    Per D-06: updates healing_status field (pending -> healing -> passed/failed).
-    Per D-09: updates Task.status = "success" on passed result.
-    """
+    CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright storage_state injection."""
+import json
+from pathlib import Path
+
+import pytest
+from playwright.sync_api import BrowserContext
+
+
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    """Inject storage_state from .storage_state.json in the test file directory."""
+    state_file = Path(__file__).parent / ".storage_state.json"
+    if state_file.exists():
+        with open(state_file, encoding="utf-8") as f:
+            return {**browser_context_args, "storage_state": json.load(f)}
+    return browser_context_args
+'''
+
     async with _code_execution_semaphore:
         _active_code_execution[run_id] = datetime.now().isoformat()
+        test_file_dir = str(Path(test_file_path).parent)
+        conftest_path = Path(test_file_dir) / "conftest.py"
+        storage_state_path = Path(test_file_dir) / ".storage_state.json"
+
         try:
-            runner = SelfHealingRunner(get_code_gen_llm_config())
-            result = await runner.run(
-                run_id=run_id,
-                test_file_path=test_file_path,
-                login_role=login_role,
-                base_dir="outputs",
+            # Resolve login credentials
+            from backend.core.account_service import account_service
+            from backend.core.auth_service import auth_service
+
+            account_info = account_service.resolve(login_role)
+            token = auth_service.fetch_token(
+                account_info.account, account_info.password, role=login_role
             )
-            # Update healing status (D-06)
+
+            # Build storage_state
+            settings = get_settings()
+            parsed = urlparse(settings.erp_base_url)
+            origin = f"{parsed.scheme}://{parsed.netloc}"
+            storage_state = {
+                "cookies": [],
+                "origins": [{
+                    "origin": origin,
+                    "localStorage": [
+                        {"name": "Admin-Token", "value": token},
+                        {"name": "Admin-Expires-In", "value": "720"},
+                    ],
+                }],
+            }
+
+            # Write storage_state and conftest
+            storage_state_path.write_text(
+                json.dumps(storage_state, ensure_ascii=False), encoding="utf-8"
+            )
+            conftest_path.write_text(CONFTEST_TEMPLATE, encoding="utf-8")
+
+            # Run pytest once
+            proc = subprocess.run(
+                ["uv", "run", "pytest", test_file_path, "--timeout=60", "-v"],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+
+            result_status = "success" if proc.returncode == 0 else "failed"
+            logger.info(
+                f"[{run_id}] pytest 执行完成: returncode={proc.returncode}, "
+                f"status={result_status}"
+            )
+
+            # Update run status
             async with async_session() as session:
                 run_repo = RunRepository(session)
-                await run_repo.update_healing_status(
-                    run_id=run_id,
-                    status=result.final_status,
-                    attempts=result.attempts,
-                    error=result.error_message or None,
-                    code_path=result.repaired_code_path or None,
-                    error_category=result.error_category,
-                )
-                # D-09: Update Task.status on success
-                if result.final_status == "passed":
+                await run_repo.update_status(run_id, result_status)
+                if result_status == "success":
                     task_repo = TaskRepository(session)
                     await task_repo.update(task_id, TaskUpdate(status="success"))
-            logger.info(
-                f"[{run_id}] 代码执行完成: status={result.final_status}, "
-                f"attempts={result.attempts}"
-            )
+
         except Exception as e:
             logger.error(f"[{run_id}] 代码执行后台任务异常: {e}", exc_info=True)
-            # Ensure healing status reflects failure
             try:
                 async with async_session() as session:
                     run_repo = RunRepository(session)
-                    await run_repo.update_healing_status(
-                        run_id=run_id,
-                        status="failed",
-                        attempts=0,
-                        error=str(e)[:2000],
-                    )
+                    await run_repo.update_status(run_id, "failed")
             except Exception:
                 pass  # Non-blocking
         finally:
+            # Cleanup temp files
+            for p in (storage_state_path, conftest_path):
+                try:
+                    p.unlink(missing_ok=True)
+                except Exception:
+                    pass
             _active_code_execution.pop(run_id, None)
 
 
@@ -424,7 +470,7 @@ async def run_agent_background(
             )
             await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
 
-            # Phase 112: 逐步翻译 — buffer.append_step_async (per INTEG-01/D-02)
+            # Phase 112: 逐步翻译 — buffer.append_step (per INTEG-01/D-02)
             if action_dict is not None:
                 _duration = None
                 if step_stats_json:
@@ -435,7 +481,7 @@ async def run_agent_background(
                     except (json.JSONDecodeError, TypeError):
                         pass
                 try:
-                    await code_buffer.append_step_async(action_dict, duration=_duration)
+                    code_buffer.append_step(action_dict, duration=_duration)
                 except Exception as _buf_err:
                     logger.error(f"[{run_id}] buffer append 失败（非阻塞）: {_buf_err}")
 
@@ -640,45 +686,6 @@ async def run_agent_background(
             except Exception as e:
                 logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
 
-            # === Self-Healing Re-execution (Phase 85, HEAL-03) ===
-            try:
-                # 获取生成的代码路径（可能在上面的代码生成块中已设置）
-                run_obj = await run_repo.get(run_id)
-                if run_obj and run_obj.generated_code_path:
-                    healing_runner = SelfHealingRunner(get_code_gen_llm_config())
-                    healing_result = await healing_runner.run(
-                        run_id=run_id,
-                        test_file_path=run_obj.generated_code_path,
-                        login_role=login_role,
-                        base_dir="outputs",
-                    )
-                    await run_repo.update_healing_status(
-                        run_id=run_id,
-                        status=healing_result.final_status,
-                        attempts=healing_result.attempts,
-                        error=healing_result.error_message or None,
-                        code_path=healing_result.repaired_code_path or None,
-                    )
-                    logger.info(
-                        f"[{run_id}] 自愈结果: status={healing_result.final_status}, "
-                        f"attempts={healing_result.attempts}"
-                    )
-                else:
-                    # 无生成代码，标记跳过
-                    await run_repo.update_healing_status(
-                        run_id=run_id, status="skipped", attempts=0,
-                    )
-                    logger.info(f"[{run_id}] 无生成代码，跳过自愈")
-            except Exception as e:
-                # 自愈失败不阻塞主流程
-                logger.error(f"[{run_id}] 自愈执行失败（非阻塞）: {e}")
-                try:
-                    await run_repo.update_healing_status(
-                        run_id=run_id, status="failed", attempts=0,
-                        error=str(e)[:2000],
-                    )
-                except Exception:
-                    pass  # 即使更新状态失败也不阻塞
 
         except Exception as e:
             logger.error(f"[{run_id}] 执行失败: {e}")
@@ -836,10 +843,10 @@ async def execute_run_code(
     if run_id in _active_code_execution:
         raise HTTPException(status_code=409, detail="已有代码执行正在进行中，请稍后重试")
 
-    # Update healing_status to "healing" before starting (D-06)
+    # Update run status to "running" before starting
     async with async_session() as session:
         repo = RunRepository(session)
-        await repo.update_healing_status(run_id, status="healing", attempts=0)
+        await repo.update_status(run_id, "running")
 
     # Launch background execution
     background_tasks.add_task(
@@ -850,7 +857,7 @@ async def execute_run_code(
         task_id=task.id,
     )
 
-    return {"run_id": run_id, "status": "healing"}
+    return {"run_id": run_id, "status": "executing"}
 
 
 @router.get("/{run_id}/stream")

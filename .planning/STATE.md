@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T05:32:42.581Z"
+last_updated: "2026-04-29T05:40:18.602Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -45,6 +45,7 @@ Key v0.10.11 decisions:
 - 代码查看 (GET /runs/{run_id}/code) 不受影响
 - StepCodeBuffer.append_step() 同步方法保留，只移除 append_step_async()
 - [Phase 116]: Delete all four healing files in one task, import references intentionally left broken for Plan 116-02
+- [Phase 116]: Import-only removal: removed 5 import lines from 4 files, usage code left for Phase 117
 
 ### Pending Todos
 
@@ -56,5 +57,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T05:32:42.579Z
+Last session: 2026-04-29T05:40:18.600Z
 Status: Roadmap created, ready to plan Phase 116
