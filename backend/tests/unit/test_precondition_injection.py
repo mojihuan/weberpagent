@@ -3,7 +3,7 @@
 Tests PREC-01, PREC-02, PREC-03:
 - PREC-01: generate() accepts precondition_config, injects page.goto() + wait_for_load_state()
 - PREC-02: StepCodeBuffer.assemble() passes precondition_config through to generate()
-- PREC-03: Generated code compatible with SelfHealingRunner storage_state injection
+- PREC-03: Generated code compatible with pytest storage_state injection
 """
 
 import ast
@@ -223,14 +223,14 @@ class TestPreconditionInjection:
 
 
 # ---------------------------------------------------------------------------
-# PREC-03: SelfHealingRunner storage_state + page.goto() compatibility
+# PREC-03: storage_state + page.goto() compatibility
 # ---------------------------------------------------------------------------
 
 
 def test_storage_state_goto_compatibility() -> None:
-    """PREC-03: 验证生成的 page.goto() 代码与 SelfHealingRunner storage_state 兼容。
+    """PREC-03: 验证生成的 page.goto() 代码与 pytest storage_state 兼容。
 
-    SelfHealingRunner conftest 注入 storage_state (localStorage token)，
+    conftest 注入 storage_state (localStorage token)，
     生成的 page.goto() 加载 ERP 页面后 Vue app 读取 token 自动登录。
     验证代码结构正确：goto 在最前面，后续操作在其之后。
     """

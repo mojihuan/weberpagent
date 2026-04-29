@@ -23,7 +23,7 @@ def _cleanup_sys_modules():
     test_complex_precondition_code_pattern creates common/base_prerequisites.py
     in tmp_path) leave `common` and `common.base_prerequisites` entries in
     sys.modules AND tmp_path entries in sys.path.  These stale entries cause
-    subsequent tests (external_bridge, llm_healer, etc.) to find the mock
+    subsequent tests (external_bridge, etc.) to find the mock
     module instead of the real one, producing false positives or crashes.
     """
     before_modules = {k: v for k, v in sys.modules.items() if k.startswith("common")}
