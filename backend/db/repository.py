@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Any, Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,11 +11,22 @@ from backend.db.models import Task, Run, Step, Report, AssertionResult, Precondi
 from backend.db.schemas import TaskCreate, TaskUpdate
 
 
-class TaskRepository:
-    """任务仓库"""
+class BaseRepository:
+    """Base repository with common persist logic."""
 
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    async def _persist(self, entity: Any) -> Any:
+        """Add entity to session, commit, and refresh."""
+        self.session.add(entity)
+        await self.session.commit()
+        await self.session.refresh(entity)
+        return entity
+
+
+class TaskRepository(BaseRepository):
+    """任务仓库"""
 
     def _serialize_preconditions(self, preconditions: List[str] | None) -> str | None:
         """Serialize preconditions list to JSON string."""
@@ -41,10 +52,7 @@ class TaskRepository:
                 assertions_val, ensure_ascii=False
             )
         task = Task(**task_data)
-        self.session.add(task)
-        await self.session.commit()
-        await self.session.refresh(task)
-        return task
+        return await self._persist(task)
 
     async def get(self, task_id: str) -> Optional[Task]:
         stmt = select(Task).where(Task.id == task_id).options(
@@ -96,18 +104,12 @@ class TaskRepository:
         return True
 
 
-class RunRepository:
+class RunRepository(BaseRepository):
     """执行记录仓库"""
-
-    def __init__(self, session: AsyncSession):
-        self.session = session
 
     async def create(self, task_id: str) -> Run:
         run = Run(task_id=task_id, status="pending")
-        self.session.add(run)
-        await self.session.commit()
-        await self.session.refresh(run)
-        return run
+        return await self._persist(run)
 
     async def get(self, run_id: str) -> Optional[Run]:
         return await self.session.get(Run, run_id)
@@ -177,10 +179,7 @@ class RunRepository:
             The created Step instance
         """
         step = Step(run_id=run_id, **step_data)
-        self.session.add(step)
-        await self.session.commit()
-        await self.session.refresh(step)
-        return step
+        return await self._persist(step)
 
     async def get_steps(self, run_id: str) -> List[Step]:
         """Get all steps for a run, ordered by step_index."""
@@ -189,11 +188,8 @@ class RunRepository:
         return list(result.scalars())
 
 
-class StepRepository:
+class StepRepository(BaseRepository):
     """步骤仓库"""
-
-    def __init__(self, session: AsyncSession):
-        self.session = session
 
     async def get(self, step_id: str) -> Optional[Step]:
         return await self.session.get(Step, step_id)
@@ -209,11 +205,8 @@ class StepRepository:
         return result.scalar_one_or_none()
 
 
-class ReportRepository:
+class ReportRepository(BaseRepository):
     """报告仓库"""
-
-    def __init__(self, session: AsyncSession):
-        self.session = session
 
     async def create(
         self,
@@ -236,10 +229,7 @@ class ReportRepository:
             failed_steps=failed_steps,
             duration_ms=duration_ms,
         )
-        self.session.add(report)
-        await self.session.commit()
-        await self.session.refresh(report)
-        return report
+        return await self._persist(report)
 
     async def get(self, report_id: str) -> Optional[Report]:
         return await self.session.get(Report, report_id)
@@ -290,11 +280,8 @@ class ReportRepository:
         return reports, total
 
 
-class AssertionResultRepository:
+class AssertionResultRepository(BaseRepository):
     """断言结果仓库"""
-
-    def __init__(self, session: AsyncSession):
-        self.session = session
 
     async def create(
         self,
@@ -314,10 +301,7 @@ class AssertionResultRepository:
             actual_value=actual_value,
             sequence_number=sequence_number,
         )
-        self.session.add(result)
-        await self.session.commit()
-        await self.session.refresh(result)
-        return result
+        return await self._persist(result)
 
     async def list_by_run(self, run_id: str) -> List[AssertionResult]:
         """List all assertion results for a run."""
@@ -341,35 +325,9 @@ class AssertionResultRepository:
         await self.session.execute(stmt)
         await self.session.commit()
 
-    async def create_with_sequence(
-        self,
-        run_id: str,
-        assertion_id: str,
-        status: str,
-        message: str | None = None,
-        actual_value: str | None = None,
-        sequence_number: int | None = None,
-    ) -> AssertionResult:
-        """Create assertion result with optional sequence_number."""
-        result = AssertionResult(
-            run_id=run_id,
-            assertion_id=assertion_id,
-            status=status,
-            message=message,
-            actual_value=actual_value,
-            sequence_number=sequence_number,
-        )
-        self.session.add(result)
-        await self.session.commit()
-        await self.session.refresh(result)
-        return result
 
-
-class PreconditionResultRepository:
+class PreconditionResultRepository(BaseRepository):
     """前置条件结果仓库"""
-
-    def __init__(self, session: AsyncSession):
-        self.session = session
 
     async def create(
         self,
@@ -392,10 +350,7 @@ class PreconditionResultRepository:
             duration_ms=duration_ms,
             variables=variables,
         )
-        self.session.add(result)
-        await self.session.commit()
-        await self.session.refresh(result)
-        return result
+        return await self._persist(result)
 
     async def list_by_run(self, run_id: str) -> List[PreconditionResult]:
         stmt = (
@@ -407,18 +362,12 @@ class PreconditionResultRepository:
         return list(result.scalars())
 
 
-class BatchRepository:
+class BatchRepository(BaseRepository):
     """批量执行批次仓库"""
-
-    def __init__(self, session: AsyncSession):
-        self.session = session
 
     async def create(self, concurrency: int = 2) -> Batch:
         batch = Batch(concurrency=concurrency, status="pending")
-        self.session.add(batch)
-        await self.session.commit()
-        await self.session.refresh(batch)
-        return batch
+        return await self._persist(batch)
 
     async def get(self, batch_id: str) -> Optional[Batch]:
         return await self.session.get(Batch, batch_id)
