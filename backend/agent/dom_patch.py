@@ -51,6 +51,10 @@ _failure_tracker: dict[str, dict] = {}
 # Value: {"row_identity": str | None, "base_strategy": int, "is_erp_input": bool}
 _node_annotations: dict[int, dict] = {}
 
+# DOM-04: Collected placeholder values for diagnostic logging
+_discovered_placeholders: list[str] = []
+_diagnostic_log_emitted: bool = False
+
 
 def _is_textual_td_cell(node) -> bool:
     """Check if a SimplifiedNode is a <td> with meaningful text content.
@@ -205,8 +209,10 @@ def reset_failure_tracker() -> None:
 
 def _reset_node_annotations() -> None:
     """Clear all node annotations. Called alongside reset_failure_tracker()."""
-    global _node_annotations
+    global _node_annotations, _discovered_placeholders, _diagnostic_log_emitted
     _node_annotations = {}
+    _discovered_placeholders.clear()
+    _diagnostic_log_emitted = False
 
 
 def _has_erp_clickable_class(node) -> bool:
@@ -258,6 +264,32 @@ def _is_inside_table_cell(node) -> bool:
             return True
         current = getattr(current, "parent_node", None)
     return False
+
+
+def _is_inside_table_cell_by_original(original_node) -> bool:
+    """Check if an AccessibilityNode is inside a table cell.
+
+    Similar to _is_inside_table_cell but works with AccessibilityNode
+    directly instead of SimplifiedNode.
+    """
+    current = getattr(original_node, "parent_node", None)
+    while current is not None:
+        tag_name = getattr(current, "tag_name", None)
+        if tag_name and tag_name.lower() in ("td", "th"):
+            return True
+        current = getattr(current, "parent_node", None)
+    return False
+
+
+def _find_parent_td_from_original(original_node):
+    """Find the nearest parent td/th AccessibilityNode from an original node."""
+    current = getattr(original_node, "parent_node", None)
+    while current is not None:
+        tag_name = getattr(current, "tag_name", None)
+        if tag_name and tag_name.lower() in ("td", "th"):
+            return current
+        current = getattr(current, "parent_node", None)
+    return None
 
 
 def _td_child_depth(node) -> int | None:
@@ -643,6 +675,23 @@ def _patch_assign_interactive_indices() -> None:
             'is_erp_input': True,
         }
 
+        # DOM-04: Collect placeholder for diagnostic logging
+        attrs = getattr(node.original_node, "attributes", None) or {}
+        placeholder = attrs.get("placeholder", "")
+        if placeholder:
+            _discovered_placeholders.append(placeholder)
+
+        # DOM-04: Emit one-time diagnostic log after processing this node batch.
+        # Uses flag to ensure single emission per traversal session.
+        global _diagnostic_log_emitted
+        if not _diagnostic_log_emitted and _discovered_placeholders:
+            _diagnostic_log_emitted = True
+            unique_placeholders = sorted(set(_discovered_placeholders))
+            logger.info(
+                "dom_patch: discovered td input placeholders: %s",
+                unique_placeholders,
+            )
+
     DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = patched_method
     logger.debug("dom_patch: patched _assign_interactive_indices_and_mark_new_nodes")
 
@@ -701,6 +750,15 @@ def _patch_serialize_tree_annotations() -> None:
             header = _get_column_header(orig)
             if header:
                 lines.insert(len(lines) - 1, f'{depth_str}<!-- 列: {header} -->')
+
+        # DOM-03: Column header annotation for input inside td
+        # (separate from td annotation -- ensures inputs also get column context)
+        if tag == 'input' and _is_inside_table_cell_by_original(orig):
+            parent_td = _find_parent_td_from_original(orig)
+            if parent_td:
+                header = _get_column_header(parent_td)
+                if header:
+                    lines.insert(len(lines) - 1, f'{depth_str}<!-- 列: {header} -->')
 
         # --- Patch 7: Failure + strategy annotation ---
         # Only for ERP inputs that appear in _failure_tracker (D-04)
