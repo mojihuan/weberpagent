@@ -100,7 +100,7 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
           ? prev.timeline.map((item, i) => i === existingIdx ? { type: 'precondition' as const, data } : item)
           : [...prev.timeline, { type: 'precondition' as const, data }]
         const newPreconditions = existingIdx >= 0
-          ? prev.preconditions?.map((p, _i) => p.index === data.index ? data : p) ?? [data]
+          ? prev.preconditions?.map((p) => p.index === data.index ? data : p) ?? [data]
           : [...(prev.preconditions || []), data]
         return { ...prev, preconditions: newPreconditions, timeline: newTimeline }
       })

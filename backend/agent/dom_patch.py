@@ -33,13 +33,6 @@ _ERP_TABLE_CELL_PLACEHOLDERS = frozenset({
     "数量",
 })
 
-# Numeric patterns for ERP table cell values that are editable (click-to-edit)
-# These are displayed as text in <td> cells until clicked to enter edit mode
-# Kept for reference; actual detection uses get_all_children_text() instead
-_ERP_NUMERIC_CELL_PATTERNS = (
-    r"^-?\d+(\.\d{1,2})?$",  # e.g. 0.00, 210, -210.00, 150.5
-)
-
 # IMEI / product number format: I + 15 digits
 _ROW_IDENTITY_PATTERN = re.compile(r"I\d{15}")
 

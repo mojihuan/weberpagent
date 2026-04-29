@@ -28,7 +28,7 @@ function formatCellValue(value: unknown): string {
   return String(value)
 }
 
-export function PreviewStep({ data, file: _file, onConfirm, onBack, confirming }: PreviewStepProps) {
+export function PreviewStep({ data, onConfirm, onBack, confirming }: PreviewStepProps) {
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between mb-4 px-1">
