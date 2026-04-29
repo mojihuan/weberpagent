@@ -15,9 +15,20 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.10 表单填写优化 (shipped 2026-04-29)
+**最新版本:** v0.10.11 移除自愈功能 (进行中)
 **Server online**: 121.40.191.49
-**当前状态:** 规划下一 milestone
+**当前状态:** Phase 116 complete — 自愈模块文件已删除，import 已清理
+
+## Current Milestone: v0.10.11 移除自愈功能
+
+**Goal:** 移除代码执行管道中的 LLM 自愈重试机制，简化为一次性执行
+
+**Target features:**
+- 删除 SelfHealingRunner / LLMHealer / ErrorClassifier / HealerError 四个自愈模块
+- 移除 StepCodeBuffer.append_step_async() 内联修复
+- 简化 execute-code 端点为一次性 pytest 执行（保留代码查看和执行能力）
+- 清理 DB healing 字段、API schema、前端 healing UI
+- 删除所有自愈相关测试
 
 ## 已交付版本:
 
@@ -46,7 +57,18 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-(None — planning next milestone)
+**v0.10.11 移除自愈功能:**
+- REMOVE-01: 删除 self_healing_runner.py 模块
+- REMOVE-02: 删除 llm_healer.py 模块
+- REMOVE-03: 删除 error_classifier.py 模块
+- REMOVE-04: 删除 healer_error.py 模块
+- SIMPLIFY-01: 简化 runs.py 代码执行 — 去掉重试循环，一次性 pytest 执行
+- SIMPLIFY-02: 移除 StepCodeBuffer.append_step_async() 内联修复
+- CLEANUP-01: 清理 DB Run 模型 healing 字段
+- CLEANUP-02: 清理 API schema healing 字段
+- CLEANUP-03: 清理前端 healing UI 和类型
+- CLEANUP-04: 删除自愈相关测试文件
+- CLEANUP-05: 清理 code_generator.py HealerError 引用
 
 ### Validated
 
@@ -347,4 +369,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 — v0.10.10 shipped*
+*Last updated: 2026-04-29 — v0.10.11 started*

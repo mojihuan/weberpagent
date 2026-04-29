@@ -111,7 +111,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 117-01: 简化 runs.py 执行管道 + StepCodeBuffer/code_generator 清理
+- [x] 117-01: 简化 runs.py 执行管道 + StepCodeBuffer/code_generator 清理
 - [ ] 117-02: DB 模型和 schema healing 字段清理
 
 ### Phase 118: API 与前端清理
@@ -152,8 +152,8 @@ Phases execute in numeric order: 116 → 117 → 118 → 119
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 116. 自愈模块删除 | 2/2 | Complete   | 2026-04-29 |
-| 117. 管道与数据层简化 | 0/2 | Not started | - |
+| 116. 自愈模块删除 | 2/2 | Complete    | 2026-04-29 |
+| 117. 管道与数据层简化 | 1/2 | In Progress|  |
 | 118. API 与前端清理 | 0/2 | Not started | - |
 | 119. 测试清理与回归 | 0/2 | Not started | - |
 

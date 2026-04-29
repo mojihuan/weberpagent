@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T05:40:18.602Z"
+last_updated: "2026-04-29T06:13:18.196Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 116 — remove-healing
+**Current focus:** Phase 117 — 管道与数据层简化
 
 ## Last Shipped
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 116 (remove-healing) — EXECUTING
+Phase: 117 (管道与数据层简化) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -46,6 +46,8 @@ Key v0.10.11 decisions:
 - StepCodeBuffer.append_step() 同步方法保留，只移除 append_step_async()
 - [Phase 116]: Delete all four healing files in one task, import references intentionally left broken for Plan 116-02
 - [Phase 116]: Import-only removal: removed 5 import lines from 4 files, usage code left for Phase 117
+- [Phase 117]: subprocess.run replaces SelfHealingRunner for one-shot pytest execution
+- [Phase 117]: Keep logger name healer in generated code to avoid breaking existing test files
 
 ### Pending Todos
 
@@ -57,5 +59,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T05:40:18.600Z
+Last session: 2026-04-29T06:13:18.194Z
 Status: Roadmap created, ready to plan Phase 116

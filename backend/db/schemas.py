@@ -112,11 +112,6 @@ class RunResponse(BaseModel):
     steps_count: int = 0
     # 外部断言执行摘要（Phase 25）
     external_assertion_summary: Optional[dict[str, Any]] = None
-    # 自愈状态字段 (Phase 85, HEAL-03, per D-10)
-    healing_status: str = "pending"
-    healing_attempts: int = 0
-    healing_error: Optional[str] = None
-    healing_error_category: str = ""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -234,11 +229,6 @@ class ReportDetailResponse(ReportResponse):
     pass_rate: Optional[str] = None
     precondition_results: Optional[List[SSEPreconditionEvent]] = None
     timeline_items: Optional[List[dict[str, Any]]] = None  # Phase 59: unified timeline
-    # 自愈状态字段 (Phase 85, HEAL-03, per D-10)
-    healing_status: str = "pending"
-    healing_attempts: int = 0
-    healing_error: Optional[str] = None
-    healing_error_category: str = ""
 
 
 class ReportListParams(BaseModel):
