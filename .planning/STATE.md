@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.10.10
-milestone_name: 表单填写优化
-status: completed
-last_updated: "2026-04-29T10:30:00.000Z"
+milestone: v0.10.11
+milestone_name: 移除自愈功能
+status: planning
+last_updated: "2026-04-29T05:32:42.581Z"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Planning next milestone
+**Current focus:** Phase 116 — remove-healing
 
 ## Last Shipped
 
@@ -31,20 +31,20 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: None (milestone complete)
-Plan: None
+Phase: 116 (remove-healing) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
 ### Decisions
 
-Key v0.10.10 decisions:
+Key v0.10.11 decisions:
 
-- Structural input detection (tag+type+visibility) replaces placeholder matching in _is_erp_table_cell_input
-- Belt-and-suspenders: _is_textual_td_cell guard + patched_is_interactive td guard for DOM-02
-- One-shot diagnostic log via _diagnostic_log_emitted flag, reset per traversal session
-- Mode judgment uses DOM element type (td vs input) matching dom_patch.py detection
-- Five-segment prompt structure (定位/判断模式/操作/验证/异常处理) for clear Agent decision flow
+- 删除而非替换：自愈功能直接移除，不做替代方案
+- 管道简化为一次性 pytest 执行，保留 storage_state 登录和 conftest 生成
+- 代码查看 (GET /runs/{run_id}/code) 不受影响
+- StepCodeBuffer.append_step() 同步方法保留，只移除 append_step_async()
+- [Phase 116]: Delete all four healing files in one task, import references intentionally left broken for Plan 116-02
 
 ### Pending Todos
 
@@ -56,5 +56,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T10:30:00.000Z
-Status: Milestone v0.10.10 archived, ready for /gsd:new-milestone
+Last session: 2026-04-29T05:32:42.579Z
+Status: Roadmap created, ready to plan Phase 116
