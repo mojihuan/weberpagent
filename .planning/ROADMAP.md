@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v0.10.10 表单填写优化** — Phases 114-115 (in progress)
 - ✅ **v0.10.9 逐步代码生成** — Phases 111-113 (shipped 2026-04-29)
 - ✅ **v0.10.8 生成测试代码前置条件与断言步骤** — Phases 108-110 (shipped 2026-04-27)
 - ✅ **v0.10.7 生成测试代码行为优化** — Phases 105-107 (shipped 2026-04-27)
@@ -26,6 +27,56 @@
 
 ## Phases
 
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+### v0.10.10 表单填写优化 (In Progress)
+
+**Milestone Goal:** 修复 ERP 表格内 input DOM 检测机制，不再依赖 placeholder 精确匹配，使 Agent 能正确操作表格内的表单字段
+
+- [ ] **Phase 114: DOM Patch 核心修复** — 重构 td 内 input 检测逻辑，消除 placeholder 依赖
+- [ ] **Phase 115: Prompt 优化与 E2E 验证** — 更新 Section 9 prompt 并验证销售出库表单填写
+
+## Phase Details
+
+### Phase 114: DOM Patch 核心修复
+**Goal**: td 内所有可见 input 都能被 DOM patch 正确检测并分配独立 interactive index，Agent 不再误点 td 单元格
+**Depends on**: Nothing (first phase of milestone, builds on v0.10.3 DOM patch work)
+**Requirements**: DOM-01, DOM-02, DOM-03, DOM-04
+**Success Criteria** (what must be TRUE):
+  1. `find_elements('table tr td input')` 返回的每个可见 input 都分配了独立的 interactive index，无论其 placeholder 值是什么
+  2. 包含可见 input 的 td 单元格不再被标记为 interactive（Agent 不会点击 td 而跳过内部 input）
+  3. 每个被检测到的 td 内 input 在 DOM dump 中带有列头语义注释（如 `<!-- 列: 销售金额 -->`），而非依赖 placeholder 关键字
+  4. 运行日志中记录了实际发现的 td 内 input placeholder 值列表，便于排查后续不匹配问题
+**Plans**: 1 plan
+
+Plans:
+- [ ] 114-01-PLAN.md — 重构 input 检测 + td guard + 诊断日志 + 列头注释 (DOM-01/02/03/04)
+
+### Phase 115: Prompt 优化与 E2E 验证
+**Goal**: Agent prompt 能指导两种表格 input 模式，销售出库场景表单填写 E2E 通过且全量回归无破坏
+**Depends on**: Phase 114
+**Requirements**: PRMT-01, VAL-01, VAL-02
+**Success Criteria** (what must be TRUE):
+  1. prompts.py Section 9 同时包含 click-to-edit 和始终可见 input 两种模式的操作指导，带有行+列注释定位示例
+  2. 销售出库场景 E2E 测试中，销售金额、物流费用等表格字段被 Agent 正确填写（不再出现 10+ 步重试失败）
+  3. 全量回归测试通过（pytest suite 0 failed, 0 errors）
+**Plans**: TBD
+
+Plans:
+- [ ] 115-01: 更新 Section 9 prompt 支持双模式表格 input
+- [ ] 115-02: E2E 验证 + 全量回归
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 114. DOM Patch 核心修复 | v0.10.10 | 0/1 | Planned | - |
+| 115. Prompt 优化与 E2E 验证 | v0.10.10 | 0/2 | Not started | - |
+
 <details>
 <summary>✅ v0.10.9 逐步代码生成 (Phases 111-113) — SHIPPED 2026-04-29</summary>
 
@@ -49,7 +100,7 @@
 
 - [x] Phase 105: 代码生成质量修复 (2/2 plans) — completed 2026-04-25
 - [x] Phase 106: 定位器质量优化 (2/2 plans) — completed 2026-04-26
-- [x] Phase 107: 自愈修复增强E2E (2/2 plans) — completed 2026-04-27
+- [x] Phase 107: 自治修复增强E2E (2/2 plans) — completed 2026-04-27
 
 </details>
 
@@ -78,4 +129,4 @@
 </details>
 
 ---
-*Roadmap updated: 2026-04-29 — v0.10.9 milestone completed*
+*Roadmap updated: 2026-04-29 — Phase 114 planned*
