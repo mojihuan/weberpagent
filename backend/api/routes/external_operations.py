@@ -51,7 +51,7 @@ class GenerateResponse(BaseModel):
 
 
 @router.get("", response_model=OperationsResponse)
-async def list_operations():
+async def list_operations() -> OperationsResponse:
     """List all available precondition operation codes.
 
     Returns 503 if external module is not available.
@@ -69,7 +69,7 @@ async def list_operations():
 
 
 @router.post("/generate", response_model=GenerateResponse)
-async def generate_code(request: GenerateRequest):
+async def generate_code(request: GenerateRequest) -> GenerateResponse:
     """Generate precondition code for selected operation codes."""
     require_external_available()
 

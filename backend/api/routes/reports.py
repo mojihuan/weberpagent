@@ -1,6 +1,7 @@
 """报告管理路由"""
 
 from fastapi import APIRouter, Depends, Query, HTTPException
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db import get_db
@@ -23,7 +24,7 @@ async def list_reports(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, ge=1, le=100),
     report_repo: ReportRepository = Depends(get_report_repo),
-):
+) -> dict:
     """获取报告列表"""
     reports, total = await report_repo.list(
         status=status,
@@ -43,7 +44,7 @@ async def list_reports(
 async def get_report(
     report_id: str,
     db: AsyncSession = Depends(get_db),
-):
+) -> ReportDetailResponse:
     """获取报告详情
 
     支持通过 report_id 或 run_id 查询报告。
@@ -90,7 +91,7 @@ async def get_report(
     ]
 
     # Transform assertion results
-    def transform_assertion_results(results):
+    def transform_assertion_results(results: list[dict[str, Any]]) -> list[AssertionResultResponse]:
         return [
             AssertionResultResponse(
                 id=ar.id,

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 @router.get("")
-async def get_dashboard(db: AsyncSession = Depends(get_db)):
+async def get_dashboard(db: AsyncSession = Depends(get_db)) -> dict:
     """获取仪表盘数据"""
 
     # 1. 统计数据

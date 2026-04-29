@@ -5,14 +5,14 @@ import json
 import logging
 import traceback
 from datetime import datetime
-from typing import Any
+from typing import Any, AsyncGenerator
 
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 from backend.api.helpers import _parse_task_json_fields, raise_not_found
-from fastapi.responses import PlainTextResponse, StreamingResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse, FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import get_settings
@@ -234,7 +234,7 @@ async def run_agent_background(
     external_assertions: list[dict] | None = None,
     target_url: str | None = None,
     login_role: str | None = None,
-):
+) -> None:
     """后台执行 agent 任务"""
     logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
 
@@ -423,7 +423,7 @@ async def run_agent_background(
             llm_config=get_code_gen_llm_config(),
         )
 
-        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None, action_dict: dict | None = None):
+        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None, action_dict: dict | None = None) -> None:
             nonlocal step_count, global_seq
             step_count = step
             logger.info(f"[{run_id}] 步骤 {step}: action={action[:50]}...")
@@ -719,7 +719,7 @@ def get_step_repo(db: AsyncSession = Depends(get_db)) -> StepRepository:
 @router.get("", response_model=list[RunResponse])
 async def list_runs(
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> list[RunResponse]:
     """获取执行列表"""
     runs = await run_repo.list_with_details()
     return [
@@ -743,7 +743,7 @@ async def create_run(
     background_tasks: BackgroundTasks,
     task_repo: TaskRepository = Depends(get_task_repo),
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> RunResponse:
     """创建执行记录并启动后台执行"""
     task = await task_repo.get(task_id)
     if not task:
@@ -775,7 +775,7 @@ async def create_run(
 async def get_run(
     run_id: str,
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> RunResponse:
     """获取执行详情"""
     run = await run_repo.get(run_id)
     if not run:
@@ -787,7 +787,7 @@ async def get_run(
 async def get_run_code(
     run_id: str,
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> PlainTextResponse:
     """获取执行记录生成的 Playwright 代码内容 (CODE-01)"""
     run = await run_repo.get(run_id)
     if not run:
@@ -808,7 +808,7 @@ async def execute_run_code(
     run_id: str,
     background_tasks: BackgroundTasks,
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> dict:
     """触发 Playwright 代码执行 (CODE-02)"""
     # Pre-check 1: run exists
     run = await run_repo.get(run_id)
@@ -851,14 +851,14 @@ async def execute_run_code(
 async def stream_run(
     run_id: str,
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> StreamingResponse:
     """SSE 订阅执行流"""
     # 验证 run 存在
     run = await run_repo.get(run_id)
     if not run:
         raise_not_found("Run", run_id)
 
-    async def event_generator():
+    async def event_generator() -> AsyncGenerator[str, None]:
         async for event in event_manager.subscribe(run_id):
             if event is None:
                 break
@@ -875,7 +875,7 @@ async def stream_run(
 async def stop_run(
     run_id: str,
     run_repo: RunRepository = Depends(get_run_repo),
-):
+) -> dict:
     """停止执行"""
     run = await run_repo.get(run_id)
     if not run:
@@ -893,14 +893,13 @@ async def get_screenshot(
     run_id: str,
     step_index: int,
     step_repo: StepRepository = Depends(get_step_repo),
-):
+) -> FileResponse:
     """获取截图"""
     step = await step_repo.get_by_index(run_id, step_index)
 
     if not step or not step.screenshot_path:
         raise_not_found("Screenshot")
 
-    from fastapi.responses import FileResponse
     return FileResponse(
         step.screenshot_path,
         media_type="image/png",

@@ -65,7 +65,7 @@ class ExecuteResponse(BaseModel):
 
 
 @router.get("", response_model=DataMethodsResponse)
-async def list_data_methods():
+async def list_data_methods() -> DataMethodsResponse:
     """List all available data query methods.
 
     Returns 503 if external module is not available.
@@ -83,7 +83,7 @@ async def list_data_methods():
 
 
 @router.post("/execute", response_model=ExecuteResponse)
-async def execute_method(request: ExecuteRequest):
+async def execute_method(request: ExecuteRequest) -> ExecuteResponse:
     """Execute a data method and return results.
 
     Returns 503 if external module is not available.

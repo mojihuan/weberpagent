@@ -18,7 +18,7 @@ router = APIRouter(prefix="/batches", tags=["batches"])
 
 
 @router.post("", response_model=BatchResponse)
-async def create_batch(request: BatchCreateRequest):
+async def create_batch(request: BatchCreateRequest) -> BatchResponse:
     """Create a batch execution for multiple tasks.
 
     Per D-13: creates Batch record + Run per task, starts parallel execution.
@@ -80,7 +80,7 @@ async def create_batch(request: BatchCreateRequest):
 
 
 @router.get("/{batch_id}", response_model=BatchResponse)
-async def get_batch(batch_id: str):
+async def get_batch(batch_id: str) -> BatchResponse:
     """Get batch status with run summaries.
 
     Per D-14: returns batch status + run status summary.
@@ -114,7 +114,7 @@ async def get_batch(batch_id: str):
 
 
 @router.get("/{batch_id}/runs", response_model=list[BatchRunSummary])
-async def get_batch_runs(batch_id: str):
+async def get_batch_runs(batch_id: str) -> list[BatchRunSummary]:
     """Get runs belonging to a batch.
 
     Per D-15: returns runs for Phase 73 batch progress UI.

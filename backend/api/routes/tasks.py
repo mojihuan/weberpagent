@@ -39,7 +39,7 @@ def get_task_repo(db: AsyncSession = Depends(get_db)) -> TaskRepository:
 
 
 @router.get("/template")
-async def download_template():
+async def download_template() -> StreamingResponse:
     """下载测试用例 Excel 模版"""
     buffer = generate_template()
     return StreamingResponse(
@@ -50,7 +50,7 @@ async def download_template():
 
 
 @router.post("/import/preview")
-async def import_preview(file: UploadFile = File(...)):
+async def import_preview(file: UploadFile = File(...)) -> dict:
     """Preview parsed Excel rows with validation status before committing."""
     content = await _validate_upload_file(file)
     result = parse_excel(BytesIO(content))
@@ -72,7 +72,7 @@ async def import_preview(file: UploadFile = File(...)):
 
 
 @router.post("/import/confirm")
-async def import_confirm(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
+async def import_confirm(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)) -> dict:
     """Re-parse Excel and batch create Tasks atomically.
 
     Uses async with db.begin() so any failure rolls back ALL inserts.
@@ -106,7 +106,7 @@ async def import_confirm(file: UploadFile = File(...), db: AsyncSession = Depend
 @router.get("", response_model=list[TaskResponse])
 async def list_tasks(
     repo: TaskRepository = Depends(get_task_repo),
-):
+) -> list[TaskResponse]:
     tasks = await repo.list()
     results = []
     for task in tasks:
@@ -119,7 +119,7 @@ async def list_tasks(
 async def create_task(
     data: TaskCreate,
     repo: TaskRepository = Depends(get_task_repo),
-):
+) -> TaskResponse:
     return await repo.create(data)
 
 
@@ -127,7 +127,7 @@ async def create_task(
 async def get_task(
     task_id: str,
     repo: TaskRepository = Depends(get_task_repo),
-):
+) -> TaskResponse:
     task = await repo.get(task_id)
     if not task:
         raise_not_found("Task", task_id)
@@ -139,7 +139,7 @@ async def update_task(
     task_id: str,
     data: TaskUpdate,
     repo: TaskRepository = Depends(get_task_repo),
-):
+) -> TaskResponse:
     if not data.model_dump(exclude_unset=True):
         raise HTTPException(status_code=400, detail="No update data provided")
 
@@ -153,7 +153,7 @@ async def update_task(
 async def delete_task(
     task_id: str,
     repo: TaskRepository = Depends(get_task_repo),
-):
+) -> dict:
     if not await repo.delete(task_id):
         raise_not_found("Task", task_id)
     return {"status": "deleted"}

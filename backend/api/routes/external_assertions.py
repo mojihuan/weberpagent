@@ -134,7 +134,7 @@ class AssertionExecuteResponse(BaseModel):
 
 
 @router.get("/methods", response_model=AssertionMethodsResponse)
-async def list_assertion_methods():
+async def list_assertion_methods() -> AssertionMethodsResponse:
     """List all available assertion methods.
 
     Returns 503 if external module is not available.
@@ -159,7 +159,7 @@ async def list_assertion_methods():
 
 
 @router.get("/fields", response_model=AssertionFieldsResponse)
-async def list_assertion_fields():
+async def list_assertion_fields() -> AssertionFieldsResponse:
     """List all available assertion fields.
 
     Returns 503 if external module is not available.
@@ -184,7 +184,7 @@ async def list_assertion_fields():
 
 
 @router.post("/execute", response_model=AssertionExecuteResponse)
-async def execute_assertion(request: AssertionExecuteRequest):
+async def execute_assertion(request: AssertionExecuteRequest) -> AssertionExecuteResponse:
     """Execute an assertion method with three-layer parameters.
 
     Supports both new three-layer structure (data, api_params, field_params)
