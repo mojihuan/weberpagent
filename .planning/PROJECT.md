@@ -15,9 +15,9 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**最新版本:** v0.10.10 表单填写优化 (进行中)
+**最新版本:** v0.10.10 表单填写优化 (shipped 2026-04-29)
 **Server online**: 121.40.191.49
-**当前状态:** Phase 114 DOM Patch 核心修复完成 — 98 tests pass, 结构化检测替代 placeholder 匹配。Phase 115 待规划。
+**当前状态:** 规划下一 milestone
 
 ## 已交付版本:
 
@@ -40,18 +40,23 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.10.7: 生成测试代码行为优化 (2026-04-27)
 - v0.10.8: 生成测试代码前置条件与断言步骤 (2026-04-27)
 - v0.10.9: 逐步代码生成 (2026-04-29)
+- v0.10.10: 表单填写优化 (2026-04-29)
 
 ## Requirements
 
 ### Active
 
-**v0.10.10 表单填写优化:**
-- [ ] FORM-05: 更新 prompts.py Section 9 — 同时支持 click-to-edit 和始终可见 input 两种模式
-- [ ] FORM-06: E2E 验证 — 销售出库场景表单填写回归
+(None — planning next milestone)
 
 ### Validated
 
-**v0.10.10 Phase 114 DOM Patch 核心修复 (2026-04-29):**
+**v0.10.10 表单填写优化 (2026-04-29):**
+- ✓ FORM-01: 重构 _is_erp_table_cell_input 检测逻辑 — 检测 td 内所有可见 input，不依赖 placeholder 精确匹配 — Phase 114
+- ✓ FORM-02: 修复 _is_textual_td_cell — td 内已有 ERP input 时不再将 td 标记为 interactive — Phase 114
+- ✓ FORM-03: 增强 _patch_assign_interactive_indices — 列头注释语义化，支持任意 input — Phase 114
+- ✓ FORM-04: 新增 DOM 诊断日志 — 运行开始时记录实际发现的 input placeholder 值 — Phase 114
+- ✓ FORM-05: 更新 prompts.py Section 9 — 同时支持 click-to-edit 和始终可见 input 两种模式 — Phase 115
+- ✓ FORM-06: E2E 验证 — 销售出库场景表单填写回归 — Phase 115
 - ✓ FORM-01: 重构 _is_erp_table_cell_input 检测逻辑 — 检测 td 内所有可见 input，不依赖 placeholder 精确匹配 — Phase 114
 - ✓ FORM-02: 修复 _is_textual_td_cell — td 内已有 ERP input 时不再将 td 标记为 interactive — Phase 114
 - ✓ FORM-03: 增强 _patch_assign_interactive_indices — 列头注释语义化，支持任意 input — Phase 114
@@ -332,6 +337,9 @@ v0.1-v0.4.2 核心功能:
 | navigate wait_for_load_state 最高优先级 | 不管 duration 多少，navigate 后一定等 networkidle | ✓ Good |
 | append_step_async 失败静默降级 | heal 失败/异常/缺 DOM 均不阻塞主流程 | ✓ Good |
 | Path imported as PathLib in try block | 避免顶层 Path import 冲突 | ✓ Good |
+| Structural input detection replaces placeholder matching | tag+type+visibility 检测，不依赖 placeholder 精确匹配 | ✓ Good |
+| Five-segment prompt structure (定位/判断模式/操作/验证/异常处理) | 清晰的 Agent 决策流程 | ✓ Good |
+| DOM element type (td vs input) determines mode judgment | 与 dom_patch.py 检测对齐 | ✓ Good |
 | action_dict guarded with 'in locals()' | 变量在条件块内，需存在性检查 | ✓ Good |
 
 ## Evolution
@@ -339,4 +347,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 — Phase 114 complete*
+*Last updated: 2026-04-29 — v0.10.10 shipped*

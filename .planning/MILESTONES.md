@@ -1,5 +1,17 @@
 # Milestones
 
+## v0.10.10 表单填写优化 (Shipped: 2026-04-29)
+
+**Phases completed:** 2 phases, 3 plans, 5 tasks
+
+**Key accomplishments:**
+
+- Refactored ERP table input detection from placeholder matching to structural detection (tag+type+visibility), added td guard preventing interactive marking when input child exists, input-level column header annotation, and one-shot diagnostic logging
+- Section 9 rewritten with five-segment dual-mode structure: Agent distinguishes click-to-edit (Mode A) vs always-visible input (Mode B) by DOM element type
+- Logistics fee E2E test added following existing pattern; both E2E tests hit ERP server connectivity timeout (infrastructure issue); full regression suite passes 996/0/0
+
+---
+
 ## v0.10.9 逐步代码生成 (Shipped: 2026-04-28)
 
 **Phases completed:** 3 phases, 6 plans, 12 tasks
