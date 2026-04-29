@@ -3,7 +3,7 @@
 Tests VAL-03: Complete incremental code generation pipeline works end-to-end
 using mock agent/LLM. Validates StepCodeBuffer lifecycle as wired in runs.py:
 1. Create buffer before on_step closure
-2. Call append_step_async with real action_dicts
+2. Call append_step with real action_dicts
 3. Call assemble with precondition_config + assertions_config
 4. Write output to tmp_path (simulating code generation block)
 5. Read back and verify with ast.parse
@@ -67,8 +67,7 @@ INPUT_ACTION = {
 class TestStepCodeBufferE2E:
     """E2E integration tests for StepCodeBuffer in runs.py context."""
 
-    @pytest.mark.asyncio
-    async def test_multi_step_accumulation(self):
+    def test_multi_step_accumulation(self):
         """Multi-step buffer accumulation produces valid code with all actions.
 
         Simulates: buffer created, navigate + click + input appended,
@@ -83,11 +82,11 @@ class TestStepCodeBufferE2E:
         )
 
         # Step 1: Navigate
-        await buffer.append_step_async(NAVIGATE_ACTION, duration=1.2)
+        buffer.append_step(NAVIGATE_ACTION, duration=1.2)
         # Step 2: Input
-        await buffer.append_step_async(INPUT_ACTION, duration=0.5)
+        buffer.append_step(INPUT_ACTION, duration=0.5)
         # Step 3: Click
-        await buffer.append_step_async(CLICK_ACTION, duration=0.3)
+        buffer.append_step(CLICK_ACTION, duration=0.3)
 
         precondition_config = {"target_url": "https://erp.example.com"}
         assertions_config = [
@@ -114,8 +113,7 @@ class TestStepCodeBufferE2E:
         # Verify syntax validity
         ast.parse(code)
 
-    @pytest.mark.asyncio
-    async def test_assemble_writes_file(self, tmp_path: Path):
+    def test_assemble_writes_file(self, tmp_path: Path):
         """Buffer assemble writes valid .py file to tmp_path.
 
         Simulates the runs.py code generation block:
@@ -130,8 +128,8 @@ class TestStepCodeBufferE2E:
             llm_config={},
         )
 
-        await buffer.append_step_async(NAVIGATE_ACTION, duration=1.0)
-        await buffer.append_step_async(INPUT_ACTION, duration=0.3)
+        buffer.append_step(NAVIGATE_ACTION, duration=1.0)
+        buffer.append_step(INPUT_ACTION, duration=0.3)
 
         code = buffer.assemble(
             run_id="run_test_file",
@@ -158,8 +156,7 @@ class TestStepCodeBufferE2E:
         # Verify contains test function definition
         assert "def test_" in content, "Generated code should contain test function"
 
-    @pytest.mark.asyncio
-    async def test_empty_buffer_valid(self):
+    def test_empty_buffer_valid(self):
         """Empty buffer produces valid minimal test file.
 
         When no steps are appended, assemble() should still produce
@@ -184,13 +181,12 @@ class TestStepCodeBufferE2E:
         # Should contain a test function definition
         assert "def test_" in code, "Should contain function definition even with no steps"
 
-    @pytest.mark.asyncio
-    async def test_closure_captured_buffer(self):
+    def test_closure_captured_buffer(self):
         """Closure-captured buffer accumulates correctly (on_step pattern).
 
         Simulates the on_step callback pattern from runs.py:
         - Create buffer in outer scope
-        - Define inner async function that captures buffer
+        - Define inner function that captures buffer
         - Call inner function multiple times with different action_dicts
         - Verify buffer.records length matches call count
         """
@@ -201,14 +197,14 @@ class TestStepCodeBufferE2E:
         )
 
         # Simulate on_step closure capturing buffer
-        async def on_step(action_dict: dict, duration: float | None = None):
-            await buffer.append_step_async(action_dict, duration=duration)
+        def on_step(action_dict: dict, duration: float | None = None):
+            buffer.append_step(action_dict, duration=duration)
 
         # Simulate 4 agent steps
-        await on_step(NAVIGATE_ACTION, duration=1.5)
-        await on_step(INPUT_ACTION, duration=0.4)
-        await on_step(CLICK_ACTION, duration=0.2)
-        await on_step(INPUT_ACTION, duration=0.6)
+        on_step(NAVIGATE_ACTION, duration=1.5)
+        on_step(INPUT_ACTION, duration=0.4)
+        on_step(CLICK_ACTION, duration=0.2)
+        on_step(INPUT_ACTION, duration=0.6)
 
         # Verify accumulation
         assert len(buffer.records) == 4, (
@@ -227,8 +223,7 @@ class TestStepCodeBufferE2E:
         )
         ast.parse(code)
 
-    @pytest.mark.asyncio
-    async def test_full_precondition_assertions(self):
+    def test_full_precondition_assertions(self):
         """Generated code with precondition + assertions is syntactically valid.
 
         Appends navigate step, assembles with precondition_config and
@@ -241,8 +236,8 @@ class TestStepCodeBufferE2E:
             llm_config={},
         )
 
-        await buffer.append_step_async(NAVIGATE_ACTION, duration=2.0)
-        await buffer.append_step_async(CLICK_ACTION, duration=0.3)
+        buffer.append_step(NAVIGATE_ACTION, duration=2.0)
+        buffer.append_step(CLICK_ACTION, duration=0.3)
 
         precondition_config = {"target_url": "https://erp.example.com/dashboard"}
         assertions_config = [
