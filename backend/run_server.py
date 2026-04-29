@@ -27,7 +27,7 @@ for proxy_var in ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL
     os.environ.pop(proxy_var, None)
 
 
-def main():
+def main() -> None:
     """启动 FastAPI 服务器"""
     uvicorn.run(
         "backend.api.main:app",

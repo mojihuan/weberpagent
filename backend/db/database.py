@@ -36,7 +36,7 @@ async def get_db() -> AsyncSession:
         yield session
 
 
-async def init_db():
+async def init_db() -> None:
     """初始化数据库（创建表 + 添加新列）"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

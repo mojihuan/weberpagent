@@ -20,6 +20,7 @@ for proxy_var in ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL
 
 import logging
 from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +35,7 @@ from backend.db.database import init_db
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Import models to register them with Base before init_db()
     import importlib
     importlib.import_module('backend.db.models')
@@ -94,7 +95,7 @@ app.include_router(batches.router, prefix="/api")
 # Global exception handlers for consistent API response format
 
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle HTTP exceptions with consistent format"""
     request_id = str(uuid.uuid4())
     return JSONResponse(
@@ -111,7 +112,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """Handle validation errors with consistent format"""
     request_id = str(uuid.uuid4())
     return JSONResponse(
@@ -129,7 +130,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 @app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle unexpected exceptions"""
     request_id = str(uuid.uuid4())
     logger = logging.getLogger(__name__)
@@ -149,10 +150,10 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 
 @app.get("/")
-async def root():
+async def root() -> dict:
     return {"message": "Browser-Use API", "docs": "/docs"}
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict:
     return {"status": "healthy"}

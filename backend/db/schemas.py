@@ -54,7 +54,7 @@ class TaskResponse(BaseModel):
 
     @model_validator(mode='before')
     @classmethod
-    def from_orm_model(cls, data):
+    def from_orm_model(cls, data: Any) -> dict | Any:
         """从 ORM 模型转换，处理 JSON 字段和避免访问关系字段."""
         if hasattr(data, 'external_assertions'):
             # 从 ORM 模型转换
@@ -76,7 +76,7 @@ class TaskResponse(BaseModel):
 
     @field_validator('preconditions', 'assertions', mode='before')
     @classmethod
-    def deserialize_json_list(cls, v):
+    def deserialize_json_list(cls, v: Any) -> list[str] | None:
         """Deserialize JSON string to list if needed."""
         if v is None:
             return None
@@ -134,7 +134,7 @@ class StepResponse(BaseModel):
 
     @field_validator('step_stats', mode='before')
     @classmethod
-    def deserialize_step_stats(cls, v):
+    def deserialize_step_stats(cls, v: Any) -> dict[str, Any] | None:
         """Deserialize JSON string to dict if needed."""
         if v is None:
             return None
