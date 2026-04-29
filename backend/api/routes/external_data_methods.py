@@ -6,7 +6,7 @@ from external webseleniumerp project's base_params.py module.
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional
 
 from backend.core.external_precondition_bridge import (
     is_available,

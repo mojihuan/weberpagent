@@ -1,7 +1,6 @@
 """截图文件管理"""
 
 from pathlib import Path
-from datetime import datetime
 
 
 class ScreenshotManager:

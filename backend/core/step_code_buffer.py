@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 
 from backend.core.action_translator import ActionTranslator, TranslatedAction
 from backend.core.code_generator import PlaywrightCodeGenerator

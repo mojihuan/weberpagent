@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from jinja2 import Environment, StrictUndefined, UndefinedError
+from jinja2 import Environment, StrictUndefined
 
 from backend.core.cache_service import CacheService
 from backend.core.external_precondition_bridge import execute_data_method
@@ -49,7 +49,7 @@ def execute_data_method_sync(class_name: str, method_name: str, params: dict) ->
     import nest_asyncio
 
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         # No running loop, create new one
         return asyncio.run(execute_data_method(class_name, method_name, params))

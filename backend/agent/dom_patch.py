@@ -188,7 +188,6 @@ def update_failure_tracker(backend_node_id: str, error: str, mode: str) -> None:
         error: Failure description.
         mode: Failure mode (click_no_effect / wrong_column / edit_not_active).
     """
-    global _failure_tracker
     if backend_node_id in _failure_tracker:
         _failure_tracker[backend_node_id]["count"] += 1
         _failure_tracker[backend_node_id]["last_error"] = error
@@ -209,7 +208,7 @@ def reset_failure_tracker() -> None:
 
 def _reset_node_annotations() -> None:
     """Clear all node annotations. Called alongside reset_failure_tracker()."""
-    global _node_annotations, _discovered_placeholders, _diagnostic_log_emitted
+    global _node_annotations, _diagnostic_log_emitted
     _node_annotations = {}
     _discovered_placeholders.clear()
     _diagnostic_log_emitted = False

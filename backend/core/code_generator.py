@@ -232,7 +232,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             f'        expect(page).to_have_url(re.compile(".*{expected}.*"))',
             "    except AssertionError as e:",
-            f'        _logger.warning(f"Assertion failed (url_contains): {{e}}")',
+            '        _logger.warning(f"Assertion failed (url_contains): {e}")',
         ]
 
     def _translate_text_exists(self, expected: str) -> list[str]:
@@ -241,7 +241,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             f'        expect(page.locator("body")).to_contain_text("{expected}")',
             "    except AssertionError as e:",
-            f'        _logger.warning(f"Assertion failed (text_exists): {{e}}")',
+            '        _logger.warning(f"Assertion failed (text_exists): {e}")',
         ]
 
     def _translate_no_errors(self) -> list[str]:
@@ -250,7 +250,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             '        assert len(js_errors) == 0, f"JS errors: {js_errors}"',
             "    except AssertionError as e:",
-            f'        _logger.warning(f"Assertion failed (no_errors): {{e}}")',
+            '        _logger.warning(f"Assertion failed (no_errors): {e}")',
         ]
 
     def _translate_element_exists(self, expected: str) -> list[str]:
@@ -271,7 +271,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             f"        expect({locator}).to_be_visible()",
             "    except AssertionError as e:",
-            f'        _logger.warning(f"Assertion failed (element_exists): {{e}}")',
+            '        _logger.warning(f"Assertion failed (element_exists): {e}")',
         ]
 
     def validate_syntax(self, code: str) -> bool:

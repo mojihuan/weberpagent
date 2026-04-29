@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.config import get_settings
 from backend.db import get_db
 from backend.db.database import async_session
-from backend.db.repository import TaskRepository, RunRepository, StepRepository, ReportRepository
+from backend.db.repository import TaskRepository, RunRepository, StepRepository
 from backend.db.schemas import (
     RunResponse,
     SSEStartedEvent,
@@ -337,7 +337,6 @@ async def run_agent_background(
         auth_pre_nav_ok = False
 
         if login_role:
-            from backend.core.auth_service import TokenFetchError
             from backend.core.test_flow_service import TestFlowService
 
             flow = TestFlowService()

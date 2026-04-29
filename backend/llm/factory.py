@@ -4,6 +4,8 @@
 使用 set_llm_class() 方法设置具体的 LLM 实现。
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Type, Optional
 
@@ -16,7 +18,7 @@ from tenacity import (
 )
 
 from .base import BaseLLM
-from .config import LLMConfig, get_config
+from .config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +162,7 @@ def get_llm(module_path: str) -> BaseLLM:
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
-def create_llm(llm_config: dict | None = None) -> "ChatOpenAI":
+def create_llm(llm_config: dict | None = None):
     """创建 browser-use 兼容的 ChatOpenAI 实例（带重试逻辑）
 
     重试配置：

@@ -515,7 +515,7 @@ class AgentService:
                         screenshot_bytes, run_id, step
                     )
                     logger.debug(f"[{run_id}] 截图已保存: {screenshot_path}")
-                    run_logger.log("info", "step", f"Screenshot saved", step=step, path=screenshot_path)
+                    run_logger.log("info", "step", "Screenshot saved", step=step, path=screenshot_path)
 
             # ===== Detector calls (Phase 50, D-02/D-03, INTEG-03/INTEG-04) =====
             try:

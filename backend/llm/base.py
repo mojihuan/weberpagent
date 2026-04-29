@@ -1,7 +1,6 @@
 """LLM 抽象基类和数据模型"""
 
 from abc import ABC, abstractmethod
-from typing import Any
 from pydantic import BaseModel
 
 
