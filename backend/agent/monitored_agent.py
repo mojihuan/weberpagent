@@ -17,6 +17,7 @@ from browser_use import Agent
 from browser_use.agent.views import ActionResult
 from browser_use.llm.messages import UserMessage
 
+from backend.agent.action_utils import extract_action_info
 from backend.agent.pre_submit_guard import PreSubmitGuard
 from backend.agent.stall_detector import StallDetector
 from backend.agent.task_progress_tracker import TaskProgressTracker
@@ -165,23 +166,10 @@ class MonitoredAgent(Agent):
                 evaluation = ""
                 dom_hash = ""
 
-                if (
-                    agent_output
-                    and hasattr(agent_output, "action")
-                    and agent_output.action
-                ):
-                    first_action = agent_output.action[0]
-                    action_dict = first_action.model_dump(
-                        exclude_none=True, mode="json"
-                    )
-                    if action_dict:
-                        action_name = list(action_dict.keys())[0]
-                        params = action_dict[action_name]
-                        target_index = (
-                            params.get("index")
-                            if isinstance(params, dict)
-                            else None
-                        )
+                action_name, action_params = extract_action_info(agent_output)
+                target_index = (
+                    action_params.get("index") if action_params else None
+                )
 
                 if agent_output and hasattr(
                     agent_output, "evaluation_previous_goal"

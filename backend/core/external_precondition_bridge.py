@@ -1340,6 +1340,29 @@ async def execute_all_assertions(
     return summary
 
 
+async def _execute_sync_with_timeout(method: callable, kwargs: dict, timeout: float) -> dict:
+    """Execute a synchronous method in thread pool with timeout protection.
+
+    Returns:
+        {"success": True, "data": result} on success,
+        or _error_result(...) on timeout/type/general error.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, lambda: method(**kwargs)),
+            timeout=timeout
+        )
+        return {"success": True, "data": result}
+    except asyncio.TimeoutError:
+        return _error_result(f"Execution timeout ({timeout}s)", "TimeoutError")
+    except TypeError as e:
+        return _error_result(f"Parameter error: {e}", "ParameterError")
+    except Exception as e:
+        logger.error(f"Failed to execute method: {e}", exc_info=True)
+        return _error_result(str(e), "ExecutionError")
+
+
 async def execute_data_method(
     class_name: str,
     method_name: str,
@@ -1420,24 +1443,7 @@ async def execute_data_method(
     # Patch ImportApi aliases before execution (fixes _get_data internal failure)
     _patch_import_api_aliases()
 
-    # Execute with timeout
-    try:
-        loop = asyncio.get_event_loop()
-        result = await asyncio.wait_for(
-            loop.run_in_executor(None, lambda: method(**params)),
-            timeout=timeout
-        )
-        return {
-            "success": True,
-            "data": result
-        }
-    except asyncio.TimeoutError:
-        return _error_result(f"Execution timeout ({timeout}s)", "TimeoutError")
-    except TypeError as e:
-        return _error_result(f"Parameter error: {e}", "ParameterError")
-    except Exception as e:
-        logger.error(f"Failed to execute method: {e}", exc_info=True)
-        return _error_result(str(e), "ExecutionError")
+    return await _execute_sync_with_timeout(method, params, timeout)
 
 
 def get_unavailable_reason() -> str | None:

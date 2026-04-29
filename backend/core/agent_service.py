@@ -11,6 +11,7 @@ from typing import Any, Callable, Union
 from browser_use import BrowserSession, BrowserProfile
 
 from backend.agent.monitored_agent import MonitoredAgent
+from backend.agent.action_utils import extract_action_info
 from backend.agent.stall_detector import StallDetector
 from backend.agent.pre_submit_guard import PreSubmitGuard
 from backend.agent.task_progress_tracker import TaskProgressTracker
@@ -450,21 +451,16 @@ class AgentService:
                 logger.info(f"[{run_id}][AGENT] agent_output 类型: {type(agent_output).__name__}")
 
                 # 获取动作名称（第一个动作的类型）
-                if hasattr(agent_output, "action") and agent_output.action:
-                    first_action = agent_output.action[0]
-                    # ActionModel 是动态模型，获取第一个非 None 的动作类型
-                    action_dict = first_action.model_dump(exclude_none=True, mode='json')
-                    if action_dict:
-                        action_name = list(action_dict.keys())[0]
-                        action_params = action_dict[action_name]
-                        # 格式化为可读字符串
-                        action = f"{action_name}: {action_params}" if action_params else action_name
+                action_name, action_params = extract_action_info(agent_output)
+                if action_name != "unknown":
+                    action_dict = {action_name: action_params}
+                    action = f"{action_name}: {action_params}" if action_params else action_name
 
-                        logger.info(f"[{run_id}][AGENT] 动作: {action_name}, 参数: {action_params}")
+                    logger.info(f"[{run_id}][AGENT] 动作: {action_name}, 参数: {action_params}")
 
-                        # 记录动作中的 index 信息（用于调试定位问题）
-                        if 'index' in action_params:
-                            logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
+                    # 记录动作中的 index 信息（用于调试定位问题）
+                    if 'index' in action_params:
+                        logger.info(f"[{run_id}][AGENT] 目标元素 index: {action_params['index']}")
 
                 # 获取推理信息（evaluation + memory + next_goal）
                 parts = []
