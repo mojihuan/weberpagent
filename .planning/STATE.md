@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T06:17:24.383Z"
+last_updated: "2026-04-29T07:03:44.437Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 117 — 管道与数据层简化
+**Current focus:** Phase 118 — API 与前端清理
 
 ## Last Shipped
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 117 (管道与数据层简化) — EXECUTING
+Phase: 118 (API 与前端清理) — EXECUTING
 Plan: 2 of 2
 
 ## Accumulated Context
@@ -50,6 +50,7 @@ Key v0.10.11 decisions:
 - [Phase 117]: Keep logger name healer in generated code to avoid breaking existing test files
 - [Phase 117]: SQLite columns kept (no ALTER TABLE) per D-03, ORM layer simply stops reading/writing them
 - [Phase 117]: update_healing_status deleted entirely, no replacement needed
+- [Phase 118]: execution_status defaults to Optional[str]=None in schema, reads run_obj.status with pending fallback
 
 ### Pending Todos
 
@@ -61,5 +62,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T06:17:24.381Z
+Last session: 2026-04-29T07:03:44.434Z
 Status: Roadmap created, ready to plan Phase 116

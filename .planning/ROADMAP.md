@@ -128,7 +128,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 118-01: API 端点简化
+- [x] 118-01: API 端点简化
 - [ ] 118-02: 前端 healing UI 和类型清理
 
 ### Phase 119: 测试清理与回归
@@ -153,8 +153,8 @@ Phases execute in numeric order: 116 → 117 → 118 → 119
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 116. 自愈模块删除 | 2/2 | Complete    | 2026-04-29 |
-| 117. 管道与数据层简化 | 2/2 | Complete   | 2026-04-29 |
-| 118. API 与前端清理 | 0/2 | Not started | - |
+| 117. 管道与数据层简化 | 2/2 | Complete    | 2026-04-29 |
+| 118. API 与前端清理 | 1/2 | In Progress|  |
 | 119. 测试清理与回归 | 0/2 | Not started | - |
 
 ---
