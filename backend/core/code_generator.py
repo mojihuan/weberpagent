@@ -6,8 +6,6 @@
 - Import 语句
 - def test_xxx(page: Page) -> None: 函数体
 - 每个操作为一行 Playwright API 调用
-
-Phase 84: 集成 LLMHealer，对弱步骤（elem=None 或 <=1 locator）进行 LLM 修复。
 """
 
 import ast
@@ -83,7 +81,7 @@ class PlaywrightCodeGenerator:
 
         # 条件 healer logger 初始化 (per D-08)
         if _needs_logger:
-            parts.append('    _healer = logging.getLogger("healer")')
+            parts.append('    _logger = logging.getLogger("healer")')
 
         # no_errors js_errors collector (per D-08/D-09): 在前置条件之前注入
         if assertions_config and any(
@@ -234,7 +232,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             f'        expect(page).to_have_url(re.compile(".*{expected}.*"))',
             "    except AssertionError as e:",
-            f'        _healer.warning(f"Assertion failed (url_contains): {{e}}")',
+            f'        _logger.warning(f"Assertion failed (url_contains): {{e}}")',
         ]
 
     def _translate_text_exists(self, expected: str) -> list[str]:
@@ -243,7 +241,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             f'        expect(page.locator("body")).to_contain_text("{expected}")',
             "    except AssertionError as e:",
-            f'        _healer.warning(f"Assertion failed (text_exists): {{e}}")',
+            f'        _logger.warning(f"Assertion failed (text_exists): {{e}}")',
         ]
 
     def _translate_no_errors(self) -> list[str]:
@@ -252,7 +250,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             '        assert len(js_errors) == 0, f"JS errors: {js_errors}"',
             "    except AssertionError as e:",
-            f'        _healer.warning(f"Assertion failed (no_errors): {{e}}")',
+            f'        _logger.warning(f"Assertion failed (no_errors): {{e}}")',
         ]
 
     def _translate_element_exists(self, expected: str) -> list[str]:
@@ -273,7 +271,7 @@ class PlaywrightCodeGenerator:
             "    try:",
             f"        expect({locator}).to_be_visible()",
             "    except AssertionError as e:",
-            f'        _healer.warning(f"Assertion failed (element_exists): {{e}}")',
+            f'        _logger.warning(f"Assertion failed (element_exists): {{e}}")',
         ]
 
     def validate_syntax(self, code: str) -> bool:
