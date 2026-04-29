@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.0
 milestone_name: 全面代码清理
-status: Ready to plan
-stopped_at: Phase 121 context gathered
-last_updated: "2026-04-29T12:23:06.243Z"
+status: Ready to execute
+stopped_at: Completed 121-01-PLAN.md
+last_updated: "2026-04-29T12:55:50.378Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-29)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 120 — delete-test-infra
+**Current focus:** Phase 121 — dead-code-cleanup
 
 ## Last Shipped
 
@@ -32,8 +32,8 @@ See: .planning/PROJECT.md (updated 2026-04-29)
 
 ## Current Position
 
-Phase: 121
-Plan: Not started
+Phase: 121 (dead-code-cleanup) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -51,6 +51,8 @@ Recent decisions affecting current work:
 - [Phase 120]: D-02/D-04: Preserve pytest/pytest-asyncio/pytest-playwright/httpx/pytest-timeout as runtime dependencies
 - [Phase 120]: D-05: Clear outputs/ (~291 subdirs, ~406MB) — gitignored, zero git impact
 - [Phase 120]: D-07: FastAPI regression check confirms app starts after all test deletions
+- [Phase 121]: D-01: TYPE_CHECKING guard for ContextWrapper to avoid circular import
+- [Phase 121]: D-02: importlib.import_module for models side-effect import (pyflakes clean)
 
 ### Pending Todos
 
@@ -62,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T12:23:06.241Z
-Stopped at: Phase 121 context gathered
-Resume file: .planning/phases/121-dead-code-cleanup/121-CONTEXT.md
+Last session: 2026-04-29T12:55:50.376Z
+Stopped at: Completed 121-01-PLAN.md
+Resume file: None

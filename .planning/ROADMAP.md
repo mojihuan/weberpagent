@@ -125,7 +125,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 121-01: 扫描并删除未使用 import 和废弃模块文件
+- [x] 121-01: 扫描并删除未使用 import 和废弃模块文件
 - [ ] 121-02: 清理未调用函数和未引用变量
 
 ### Phase 122: 重复逻辑合并
@@ -183,8 +183,8 @@ Phases execute in numeric order: 120 → 121 → 122 → 123 → 124
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 120. 删除测试基础设施 | 2/2 | Complete   | 2026-04-29 |
-| 121. 死代码清理 | 0/2 | Not started | - |
+| 120. 删除测试基础设施 | 2/2 | Complete    | 2026-04-29 |
+| 121. 死代码清理 | 1/2 | In Progress|  |
 | 122. 重复逻辑合并 | 0/2 | Not started | - |
 | 123. 命名规范化与类型标注 | 0/2 | Not started | - |
 | 124. 函数/模块优化 | 0/2 | Not started | - |
