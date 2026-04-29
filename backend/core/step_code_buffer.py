@@ -15,7 +15,6 @@ from pathlib import Path
 
 from backend.core.action_translator import ActionTranslator, TranslatedAction
 from backend.core.code_generator import PlaywrightCodeGenerator
-from backend.core.llm_healer import LLMHealer
 from backend.core.locator_chain_builder import LocatorChainBuilder
 
 logger = logging.getLogger(__name__)

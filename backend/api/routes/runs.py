@@ -28,7 +28,6 @@ from backend.db.schemas import (
     TaskUpdate,
 )
 from backend.core.agent_service import AgentService
-from backend.core.self_healing_runner import SelfHealingRunner
 from backend.core.event_manager import event_manager
 from backend.core.report_service import ReportService
 from backend.core.assertion_service import AssertionService
@@ -646,7 +645,6 @@ async def run_agent_background(
                 # 获取生成的代码路径（可能在上面的代码生成块中已设置）
                 run_obj = await run_repo.get(run_id)
                 if run_obj and run_obj.generated_code_path:
-                    from backend.core.self_healing_runner import SelfHealingRunner
                     healing_runner = SelfHealingRunner(get_code_gen_llm_config())
                     healing_result = await healing_runner.run(
                         run_id=run_id,
