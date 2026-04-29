@@ -87,7 +87,7 @@ class TestE2ECodeGeneration:
         assert "import logging" in code
 
         # Internal setup lines
-        assert '_healer = logging.getLogger("healer")' in code
+        assert '_logger = logging.getLogger("healer")' in code
         assert "js_errors = []" in code
 
     def test_precondition_only_no_assertions(self) -> None:
