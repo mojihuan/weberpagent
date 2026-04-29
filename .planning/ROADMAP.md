@@ -79,7 +79,7 @@
 - [x] **Phase 116: 自愈模块删除** — 删除 4 个自愈后端模块并清理所有导入引用 (completed 2026-04-29)
 - [x] **Phase 117: 管道与数据层简化** — 简化执行管道、移除 healing 数据字段 (completed 2026-04-29)
 - [x] **Phase 118: API 与前端清理** — 简化 API 端点、移除前端 healing UI (completed 2026-04-29)
-- [ ] **Phase 119: 测试清理与回归** — 删除自愈测试、清理遗留 mock、全量回归
+- [x] **Phase 119: 测试清理与回归** — 删除自愈测试、清理遗留 mock、全量回归 (completed 2026-04-29)
 
 ## Phase Details
 
@@ -143,7 +143,7 @@ Plans:
 
 Plans:
 - [x] 119-01: 删除自愈测试文件 + 清理损坏测试中的 healing 引用
-- [ ] 119-02: 轻量注释修复 + 全量 pytest 回归验证
+- [x] 119-02: 轻量注释修复 + 全量 pytest 回归验证
 
 ## Progress
 
@@ -155,7 +155,7 @@ Phases execute in numeric order: 116 → 117 → 118 → 119
 | 116. 自愈模块删除 | 2/2 | Complete    | 2026-04-29 |
 | 117. 管道与数据层简化 | 2/2 | Complete    | 2026-04-29 |
 | 118. API 与前端清理 | 2/2 | Complete    | 2026-04-29 |
-| 119. 测试清理与回归 | 1/2 | In Progress|  |
+| 119. 测试清理与回归 | 2/2 | Complete   | 2026-04-29 |
 
 ---
 *Roadmap updated: 2026-04-29 — v0.10.11 roadmap created*

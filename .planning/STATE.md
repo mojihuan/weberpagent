@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.10.11
 milestone_name: 移除自愈功能
 status: planning
-last_updated: "2026-04-29T08:22:57.491Z"
+last_updated: "2026-04-29T09:06:45.602Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -56,6 +56,9 @@ Key v0.10.11 decisions:
 - [Phase 118]: No new StatusBadge labels, existing success/failed/running cover execution results (D-04)
 - [Phase 119]: TestTaskStatusSuccess class deleted entirely since _execute_code_background no longer uses SelfHealingRunner/HealingResult
 - [Phase 119]: execute_code status assertion changed from 'healing' to 'executing' to match runs.py actual return
+- [Phase 119]: action_translator.py still generates _healer/HealerError fallback code, test_code_generator.py unchanged
+- [Phase 119]: _healer->_logger variable assert fix in test_e2e_code_generation.py (Phase 117 regression)
+- [Phase 119]: E2E column selection failures pre-existing (require live server), not related to healing cleanup
 
 ### Pending Todos
 
@@ -67,5 +70,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-29T08:22:57.489Z
+Last session: 2026-04-29T09:06:45.600Z
 Status: Roadmap created, ready to plan Phase 116
