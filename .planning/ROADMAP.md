@@ -157,8 +157,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 123-01: 统一命名风格（函数、变量、模块）
-- [ ] 123-02: 补全类型标注并添加 py.typed
+- [x] 123-01: API 路由 + db + main + schemas 类型标注 + 命名验证 (NAME-01/02/03, TYPE-01)
+- [ ] 123-02: Agent/Core/LLM/Utils 类型标注 + py.typed + mypy 配置 (TYPE-01/02/03)
 
 ### Phase 124: 函数/模块优化
 **Goal**: 所有函数职责单一、长度合理、嵌套不超 4 层，模块高内聚低耦合
@@ -184,10 +184,10 @@ Phases execute in numeric order: 120 → 121 → 122 → 123 → 124
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 120. 删除测试基础设施 | 2/2 | Complete    | 2026-04-29 |
-| 121. 死代码清理 | 2/2 | Complete    | 2026-04-29 |
-| 122. 重复逻辑合并 | 2/2 | Complete   | 2026-04-29 |
-| 123. 命名规范化与类型标注 | 0/2 | Not started | - |
+| 121. 死代码清理 | 2/2 | Complete | 2026-04-29 |
+| 122. 重复逻辑合并 | 2/2 | Complete | 2026-04-29 |
+| 123. 命名规范化与类型标注 | 1/2 | In Progress|  |
 | 124. 函数/模块优化 | 0/2 | Not started | - |
 
 ---
-*Roadmap updated: 2026-04-29 — v0.11.0 milestone roadmap created*
+*Roadmap updated: 2026-04-30 — Phase 123 plans finalized*

@@ -57,13 +57,16 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 ### Active (v0.11.0)
 
 - [x] ~~删除整个 tests/ 目录及所有测试相关配置和依赖~~ Phase 120
-- [ ] 清理未使用的 import、函数、变量、文件
-- [ ] 合并重复逻辑，优化架构
+- [x] ~~清理未使用的 import、函数、变量、文件~~ Phase 121
+- [x] ~~合并重复逻辑，优化架构~~ Phase 122
 - [ ] 命名规范化 + 全面类型标注
 
 ### Validated
 
 **v0.11.0 全面代码清理 (2026-04-29):**
+- ✓ DUP-01: 相同/相似函数合并 — API helpers, BaseRepository, extract_action_info, lazy-load unification — Phase 122
+- ✓ DUP-02: 统一错误处理模式 — raise_not_found, require_external_available, _error_result — Phase 122
+- ✓ DUP-03: 统一序列化逻辑 — _parse_task_json_fields, _check_attribute, _execute_sync_with_timeout — Phase 122
 - ✓ TEST-01: backend/tests/ 目录完整删除 (87 文件, 19810 行) — Phase 120
 - ✓ TEST-02: outputs/ 目录清空 (~291 子目录, ~406MB) — Phase 120
 - ✓ TEST-03: [tool.pytest.ini_options] 配置段移除 — Phase 120
@@ -382,4 +385,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 after Phase 120 complete*
+*Last updated: 2026-04-29 after Phase 122 complete*

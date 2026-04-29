@@ -29,13 +29,13 @@
 
 ### 命名规范化
 
-- [ ] **NAME-01**: 统一函数命名风格（snake_case 一致性）
-- [ ] **NAME-02**: 统一变量命名（消除缩写歧义，语义化命名）
-- [ ] **NAME-03**: 统一文件/模块命名（符合 Python 包命名规范）
+- [x] **NAME-01**: 统一函数命名风格（snake_case 一致性）
+- [x] **NAME-02**: 统一变量命名（消除缩写歧义，语义化命名）
+- [x] **NAME-03**: 统一文件/模块命名（符合 Python 包命名规范）
 
 ### 类型标注
 
-- [ ] **TYPE-01**: 为所有公共函数补全参数和返回值类型标注
+- [x] **TYPE-01**: 为所有公共函数补全参数和返回值类型标注
 - [ ] **TYPE-02**: 为核心数据模型补全字段类型标注
 - [ ] **TYPE-03**: 添加 py.typed 标记文件，启用严格类型检查
 
@@ -70,10 +70,10 @@
 | DUP-01 | Phase 122 | Complete |
 | DUP-02 | Phase 122 | Complete |
 | DUP-03 | Phase 122 | Complete |
-| NAME-01 | Phase 123 | Pending |
-| NAME-02 | Phase 123 | Pending |
-| NAME-03 | Phase 123 | Pending |
-| TYPE-01 | Phase 123 | Pending |
+| NAME-01 | Phase 123 | Complete |
+| NAME-02 | Phase 123 | Complete |
+| NAME-03 | Phase 123 | Complete |
+| TYPE-01 | Phase 123 | Complete |
 | TYPE-02 | Phase 123 | Pending |
 | TYPE-03 | Phase 123 | Pending |
 | FUNC-01 | Phase 124 | Pending |
