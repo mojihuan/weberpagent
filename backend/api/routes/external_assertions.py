@@ -8,8 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from backend.core.external_precondition_bridge import (
-    is_available,
-    get_unavailable_reason,
+    require_external_available,
     get_assertion_methods_grouped,
     get_assertion_fields_grouped,
     execute_assertion_method,
@@ -140,15 +139,7 @@ async def list_assertion_methods():
 
     Returns 503 if external module is not available.
     """
-    if not is_available():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "External assertion module not available",
-                "reason": get_unavailable_reason(),
-                "fix": "Ensure WEBSERP_PATH is configured in .env and config/settings.py exists in webseleniumerp"
-            }
-        )
+    require_external_available()
 
     classes = get_assertion_methods_grouped()
     total = sum(len(c["methods"]) for c in classes)
@@ -202,15 +193,7 @@ async def execute_assertion(request: AssertionExecuteRequest):
     Returns 503 if external module is not available.
     Returns 200 with success=False and error field if execution fails.
     """
-    if not is_available():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "External assertion module not available",
-                "reason": get_unavailable_reason(),
-                "fix": "Ensure WEBSERP_PATH is configured in .env"
-            }
-        )
+    require_external_available()
 
     # Call execute_assertion_method with three-layer params
     # Backward compatibility: params acts as field_params fallback

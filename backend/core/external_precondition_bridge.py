@@ -51,6 +51,75 @@ _assertion_fields_cache: list[dict] | None = None
 _assertion_fields_error: str | None = None
 
 
+def _lazy_load(
+    cache_var_name: str,
+    error_var_name: str,
+    import_fn: callable,
+    display_name: str,
+) -> tuple[Any, str | None]:
+    """Generic lazy-load with module-level caching.
+
+    Args:
+        cache_var_name: Name of the module-level cache variable (e.g. '_pre_front_class')
+        error_var_name: Name of the module-level error variable (e.g. '_import_error')
+        import_fn: Callable that does the actual import and returns the loaded object
+        display_name: Human-readable name for error messages
+
+    Returns:
+        (cached_value_or_None, error_or_None)
+    """
+    cache_val = globals().get(cache_var_name)
+    if cache_val is not None:
+        return cache_val, None
+
+    error_val = globals().get(error_var_name)
+    if error_val is not None:
+        return None, error_val
+
+    # Configure path if needed
+    if not _path_configured:
+        from backend.config import get_settings
+        settings = get_settings()
+        if settings.weberp_path:
+            success, msg = configure_external_path(settings.weberp_path)
+            if not success:
+                globals()[error_var_name] = msg
+                return None, msg
+        else:
+            msg = "WEBSERP_PATH not configured (optional feature)"
+            globals()[error_var_name] = msg
+            return None, msg
+
+    try:
+        loaded = import_fn()
+        globals()[cache_var_name] = loaded
+        return loaded, None
+    except ImportError as e:
+        err = (
+            f"Failed to import {display_name}: {e}. "
+            f"Ensure config/settings.py exists in webseleniumerp."
+        )
+        globals()[error_var_name] = err
+        logger.error(err)
+        return None, err
+    except Exception as e:
+        err = f"Unexpected error loading {display_name}: {e}"
+        globals()[error_var_name] = err
+        logger.error(err, exc_info=True)
+        return None, err
+
+
+def _error_result(message: str, error_type: str, **extra_fields) -> dict:
+    """Create a standardized error result dict.
+
+    All bridge execution functions return error dicts with success=False,
+    error message, and error_type. This factory ensures consistency.
+    """
+    result = {"success": False, "error": message, "error_type": error_type}
+    result.update(extra_fields)
+    return result
+
+
 def configure_external_path(weberp_path: str | None) -> tuple[bool, str]:
     """Configure external module path.
 
@@ -92,43 +161,16 @@ def load_pre_front_class() -> tuple[type | None, str | None]:
     Returns:
         (class_or_none, error_or_none)
     """
-    global _pre_front_class, _import_error
-
-    if _pre_front_class is not None:
-        return _pre_front_class, None
-
-    if _import_error is not None:
-        return None, _import_error
-
-    # Configure path from settings if not already done
-    if not _path_configured:
-        from backend.config import get_settings
-        settings = get_settings()
-        if settings.weberp_path:
-            success, msg = configure_external_path(settings.weberp_path)
-            if not success:
-                _import_error = msg
-                return None, _import_error
-        else:
-            _import_error = "WEBSERP_PATH not configured (optional feature)"
-            return None, _import_error
-
-    try:
+    def _import_pre_front():
         from common.base_prerequisites import PreFront
-        _pre_front_class = PreFront
+        return PreFront
+
+    result, err = _lazy_load(
+        '_pre_front_class', '_import_error', _import_pre_front, 'PreFront',
+    )
+    if result is not None:
         logger.info("Successfully loaded PreFront class")
-        return _pre_front_class, None
-    except ImportError as e:
-        _import_error = (
-            f"Failed to import PreFront: {e}. "
-            f"Ensure config/settings.py exists in webseleniumerp."
-        )
-        logger.error(_import_error)
-        return None, _import_error
-    except Exception as e:
-        _import_error = f"Unexpected error loading PreFront: {e}"
-        logger.error(_import_error, exc_info=True)
-        return None, _import_error
+    return result, err
 
 
 def is_available() -> bool:
@@ -143,43 +185,17 @@ def load_base_params_class() -> tuple[type | None, str | None]:
     Returns:
         (class_or_none, error_or_none)
     """
-    global _base_params_class, _base_params_import_error
-
-    if _base_params_class is not None:
-        return _base_params_class, None
-
-    if _base_params_import_error is not None:
-        return None, _base_params_import_error
-
-    # Configure path from settings if not already done
-    if not _path_configured:
-        from backend.config import get_settings
-        settings = get_settings()
-        if settings.weberp_path:
-            success, msg = configure_external_path(settings.weberp_path)
-            if not success:
-                _base_params_import_error = msg
-                return None, _base_params_import_error
-        else:
-            _base_params_import_error = "WEBSERP_PATH not configured (optional feature)"
-            return None, _base_params_import_error
-
-    try:
+    def _import_base_params():
         from common.base_params import BaseImport
-        _base_params_class = BaseImport
+        return BaseImport
+
+    result, err = _lazy_load(
+        '_base_params_class', '_base_params_import_error',
+        _import_base_params, 'BaseImport',
+    )
+    if result is not None:
         logger.info("Successfully loaded BaseImport class")
-        return _base_params_class, None
-    except ImportError as e:
-        _base_params_import_error = (
-            f"Failed to import BaseImport: {e}. "
-            f"Ensure config/settings.py exists in webseleniumerp."
-        )
-        logger.error(_base_params_import_error)
-        return None, _base_params_import_error
-    except Exception as e:
-        _base_params_import_error = f"Unexpected error loading BaseImport: {e}"
-        logger.error(_base_params_import_error, exc_info=True)
-        return None, _base_params_import_error
+    return result, err
 
 
 def load_base_assertions_class() -> tuple[dict[str, type] | None, str | None]:
@@ -188,49 +204,24 @@ def load_base_assertions_class() -> tuple[dict[str, type] | None, str | None]:
     Returns:
         (dict mapping class names to classes, error_or_none)
     """
-    global _assertion_classes_cache, _assertion_import_error
-
-    if _assertion_classes_cache is not None:
-        return _assertion_classes_cache, None
-
-    if _assertion_import_error is not None:
-        return None, _assertion_import_error
-
-    # Configure path from settings if not already done
-    if not _path_configured:
-        from backend.config import get_settings
-        settings = get_settings()
-        if settings.weberp_path:
-            success, msg = configure_external_path(settings.weberp_path)
-            if not success:
-                _assertion_import_error = msg
-                return None, _assertion_import_error
-        else:
-            _assertion_import_error = "WEBSERP_PATH not configured (optional feature)"
-            return None, _assertion_import_error
-
-    try:
+    def _import_assertion_classes():
         import common.base_assertions as _ba_mod
-        _assertion_classes_cache = {}
+        classes_cache = {}
         for _name in ('PcAssert', 'MgAssert', 'McAssert'):
             _cls = getattr(_ba_mod, _name, None)
             if _cls is not None:
-                _assertion_classes_cache[_name] = _cls
-        if not _assertion_classes_cache:
+                classes_cache[_name] = _cls
+        if not classes_cache:
             raise ImportError("No assertion classes found in common.base_assertions")
+        return classes_cache
+
+    result, err = _lazy_load(
+        '_assertion_classes_cache', '_assertion_import_error',
+        _import_assertion_classes, 'assertion classes',
+    )
+    if result is not None:
         logger.info("Successfully loaded assertion classes (PcAssert, MgAssert, McAssert)")
-        return _assertion_classes_cache, None
-    except ImportError as e:
-        _assertion_import_error = (
-            f"Failed to import assertion classes: {e}. "
-            f"Ensure config/settings.py exists in webseleniumerp."
-        )
-        logger.error(_assertion_import_error)
-        return None, _assertion_import_error
-    except Exception as e:
-        _assertion_import_error = f"Unexpected error loading assertion classes: {e}"
-        logger.error(_assertion_import_error, exc_info=True)
-        return None, _assertion_import_error
+    return result, err
 
 
 def _parse_docstring_params(docstring: str) -> list[dict]:
@@ -1031,37 +1022,17 @@ def _get_login_api():
     Returns:
         LoginApi instance or None if unavailable
     """
-    global _login_api_instance, _login_api_error
-
-    if _login_api_instance is not None:
-        return _login_api_instance
-
-    if _login_api_error is not None:
-        return None
-
-    # Ensure path is configured
-    if not _path_configured:
-        from backend.config import get_settings
-        settings = get_settings()
-        if settings.weberp_path:
-            configure_external_path(settings.weberp_path)
-        else:
-            _login_api_error = "WEBSERP_PATH not configured (optional feature)"
-            return None
-
-    try:
+    def _import_login_api():
         from api.api_login import LoginApi
-        _login_api_instance = LoginApi()
+        return LoginApi()
+
+    result, _ = _lazy_load(
+        '_login_api_instance', '_login_api_error',
+        _import_login_api, 'LoginApi',
+    )
+    if result is not None:
         logger.info("Successfully created LoginApi instance for headers resolution")
-        return _login_api_instance
-    except ImportError as e:
-        _login_api_error = f"Failed to import LoginApi: {e}"
-        logger.error(_login_api_error)
-        return None
-    except Exception as e:
-        _login_api_error = f"Failed to create LoginApi: {e}"
-        logger.error(_login_api_error, exc_info=True)
-        return None
+    return result
 
 
 # Valid header identifiers matching LoginApi.headers keys
@@ -1335,16 +1306,11 @@ async def execute_all_assertions(
         except Exception as e:
             # Catch any unexpected errors to ensure non-fail-fast
             logger.error(f"Unexpected error in assertion {index}: {e}", exc_info=True)
-            result = {
-                'success': False,
-                'passed': False,
-                'error': str(e),
-                'error_type': 'UnexpectedError',
-                'duration': 0.0,
-                'field_results': [],
-                'method': method_name,
-                'class_name': class_name
-            }
+            result = _error_result(
+                str(e), 'UnexpectedError',
+                passed=False, duration=0.0,
+                field_results=[], method=method_name, class_name=class_name,
+            )
 
         # Enrich result with metadata
         result['method'] = method_name
@@ -1394,11 +1360,7 @@ async def execute_data_method(
     # Load the class
     cls, error = load_base_params_class()
     if error:
-        return {
-            "success": False,
-            "error": error,
-            "error_type": "ImportError"
-        }
+        return _error_result(error, "ImportError")
 
     # Get the class by name
     try:
@@ -1412,17 +1374,12 @@ async def execute_data_method(
                 break
 
         if target_class is None:
-            return {
-                "success": False,
-                "error": f"Class '{class_name}' not found in base_params module",
-                "error_type": "NotFoundError"
-            }
+            return _error_result(
+                f"Class '{class_name}' not found in base_params module",
+                "NotFoundError",
+            )
     except Exception as e:
-        return {
-            "success": False,
-            "error": f"Failed to find class: {e}",
-            "error_type": "SystemError"
-        }
+        return _error_result(f"Failed to find class: {e}", "SystemError")
 
     # Get the method
     try:
@@ -1452,20 +1409,13 @@ async def execute_data_method(
                 for doc_id, name in sorted(class_map.items())
             ]
             available_str = ', '.join(available[:20])
-            return {
-                "success": False,
-                "error": (
-                    f"Method '{method_name}' not found in class '{class_name}'. "
-                    f"Available methods: {available_str}"
-                ),
-                "error_type": "NotFoundError"
-            }
+            return _error_result(
+                f"Method '{method_name}' not found in class '{class_name}'. "
+                f"Available methods: {available_str}",
+                "NotFoundError",
+            )
     except Exception as e:
-        return {
-            "success": False,
-            "error": f"Failed to instantiate class: {e}",
-            "error_type": "InstantiationError"
-        }
+        return _error_result(f"Failed to instantiate class: {e}", "InstantiationError")
 
     # Patch ImportApi aliases before execution (fixes _get_data internal failure)
     _patch_import_api_aliases()
@@ -1482,24 +1432,12 @@ async def execute_data_method(
             "data": result
         }
     except asyncio.TimeoutError:
-        return {
-            "success": False,
-            "error": f"Execution timeout ({timeout}s)",
-            "error_type": "TimeoutError"
-        }
+        return _error_result(f"Execution timeout ({timeout}s)", "TimeoutError")
     except TypeError as e:
-        return {
-            "success": False,
-            "error": f"Parameter error: {e}",
-            "error_type": "ParameterError"
-        }
+        return _error_result(f"Parameter error: {e}", "ParameterError")
     except Exception as e:
         logger.error(f"Failed to execute method: {e}", exc_info=True)
-        return {
-            "success": False,
-            "error": str(e),
-            "error_type": "ExecutionError"
-        }
+        return _error_result(str(e), "ExecutionError")
 
 
 def get_unavailable_reason() -> str | None:
@@ -1508,6 +1446,19 @@ def get_unavailable_reason() -> str | None:
     if cls is not None:
         return None
     return err or "External module not configured"
+
+
+def require_external_available() -> None:
+    """Raise HTTPException 503 if external module is not available.
+
+    Call this at the top of route handlers that depend on the external module.
+    """
+    if not is_available():
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail=f"External module not available: {get_unavailable_reason()}"
+        )
 
 
 def _parse_operations_from_source() -> tuple[dict[str, str], list[dict]]:

@@ -10,8 +10,7 @@ from typing import Optional
 
 from backend.config import get_settings
 from backend.core.external_precondition_bridge import (
-    is_available,
-    get_unavailable_reason,
+    require_external_available,
     get_operations_grouped,
     generate_precondition_code,
 )
@@ -57,15 +56,7 @@ async def list_operations():
 
     Returns 503 if external module is not available.
     """
-    if not is_available():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "External precondition module not available",
-                "reason": get_unavailable_reason(),
-                "fix": "Ensure WEBSERP_PATH is configured in .env and config/settings.py exists in webseleniumerp"
-            }
-        )
+    require_external_available()
 
     modules = get_operations_grouped()
     total = sum(len(m["operations"]) for m in modules)
@@ -80,15 +71,7 @@ async def list_operations():
 @router.post("/generate", response_model=GenerateResponse)
 async def generate_code(request: GenerateRequest):
     """Generate precondition code for selected operation codes."""
-    if not is_available():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "External precondition module not available",
-                "reason": get_unavailable_reason(),
-                "fix": "Ensure WEBSERP_PATH is configured in .env"
-            }
-        )
+    require_external_available()
 
     settings = get_settings()
     if not settings.weberp_path:

@@ -4,13 +4,12 @@ Provides REST API for discovering available data query methods
 from external webseleniumerp project's base_params.py module.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import Optional
 
 from backend.core.external_precondition_bridge import (
-    is_available,
-    get_unavailable_reason,
+    require_external_available,
     get_data_methods_grouped,
     execute_data_method,
 )
@@ -71,15 +70,7 @@ async def list_data_methods():
 
     Returns 503 if external module is not available.
     """
-    if not is_available():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "External data methods module not available",
-                "reason": get_unavailable_reason(),
-                "fix": "Ensure WEBSERP_PATH is configured in .env and config/settings.py exists in webseleniumerp"
-            }
-        )
+    require_external_available()
 
     classes = get_data_methods_grouped()
     total = sum(len(c["methods"]) for c in classes)
@@ -98,15 +89,7 @@ async def execute_method(request: ExecuteRequest):
     Returns 503 if external module is not available.
     Returns 200 with success=False and error field if execution fails.
     """
-    if not is_available():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "message": "External data methods module not available",
-                "reason": get_unavailable_reason(),
-                "fix": "Ensure WEBSERP_PATH is configured in .env and config/settings.py exists in webseleniumerp"
-            }
-        )
+    require_external_available()
 
     result = await execute_data_method(
         request.class_name,
