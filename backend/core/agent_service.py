@@ -391,7 +391,7 @@ class AgentService:
         step_stats_data = {"value": None}  # Mutable container for step stats (Phase 41, LOG-02)
         _prev_dom_hash_data = {"value": None}  # Mutable container for previous step dom_hash (Phase 69, D-02)
 
-        async def step_callback(browser_state, agent_output, step: int):
+        async def step_callback(browser_state: Any, agent_output: Any, step: int) -> None:
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
 
             # ===== 详细日志: browser_state =====

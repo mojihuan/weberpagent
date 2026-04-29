@@ -162,7 +162,7 @@ def get_llm(module_path: str) -> BaseLLM:
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
-def create_llm(llm_config: dict | None = None):
+def create_llm(llm_config: dict | None = None) -> BaseLLM:
     """创建 browser-use 兼容的 ChatOpenAI 实例（带重试逻辑）
 
     重试配置：

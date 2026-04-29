@@ -101,7 +101,7 @@ def _has_merged_cells(cells: tuple) -> bool:
     return any(isinstance(cell, MergedCell) for cell in cells)
 
 
-def _detect_old_template(ws) -> bool:
+def _detect_old_template(ws: Any) -> bool:
     """Detect if the workbook uses old 6-column format (no login_role).
 
     Old template headers: 任务名称, 任务描述, 目标URL, 最大步数, 前置条件, 断言
@@ -114,7 +114,7 @@ def _detect_old_template(ws) -> bool:
     return False
 
 
-def _validate_headers(ws) -> list[str] | None:
+def _validate_headers(ws: Any) -> list[str] | None:
     """Validate that row 1 headers match TEMPLATE_COLUMNS.
 
     Lenient: allows FEWER columns than TEMPLATE_COLUMNS (old templates).

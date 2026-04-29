@@ -9,6 +9,7 @@ use standard click(index=N) to interact with them.
 
 import logging
 import re
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ _discovered_placeholders: list[str] = []
 _diagnostic_log_emitted: bool = False
 
 
-def _is_textual_td_cell(node) -> bool:
+def _is_textual_td_cell(node: Any) -> bool:
     """Check if a SimplifiedNode is a <td> with meaningful text content.
 
     ERP Ant Design tables use click-to-edit cells: <td> shows a text value
@@ -101,7 +102,7 @@ def _is_textual_td_cell(node) -> bool:
     return False
 
 
-def _detect_row_identity(node) -> str | None:
+def _detect_row_identity(node: Any) -> str | None:
     """Detect row identity (IMEI / product number) from an ERP table row.
 
     Walks the parent chain from node to find the nearest <tr>, then
@@ -146,7 +147,7 @@ def _detect_row_identity(node) -> str | None:
     return None
 
 
-def _detect_row_identity_from_tr(tr_original) -> str | None:
+def _detect_row_identity_from_tr(tr_original: Any) -> str | None:
     """Extract IMEI row identity directly from a <tr> AccessibilityNode's td children.
 
     Unlike _detect_row_identity which walks the parent chain to find a <tr>,
@@ -207,7 +208,7 @@ def _reset_node_annotations() -> None:
     _diagnostic_log_emitted = False
 
 
-def _has_erp_clickable_class(node) -> bool:
+def _has_erp_clickable_class(node: Any) -> bool:
     """Check if a SimplifiedNode has an ERP-specific clickable CSS class.
 
     Args:
@@ -237,7 +238,7 @@ def _has_erp_clickable_class(node) -> bool:
     return False
 
 
-def _is_inside_table_cell(node) -> bool:
+def _is_inside_table_cell(node: Any) -> bool:
     """Check if a SimplifiedNode is inside a table cell (<td> or <th>).
 
     Walks the original_node's parent chain looking for td/th tags.
@@ -258,7 +259,7 @@ def _is_inside_table_cell(node) -> bool:
     return False
 
 
-def _is_inside_table_cell_by_original(original_node) -> bool:
+def _is_inside_table_cell_by_original(original_node: Any) -> bool:
     """Check if an AccessibilityNode is inside a table cell.
 
     Similar to _is_inside_table_cell but works with AccessibilityNode
@@ -273,7 +274,7 @@ def _is_inside_table_cell_by_original(original_node) -> bool:
     return False
 
 
-def _find_parent_td_from_original(original_node):
+def _find_parent_td_from_original(original_node: Any) -> Any:
     """Find the nearest parent td/th AccessibilityNode from an original node."""
     current = getattr(original_node, "parent_node", None)
     while current is not None:
@@ -284,7 +285,7 @@ def _find_parent_td_from_original(original_node):
     return None
 
 
-def _td_child_depth(node) -> int | None:
+def _td_child_depth(node: Any) -> int | None:
     """Count parent_node chain distance from node to its nearest td/th ancestor.
 
     Returns the number of parent_node steps from node up to the nearest <td> or <th>.
@@ -320,7 +321,7 @@ def _td_child_depth(node) -> int | None:
     return None
 
 
-def _get_column_header(td_original) -> str | None:
+def _get_column_header(td_original: Any) -> str | None:
     """Find column header text for a td by position index mapping to thead.
 
     Walks up from td's parent <tr> to find the enclosing <table>, then
@@ -406,7 +407,7 @@ def _get_column_header(td_original) -> str | None:
     return None
 
 
-def _is_erp_table_cell_input(node) -> bool:
+def _is_erp_table_cell_input(node: Any) -> bool:
     """Check if a SimplifiedNode is a visible input inside a td cell.
 
     Detects ANY visible input (type=text/number) inside <td>/<th>,
@@ -444,7 +445,7 @@ def _is_erp_table_cell_input(node) -> bool:
     return True
 
 
-def _has_visible_input_child(td_original) -> bool:
+def _has_visible_input_child(td_original: Any) -> bool:
     """Check if a td AccessibilityNode has a visible input child.
 
     Walks direct children looking for visible <input> tags with
@@ -463,7 +464,7 @@ def _has_visible_input_child(td_original) -> bool:
     return False
 
 
-def _reset_paint_order_for_erp_nodes(node) -> None:
+def _reset_paint_order_for_erp_nodes(node: Any) -> None:
     """Recursively reset ignored_by_paint_order for ERP clickable nodes.
 
     Args:
@@ -491,7 +492,7 @@ def _patch_is_interactive() -> None:
 
     original_is_interactive = ClickableElementDetector.is_interactive
 
-    def patched_is_interactive(node) -> bool:
+    def patched_is_interactive(node: Any) -> bool:
         attributes = getattr(node, "attributes", None)
         if attributes:
             class_value = attributes.get("class", "")
@@ -589,7 +590,7 @@ def _patch_should_exclude_child() -> None:
 
     original_should_exclude = DOMTreeSerializer._should_exclude_child
 
-    def patched_should_exclude_child(self, node, active_bounds) -> bool:
+    def patched_should_exclude_child(self, node: Any, active_bounds: Any) -> bool:
         # Existing: protect ERP clickable elements (hand, el-checkbox)
         if _has_erp_clickable_class(node):
             return False
@@ -618,7 +619,7 @@ def _patch_assign_interactive_indices() -> None:
 
     original_method = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
 
-    def patched_method(self, node) -> None:
+    def patched_method(self, node: Any) -> None:
         # Call original first to handle all standard cases
         original_method(self, node)
 
@@ -710,7 +711,7 @@ def _patch_serialize_tree_annotations() -> None:
     original_serialize = DOMTreeSerializer.serialize_tree
 
     @staticmethod
-    def patched_serialize(node, include_attributes, depth=0):
+    def patched_serialize(node: Any, include_attributes: bool, depth: int = 0) -> str:
         result = original_serialize(node, include_attributes, depth)
         if not result or not node:
             return result

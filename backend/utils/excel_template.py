@@ -6,6 +6,7 @@ TEMPLATE_COLUMNS 是模版生成器和解析器的共享列合约（单一数据
 """
 
 from io import BytesIO
+from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -100,7 +101,7 @@ def generate_template() -> BytesIO:
     return buffer
 
 
-def _write_styled_headers(ws) -> None:
+def _write_styled_headers(ws: Any) -> None:
     """写入带样式的列头行（第一行）。"""
     for idx, col_def in enumerate(TEMPLATE_COLUMNS):
         cell = ws.cell(row=1, column=idx + 1, value=col_def["header"])
@@ -110,14 +111,14 @@ def _write_styled_headers(ws) -> None:
         cell.border = _THIN_BORDER
 
 
-def _set_column_widths(ws) -> None:
+def _set_column_widths(ws: Any) -> None:
     """根据 TEMPLATE_COLUMNS 设置列宽。"""
     for idx, col_def in enumerate(TEMPLATE_COLUMNS):
         col_letter = get_column_letter(idx + 1)
         ws.column_dimensions[col_letter].width = col_def["width"]
 
 
-def _add_max_steps_validation(ws) -> None:
+def _add_max_steps_validation(ws: Any) -> None:
     """为 max_steps 列（D 列）添加数据验证。"""
     dv = DataValidation(
         type="whole",
@@ -136,7 +137,7 @@ def _add_max_steps_validation(ws) -> None:
     dv.add("E2:E10000")
 
 
-def _write_example_rows(ws) -> None:
+def _write_example_rows(ws: Any) -> None:
     """写入 2 行示例数据。"""
     for col_idx, value in enumerate(_EXAMPLE_ROW_FULL):
         ws.cell(row=2, column=col_idx + 1, value=value)
@@ -145,7 +146,7 @@ def _write_example_rows(ws) -> None:
         ws.cell(row=3, column=col_idx + 1, value=value)
 
 
-def _create_readme_sheet(wb) -> None:
+def _create_readme_sheet(wb: Any) -> None:
     """创建 README 说明页。"""
     ws_readme = wb.create_sheet("README")
 

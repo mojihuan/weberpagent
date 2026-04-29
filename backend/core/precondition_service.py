@@ -131,7 +131,7 @@ class ContextWrapper:
     def get(self, key: str, default: Any = None) -> Any:
         return self._data.get(key, default)
 
-    def keys(self):
+    def keys(self) -> list[str]:
         return self._data.keys()
 
     def to_dict(self) -> dict[str, Any]:
