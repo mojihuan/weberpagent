@@ -1,10 +1,11 @@
 """Batch execution routes"""
 
 import asyncio
-import json
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
+
+from backend.api.helpers import _parse_task_json_fields, raise_not_found
 
 from backend.db.database import async_session
 from backend.db.repository import BatchRepository, RunRepository, TaskRepository
@@ -32,7 +33,7 @@ async def create_batch(request: BatchCreateRequest):
         for task_id in request.task_ids:
             task = await task_repo.get(task_id)
             if not task:
-                raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+                raise_not_found("Task", task_id)
             tasks.append(task)
 
         # Create batch record
@@ -47,21 +48,8 @@ async def create_batch(request: BatchCreateRequest):
             await session.commit()
             await session.refresh(run)
 
-            # Parse preconditions
-            preconditions = None
-            if task.preconditions:
-                try:
-                    preconditions = json.loads(task.preconditions)
-                except json.JSONDecodeError:
-                    logger.warning(f"Task {task.id} preconditions JSON parse failed")
-
-            # Parse external_assertions
-            external_assertions = None
-            if hasattr(task, 'external_assertions') and task.external_assertions:
-                try:
-                    external_assertions = json.loads(task.external_assertions)
-                except json.JSONDecodeError:
-                    logger.warning(f"Task {task.id} external_assertions JSON parse failed")
+            # Parse preconditions and external_assertions
+            preconditions, external_assertions = _parse_task_json_fields(task)
 
             run_configs.append({
                 "run_id": run.id,
@@ -101,7 +89,7 @@ async def get_batch(batch_id: str):
         batch_repo = BatchRepository(session)
         batch = await batch_repo.get_with_runs(batch_id)
         if not batch:
-            raise HTTPException(status_code=404, detail="Batch not found")
+            raise_not_found("Batch", batch_id)
 
         run_summaries = []
         if batch.runs:
@@ -135,7 +123,7 @@ async def get_batch_runs(batch_id: str):
         batch_repo = BatchRepository(session)
         batch = await batch_repo.get(batch_id)
         if not batch:
-            raise HTTPException(status_code=404, detail="Batch not found")
+            raise_not_found("Batch", batch_id)
 
         runs = await batch_repo.list_runs_by_batch(batch_id)
         return [

@@ -10,6 +10,8 @@ from typing import Any
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+
+from backend.api.helpers import _parse_task_json_fields, raise_not_found
 from fastapi.responses import PlainTextResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -745,26 +747,12 @@ async def create_run(
     """创建执行记录并启动后台执行"""
     task = await task_repo.get(task_id)
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise_not_found("Task", task_id)
 
     run = await run_repo.create(task_id=task_id)
 
-    # 解析 preconditions
-    preconditions = None
-    if task.preconditions:
-        try:
-            preconditions = json.loads(task.preconditions)
-        except json.JSONDecodeError:
-            logger.warning(f"Task {task_id} preconditions JSON 解析失败")
-
-    # 解析 external_assertions (Phase 25)
-    external_assertions = None
-    if hasattr(task, 'external_assertions') and task.external_assertions:
-        try:
-            external_assertions = json.loads(task.external_assertions)
-            logger.info(f"Task {task_id} loaded {len(external_assertions)} external assertions")
-        except json.JSONDecodeError:
-            logger.warning(f"Task {task_id} external_assertions JSON 解析失败")
+    # 解析 preconditions 和 external_assertions
+    preconditions, external_assertions = _parse_task_json_fields(task)
 
     # 启动后台执行
     background_tasks.add_task(
@@ -791,7 +779,7 @@ async def get_run(
     """获取执行详情"""
     run = await run_repo.get(run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+        raise_not_found("Run", run_id)
     return run
 
 
@@ -803,7 +791,7 @@ async def get_run_code(
     """获取执行记录生成的 Playwright 代码内容 (CODE-01)"""
     run = await run_repo.get(run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="执行记录不存在")
+        raise_not_found("Run", run_id)
     if not run.generated_code_path:
         raise HTTPException(status_code=404, detail="该执行记录无生成代码")
 
@@ -825,7 +813,7 @@ async def execute_run_code(
     # Pre-check 1: run exists
     run = await run_repo.get(run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="执行记录不存在")
+        raise_not_found("Run", run_id)
 
     # Pre-check 2: has generated code
     if not run.generated_code_path:
@@ -868,7 +856,7 @@ async def stream_run(
     # 验证 run 存在
     run = await run_repo.get(run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+        raise_not_found("Run", run_id)
 
     async def event_generator():
         async for event in event_manager.subscribe(run_id):
@@ -891,7 +879,7 @@ async def stop_run(
     """停止执行"""
     run = await run_repo.get(run_id)
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+        raise_not_found("Run", run_id)
 
     if run.status != "running":
         raise HTTPException(status_code=400, detail="Run is not running")
@@ -910,7 +898,7 @@ async def get_screenshot(
     step = await step_repo.get_by_index(run_id, step_index)
 
     if not step or not step.screenshot_path:
-        raise HTTPException(status_code=404, detail="Screenshot not found")
+        raise_not_found("Screenshot")
 
     from fastapi.responses import FileResponse
     return FileResponse(
