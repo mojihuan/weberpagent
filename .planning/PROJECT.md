@@ -56,12 +56,18 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active (v0.11.0)
 
-- [ ] 删除整个 tests/ 目录及所有测试相关配置和依赖
+- [x] ~~删除整个 tests/ 目录及所有测试相关配置和依赖~~ Phase 120
 - [ ] 清理未使用的 import、函数、变量、文件
 - [ ] 合并重复逻辑，优化架构
 - [ ] 命名规范化 + 全面类型标注
 
 ### Validated
+
+**v0.11.0 全面代码清理 (2026-04-29):**
+- ✓ TEST-01: backend/tests/ 目录完整删除 (87 文件, 19810 行) — Phase 120
+- ✓ TEST-02: outputs/ 目录清空 (~291 子目录, ~406MB) — Phase 120
+- ✓ TEST-03: [tool.pytest.ini_options] 配置段移除 — Phase 120
+- ✓ TEST-04: 源码无残留 tests/ 引用，httpx 确认为生产依赖 — Phase 120
 
 **v0.10.11 移除自愈功能 (2026-04-29):**
 - ✓ REMOVE-01~04: 删除 SelfHealingRunner/LLMHealer/ErrorClassifier/HealerError 四个自愈模块 — Phase 116
@@ -284,8 +290,10 @@ v0.1-v0.4.2 核心功能:
 - 数据库 SQLite (aiosqlite)
 
 **代码质量:**
-- 测试套件: 928 tests passed (Phase 119 regression gate)
-- 自愈功能完全移除，-2999 行代码
+- 测试套件已删除 (Phase 120) — 项目不再有自测套件
+- backend/tests/ 完全移除，87 文件 -19810 行
+- outputs/ 历史产物清空，~406MB 释放
+- 自愈功能完全移除，-2999 行代码 (Phase 116-119)
 - 执行管道简化为一次性 pytest (subprocess.run)
 
 **技术栈:**
@@ -374,4 +382,4 @@ v0.1-v0.4.2 核心功能:
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-29 after v0.11.0 milestone started*
+*Last updated: 2026-04-29 after Phase 120 complete*

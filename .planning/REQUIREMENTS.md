@@ -17,8 +17,8 @@
 ### 死代码清理
 
 - [x] **DEAD-01**: 删除未使用的 import 语句
-- [ ] **DEAD-02**: 删除未被调用的函数和方法
-- [ ] **DEAD-03**: 删除未引用的变量和常量
+- [x] **DEAD-02**: 删除未被调用的函数和方法
+- [x] **DEAD-03**: 删除未引用的变量和常量
 - [x] **DEAD-04**: 删除整个文件未被 import 的废弃模块
 
 ### 重复逻辑合并
@@ -64,8 +64,8 @@
 | TEST-03 | Phase 120 | Complete |
 | TEST-04 | Phase 120 | Complete |
 | DEAD-01 | Phase 121 | Complete |
-| DEAD-02 | Phase 121 | Pending |
-| DEAD-03 | Phase 121 | Pending |
+| DEAD-02 | Phase 121 | Complete |
+| DEAD-03 | Phase 121 | Complete |
 | DEAD-04 | Phase 121 | Complete |
 | DUP-01 | Phase 122 | Pending |
 | DUP-02 | Phase 122 | Pending |
