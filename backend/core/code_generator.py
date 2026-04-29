@@ -76,7 +76,6 @@ class PlaywrightCodeGenerator:
         _needs_logger = needs_logging or bool(assertions_config)
         if _needs_logger:
             parts.append("import logging")
-            parts.append("from backend.core.healer_error import HealerError")
 
         parts.append("")
         parts.append(f"def {func_name}(page: Page) -> None:")

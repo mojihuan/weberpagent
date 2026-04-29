@@ -13,7 +13,6 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from backend.core.healer_error import HealerError
 from backend.core.locator_chain_builder import LocatorChainBuilder
 
 
