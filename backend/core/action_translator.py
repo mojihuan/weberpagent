@@ -233,19 +233,24 @@ class ActionTranslator:
                 return self._build_llm_only_code("click", llm_snippet)
             return self._build_placeholder("click")
 
-        # 单定位器: 保持 Phase 82 格式 (per Pitfall 5)
+        # 单定位器: 生成 try-except 重试代码 (避免 30s 超时等待)
         if len(locators) == 1:
             escaped = self._escape_string(elem.x_path)
+            xpath_locator = f'page.locator("xpath={escaped}")'
+            code = self._build_single_locator_code(
+                xpath_locator, ".click(timeout=5000)", "click"
+            )
             return TranslatedAction(
-                code=f'    page.locator("xpath={escaped}").click()',
+                code=code,
                 action_type="click",
                 is_comment=False,
                 has_locator=True,
+                locators=(xpath_locator,),
             )
 
         # 多定位器: 生成 try-except 回退代码 (含可选 LLM 第 4 层)
         code = self._build_fallback_code(
-            locators, ".click()", "click", llm_snippet=llm_snippet
+            locators, ".click(timeout=5000)", "click", llm_snippet=llm_snippet
         )
         return TranslatedAction(
             code=code,
@@ -277,16 +282,21 @@ class ActionTranslator:
 
         text = params.get("text", "")
         escaped_text = self._escape_string(text)
-        action_suffix = f'.fill("{escaped_text}")'
+        action_suffix = f'.fill("{escaped_text}", timeout=5000)'
 
-        # 单定位器: 保持 Phase 82 格式
+        # 单定位器: 生成 try-except 重试代码
         if len(locators) == 1:
             escaped_xpath = self._escape_string(elem.x_path)
+            xpath_locator = f'page.locator("xpath={escaped_xpath}")'
+            code = self._build_single_locator_code(
+                xpath_locator, f'.fill("{escaped_text}", timeout=5000)', "input"
+            )
             return TranslatedAction(
-                code=f'    page.locator("xpath={escaped_xpath}").fill("{escaped_text}")',
+                code=code,
                 action_type="input",
                 is_comment=False,
                 has_locator=True,
+                locators=(xpath_locator,),
             )
 
         # 多定位器: 生成 try-except 回退代码 (含可选 LLM 第 4 层)
@@ -300,6 +310,36 @@ class ActionTranslator:
             has_locator=True,
             locators=tuple(locators),
         )
+
+    def _build_single_locator_code(
+        self,
+        locator: str,
+        action_suffix: str,
+        action_type: str,
+    ) -> str:
+        """生成单定位器的 try-except 重试代码。
+
+        单定位器时，Playwright 默认 30s 超时太长。
+        改为先 try 点击，失败后 wait_for 5s 再重试，
+        全部失败则 raise HealerError。
+        """
+        short = self._short_locator(locator)
+        lines = [
+            "    try:",
+            f"        {locator}{action_suffix}",
+            "    except Exception as _e1:",
+            f'        _logger.warning("定位器失败 [{action_type}], 等待重试: {short}")',
+            "        try:",
+            f"            {locator}.wait_for(state='visible', timeout=5000)",
+            f"            {locator}{action_suffix}",
+            "        except Exception as _e2:",
+            f'            _logger.error("定位器重试失败 [{action_type}]: {short}")',
+            "            raise HealerError(",
+            f'                action_type="{action_type}", ',
+            f"                locators=({repr(locator)},), ",
+            "                original_error=str(_e2))",
+        ]
+        return "\n".join(lines)
 
     def _build_fallback_code(
         self,
@@ -329,6 +369,7 @@ class ActionTranslator:
                 f'{indent}    _logger.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
             )
             lines.append(f"{indent}    try:")
+            lines.append(f"{indent}        {locators[1]}.wait_for(state='visible', timeout=3000)")
             lines.append(f"{indent}        {locators[1]}{action_suffix}")
             lines.append(f"{indent}    except Exception as _e2:")
             if llm_snippet:
@@ -357,6 +398,7 @@ class ActionTranslator:
                 f'{indent}    _logger.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
             )
             lines.append(f"{indent}    try:")
+            lines.append(f"{indent}        {locators[1]}.wait_for(state='visible', timeout=3000)")
             lines.append(f"{indent}        {locators[1]}{action_suffix}")
             lines.append(f"{indent}    except Exception as _e2:")
             short1b = self._short_locator(locators[1])
@@ -365,6 +407,7 @@ class ActionTranslator:
                 f'{indent}        _logger.warning("定位器回退: {short1b} 失败, 尝试 {short2}")'
             )
             lines.append(f"{indent}        try:")
+            lines.append(f"{indent}            {locators[2]}.wait_for(state='visible', timeout=3000)")
             lines.append(f"{indent}            {locators[2]}{action_suffix}")
             lines.append(f"{indent}        except Exception as _e3:")
             if llm_snippet:
@@ -469,8 +512,14 @@ class ActionTranslator:
         if text_match:
             return f"text={text_match.group(1)}"
 
-        # 通用回退: 截断到合理长度
-        return locator[:50]
+        # page.locator("tag.classname") -> css=tag.classname
+        css_match = re.search(r'page\.locator\("([^"]+)"\)', locator)
+        if css_match:
+            return f"css={css_match.group(1)}"
+
+        # 通用回退: 截断到合理长度，去掉双引号避免日志字符串冲突
+        result = locator[:50]
+        return result.replace('"', "'")
 
     @staticmethod
     def _translate_navigate(params: dict) -> TranslatedAction:
