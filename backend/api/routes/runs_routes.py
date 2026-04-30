@@ -127,6 +127,11 @@ async def _execute_code_background(
             )
             result_status = "success" if proc.returncode == 0 else "failed"
             logger.info(f"[{run_id}] pytest 执行完成: returncode={proc.returncode}, status={result_status}")
+            if result_status == "failed":
+                if proc.stdout:
+                    logger.info(f"[{run_id}] pytest stdout:\n{proc.stdout}")
+                if proc.stderr:
+                    logger.warning(f"[{run_id}] pytest stderr:\n{proc.stderr}")
 
             async with async_session() as session:
                 run_repo = RunRepository(session)
