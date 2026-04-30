@@ -1018,7 +1018,7 @@ git commit -m "chore: 删除前端 mock 数据"
 ```bash
 cd /Users/huhu/project/weberpagent
 source .venv/bin/activate
-uvicorn backend.api.main:app --reload --port 8080
+uvicorn backend.api.main:app --reload --port 11002
 ```
 
 **Step 2: 启动前端**

@@ -811,7 +811,7 @@ Expected: All tests pass. Some tests referencing old `_heal_weak_steps` or old `
 
 **Step 2: Manual test with real ERP**
 
-1. Start backend: `uv run uvicorn backend.api.main:app --reload --port 8080`
+1. Start backend: `uv run uvicorn backend.api.main:app --reload --port 11002`
 2. Trigger a test run (e.g., 销售出库测试)
 3. Verify in logs:
    - Each step shows no "代码翻译失败" warnings (or acceptable ones)

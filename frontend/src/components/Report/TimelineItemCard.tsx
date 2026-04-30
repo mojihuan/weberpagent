@@ -29,7 +29,7 @@ function StatusIcon({ status, type }: { status: string; type: 'step' | 'precondi
 
 function StepExpandedContent({ step }: { step: ReportTimelineStep }) {
   const [viewerOpen, setViewerOpen] = useState(false)
-  const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:8080'
+  const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:11002'
 
   let screenshotUrl = step.screenshot_url || ''
   if (screenshotUrl && !screenshotUrl.startsWith('http')) {

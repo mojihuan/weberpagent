@@ -11,7 +11,7 @@ export default defineConfig({
   timeout: 120000, // 2 minutes per test (AI execution can be slow)
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:11001',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -26,14 +26,14 @@ export default defineConfig({
 
   webServer: [
     {
-      command: 'uv run uvicorn backend.api.main:app --port 8080',
-      url: 'http://localhost:8080',
+      command: 'uv run uvicorn backend.api.main:app --port 11002',
+      url: 'http://localhost:11002',
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
     },
     {
       command: 'cd frontend && npm run dev',
-      url: 'http://localhost:5173',
+      url: 'http://localhost:11001',
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
     },

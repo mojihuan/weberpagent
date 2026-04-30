@@ -24,7 +24,7 @@ export interface ImportConfirmResponse {
 }
 
 // Use raw fetch for FormData upload -- bypass apiClient which sets Content-Type: application/json
-const IMPORT_API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
+const IMPORT_API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:11002/api'
 
 export async function importPreview(file: File): Promise<ImportPreviewResponse> {
   const formData = new FormData()

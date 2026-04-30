@@ -30,7 +30,7 @@ export async function stopRun(runId: string): Promise<{ status: string }> {
 
 // 获取截图 URL
 export function getScreenshotUrl(runId: string, stepIndex: number): string {
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:11002/api'
   return `${API_BASE}/runs/${runId}/screenshots/${stepIndex}`
 }
 
@@ -42,7 +42,7 @@ export async function startRun(_taskId: string): Promise<{ runId: string }> {
 
 // GET /runs/{run_id}/code -- returns plain text (cannot use apiClient which calls .json())
 export async function getRunCode(runId: string): Promise<string> {
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:11002/api'
   const response = await fetch(`${API_BASE}/runs/${runId}/code`)
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))

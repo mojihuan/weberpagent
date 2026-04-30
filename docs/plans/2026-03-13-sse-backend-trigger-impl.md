@@ -641,7 +641,7 @@ git commit -m "refactor: useRunStream 使用 EventSource GET 请求订阅 SSE"
 **Step 1: 启动后端服务**
 
 ```bash
-cd /Users/huhu/project/weberpagent && source .venv/bin/activate && uvicorn backend.api.main:app --reload --port 8080
+cd /Users/huhu/project/weberpagent && source .venv/bin/activate && uvicorn backend.api.main:app --reload --port 11002
 ```
 
 **Step 2: 启动前端服务（新终端）**
@@ -652,7 +652,7 @@ cd /Users/huhu/project/weberpagent/frontend && npm run dev
 
 **Step 3: 手动测试**
 
-1. 打开浏览器访问 http://localhost:5173
+1. 打开浏览器访问 http://localhost:11001
 2. 选择一个任务，点击执行
 3. 验证：
    - 只有一次 POST /runs 请求（创建 run）

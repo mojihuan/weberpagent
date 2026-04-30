@@ -1,7 +1,7 @@
 import { toast } from 'sonner'
 import { sleep, isNetworkError } from '../utils/retry'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:11002/api'
 const MAX_RETRIES = 3
 
 export class ApiError extends Error {

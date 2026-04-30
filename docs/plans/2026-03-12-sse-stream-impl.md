@@ -801,7 +801,7 @@ async def lifespan(app: FastAPI):
 ```typescript
 import { apiClient } from './client'
 
-const API_BASE = 'http://localhost:8080/api'
+const API_BASE = 'http://localhost:11002/api'
 
 // 创建执行记录
 export async function createRun(taskId: string): Promise<{ runId: string }> {
@@ -869,13 +869,13 @@ export async function stopRun(runId: string): Promise<{ status: string }> {
 - [ ] `python -m pytest backend/tests/test_agent_service.py -v` 通过
 
 ### Phase 3 完成标准
-- [ ] `uvicorn backend.api.main:app --reload --port 8080` 启动成功
-- [ ] `curl http://localhost:8080/api/tasks` 返回空数组
-- [ ] `curl -X POST http://localhost:8080/api/tasks -d '{"name":"test","description":"test"}'` 返回任务
+- [ ] `uvicorn backend.api.main:app --reload --port 11002` 启动成功
+- [ ] `curl http://localhost:11002/api/tasks` 返回空数组
+- [ ] `curl -X POST http://localhost:11002/api/tasks -d '{"name":"test","description":"test"}'` 返回任务
 
 ### Phase 4 完成标准
 - [ ] `cd frontend && npm run dev` 启动成功
-- [ ] 访问 http://localhost:5173/tasks 无报错
+- [ ] 访问 http://localhost:11001/tasks 无报错
 - [ ] 点击执行按钮能建立 SSE 连接
 
 ### Phase 5 完成标准

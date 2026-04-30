@@ -966,7 +966,7 @@ git commit -m "feat: integrate reliability monitors into AgentService"
 **Step 1: 启动后端服务**
 
 ```bash
-uv run uvicorn backend.api.main:app --reload --port 8080
+uv run uvicorn backend.api.main:app --reload --port 11002
 ```
 
 **Step 2: 运行一次完整的 ERP 销售出库测试**

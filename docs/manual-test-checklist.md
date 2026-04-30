@@ -6,7 +6,7 @@
 
 - [x] 已克隆 webseleniumerp 项目到本地
 - [x] 已在 webseleniumerp 中创建 `config/settings.py`（参见 README.md 模板）
-- [x] 后端服务运行中：`uv run uvicorn backend.api.main:app --reload --port 8080`
+- [x] 后端服务运行中：`uv run uvicorn backend.api.main:app --reload --port 11002`
 - [x] 前端服务运行中：`cd frontend && npm run dev`
 
 ## 环境配置
@@ -25,7 +25,7 @@
 
 ### 测试步骤：
 
-1. - [x] 打开前端页面 http://localhost:5173
+1. - [x] 打开前端页面 http://localhost:11001
 2. - [x] 进入任务创建页面
 3. - [x] 点击前置条件文本框上方的"选择操作码"按钮
 4. - [x] 验证：弹窗显示按模块分组的操作码列表

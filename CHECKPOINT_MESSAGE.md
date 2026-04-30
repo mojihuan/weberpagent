@@ -30,9 +30,9 @@
 - REQUIREMENTS.md updated to mark UI-02 and E2E-01 through E2E-05 as Complete
 
 **How-to-verify:**
-1. Start backend: `uv run uvicorn backend.api.main:app --reload --port 8080`
+1. Start backend: `uv run uvicorn backend.api.main:app --reload --port 11002`
 2. Start frontend: `cd frontend && npm run dev`
-3. Open http://localhost:5173
+3. Open http://localhost:11001
 4. Verify TrendChart loads without console errors
 5. Create a task and execute it
 6. Verify RunMonitor shows execution progress (not blank page)

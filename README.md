@@ -134,7 +134,7 @@ npm install
 
 ```bash
 # macOS / Linux
-uv run uvicorn backend.api.main:app --reload --port 8080
+uv run uvicorn backend.api.main:app --reload --port 11002
 ```
 
 </Tab>
@@ -160,13 +160,13 @@ cd frontend && npm run dev
 
 **6. 访问应用**
 
-打开浏览器访问 http://localhost:5173
+打开浏览器访问 http://localhost:11001
 
 ### 验证安装
 
 ```bash
 # 运行健康检查
-curl http://localhost:8080/health
+curl http://localhost:11002/health
 # 预期输出: {"status": "healthy"}
 
 # 运行测试
@@ -437,7 +437,7 @@ DATA_PATHS = {
 Start the server to verify your configuration:
 
 ```bash
-uv run uvicorn backend.api.main:app --reload --port 8080
+uv run uvicorn backend.api.main:app --reload --port 11002
 ```
 
 If configuration is invalid, you will see an error message with specific instructions for fixing the issue:
@@ -535,7 +535,7 @@ aiDriveUITest/
 
 **运行开发服务器**
 ```bash
-uv run uvicorn backend.api.main:app --reload --port 8080
+uv run uvicorn backend.api.main:app --reload --port 11002
 ```
 
 **运行测试**
@@ -552,8 +552,8 @@ uv run ruff format backend/
 **API 文档**
 
 启动服务后访问：
-- Swagger UI: http://localhost:8080/docs
-- ReDoc: http://localhost:8080/redoc
+- Swagger UI: http://localhost:11002/docs
+- ReDoc: http://localhost:11002/redoc
 
 ### 前端开发
 
@@ -592,7 +592,7 @@ docker build -t aidrive-ui-test:latest .
 ```bash
 docker run -d \
   --name aidrive-ui-test \
-  -p 8080:8080 \
+  -p 11002:11002 \
   -e OPENAI_API_KEY=sk-xxx \
   -e ERP_BASE_URL=https://erp.example.com \
   -e ERP_USERNAME=test_user \
@@ -613,7 +613,7 @@ docker-compose up -d
 uv sync --no-dev
 
 # 2. 使用 Gunicorn 运行
-uv run gunicorn backend.api.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8080
+uv run gunicorn backend.api.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:11002
 ```
 
 **前端**
@@ -640,14 +640,14 @@ server {
 
     # 后端 API 代理
     location /api {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:11002;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
 
     # SSE 支持
     location /api/runs {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:11002;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_buffering off;
