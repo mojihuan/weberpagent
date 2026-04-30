@@ -7,7 +7,7 @@ from typing import Any
 
 from backend.db.database import async_session
 from backend.db.repository import BatchRepository, RunRepository
-from backend.api.routes.runs import run_agent_background
+from backend.api.routes.run_pipeline import run_agent_background
 
 logger = logging.getLogger(__name__)
 

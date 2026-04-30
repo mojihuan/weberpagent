@@ -173,7 +173,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 124-01: 拆分过长函数和简化嵌套逻辑
+- [x] 124-01: 拆分过长函数和简化嵌套逻辑
 - [ ] 124-02: 重组模块职责和统一异常处理
 
 ## Progress
@@ -186,8 +186,8 @@ Phases execute in numeric order: 120 → 121 → 122 → 123 → 124
 | 120. 删除测试基础设施 | 2/2 | Complete    | 2026-04-29 |
 | 121. 死代码清理 | 2/2 | Complete | 2026-04-29 |
 | 122. 重复逻辑合并 | 2/2 | Complete | 2026-04-29 |
-| 123. 命名规范化与类型标注 | 2/2 | Complete   | 2026-04-29 |
-| 124. 函数/模块优化 | 0/2 | Not started | - |
+| 123. 命名规范化与类型标注 | 2/2 | Complete    | 2026-04-29 |
+| 124. 函数/模块优化 | 1/2 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-04-30 — Phase 123 plans finalized*

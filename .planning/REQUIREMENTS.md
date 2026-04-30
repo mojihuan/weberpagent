@@ -41,9 +41,9 @@
 
 ### 函数/模块优化
 
-- [ ] **FUNC-01**: 拆分过长函数（>50 行）为更小的单一职责函数
+- [x] **FUNC-01**: 拆分过长函数（>50 行）为更小的单一职责函数
 - [ ] **FUNC-02**: 重组职责不清晰的模块（高内聚低耦合）
-- [ ] **FUNC-03**: 简化复杂的条件逻辑和深层嵌套（>4 层）
+- [x] **FUNC-03**: 简化复杂的条件逻辑和深层嵌套（>4 层）
 - [ ] **FUNC-04**: 统一错误处理模式（消除重复 try-except，统一异常类型）
 
 ## Out of Scope
@@ -76,9 +76,9 @@
 | TYPE-01 | Phase 123 | Complete |
 | TYPE-02 | Phase 123 | Complete |
 | TYPE-03 | Phase 123 | Complete |
-| FUNC-01 | Phase 124 | Pending |
+| FUNC-01 | Phase 124 | Complete |
 | FUNC-02 | Phase 124 | Pending |
-| FUNC-03 | Phase 124 | Pending |
+| FUNC-03 | Phase 124 | Complete |
 | FUNC-04 | Phase 124 | Pending |
 
 **Coverage:**
