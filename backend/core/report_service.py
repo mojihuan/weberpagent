@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +16,61 @@ from backend.db.repository import (
 from backend.db.models import Report
 
 logger = logging.getLogger(__name__)
+
+
+def _build_step_timeline_item(s: Any, run_id: str) -> dict:
+    """Build a timeline item dict from a step object."""
+    return {
+        "type": "step", "id": s.id,
+        "sequence_number": s.sequence_number if s.sequence_number is not None else s.step_index,
+        "step_index": s.step_index, "action": s.action, "reasoning": s.reasoning,
+        "screenshot_url": f"/api/runs/{run_id}/screenshots/{s.step_index}" if s.screenshot_path else None,
+        "status": s.status, "error": s.error, "duration_ms": s.duration_ms,
+    }
+
+
+def _build_precondition_timeline_item(pr: Any) -> dict:
+    """Build a timeline item dict from a precondition result."""
+    return {
+        "type": "precondition", "id": pr.id, "sequence_number": pr.sequence_number,
+        "index": pr.index, "code": pr.code, "status": pr.status,
+        "error": pr.error, "duration_ms": pr.duration_ms,
+        "variables": json.loads(pr.variables) if pr.variables else None,
+    }
+
+
+def _build_assertion_timeline_item(ar: Any) -> dict:
+    """Build a timeline item dict from an assertion result."""
+    return {
+        "type": "assertion", "id": ar.id,
+        "sequence_number": ar.sequence_number if ar.sequence_number is not None else 0,
+        "assertion_id": ar.assertion_id,
+        "assertion_name": ar.assertion.name if ar.assertion else None,
+        "status": ar.status, "message": ar.message, "actual_value": ar.actual_value,
+        "field_results": None, "duration_ms": None,
+    }
+
+
+def _build_external_assertion_timeline_items(raw_results: str, run_id: str) -> list[dict]:
+    """Parse external assertion results JSON and build timeline items."""
+    try:
+        ext_results = json.loads(raw_results)
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.warning(f"Failed to parse external_assertion_results for run {run_id}: {e}")
+        return []
+
+    items = []
+    for ext in ext_results:
+        seq = ext.get("sequence_number", 0)
+        items.append({
+            "type": "assertion", "id": f"ext-{seq}", "sequence_number": seq,
+            "assertion_id": f"ext-{seq}",
+            "assertion_name": ext.get("assertion_name", "External Assertion"),
+            "status": ext.get("status", "unknown"), "message": ext.get("message"),
+            "actual_value": None, "field_results": ext.get("field_results"),
+            "duration_ms": int(ext.get("duration", 0) * 1000) if ext.get("duration") else None,
+        })
+    return items
 
 
 class ReportService:
@@ -92,111 +147,34 @@ class ReportService:
         return report
 
     async def get_report_data(self, run_id: str) -> Optional[dict]:
-        """Get full report data including steps and assertions.
-
-        This method returns a dict with all report details for API response.
-
-        Args:
-            run_id: The run ID
-
-        Returns:
-            Dict with report data, or None if not found
-        """
+        """Get full report data including steps and assertions."""
         report = await self.report_repo.get_by_run_id(run_id)
         if not report:
             return None
 
-        # Get steps
         steps = await self.run_repo.get_steps(run_id)
-
-        # Get assertion results
         assertion_results = await self.assertion_result_repo.list_by_run(run_id)
-
-        # Calculate pass rate
         pass_rate = self.calculate_pass_rate(assertion_results)
-
-        # Phase 59: Build timeline_items
         precondition_results = await self.precondition_result_repo.list_by_run(run_id)
 
         timeline_items: list[dict] = []
-
-        # Add UI steps
         for s in steps:
-            timeline_items.append({
-                "type": "step",
-                "id": s.id,
-                "sequence_number": s.sequence_number if s.sequence_number is not None else s.step_index,
-                "step_index": s.step_index,
-                "action": s.action,
-                "reasoning": s.reasoning,
-                "screenshot_url": f"/api/runs/{run_id}/screenshots/{s.step_index}" if s.screenshot_path else None,
-                "status": s.status,
-                "error": s.error,
-                "duration_ms": s.duration_ms,
-            })
-
-        # Add precondition results
+            timeline_items.append(_build_step_timeline_item(s, run_id))
         for pr in precondition_results:
-            timeline_items.append({
-                "type": "precondition",
-                "id": pr.id,
-                "sequence_number": pr.sequence_number,
-                "index": pr.index,
-                "code": pr.code,
-                "status": pr.status,
-                "error": pr.error,
-                "duration_ms": pr.duration_ms,
-                "variables": json.loads(pr.variables) if pr.variables else None,
-            })
-
-        # Add UI assertion results
+            timeline_items.append(_build_precondition_timeline_item(pr))
         for ar in assertion_results:
-            assertion_name = ar.assertion.name if ar.assertion else None
-            timeline_items.append({
-                "type": "assertion",
-                "id": ar.id,
-                "sequence_number": ar.sequence_number if ar.sequence_number is not None else 0,
-                "assertion_id": ar.assertion_id,
-                "assertion_name": assertion_name,
-                "status": ar.status,
-                "message": ar.message,
-                "actual_value": ar.actual_value,
-                "field_results": None,
-                "duration_ms": None,
-            })
+            timeline_items.append(_build_assertion_timeline_item(ar))
 
-        # Add external assertion results from run.external_assertion_results
         run_data = await self.run_repo.get(run_id)
         if run_data and run_data.external_assertion_results:
-            try:
-                ext_results = json.loads(run_data.external_assertion_results)
-                for ext in ext_results:
-                    timeline_items.append({
-                        "type": "assertion",
-                        "id": f"ext-{ext.get('sequence_number', 0)}",
-                        "sequence_number": ext.get("sequence_number", 0),
-                        "assertion_id": f"ext-{ext.get('sequence_number', 0)}",
-                        "assertion_name": ext.get("assertion_name", "External Assertion"),
-                        "status": ext.get("status", "unknown"),
-                        "message": ext.get("message"),
-                        "actual_value": None,
-                        "field_results": ext.get("field_results"),
-                        "duration_ms": int(ext.get("duration", 0) * 1000) if ext.get("duration") else None,
-                    })
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.warning(f"Failed to parse external_assertion_results for run {run_id}: {e}")
+            timeline_items.extend(_build_external_assertion_timeline_items(run_data.external_assertion_results, run_id))
 
-        # Sort by sequence_number
         timeline_items.sort(key=lambda x: x["sequence_number"])
 
         return {
-            "report": report,
-            "steps": steps,
-            "assertion_results": assertion_results,
-            "ui_assertion_results": assertion_results,
-            "pass_rate": pass_rate,
-            "precondition_results": None,  # legacy
-            "timeline_items": timeline_items,
+            "report": report, "steps": steps, "assertion_results": assertion_results,
+            "ui_assertion_results": assertion_results, "pass_rate": pass_rate,
+            "precondition_results": None, "timeline_items": timeline_items,
         }
 
     @staticmethod

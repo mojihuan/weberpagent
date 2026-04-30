@@ -321,24 +321,11 @@ def _td_child_depth(node: Any) -> int | None:
     return None
 
 
-def _get_column_header(td_original: Any) -> str | None:
-    """Find column header text for a td by position index mapping to thead.
+def _get_td_position_index(td_original: Any) -> tuple[Any, int] | None:
+    """Find td's parent tr and position index within that tr.
 
-    Walks up from td's parent <tr> to find the enclosing <table>, then
-    traverses <thead> -> last <tr> -> <th> children to build header list.
-    Maps the td's position index within its parent <tr> to the corresponding
-    th text.
-
-    Uses the LAST <tr> in <thead> to handle multi-row Ant Design headers
-    (group headers on top, actual column headers on bottom row).
-
-    Args:
-        td_original: An AccessibilityNode (EnhancedDOMTreeNode) with tag_name='td'.
-
-    Returns:
-        Column header text string, or None if not found.
+    Returns (parent_tr, td_index) or None if not found.
     """
-    # Step 1: Find td's position index within its parent <tr>
     parent_tr = getattr(td_original, "parent_node", None)
     if parent_tr is None:
         return None
@@ -347,19 +334,52 @@ def _get_column_header(td_original: Any) -> str | None:
         return None
 
     td_index = 0
-    found = False
     for child in getattr(parent_tr, "children", []):
         child_tag = getattr(child, "tag_name", "")
         if child_tag.lower() == "td":
             if child is td_original:
-                found = True
-                break
+                return parent_tr, td_index
             td_index += 1
+    return None
 
-    if not found:
+
+def _find_thead_header_texts(table_node: Any) -> list[str] | None:
+    """Extract column header texts from the last tr in thead of a table.
+
+    Returns list of th text strings, or None if thead not found.
+    """
+    thead = None
+    for child in getattr(table_node, "children", []):
+        if getattr(child, "tag_name", "").lower() == "thead":
+            thead = child
+            break
+    if thead is None:
         return None
 
-    # Step 2: Walk up from <tr> to find <table>
+    thead_trs = [c for c in getattr(thead, "children", []) if getattr(c, "tag_name", "").lower() == "tr"]
+    if not thead_trs:
+        return None
+    last_tr = thead_trs[-1]
+
+    th_texts = []
+    for child in getattr(last_tr, "children", []):
+        if getattr(child, "tag_name", "").lower() == "th":
+            text = child.get_all_children_text()
+            th_texts.append(text.strip() if text else "")
+    return th_texts
+
+
+def _get_column_header(td_original: Any) -> str | None:
+    """Find column header text for a td by position index mapping to thead.
+
+    Uses the LAST <tr> in <thead> to handle multi-row Ant Design headers.
+    """
+    pos_result = _get_td_position_index(td_original)
+    if pos_result is None:
+        return None
+    parent_tr, td_index = pos_result
+
+    # Walk up from <tr> to find <table>
     current = getattr(parent_tr, "parent_node", None)
     table_node = None
     while current is not None:
@@ -367,7 +387,6 @@ def _get_column_header(td_original: Any) -> str | None:
         if tag.lower() == "table":
             table_node = current
             break
-        # Limit traversal depth to avoid infinite loops
         if tag.lower() in ("body", "html"):
             break
         current = getattr(current, "parent_node", None)
@@ -375,31 +394,9 @@ def _get_column_header(td_original: Any) -> str | None:
     if table_node is None:
         return None
 
-    # Step 3: Find <thead> in table's children
-    thead = None
-    for child in getattr(table_node, "children", []):
-        if getattr(child, "tag_name", "").lower() == "thead":
-            thead = child
-            break
-
-    if thead is None:
+    th_texts = _find_thead_header_texts(table_node)
+    if th_texts is None:
         return None
-
-    # Step 4: Get last <tr> in thead (handles multi-row headers)
-    thead_trs = [
-        c for c in getattr(thead, "children", [])
-        if getattr(c, "tag_name", "").lower() == "tr"
-    ]
-    if not thead_trs:
-        return None
-    last_tr = thead_trs[-1]
-
-    # Step 5: Collect <th> texts and map by index
-    th_texts = []
-    for child in getattr(last_tr, "children", []):
-        if getattr(child, "tag_name", "").lower() == "th":
-            text = child.get_all_children_text()
-            th_texts.append(text.strip() if text else "")
 
     if td_index < len(th_texts):
         header = th_texts[td_index]
@@ -604,6 +601,43 @@ def _patch_should_exclude_child() -> None:
     logger.debug("dom_patch: patched DOMTreeSerializer._should_exclude_child")
 
 
+def _annotate_erp_input_node(node: Any) -> None:
+    """Attach row identity, strategy, and failure annotations to an ERP input node.
+
+    Also collects placeholder for diagnostic logging (DOM-04).
+    """
+    row_identity = _detect_row_identity(node)
+    backend_node_id = node.original_node.backend_node_id
+    snapshot_node = getattr(node.original_node, 'snapshot_node', None)
+
+    base_strategy = 1 if snapshot_node else 2
+
+    tracker_key = str(backend_node_id)
+    if tracker_key in _failure_tracker:
+        failure_count = _failure_tracker[tracker_key]['count']
+        if base_strategy == 1 and failure_count >= 2:
+            base_strategy = 2
+        if base_strategy == 2 and failure_count >= 2:
+            base_strategy = 3
+
+    _node_annotations[backend_node_id] = {
+        'row_identity': row_identity,
+        'base_strategy': base_strategy,
+        'is_erp_input': True,
+    }
+
+    attrs = getattr(node.original_node, "attributes", None) or {}
+    placeholder = attrs.get("placeholder", "")
+    if placeholder:
+        _discovered_placeholders.append(placeholder)
+
+    global _diagnostic_log_emitted
+    if not _diagnostic_log_emitted and _discovered_placeholders:
+        _diagnostic_log_emitted = True
+        unique_placeholders = sorted(set(_discovered_placeholders))
+        logger.info("dom_patch: discovered td input placeholders: %s", unique_placeholders)
+
+
 def _patch_assign_interactive_indices() -> None:
     """Patch _assign_interactive_indices_and_mark_new_nodes.
 
@@ -620,18 +654,12 @@ def _patch_assign_interactive_indices() -> None:
     original_method = DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes
 
     def patched_method(self, node: Any) -> None:
-        # Call original first to handle all standard cases
         original_method(self, node)
-
-        # Skip if already marked interactive by original method
         if getattr(node, "is_interactive", False):
             return
-
-        # Skip if not an ERP table cell input
         if not _is_erp_table_cell_input(node):
             return
 
-        # Force interactive assignment for ERP table cell inputs
         node.is_interactive = True
         self._selector_map[node.original_node.backend_node_id] = node.original_node
         counter = getattr(self, "_interactive_counter", 0)
@@ -639,51 +667,9 @@ def _patch_assign_interactive_indices() -> None:
         node.is_new = True
         logger.debug(
             "dom_patch: forced interactive for ERP table cell input placeholder=%s",
-            getattr(node.original_node, "attributes", {}).get("placeholder", "")
+            getattr(node.original_node, "attributes", {}).get("placeholder", ""),
         )
-
-        # --- Phase 68: Row identity + strategy annotation ---
-        row_identity = _detect_row_identity(node)
-        backend_node_id = node.original_node.backend_node_id
-        snapshot_node = getattr(node.original_node, 'snapshot_node', None)
-
-        # Base strategy from visibility
-        if snapshot_node:
-            base_strategy = 1  # Visible input: direct input operation
-        else:
-            base_strategy = 2  # Hidden/click-to-edit: need click first
-
-        # Apply failure-based downgrade per STRAT-03
-        tracker_key = str(backend_node_id)  # _failure_tracker uses str keys
-        if tracker_key in _failure_tracker:
-            failure_count = _failure_tracker[tracker_key]['count']
-            if base_strategy == 1 and failure_count >= 2:
-                base_strategy = 2  # Downgrade to click-to-edit
-            if base_strategy == 2 and failure_count >= 2:
-                base_strategy = 3  # Downgrade to evaluate JS
-
-        _node_annotations[backend_node_id] = {
-            'row_identity': row_identity,
-            'base_strategy': base_strategy,
-            'is_erp_input': True,
-        }
-
-        # DOM-04: Collect placeholder for diagnostic logging
-        attrs = getattr(node.original_node, "attributes", None) or {}
-        placeholder = attrs.get("placeholder", "")
-        if placeholder:
-            _discovered_placeholders.append(placeholder)
-
-        # DOM-04: Emit one-time diagnostic log after processing this node batch.
-        # Uses flag to ensure single emission per traversal session.
-        global _diagnostic_log_emitted
-        if not _diagnostic_log_emitted and _discovered_placeholders:
-            _diagnostic_log_emitted = True
-            unique_placeholders = sorted(set(_discovered_placeholders))
-            logger.info(
-                "dom_patch: discovered td input placeholders: %s",
-                unique_placeholders,
-            )
+        _annotate_erp_input_node(node)
 
     DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes = patched_method
     logger.debug("dom_patch: patched _assign_interactive_indices_and_mark_new_nodes")
@@ -697,15 +683,37 @@ _STRATEGY_NAMES = {
 }
 
 
-def _patch_serialize_tree_annotations() -> None:
-    """Patch 6+7: Inject row identity comments and failure annotations into DOM dump.
+def _build_failure_annotation(backend_id: int, depth_str: str) -> str | None:
+    """Build failure + strategy annotation comment for an ERP input node.
 
-    Combines two concerns into a single serialize_tree wrapper to avoid
-    multi-layer wrapping chains (per D-01):
-
-    - Patch 6: Prepend ``<!-- 行: {id} -->`` above ``<tr>`` elements with IMEI row identity
-    - Patch 7: Append strategy + failure annotation for ERP inputs in ``_failure_tracker``
+    Returns the annotation string, or None if no annotation needed.
     """
+    ann = _node_annotations.get(backend_id, {})
+    if not ann.get('is_erp_input') or str(backend_id) not in _failure_tracker:
+        return None
+
+    failure = _failure_tracker[str(backend_id)]
+    base_strategy = ann.get('base_strategy', 1)
+    count = failure['count']
+
+    if base_strategy == 1 and count >= 2:
+        current_strategy = 2
+    elif base_strategy == 2 and count >= 2:
+        current_strategy = 3
+    else:
+        current_strategy = base_strategy
+
+    parts = []
+    row_id = ann.get('row_identity')
+    if row_id:
+        parts.append(f"[行: {row_id}]")
+    parts.append(f"[策略: {_STRATEGY_NAMES.get(current_strategy, '?')}]")
+    parts.append(f"[已尝试 {count} 次 模式: {failure['mode']}]")
+    return f'{depth_str}<!-- 行内 input {" ".join(parts)} -->'
+
+
+def _patch_serialize_tree_annotations() -> None:
+    """Patch 6+7: Inject row identity comments and failure annotations into DOM dump."""
     from browser_use.dom.serializer.serializer import DOMTreeSerializer
 
     original_serialize = DOMTreeSerializer.serialize_tree
@@ -726,11 +734,9 @@ def _patch_serialize_tree_annotations() -> None:
 
         depth_str = depth * '\t'
         lines = []
-
-        # --- Patch 6: Row identity comment ---
-        # For <tr> elements: scan td children directly for IMEI (not from sidecar dict,
-        # since <tr> nodes are not processed by Patch 4)
         tag = getattr(orig, 'tag_name', '').lower()
+
+        # Patch 6: Row identity comment
         if tag == 'tr':
             row_id = _detect_row_identity_from_tr(orig)
             if row_id:
@@ -738,14 +744,13 @@ def _patch_serialize_tree_annotations() -> None:
 
         lines.append(result)
 
-        # --- Patch 8: Column header comment for <td> ---
+        # Patch 8: Column header comment for <td>
         if tag == 'td':
             header = _get_column_header(orig)
             if header:
                 lines.insert(len(lines) - 1, f'{depth_str}<!-- 列: {header} -->')
 
         # DOM-03: Column header annotation for input inside td
-        # (separate from td annotation -- ensures inputs also get column context)
         if tag == 'input' and _is_inside_table_cell_by_original(orig):
             parent_td = _find_parent_td_from_original(orig)
             if parent_td:
@@ -753,30 +758,10 @@ def _patch_serialize_tree_annotations() -> None:
                 if header:
                     lines.insert(len(lines) - 1, f'{depth_str}<!-- 列: {header} -->')
 
-        # --- Patch 7: Failure + strategy annotation ---
-        # Only for ERP inputs that appear in _failure_tracker (D-04)
-        ann = _node_annotations.get(backend_id, {})
-        if ann.get('is_erp_input') and str(backend_id) in _failure_tracker:
-            failure = _failure_tracker[str(backend_id)]
-            base_strategy = ann.get('base_strategy', 1)
-
-            # Re-apply failure-based downgrade (tracker may have updated since Patch 4)
-            count = failure['count']
-            if base_strategy == 1 and count >= 2:
-                current_strategy = 2
-            elif base_strategy == 2 and count >= 2:
-                current_strategy = 3
-            else:
-                current_strategy = base_strategy
-
-            parts = []
-            row_id = ann.get('row_identity')
-            if row_id:
-                parts.append(f"[行: {row_id}]")
-            parts.append(f"[策略: {_STRATEGY_NAMES.get(current_strategy, '?')}]")
-            parts.append(f"[已尝试 {count} 次 模式: {failure['mode']}]")
-
-            lines.append(f'{depth_str}<!-- 行内 input {" ".join(parts)} -->')
+        # Patch 7: Failure + strategy annotation
+        annotation = _build_failure_annotation(backend_id, depth_str)
+        if annotation:
+            lines.append(annotation)
 
         return '\n'.join(lines)
 

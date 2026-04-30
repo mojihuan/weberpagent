@@ -153,6 +153,61 @@ def _validate_headers(ws: Any) -> list[str] | None:
     return errors if errors else None
 
 
+def _parse_single_row(
+    row_tuple: tuple,
+    col_mapping: list[tuple[int, dict]],
+    is_old_template: bool,
+    row_number: int,
+) -> ParsedRow:
+    """Parse a single Excel row into a ParsedRow with data and errors."""
+    row_errors: list[str] = []
+
+    if _has_merged_cells(row_tuple):
+        row_errors.append("第 {} 行包含合并单元格，请取消合并后重新上传".format(row_number))
+
+    data: dict[str, Any] = {}
+    if is_old_template:
+        data["login_role"] = None
+
+    for data_col_idx, (template_col_idx, col_def) in enumerate(col_mapping):
+        key = col_def["key"]
+        cell_value = None
+        if data_col_idx < len(row_tuple):
+            cell = row_tuple[data_col_idx]
+            if not isinstance(cell, MergedCell):
+                cell_value = cell.value
+
+        if key == "login_role":
+            data[key] = _coerce_string(cell_value)
+        elif key in ("name", "description", "target_url"):
+            coerced = _coerce_string(cell_value)
+            if key == "target_url" and coerced is None:
+                data[key] = col_def.get("default", "")
+            else:
+                data[key] = coerced if coerced is not None else (col_def.get("default") or None)
+        elif key == "max_steps":
+            coerced = _coerce_int(cell_value, default=col_def.get("default", 10))
+            if coerced is None and cell_value is not None and str(cell_value).strip() != "":
+                row_errors.append("最大步数必须为 1-100 之间的整数")
+                data[key] = col_def.get("default", 10)
+            else:
+                data[key] = coerced
+        elif key in ("preconditions", "assertions"):
+            parsed_list, json_error = _coerce_json_list(cell_value)
+            data[key] = parsed_list
+            if json_error is not None:
+                row_errors.append(f"{col_def['header']}: {json_error}")
+                data[key] = str(cell_value).strip() if cell_value is not None else None
+
+    for col_def in TEMPLATE_COLUMNS:
+        if col_def["required"]:
+            val = data.get(col_def["key"])
+            if val is None or (isinstance(val, str) and val.strip() == ""):
+                row_errors.append(f"必填字段 '{col_def['header']}' 不能为空")
+
+    return ParsedRow(row_number=row_number, data=data, errors=row_errors)
+
+
 def parse_excel(buffer: BytesIO) -> ParseResult:
     """Parse an .xlsx workbook into structured row data.
 
@@ -169,107 +224,26 @@ def parse_excel(buffer: BytesIO) -> ParseResult:
     wb = load_workbook(buffer, data_only=True)
     ws = wb.active
 
-    # Validate headers
     header_errors = _validate_headers(ws)
     if header_errors is not None:
         return ParseResult(
-            rows=[
-                ParsedRow(
-                    row_number=0,
-                    data={},
-                    errors=header_errors,
-                )
-            ],
-            total_rows=1,
-            has_errors=True,
+            rows=[ParsedRow(row_number=0, data={}, errors=header_errors)],
+            total_rows=1, has_errors=True,
         )
 
     parsed_rows: list[ParsedRow] = []
     is_old_template = _detect_old_template(ws)
 
-    # Build column mapping for old template (skip login_role)
     if is_old_template:
         col_mapping = [(idx, col) for idx, col in enumerate(TEMPLATE_COLUMNS) if col["key"] != "login_role"]
     else:
         col_mapping = list(enumerate(TEMPLATE_COLUMNS))
 
     for row_tuple in ws.iter_rows(min_row=2):
-        # Skip completely empty rows
         if _is_empty_row(row_tuple):
             continue
-
         row_number = row_tuple[0].row if row_tuple else 0
-        row_errors: list[str] = []
-
-        # Check for merged cells
-        if _has_merged_cells(row_tuple):
-            row_errors.append("第 {} 行包含合并单元格，请取消合并后重新上传".format(row_number))
-
-        # Build data dict from columns
-        data: dict[str, Any] = {}
-
-        # For old templates, initialize login_role as None
-        if is_old_template:
-            data["login_role"] = None
-
-        for data_col_idx, (template_col_idx, col_def) in enumerate(col_mapping):
-            key = col_def["key"]
-            cell_value = None
-
-            if data_col_idx < len(row_tuple):
-                cell = row_tuple[data_col_idx]
-                if not isinstance(cell, MergedCell):
-                    cell_value = cell.value
-
-            if key == "login_role":
-                coerced = _coerce_string(cell_value)
-                data[key] = coerced  # None if empty, string if provided
-
-            elif key in ("name", "description", "target_url"):
-                coerced = _coerce_string(cell_value)
-                # target_url has empty string default, others None
-                if key == "target_url" and coerced is None:
-                    data[key] = col_def.get("default", "")
-                else:
-                    data[key] = coerced if coerced is not None else (col_def.get("default") or None)
-
-            elif key == "max_steps":
-                coerced = _coerce_int(cell_value, default=col_def.get("default", 10))
-                if coerced is None and cell_value is not None and str(cell_value).strip() != "":
-                    row_errors.append("最大步数必须为 1-100 之间的整数")
-                    data[key] = col_def.get("default", 10)
-                else:
-                    data[key] = coerced
-
-            elif key in ("preconditions", "assertions"):
-                parsed_list, json_error = _coerce_json_list(cell_value)
-                data[key] = parsed_list
-                if json_error is not None:
-                    col_header = col_def["header"]
-                    row_errors.append(f"{col_header}: {json_error}")
-                    # Store raw string for UI to display
-                    data[key] = str(cell_value).strip() if cell_value is not None else None
-
-        # Check required fields
-        for col_def in TEMPLATE_COLUMNS:
-            if col_def["required"]:
-                key = col_def["key"]
-                header = col_def["header"]
-                val = data.get(key)
-                if val is None or (isinstance(val, str) and val.strip() == ""):
-                    row_errors.append(f"必填字段 '{header}' 不能为空")
-
-        parsed_rows.append(
-            ParsedRow(
-                row_number=row_number,
-                data=data,
-                errors=row_errors,
-            )
-        )
+        parsed_rows.append(_parse_single_row(row_tuple, col_mapping, is_old_template, row_number))
 
     has_errors = any(row.errors for row in parsed_rows)
-    return ParseResult(
-        rows=parsed_rows,
-        total_rows=len(parsed_rows),
-        has_errors=has_errors,
-    )
+    return ParseResult(rows=parsed_rows, total_rows=len(parsed_rows), has_errors=has_errors)
