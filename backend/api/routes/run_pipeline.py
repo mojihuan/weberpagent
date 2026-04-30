@@ -345,6 +345,8 @@ async def _run_code_generation(
     run: Any,
     code_buffer: StepCodeBuffer,
     run_repo: RunRepository,
+    precondition_code: list[str] | None = None,
+    variable_map: dict[str, str] | None = None,
 ) -> None:
     """Assemble generated Playwright code from buffer and write to file."""
     async def _generate() -> None:
@@ -359,6 +361,7 @@ async def _run_code_generation(
         _content = code_buffer.assemble(
             run_id=run_id, task_name=task_name, task_id=task_id,
             precondition_config=_precondition_config, assertions_config=_assertions_config,
+            precondition_code=precondition_code, variable_map=variable_map,
         )
         _output_dir = PathLib("outputs") / run_id / "generated"
         _output_dir.mkdir(parents=True, exist_ok=True)
@@ -527,7 +530,20 @@ async def run_agent_background(
                 final_status = "failed"
             # Step 6: finalize + code generation
             await _finalize_run(run_id, final_status, counters["step_count"], run_repo, report_service)
-            await _run_code_generation(run_id, task_name, task_id, effective_target_url, run, code_buffer, run_repo)
+            # 过滤 variable_map：只保留字符串/数字值，排除内部键
+            _variable_map = None
+            if isinstance(context, dict):
+                _variable_map = {
+                    k: str(v) for k, v in context.items()
+                    if isinstance(v, (str, int, float)) and not k.startswith("assertion")
+                }
+                if not _variable_map:
+                    _variable_map = None
+            await _run_code_generation(
+                run_id, task_name, task_id, effective_target_url, run,
+                code_buffer, run_repo,
+                precondition_code=preconditions, variable_map=_variable_map,
+            )
 
         except Exception as e:
             logger.error(f"[{run_id}] 执行失败: {e}\n{traceback.format_exc()}")

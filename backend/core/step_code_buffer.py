@@ -292,6 +292,8 @@ class StepCodeBuffer:
         task_id: str,
         precondition_config: dict | None = None,
         assertions_config: list[dict] | None = None,
+        precondition_code: list[str] | None = None,
+        variable_map: dict[str, str] | None = None,
     ) -> str:
         """将 StepRecord 展平为 TranslatedAction 列表，委托 PlaywrightCodeGenerator 组装。
 
@@ -350,6 +352,8 @@ class StepCodeBuffer:
             flat_actions,
             precondition_config=precondition_config,
             assertions_config=assertions_config,
+            precondition_code=precondition_code,
+            variable_map=variable_map,
         )
 
     @property

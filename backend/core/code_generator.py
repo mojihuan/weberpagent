@@ -28,8 +28,43 @@ class PlaywrightCodeGenerator:
     - 每个操作为一行 Playwright API 调用
     """
 
+    _RANDOM_FUNC_DEFS: dict[str, list[str]] = {
+        "random_imei": [
+            "def random_imei():",
+            "    return 'I' + ''.join(random.choices('0123456789', k=14))",
+        ],
+        "random_phone": [
+            "def random_phone():",
+            "    return '13' + ''.join(random.choices('0123456789', k=9))",
+        ],
+        "sf_waybill": [
+            "def sf_waybill():",
+            "    uuid_hex = uuid.uuid4().hex[:12].upper()",
+            '    return f"SF{uuid_hex}"',
+        ],
+        "random_serial": [
+            "def random_serial():",
+            "    return ''.join(random.choices('0123456789', k=8))",
+        ],
+        "random_numbers": [
+            "def random_numbers(n):",
+            "    return ''.join(random.choices('0123456789', k=n))",
+        ],
+    }
+
     def __init__(self) -> None:
         self._translator = ActionTranslator()
+
+    @classmethod
+    def _detect_needed_functions(cls, precondition_code: list[str]) -> list[str]:
+        """检测前置条件代码需要哪些随机函数定义。"""
+        all_code = "\n".join(precondition_code)
+        needed: list[str] = []
+        for func_name, func_lines in cls._RANDOM_FUNC_DEFS.items():
+            if f"{func_name}(" in all_code:
+                needed.extend(func_lines)
+                needed.append("")
+        return needed
 
     def generate(
         self,
@@ -39,6 +74,8 @@ class PlaywrightCodeGenerator:
         actions: list[TranslatedAction],
         precondition_config: dict | None = None,
         assertions_config: list[dict] | None = None,
+        precondition_code: list[str] | None = None,
+        variable_map: dict[str, str] | None = None,
     ) -> str:
         """生成完整的测试文件内容。
 
@@ -75,6 +112,35 @@ class PlaywrightCodeGenerator:
         if _needs_logger:
             parts.append("import logging")
 
+        # 条件 import: 前置条件需要的模块
+        if precondition_code:
+            all_pre_code = "\n".join(precondition_code)
+            if "random_" in all_pre_code:
+                parts.append("import random")
+            if "uuid" in all_pre_code:
+                parts.append("import uuid")
+
+        # HealerError 类定义: 有定位器回退代码时添加
+        needs_healer_error = any(action.locators for action in actions)
+        if needs_healer_error:
+            parts.append("")
+            parts.append("")
+            parts.append("class HealerError(Exception):")
+            parts.append('    """定位器全部失败时抛出的异常。"""')
+            parts.append("")
+            parts.append("    def __init__(self, action_type: str = \"\", locators: tuple = (), original_error: str = \"\"):")
+            parts.append("        self.action_type = action_type")
+            parts.append("        self.locators = locators")
+            parts.append("        self.original_error = original_error")
+            parts.append("        super().__init__(f\"[{action_type}] 所有定位器失败: {original_error}\")")
+
+        # 注入随机函数定义（模块级别，在 test 函数外）
+        if precondition_code:
+            needed_funcs = self._detect_needed_functions(precondition_code)
+            if needed_funcs:
+                parts.append("")
+                parts.extend(needed_funcs)
+
         parts.append("")
         parts.append(f"def {func_name}(page: Page) -> None:")
         parts.append(f'    """Auto-generated test from agent execution: {task_name}"""')
@@ -90,9 +156,71 @@ class PlaywrightCodeGenerator:
             parts.append("    js_errors = []")
             parts.append('    page.on("pageerror", lambda e: js_errors.append(str(e)))')
 
+        # 注入前置条件代码（函数体内，在 page.goto 之前）
+        if precondition_code:
+            parts.append("    # === Precondition: 动态数据生成 ===")
+            # 收集所有 get_data 产生的中间变量名（如 items），
+            # 用于后续识别依赖这些变量的 context 赋值行
+            _get_data_vars: set[str] = set()
+            for code_block in precondition_code:
+                for raw_line in code_block.split("\n"):
+                    stripped = raw_line.strip()
+                    if not stripped:
+                        continue
+                    # 检测 var = context.get_data(...) 模式
+                    _gd_assign = re.match(r"(\w+)\s*=\s*context\.get_data\(", stripped)
+                    if _gd_assign:
+                        _get_data_vars.add(_gd_assign.group(1))
+            # 第二遍：逐行生成代码
+            for code_block in precondition_code:
+                for raw_line in code_block.split("\n"):
+                    stripped = raw_line.strip()
+                    if not stripped:
+                        continue
+                    if "get_data(" in stripped:
+                        # 外部调用无法自包含，注释掉并使用 fallback
+                        parts.append(f"    # NOTE: {stripped}")
+                        parts.append("    #       外部调用无法自包含，使用执行时的值作为 fallback")
+                        _assign_match = re.match(r"context\[\'(\w+)\'\]\s*=", stripped)
+                        if not _assign_match:
+                            # 可能是 var = context.get_data(...) 模式，检查后续 context 赋值
+                            pass
+                        if _assign_match:
+                            _var_name = _assign_match.group(1)
+                            _fallback_value = variable_map.get(_var_name, "") if variable_map else ""
+                            if _fallback_value:
+                                _escaped_fb = str(_fallback_value).replace("\\", "\\\\").replace('"', '\\"')
+                                parts.append(f'    {_var_name} = "{_escaped_fb}"  # fallback')
+                    elif "context.cache(" in stripped:
+                        parts.append(f"    # NOTE: {stripped}")
+                        parts.append("    #       cache 调用无法自包含，已跳过")
+                    else:
+                        # 移除 context['var'] = 前缀，直接赋值变量
+                        _ctx_match = re.match(r"context\[\'(\w+)\'\]\s*=\s*(.+)", stripped)
+                        if _ctx_match:
+                            _vn = _ctx_match.group(1)
+                            _vv = _ctx_match.group(2)
+                            # 如果右侧引用了 get_data 产生的中间变量，用 fallback 值替代
+                            _uses_get_data_var = any(v in _vv for v in _get_data_vars)
+                            if _uses_get_data_var and variable_map:
+                                _fb = variable_map.get(_vn, "")
+                                if _fb:
+                                    _esc = str(_fb).replace("\\", "\\\\").replace('"', '\\"')
+                                    parts.append(f'    {_vn} = "{_esc}"  # fallback')
+                                else:
+                                    parts.append(f"    {_vn} = {_vv}")
+                            else:
+                                parts.append(f"    {_vn} = {_vv}")
+                        else:
+                            parts.append(f"    {stripped}")
+            parts.append("")
+
         # 前置条件注入 (per PREC-01)
         if precondition_config and precondition_config.get("target_url"):
             parts.append(self._build_precondition(precondition_config["target_url"]))
+
+        if body and variable_map:
+            body = self._substitute_variables_in_code(body, variable_map)
 
         if body:
             parts.append(body)
@@ -273,6 +401,22 @@ class PlaywrightCodeGenerator:
             "    except AssertionError as e:",
             '        _logger.warning(f"Assertion failed (element_exists): {e}")',
         ]
+
+    @staticmethod
+    def _substitute_variables_in_code(code: str, variable_map: dict[str, str]) -> str:
+        """将 fill/select 中的硬编码值替换为变量引用。
+
+        只替换引号内的值。按值长度降序排列防止子串误替换。
+        """
+        if not variable_map:
+            return code
+        sorted_vars = sorted(variable_map.items(), key=lambda x: len(str(x[1])), reverse=True)
+        for var_name, actual_value in sorted_vars:
+            if not actual_value or not isinstance(actual_value, str):
+                continue
+            escaped = actual_value.replace("\\", "\\\\").replace('"', '\\"')
+            code = code.replace(f'"{escaped}"', var_name)
+        return code
 
     def validate_syntax(self, code: str) -> bool:
         """验证生成的代码是否为合法 Python。"""
