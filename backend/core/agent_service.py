@@ -444,7 +444,7 @@ class AgentService:
             action, action_name, action_params, action_dict, reasoning = svc._extract_agent_output(run_id, agent_output)
 
             # 从 browser_state 提取 interacted_element 并注入 action_dict
-            if action_dict and browser_state and hasattr(browser_state, 'dom_state'):
+            if action_dict and agent_output and browser_state and hasattr(browser_state, 'dom_state'):
                 try:
                     from browser_use.dom.views import DOMInteractedElement
                     selector_map = browser_state.dom_state.selector_map
