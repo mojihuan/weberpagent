@@ -140,6 +140,19 @@ class PlaywrightCodeGenerator:
             if needed_funcs:
                 parts.append("")
                 parts.extend(needed_funcs)
+            # 检测是否需要 _get_data 辅助函数
+            _all_pre = "\n".join(precondition_code)
+            if "get_data(" in _all_pre:
+                parts.append("")
+                parts.append("")
+                parts.append("def _get_data(class_name, method_name, **params):")
+                parts.append('    """外部数据获取 — 需要 ERP 网络可达 + 外部模块可用。"""')
+                parts.append("    import asyncio")
+                parts.append("    from backend.core.external_precondition_bridge import execute_data_method")
+                parts.append("    result = asyncio.run(execute_data_method(class_name, method_name, params))")
+                parts.append("    if not result['success']:")
+                parts.append('        raise RuntimeError(f"get_data 失败: {result[\'error\']}")')
+                parts.append("    return result['data']")
 
         parts.append("")
         parts.append(f"def {func_name}(page: Page) -> None:")
@@ -159,38 +172,15 @@ class PlaywrightCodeGenerator:
         # 注入前置条件代码（函数体内，在 page.goto 之前）
         if precondition_code:
             parts.append("    # === Precondition: 动态数据生成 ===")
-            # 收集所有 get_data 产生的中间变量名（如 items），
-            # 用于后续识别依赖这些变量的 context 赋值行
-            _get_data_vars: set[str] = set()
-            for code_block in precondition_code:
-                for raw_line in code_block.split("\n"):
-                    stripped = raw_line.strip()
-                    if not stripped:
-                        continue
-                    # 检测 var = context.get_data(...) 模式
-                    _gd_assign = re.match(r"(\w+)\s*=\s*context\.get_data\(", stripped)
-                    if _gd_assign:
-                        _get_data_vars.add(_gd_assign.group(1))
-            # 第二遍：逐行生成代码
             for code_block in precondition_code:
                 for raw_line in code_block.split("\n"):
                     stripped = raw_line.strip()
                     if not stripped:
                         continue
                     if "get_data(" in stripped:
-                        # 外部调用无法自包含，注释掉并使用 fallback
-                        parts.append(f"    # NOTE: {stripped}")
-                        parts.append("    #       外部调用无法自包含，使用执行时的值作为 fallback")
-                        _assign_match = re.match(r"context\[\'(\w+)\'\]\s*=", stripped)
-                        if not _assign_match:
-                            # 可能是 var = context.get_data(...) 模式，检查后续 context 赋值
-                            pass
-                        if _assign_match:
-                            _var_name = _assign_match.group(1)
-                            _fallback_value = variable_map.get(_var_name, "") if variable_map else ""
-                            if _fallback_value:
-                                _escaped_fb = str(_fallback_value).replace("\\", "\\\\").replace('"', '\\"')
-                                parts.append(f'    {_var_name} = "{_escaped_fb}"  # fallback')
+                        # 将 context.get_data(...) 转换为 _get_data(...)
+                        converted = stripped.replace("context.get_data(", "_get_data(")
+                        parts.append(f"    {converted}")
                     elif "context.cache(" in stripped:
                         parts.append(f"    # NOTE: {stripped}")
                         parts.append("    #       cache 调用无法自包含，已跳过")
@@ -200,17 +190,7 @@ class PlaywrightCodeGenerator:
                         if _ctx_match:
                             _vn = _ctx_match.group(1)
                             _vv = _ctx_match.group(2)
-                            # 如果右侧引用了 get_data 产生的中间变量，用 fallback 值替代
-                            _uses_get_data_var = any(v in _vv for v in _get_data_vars)
-                            if _uses_get_data_var and variable_map:
-                                _fb = variable_map.get(_vn, "")
-                                if _fb:
-                                    _esc = str(_fb).replace("\\", "\\\\").replace('"', '\\"')
-                                    parts.append(f'    {_vn} = "{_esc}"  # fallback')
-                                else:
-                                    parts.append(f"    {_vn} = {_vv}")
-                            else:
-                                parts.append(f"    {_vn} = {_vv}")
+                            parts.append(f"    {_vn} = {_vv}")
                         else:
                             parts.append(f"    {stripped}")
             parts.append("")
