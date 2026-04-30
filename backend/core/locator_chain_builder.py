@@ -168,7 +168,7 @@ class LocatorChainBuilder:
             base = f'page.locator("{tag}.{escaped_cls}")'
             if ax_name:
                 escaped_name = _escape_string(ax_name)
-                return f'{base}.filter(has_text="{escaped_name}")'
+                return f'{base}.filter(has_text="{escaped_name}").first'
             return f'{base}.first'
         return None
 
