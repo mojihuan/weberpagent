@@ -62,9 +62,9 @@ from playwright.sync_api import Page, BrowserContext
 
 
 @pytest.fixture(scope="function")
-def page(browser_context: BrowserContext) -> Page:
+def page(context: BrowserContext) -> Page:
     """Create page with localStorage auth pre-injected via login page."""
-    p = browser_context.new_page()
+    p = context.new_page()
     state_file = Path(__file__).parent / ".storage_state.json"
     if state_file.exists():
         with open(state_file, encoding="utf-8") as f:
