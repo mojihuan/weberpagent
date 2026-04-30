@@ -35,7 +35,7 @@ from backend.core.assertion_service import AssertionService
 from backend.core.precondition_service import PreconditionService
 from backend.core.external_precondition_bridge import execute_all_assertions
 from backend.core.step_code_buffer import StepCodeBuffer
-from backend.core.error_utils import non_blocking_execute, silent_execute
+from backend.core.error_utils import non_blocking_execute
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +174,10 @@ async def _run_auth_and_session(
     logger.warning(
         f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航失败，回退到文字登录模式"
     )
-    await silent_execute(authenticated_session.stop)
+    await non_blocking_execute(
+        authenticated_session.stop,
+        error_msg=f"[{run_id}] session.stop 清理失败",
+    )
 
     task_description = flow._build_description(
         task_description=task_description, login_url=login_url,

@@ -42,6 +42,9 @@ async def scan_with_fallback(
     """Execute scan function, return fallback on failure.
 
     Use for: discovery/scanning operations that degrade gracefully.
+    NOTE: Currently unused — scan patterns in external_method_discovery.py
+    have multi-line scan bodies where wrapping in a closure adds complexity.
+    Retained as utility for future use per D-09.
     """
     try:
         return await scan_fn(*args, **kwargs)
