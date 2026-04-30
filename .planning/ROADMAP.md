@@ -91,7 +91,7 @@
 - [x] **Phase 120: 删除测试基础设施** — 删除 tests/ 目录、测试依赖、pytest 配置、测试专用代码 (completed 2026-04-29)
 - [x] **Phase 121: 死代码清理** — 删除未使用的 import、函数、变量、废弃模块 (completed 2026-04-29)
 - [x] **Phase 122: 重复逻辑合并** — 识别并合并相同/相似函数、统一错误处理和序列化模式 (completed 2026-04-29)
-- [ ] **Phase 123: 命名规范化与类型标注** — 统一命名风格、补全类型标注、添加 py.typed
+- [x] **Phase 123: 命名规范化与类型标注** — 统一命名风格、补全类型标注、添加 py.typed (completed 2026-04-29)
 - [ ] **Phase 124: 函数/模块优化** — 拆分过长函数、重组模块、简化条件逻辑、统一异常处理
 
 ## Phase Details
@@ -158,7 +158,7 @@ Plans:
 
 Plans:
 - [x] 123-01: API 路由 + db + main + schemas 类型标注 + 命名验证 (NAME-01/02/03, TYPE-01)
-- [ ] 123-02: Agent/Core/LLM/Utils 类型标注 + py.typed + mypy 配置 (TYPE-01/02/03)
+- [x] 123-02: Agent/Core/LLM/Utils 类型标注 + py.typed + mypy 配置 (TYPE-01/02/03)
 
 ### Phase 124: 函数/模块优化
 **Goal**: 所有函数职责单一、长度合理、嵌套不超 4 层，模块高内聚低耦合
@@ -186,7 +186,7 @@ Phases execute in numeric order: 120 → 121 → 122 → 123 → 124
 | 120. 删除测试基础设施 | 2/2 | Complete    | 2026-04-29 |
 | 121. 死代码清理 | 2/2 | Complete | 2026-04-29 |
 | 122. 重复逻辑合并 | 2/2 | Complete | 2026-04-29 |
-| 123. 命名规范化与类型标注 | 1/2 | In Progress|  |
+| 123. 命名规范化与类型标注 | 2/2 | Complete   | 2026-04-29 |
 | 124. 函数/模块优化 | 0/2 | Not started | - |
 
 ---

@@ -36,8 +36,8 @@
 ### 类型标注
 
 - [x] **TYPE-01**: 为所有公共函数补全参数和返回值类型标注
-- [ ] **TYPE-02**: 为核心数据模型补全字段类型标注
-- [ ] **TYPE-03**: 添加 py.typed 标记文件，启用严格类型检查
+- [x] **TYPE-02**: 为核心数据模型补全字段类型标注
+- [x] **TYPE-03**: 添加 py.typed 标记文件，启用严格类型检查
 
 ### 函数/模块优化
 
@@ -74,8 +74,8 @@
 | NAME-02 | Phase 123 | Complete |
 | NAME-03 | Phase 123 | Complete |
 | TYPE-01 | Phase 123 | Complete |
-| TYPE-02 | Phase 123 | Pending |
-| TYPE-03 | Phase 123 | Pending |
+| TYPE-02 | Phase 123 | Complete |
+| TYPE-03 | Phase 123 | Complete |
 | FUNC-01 | Phase 124 | Pending |
 | FUNC-02 | Phase 124 | Pending |
 | FUNC-03 | Phase 124 | Pending |

@@ -119,17 +119,7 @@ def _validate_code_path(code_path: str) -> Path:
     return resolved
 
 
-async def _execute_code_background(
-    run_id: str,
-    test_file_path: str,
-    login_role: str,
-    task_id: str,
-) -> None:
-    """Background task: execute generated Playwright code via pytest once and update run status."""
-    import subprocess
-    from urllib.parse import urlparse
-
-    CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright storage_state injection."""
+_CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright storage_state injection."""
 import json
 from pathlib import Path
 
@@ -147,58 +137,63 @@ def browser_context_args(browser_context_args):
     return browser_context_args
 '''
 
+
+def _build_storage_state(login_role: str) -> dict:
+    """Build Playwright storage_state dict with auth token for the given role."""
+    from backend.core.account_service import account_service
+    from backend.core.auth_service import auth_service
+    from urllib.parse import urlparse
+
+    account_info = account_service.resolve(login_role)
+    token = auth_service.fetch_token(account_info.account, account_info.password, role=login_role)
+    settings = get_settings()
+    parsed = urlparse(settings.erp_base_url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    return {
+        "cookies": [],
+        "origins": [{
+            "origin": origin,
+            "localStorage": [
+                {"name": "Admin-Token", "value": token},
+                {"name": "Admin-Expires-In", "value": "720"},
+            ],
+        }],
+    }
+
+
+def _write_test_support_files(test_file_dir: str, storage_state: dict) -> tuple[Path, Path]:
+    """Write conftest.py and .storage_state.json to the test file directory."""
+    conftest_path = Path(test_file_dir) / "conftest.py"
+    storage_state_path = Path(test_file_dir) / ".storage_state.json"
+    storage_state_path.write_text(json.dumps(storage_state, ensure_ascii=False), encoding="utf-8")
+    conftest_path.write_text(_CONFTEST_TEMPLATE, encoding="utf-8")
+    return conftest_path, storage_state_path
+
+
+async def _execute_code_background(
+    run_id: str,
+    test_file_path: str,
+    login_role: str,
+    task_id: str,
+) -> None:
+    """Background task: execute generated Playwright code via pytest once and update run status."""
+    import subprocess
+
     async with _code_execution_semaphore:
         _active_code_execution[run_id] = datetime.now().isoformat()
         test_file_dir = str(Path(test_file_path).parent)
-        conftest_path = Path(test_file_dir) / "conftest.py"
-        storage_state_path = Path(test_file_dir) / ".storage_state.json"
 
         try:
-            # Resolve login credentials
-            from backend.core.account_service import account_service
-            from backend.core.auth_service import auth_service
+            storage_state = _build_storage_state(login_role)
+            conftest_path, storage_state_path = _write_test_support_files(test_file_dir, storage_state)
 
-            account_info = account_service.resolve(login_role)
-            token = auth_service.fetch_token(
-                account_info.account, account_info.password, role=login_role
-            )
-
-            # Build storage_state
-            settings = get_settings()
-            parsed = urlparse(settings.erp_base_url)
-            origin = f"{parsed.scheme}://{parsed.netloc}"
-            storage_state = {
-                "cookies": [],
-                "origins": [{
-                    "origin": origin,
-                    "localStorage": [
-                        {"name": "Admin-Token", "value": token},
-                        {"name": "Admin-Expires-In", "value": "720"},
-                    ],
-                }],
-            }
-
-            # Write storage_state and conftest
-            storage_state_path.write_text(
-                json.dumps(storage_state, ensure_ascii=False), encoding="utf-8"
-            )
-            conftest_path.write_text(CONFTEST_TEMPLATE, encoding="utf-8")
-
-            # Run pytest once
             proc = subprocess.run(
                 ["uv", "run", "pytest", test_file_path, "--timeout=60", "-v"],
-                capture_output=True,
-                text=True,
-                timeout=120,
+                capture_output=True, text=True, timeout=120,
             )
-
             result_status = "success" if proc.returncode == 0 else "failed"
-            logger.info(
-                f"[{run_id}] pytest 执行完成: returncode={proc.returncode}, "
-                f"status={result_status}"
-            )
+            logger.info(f"[{run_id}] pytest 执行完成: returncode={proc.returncode}, status={result_status}")
 
-            # Update run status
             async with async_session() as session:
                 run_repo = RunRepository(session)
                 await run_repo.update_status(run_id, result_status)
@@ -213,10 +208,9 @@ def browser_context_args(browser_context_args):
                     run_repo = RunRepository(session)
                     await run_repo.update_status(run_id, "failed")
             except Exception:
-                pass  # Non-blocking
+                pass
         finally:
-            # Cleanup temp files
-            for p in (storage_state_path, conftest_path):
+            for p in (Path(test_file_dir) / "conftest.py", Path(test_file_dir) / ".storage_state.json"):
                 try:
                     p.unlink(missing_ok=True)
                 except Exception:
@@ -224,39 +218,435 @@ def browser_context_args(browser_context_args):
             _active_code_execution.pop(run_id, None)
 
 
-async def run_agent_background(
+async def _run_preconditions(
     run_id: str,
-    task_id: str,
-    task_name: str,
+    preconditions: list[str] | None,
+    external_module_path: str | None,
+    shared_cache: Any,
+    run_repo: RunRepository,
+    precondition_result_repo: PreconditionResultRepository,
+    global_seq: int,
+) -> tuple[dict[str, Any], str, int] | None:
+    """Execute preconditions and return (context, task_description, global_seq).
+
+    Returns None if a precondition fails (caller should return early).
+    The task_description is returned unchanged; caller applies variable
+    substitution using the returned context.
+    """
+    if not preconditions:
+        return {}, "", global_seq
+
+    precondition_service = PreconditionService(external_module_path=external_module_path, cache=shared_cache)
+
+    for i, code in enumerate(preconditions):
+        if not code.strip():
+            continue
+
+        # Send precondition running event
+        code_display = code[:100] + "..." if len(code) > 100 else code
+        pre_event = SSEPreconditionEvent(index=i, code=code_display, status="running")
+        await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
+
+        result = await precondition_service.execute_single(code, i)
+
+        # Send precondition result event
+        _safe_vars = _sanitize_variables(result.variables) if (result.success and result.variables) else None
+        pre_event = SSEPreconditionEvent(
+            index=i, code=code_display,
+            status="success" if result.success else "failed",
+            error=result.error, duration_ms=result.duration_ms, variables=_safe_vars,
+        )
+        await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
+
+        # Persist precondition result (Phase 59)
+        global_seq += 1
+        await precondition_result_repo.create(
+            run_id=run_id, sequence_number=global_seq, index=i, code=code,
+            status="success" if result.success else "failed",
+            error=result.error, duration_ms=result.duration_ms,
+            variables=json.dumps(_safe_vars) if _safe_vars else None,
+        )
+
+        if not result.success:
+            await run_repo.update_status(run_id, "failed")
+            event_manager.set_status(run_id, "failed")
+            finished = SSEFinishedEvent(status="failed", total_steps=0, duration_ms=0)
+            await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
+            await event_manager.publish(run_id, None)
+            return None
+
+    context = precondition_service.get_context()
+    logger.info(f"[{run_id}] 前置条件执行完成，变量: {list(context.keys())}")
+    return context, "", global_seq
+
+
+async def _run_auth_and_session(
+    run_id: str,
+    login_role: str | None,
+    account_info: Any,
+    login_url: str | None,
+    shared_cache: Any,
+    context: dict[str, Any],
     task_description: str,
-    max_steps: int,
-    preconditions: list[str] | None = None,
-    external_assertions: list[dict] | None = None,
-    target_url: str | None = None,
-    login_role: str | None = None,
+    target_url: str | None,
+    agent_service: AgentService,
+    settings: Any,
+) -> tuple[Any, str | None, str, bool]:
+    """Handle programmatic login or fallback to text login.
+
+    Returns (authenticated_session, effective_target_url, task_description, auth_pre_nav_ok).
+    If login_role is None, returns (None, target_url, task_description, False).
+    """
+    if not login_role:
+        return None, target_url, task_description, False
+
+    from backend.core.test_flow_service import TestFlowService
+    from backend.core.agent_service import create_browser_session
+    from urllib.parse import urlparse
+
+    flow = TestFlowService()
+    cache_values = shared_cache.all() if shared_cache else {}
+
+    authenticated_session = create_browser_session()
+    _parsed = urlparse(settings.erp_base_url)
+    effective_target_url = f"{_parsed.scheme}://{_parsed.netloc}"
+
+    # Perform programmatic form login
+    try:
+        auth_pre_nav_ok = await agent_service.pre_navigate(
+            run_id, effective_target_url, authenticated_session,
+            login_account=account_info.account,
+            login_password=account_info.password,
+        )
+    except Exception as e:
+        logger.warning(f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航异常: {e}")
+        auth_pre_nav_ok = False
+
+    if auth_pre_nav_ok:
+        task_description = flow.replace_cached_variables_only(task_description, cache_values)
+        logger.info(f"[{run_id}] 编程式登录成功，跳过登录步骤")
+        return authenticated_session, effective_target_url, task_description, True
+
+    # Fallback: close the failed session and rebuild task with login text
+    logger.warning(
+        f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航失败，回退到文字登录模式"
+    )
+    try:
+        await authenticated_session.stop()
+    except Exception:
+        pass
+
+    task_description = flow._build_description(
+        task_description=task_description, login_url=login_url,
+        account=account_info.account, password=account_info.password,
+        context=context if isinstance(context, dict) else {},
+        cache_values=cache_values,
+    )
+    logger.info(f"[{run_id}] 回退文字登录，任务描述: {task_description[:150]}...")
+    return None, None, task_description, False
+
+
+async def _run_ui_assertions(
+    run_id: str,
+    run: Any,
+    result: Any,
+    assertion_service: AssertionService,
+    assertion_result_repo: AssertionResultRepository,
+    global_seq: int,
+) -> tuple[str, int]:
+    """Evaluate UI assertions from the task.
+
+    Returns (final_status, global_seq). Status is 'failed' if any
+    assertion fails, otherwise unchanged from the caller's determination.
+    """
+    if not run or not run.task or not run.task.assertions:
+        return "", global_seq
+
+    assertion_map = {a.id: a for a in run.task.assertions}
+    assertion_results = await assertion_service.evaluate_all(
+        run_id=run_id, assertions=run.task.assertions, history=result,
+    )
+    for ar in assertion_results:
+        global_seq += 1
+        await assertion_result_repo.update_sequence_number(ar.id, global_seq)
+        source_assertion = assertion_map.get(ar.assertion_id)
+        assertion_event = SSEAssertionEvent(
+            assertion_id=ar.assertion_id,
+            assertion_name=source_assertion.name if source_assertion else "未知断言",
+            assertion_type=source_assertion.type if source_assertion else "unknown",
+            status=ar.status, message=ar.message, actual_value=ar.actual_value,
+        )
+        await event_manager.publish(
+            run_id, f"event: assertion\ndata: {assertion_event.model_dump_json()}\n\n"
+        )
+
+    if any(ar.status == "fail" for ar in assertion_results):
+        logger.info(f"[{run_id}] 断言评估完成，存在失败断言，状态设为 failed")
+        return "failed", global_seq
+
+    logger.info(f"[{run_id}] 断言评估完成，全部通过")
+    return "", global_seq
+
+
+async def _publish_external_assertion_results(
+    run_id: str,
+    summary: dict,
+    run_repo: RunRepository,
+    event_manager_obj: Any,
+    session: Any,
+    global_seq: int,
+) -> int:
+    """Publish SSE events for each external assertion result and persist to DB.
+
+    Returns the updated global_seq.
+    """
+    results_count = len(summary.get('results', []))
+    for idx, ext_result in enumerate(summary.get('results', [])):
+        global_seq += 1
+        assertion_name = f"{ext_result.get('class_name', '?')}.{ext_result.get('method', '?')}"
+        status_str = 'pass' if ext_result.get('passed') else 'fail'
+        message_parts = []
+        if ext_result.get('error'):
+            message_parts.append(ext_result['error'])
+        field_results = ext_result.get('field_results', [])
+        for fr in field_results:
+            fr_status = 'pass' if fr.get('passed') else 'fail'
+            message_parts.append(f"{fr.get('field_name', '?')}: {fr_status}")
+        ext_assertion_event = SSEAssertionEvent(
+            assertion_id=f"ext-{idx}", assertion_name=assertion_name,
+            assertion_type="external", status=status_str,
+            message='; '.join(message_parts) if message_parts else None,
+            actual_value=None, field_results=field_results if field_results else None,
+        )
+        await event_manager_obj.publish(
+            run_id, f"event: assertion\ndata: {ext_assertion_event.model_dump_json()}\n\n"
+        )
+
+    # Send summary event
+    summary_event = {
+        "type": "external_assertions_complete", "total": summary['total'],
+        "passed": summary['passed'], "failed": summary['failed'],
+        "errors": summary['errors'], "timestamp": datetime.now().isoformat(),
+    }
+    await event_manager_obj.publish(
+        run_id, f"event: external_assertions\ndata: {json.dumps(summary_event)}\n\n"
+    )
+
+    # Store external assertion results in DB for report
+    run_obj = await run_repo.get(run_id)
+    if run_obj:
+        results_to_store = []
+        for idx, ext_result in enumerate(summary.get('results', [])):
+            results_to_store.append({
+                "sequence_number": global_seq - results_count + idx + 1,
+                "assertion_name": f"{ext_result.get('class_name', '?')}.{ext_result.get('method', '?')}",
+                "status": 'pass' if ext_result.get('passed') else 'fail',
+                "message": ext_result.get('error'),
+                "field_results": ext_result.get('field_results'),
+                "duration": ext_result.get('duration'),
+            })
+        run_obj.external_assertion_results = json.dumps(results_to_store)
+        await session.commit()
+
+    return global_seq
+
+
+async def _run_external_assertions(
+    run_id: str,
+    external_assertions: list[dict] | None,
+    context: dict[str, Any],
+    shared_cache: Any,
+    run_repo: RunRepository,
+    event_manager_obj: Any,
+    session: Any,
+    global_seq: int,
+) -> tuple[str, int]:
+    """Execute external assertions and publish SSE events.
+
+    Returns (final_status_delta, global_seq). final_status_delta is 'failed'
+    if any external assertion failed/errored, otherwise empty string.
+    """
+    if not external_assertions:
+        return "", global_seq
+
+    from backend.core.precondition_service import ContextWrapper
+
+    if not isinstance(context, ContextWrapper):
+        context_wrapper = ContextWrapper(cache=shared_cache)
+        context_wrapper._data = context.copy() if context else {}
+    else:
+        context_wrapper = context
+
+    logger.info(f"[{run_id}] Starting external assertion execution ({len(external_assertions)} assertions)")
+
+    try:
+        summary = await execute_all_assertions(
+            assertions=external_assertions, context=context_wrapper, timeout_per_assertion=30.0,
+        )
+        logger.info(
+            f"[{run_id}] External assertions complete: "
+            f"{summary['passed']}/{summary['total']} passed, "
+            f"{summary['failed']} failed, {summary['errors']} errors"
+        )
+
+        global_seq = await _publish_external_assertion_results(
+            run_id, summary, run_repo, event_manager_obj, session, global_seq,
+        )
+        context['external_assertion_summary'] = summary
+
+        if summary['failed'] > 0 or summary['errors'] > 0:
+            logger.info(f"[{run_id}] External assertions have failures/errors, status set to failed")
+            return "failed", global_seq
+
+    except Exception as e:
+        logger.error(f"[{run_id}] External assertion execution failed: {e}", exc_info=True)
+        await event_manager_obj.publish(
+            run_id, f"event: external_assertions\ndata: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+        )
+
+    return "", global_seq
+
+
+async def _run_code_generation(
+    run_id: str,
+    task_name: str,
+    task_id: str,
+    effective_target_url: str | None,
+    run: Any,
+    code_buffer: StepCodeBuffer,
+    run_repo: RunRepository,
 ) -> None:
-    """后台执行 agent 任务"""
+    """Assemble generated Playwright code from buffer and write to file."""
+    try:
+        from pathlib import Path as PathLib
+        _precondition_config = {"target_url": effective_target_url} if effective_target_url else None
+        _assertions_config = None
+        if run and run.task and run.task.assertions:
+            _assertions_config = [
+                {"type": a.type, "expected": a.expected, "name": a.name}
+                for a in run.task.assertions
+            ]
+        _content = code_buffer.assemble(
+            run_id=run_id, task_name=task_name, task_id=task_id,
+            precondition_config=_precondition_config, assertions_config=_assertions_config,
+        )
+        _output_dir = PathLib("outputs") / run_id / "generated"
+        _output_dir.mkdir(parents=True, exist_ok=True)
+        _output_path = _output_dir / f"test_{run_id}.py"
+        _output_path.write_text(_content, encoding="utf-8")
+        _code_path = str(_output_path)
+        await run_repo.update_generated_code_path(run_id, _code_path)
+        logger.info(f"[{run_id}] 生成 Playwright 代码: {_code_path}")
+    except Exception as e:
+        logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
+
+
+def _create_on_step(
+    run_id: str,
+    run_repo: RunRepository,
+    code_buffer: StepCodeBuffer,
+    counters: dict[str, int],
+) -> Any:
+    """Create on_step callback closure for agent step events.
+
+    Uses mutable counters dict for step_count and global_seq instead
+    of nonlocal (not possible across function boundary).
+    """
+    async def on_step(
+        step: int, action: str, reasoning: str, screenshot_path: str | None,
+        step_stats_json: str | None = None, action_dict: dict | None = None,
+    ) -> None:
+        counters["step_count"] = step
+        counters["global_seq"] += 1
+        # Save step to DB
+        try:
+            step_data = {
+                "step_index": step, "action": action, "reasoning": reasoning,
+                "screenshot_path": screenshot_path, "status": "success",
+                "duration_ms": 0, "step_stats": step_stats_json,
+                "sequence_number": counters["global_seq"],
+            }
+            await run_repo.add_step(run_id, step_data)
+        except Exception as e:
+            logger.error(f"[{run_id}] 保存步骤失败: {e}")
+        # Send SSE step event
+        screenshot_url = f"/runs/{run_id}/screenshots/{step}" if screenshot_path else None
+        step_stats_dict = None
+        if step_stats_json:
+            try:
+                step_stats_dict = json.loads(step_stats_json)
+            except json.JSONDecodeError:
+                pass
+        event = SSEStepEvent(
+            index=step, action=action, reasoning=reasoning,
+            screenshot_url=screenshot_url, status="success",
+            duration_ms=0, step_stats=step_stats_dict,
+        )
+        await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
+        # Incremental code translation (Phase 112, INTEG-01/D-02)
+        if action_dict is not None:
+            _duration = None
+            if step_stats_json:
+                try:
+                    _stats = json.loads(step_stats_json)
+                    _ms = _stats.get("duration_ms", 0)
+                    _duration = _ms / 1000.0 if _ms > 0 else None
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            try:
+                code_buffer.append_step(action_dict, duration=_duration)
+            except Exception as _buf_err:
+                logger.error(f"[{run_id}] buffer append 失败（非阻塞）: {_buf_err}")
+
+    return on_step
+
+
+def _resolve_login_context(
+    login_role: str | None,
+) -> tuple[Any, str | None, Any]:
+    """Resolve login credentials and cache when login_role is set.
+
+    Returns (account_info, login_url, shared_cache).
+    All values are None when login_role is None.
+    """
+    if not login_role:
+        return None, None, None
+    from backend.core.account_service import account_service
+    from backend.core.cache_service import CacheService
+    account_info = account_service.resolve(login_role)
+    login_url = account_info.get_login_url()
+    shared_cache = CacheService()
+    return account_info, login_url, shared_cache
+
+
+async def _finalize_run(
+    run_id: str,
+    final_status: str,
+    step_count: int,
+    run_repo: RunRepository,
+    report_service: ReportService,
+) -> None:
+    """Update run status, send finished event, and generate report."""
+    await run_repo.update_status(run_id, final_status)
+    event_manager.set_status(run_id, final_status)
+    finished = SSEFinishedEvent(status=final_status, total_steps=step_count, duration_ms=0)
+    await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
+    logger.info(f"[{run_id}] 已发送 finished 事件, status={final_status}")
+    await report_service.generate_report(run_id)
+    logger.info(f"[{run_id}] 报告已生成")
+
+
+async def run_agent_background(
+    run_id: str, task_id: str, task_name: str, task_description: str, max_steps: int,
+    preconditions: list[str] | None = None, external_assertions: list[dict] | None = None,
+    target_url: str | None = None, login_role: str | None = None,
+) -> None:
+    """后台执行 agent 任务 — pipeline orchestrator calling extracted sub-functions."""
     logger.info(f"[{run_id}] 开始后台执行: task_id={task_id}, task_name={task_name}, max_steps={max_steps}")
-
-    # 获取 LLM 配置
     llm_config = get_llm_config()
-    logger.info(f"[{run_id}] LLM 配置: model={llm_config['model']}, base_url={llm_config['base_url']}")
-
-    # 获取外部模块路径配置
     settings = get_settings()
-    external_module_path = settings.erp_api_module_path
-
-    # Resolve login credentials if login_role is set (per D-14, D-15)
-    account_info = None
-    login_url = None
-    shared_cache = None
+    account_info, login_url, shared_cache = _resolve_login_context(login_role)
     if login_role:
-        from backend.core.account_service import account_service
-        from backend.core.cache_service import CacheService
-
-        account_info = account_service.resolve(login_role)
-        login_url = account_service.get_login_url()
-        shared_cache = CacheService()
         logger.info(f"[{run_id}] 登录角色: {login_role}, 账号: {account_info.account}")
 
     async with async_session() as session:
@@ -266,441 +656,63 @@ async def run_agent_background(
         assertion_service = AssertionService(session)
         assertion_result_repo = AssertionResultRepository(session)
         precondition_result_repo = PreconditionResultRepository(session)
-        global_seq = 0
 
-        # === 执行前置条件 ===
-        context: dict[str, Any] = {}
-
-        if preconditions:
-            precondition_service = PreconditionService(external_module_path=external_module_path, cache=shared_cache)
-
-            for i, code in enumerate(preconditions):
-                if not code.strip():
-                    continue
-
-                # 发送 precondition 事件（running）
-                code_display = code[:100] + "..." if len(code) > 100 else code
-                pre_event = SSEPreconditionEvent(
-                    index=i,
-                    code=code_display,
-                    status="running",
-                )
-                await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
-
-                # 执行前置条件
-                result = await precondition_service.execute_single(code, i)
-
-                # 发送 precondition 事件（success/failed）
-                # Sanitize variables: only include JSON-serializable values
-                _safe_vars = _sanitize_variables(result.variables) if (result.success and result.variables) else None
-                pre_event = SSEPreconditionEvent(
-                    index=i,
-                    code=code_display,
-                    status="success" if result.success else "failed",
-                    error=result.error,
-                    duration_ms=result.duration_ms,
-                    variables=_safe_vars,
-                )
-                await event_manager.publish(run_id, f"event: precondition\ndata: {pre_event.model_dump_json()}\n\n")
-
-                # Phase 59: 持久化前置条件结果
-                global_seq += 1
-                await precondition_result_repo.create(
-                    run_id=run_id,
-                    sequence_number=global_seq,
-                    index=i,
-                    code=code,
-                    status="success" if result.success else "failed",
-                    error=result.error,
-                    duration_ms=result.duration_ms,
-                    variables=json.dumps(_safe_vars) if _safe_vars else None,
-                )
-
-                if not result.success:
-                    # 前置条件失败，终止执行
-                    await run_repo.update_status(run_id, "failed")
-                    event_manager.set_status(run_id, "failed")
-                    finished = SSEFinishedEvent(status="failed", total_steps=0, duration_ms=0)
-                    await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
-                    await event_manager.publish(run_id, None)
-                    return
-
-            # 获取 context 用于变量替换
-            context = precondition_service.get_context()
-            logger.info(f"[{run_id}] 前置条件执行完成，变量: {list(context.keys())}")
-
-            # 替换 task_description 中的变量
+        # Step 1: preconditions
+        precond_result = await _run_preconditions(
+            run_id, preconditions, settings.erp_api_module_path, shared_cache,
+            run_repo, precondition_result_repo, 0,
+        )
+        if precond_result is None:
+            return
+        context, _, global_seq = precond_result
+        if context:
             task_description = PreconditionService.substitute_variables(task_description, context)
-            logger.info(f"[{run_id}] 变量替换后的任务描述: {task_description[:100]}...")
 
-        # Pre-injection branch: programmatic login with clean session, fallback to text login
-        authenticated_session = None
-        effective_target_url = None if login_role else target_url
-        auth_pre_nav_ok = False
-
-        if login_role:
-            from backend.core.test_flow_service import TestFlowService
-
-            flow = TestFlowService()
-            cache_values = shared_cache.all() if shared_cache else {}
-
-            # Use a clean BrowserSession (no storage_state injection).
-            # Phase 86 research confirmed storage_state injection fails for Vue SPA:
-            # the SPA's Vuex/Pinia store ignores injected localStorage tokens.
-            # Worse, the CDP init script from storage_state interferes with
-            # the programmatic login, causing the login button click to silently fail.
-            from backend.core.agent_service import create_browser_session
-
-            authenticated_session = create_browser_session()
-            from urllib.parse import urlparse
-            _parsed = urlparse(settings.erp_base_url)
-            effective_target_url = f"{_parsed.scheme}://{_parsed.netloc}"
-
-            # Perform programmatic form login (fill form + click via dispatchEvent)
-            try:
-                auth_pre_nav_ok = await agent_service.pre_navigate(
-                    run_id, effective_target_url, authenticated_session,
-                    login_account=account_info.account,
-                    login_password=account_info.password,
-                )
-            except Exception as e:
-                logger.warning(f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航异常: {e}")
-                auth_pre_nav_ok = False
-
-            if auth_pre_nav_ok:
-                # Programmatic login succeeded — skip login in task description
-                task_description = flow.replace_cached_variables_only(
-                    task_description, cache_values
-                )
-                logger.info(f"[{run_id}] 编程式登录成功，跳过登录步骤")
-            else:
-                logger.warning(
-                    f"[{run_id}] [代码登录回退] 角色={login_role} 原因=预导航失败，"
-                    f"回退到文字登录模式"
-                )
-                # Fallback: close the failed session and rebuild task with login text
-                try:
-                    await authenticated_session.stop()
-                except Exception:
-                    pass
-                authenticated_session = None
-                effective_target_url = None
-
-                # Rebuild task description with login prefix
-                task_description = flow._build_description(
-                    task_description=task_description,
-                    login_url=login_url,
-                    account=account_info.account,
-                    password=account_info.password,
-                    context=context if isinstance(context, dict) else {},
-                    cache_values=cache_values,
-                )
-                logger.info(
-                    f"[{run_id}] 回退文字登录，任务描述: "
-                    f"{task_description[:150]}..."
-                )
-
-        # === 前置条件执行结束 ===
-
-        try:
-            await run_repo.update_status(run_id, "running")
-            logger.info(f"[{run_id}] 状态更新为 running")
-        except Exception as e:
-            logger.error(f"[{run_id}] 更新状态失败: {e}")
-            raise
-
-        # 发送 started 事件
+        # Step 2: auth and session
+        authenticated_session, effective_target_url, task_description, _ = await _run_auth_and_session(
+            run_id, login_role, account_info, login_url, shared_cache,
+            context, task_description, target_url, agent_service, settings,
+        )
+        await run_repo.update_status(run_id, "running")
         started = SSEStartedEvent(run_id=run_id, task_id=task_id, task_name=task_name)
         await event_manager.publish(run_id, f"event: started\ndata: {started.model_dump_json()}\n\n")
-        logger.info(f"[{run_id}] 已发送 started 事件")
-
-        step_count = 0
-
-        # Phase 112: 创建 StepCodeBuffer 逐步翻译 (per INTEG-01/D-01)
-        code_buffer = StepCodeBuffer(
-            base_dir="outputs",
-            run_id=run_id,
-            llm_config=get_code_gen_llm_config(),
-        )
-
-        async def on_step(step: int, action: str, reasoning: str, screenshot_path: str | None, step_stats_json: str | None = None, action_dict: dict | None = None) -> None:
-            nonlocal step_count, global_seq
-            step_count = step
-            logger.info(f"[{run_id}] 步骤 {step}: action={action[:50]}...")
-
-            # Phase 59: assign global sequence number
-            global_seq += 1
-
-            # 保存步骤到数据库
-            try:
-                step_data = {
-                    "step_index": step,
-                    "action": action,
-                    "reasoning": reasoning,
-                    "screenshot_path": screenshot_path,
-                    "status": "success",
-                    "duration_ms": 0,
-                    "step_stats": step_stats_json,  # Pass JSON string directly to repository (Phase 41, LOG-02)
-                    "sequence_number": global_seq,  # Phase 59
-                }
-                await run_repo.add_step(run_id, step_data)
-                logger.debug(f"[{run_id}] 步骤 {step} 已保存到数据库")
-            except Exception as e:
-                logger.error(f"[{run_id}] 保存步骤失败: {e}")
-
-            # 构造截图 URL（相对路径，前端会添加 API_BASE）
-            screenshot_url = f"/runs/{run_id}/screenshots/{step}" if screenshot_path else None
-
-            # Parse step_stats_json back to dict for SSE event (Phase 41, LOG-02)
-            step_stats_dict = None
-            if step_stats_json:
-                try:
-                    step_stats_dict = json.loads(step_stats_json)
-                except json.JSONDecodeError:
-                    pass  # Keep as None if parsing fails
-
-            # 发送 step 事件
-            event = SSEStepEvent(
-                index=step,
-                action=action,
-                reasoning=reasoning,
-                screenshot_url=screenshot_url,
-                status="success",
-                duration_ms=0,
-                step_stats=step_stats_dict,
-            )
-            await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
-
-            # Phase 112: 逐步翻译 — buffer.append_step (per INTEG-01/D-02)
-            if action_dict is not None:
-                _duration = None
-                if step_stats_json:
-                    try:
-                        _stats = json.loads(step_stats_json)
-                        _ms = _stats.get("duration_ms", 0)
-                        _duration = _ms / 1000.0 if _ms > 0 else None
-                    except (json.JSONDecodeError, TypeError):
-                        pass
-                try:
-                    code_buffer.append_step(action_dict, duration=_duration)
-                except Exception as _buf_err:
-                    logger.error(f"[{run_id}] buffer append 失败（非阻塞）: {_buf_err}")
+        code_buffer = StepCodeBuffer(base_dir="outputs", run_id=run_id, llm_config=get_code_gen_llm_config())
+        counters = {"step_count": 0, "global_seq": global_seq}
+        on_step = _create_on_step(run_id, run_repo, code_buffer, counters)
 
         try:
-            logger.info(f"[{run_id}] 开始执行 agent_service.run_with_cleanup...")
+            # Step 3: run agent
             result = await agent_service.run_with_cleanup(
-                task=task_description,
-                run_id=run_id,
-                on_step=on_step,
-                max_steps=max_steps,
-                llm_config=llm_config,
-                target_url=effective_target_url,
-                browser_session=authenticated_session,
+                task=task_description, run_id=run_id, on_step=on_step,
+                max_steps=max_steps, llm_config=llm_config,
+                target_url=effective_target_url, browser_session=authenticated_session,
             )
-            logger.info(f"[{run_id}] agent 执行完成, is_successful={result.is_successful()}")
-
-            # 确定最终状态
             final_status = "success" if result.is_successful() else "failed"
-
-            # 评估断言（如果任务有断言）
+            # Step 4: UI assertions
             run = await run_repo.get_with_task(run_id)
-            if run and run.task and run.task.assertions:
-                # Build lookup map for assertion names
-                assertion_map = {a.id: a for a in run.task.assertions}
-                assertion_results = await assertion_service.evaluate_all(
-                    run_id=run_id,
-                    assertions=run.task.assertions,
-                    history=result,
-                )
-                # Phase 59: assign sequence numbers to UI assertion results
-                for ar in assertion_results:
-                    global_seq += 1
-                    await assertion_result_repo.update_sequence_number(ar.id, global_seq)
-                    # Send SSE event for each assertion result
-                    source_assertion = assertion_map.get(ar.assertion_id)
-                    assertion_event = SSEAssertionEvent(
-                        assertion_id=ar.assertion_id,
-                        assertion_name=source_assertion.name if source_assertion else "未知断言",
-                        assertion_type=source_assertion.type if source_assertion else "unknown",
-                        status=ar.status,
-                        message=ar.message,
-                        actual_value=ar.actual_value,
-                    )
-                    await event_manager.publish(
-                        run_id,
-                        f"event: assertion\ndata: {assertion_event.model_dump_json()}\n\n"
-                    )
-                # 如果任何断言失败，整体状态为失败
-                if any(ar.status == "fail" for ar in assertion_results):
-                    final_status = "failed"
-                    logger.info(f"[{run_id}] 断言评估完成，存在失败断言，状态设为 failed")
-                else:
-                    logger.info(f"[{run_id}] 断言评估完成，全部通过")
-
-            # ========== Execute External Assertions (Phase 25) ==========
-            if external_assertions:
-                from backend.core.precondition_service import ContextWrapper
-
-                # Create context wrapper if not already created
-                if not isinstance(context, ContextWrapper):
-                    context_wrapper = ContextWrapper(cache=shared_cache)
-                    context_wrapper._data = context.copy() if context else {}
-                else:
-                    context_wrapper = context
-
-                logger.info(f"[{run_id}] Starting external assertion execution ({len(external_assertions)} assertions)")
-
-                try:
-                    external_assertion_summary = await execute_all_assertions(
-                        assertions=external_assertions,
-                        context=context_wrapper,
-                        timeout_per_assertion=30.0
-                    )
-
-                    logger.info(
-                        f"[{run_id}] External assertions complete: "
-                        f"{external_assertion_summary['passed']}/{external_assertion_summary['total']} passed, "
-                        f"{external_assertion_summary['failed']} failed, {external_assertion_summary['errors']} errors"
-                    )
-
-                    # Send individual SSE events for each external assertion result
-                    for idx, ext_result in enumerate(external_assertion_summary.get('results', [])):
-                        global_seq += 1
-                        assertion_name = f"{ext_result.get('class_name', '?')}.{ext_result.get('method', '?')}"
-                        status_str = 'pass' if ext_result.get('passed') else 'fail'
-                        message_parts = []
-                        if ext_result.get('error'):
-                            message_parts.append(ext_result['error'])
-                        # Build field_results summary
-                        field_results = ext_result.get('field_results', [])
-                        if field_results:
-                            for fr in field_results:
-                                fr_status = 'pass' if fr.get('passed') else 'fail'
-                                message_parts.append(f"{fr.get('field_name', '?')}: {fr_status}")
-
-                        ext_assertion_event = SSEAssertionEvent(
-                            assertion_id=f"ext-{idx}",
-                            assertion_name=assertion_name,
-                            assertion_type="external",
-                            status=status_str,
-                            message='; '.join(message_parts) if message_parts else None,
-                            actual_value=None,
-                            field_results=field_results if field_results else None,
-                        )
-                        await event_manager.publish(
-                            run_id,
-                            f"event: assertion\ndata: {ext_assertion_event.model_dump_json()}\n\n"
-                        )
-
-                    # Also send summary event
-                    assertion_event = {
-                        "type": "external_assertions_complete",
-                        "total": external_assertion_summary['total'],
-                        "passed": external_assertion_summary['passed'],
-                        "failed": external_assertion_summary['failed'],
-                        "errors": external_assertion_summary['errors'],
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    await event_manager.publish(
-                        run_id,
-                        f"event: external_assertions\ndata: {json.dumps(assertion_event)}\n\n"
-                    )
-
-                    # Store external assertion results in DB for report
-                    run_obj = await run_repo.get(run_id)
-                    if run_obj:
-                        results_to_store = []
-                        for idx, ext_result in enumerate(external_assertion_summary.get('results', [])):
-                            results_to_store.append({
-                                "sequence_number": global_seq - len(external_assertion_summary.get('results', [])) + idx + 1,
-                                "assertion_name": f"{ext_result.get('class_name', '?')}.{ext_result.get('method', '?')}",
-                                "status": 'pass' if ext_result.get('passed') else 'fail',
-                                "message": ext_result.get('error'),
-                                "field_results": ext_result.get('field_results'),
-                                "duration": ext_result.get('duration'),
-                            })
-                        run_obj.external_assertion_results = json.dumps(results_to_store)
-                        await session.commit()
-
-                    # Store summary in context for potential later use
-                    context['external_assertion_summary'] = external_assertion_summary
-
-                    # Update final status if any external assertions failed
-                    if external_assertion_summary['failed'] > 0 or external_assertion_summary['errors'] > 0:
-                        final_status = "failed"
-                        logger.info(f"[{run_id}] External assertions have failures/errors, status set to failed")
-
-                except Exception as e:
-                    logger.error(f"[{run_id}] External assertion execution failed: {e}", exc_info=True)
-                    # Non-fail-fast: continue even on error
-                    await event_manager.publish(
-                        run_id,
-                        f"event: external_assertions\ndata: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-                    )
-            # === External Assertions End ===
-
-            # 更新状态
-            await run_repo.update_status(run_id, final_status)
-            event_manager.set_status(run_id, final_status)
-
-            # 发送 finished 事件
-            finished = SSEFinishedEvent(
-                status=final_status,
-                total_steps=step_count,
-                duration_ms=0,
+            ui_status, counters["global_seq"] = await _run_ui_assertions(
+                run_id, run, result, assertion_service, assertion_result_repo, counters["global_seq"],
             )
-            await event_manager.publish(run_id, f"event: finished\ndata: {finished.model_dump_json()}\n\n")
-            logger.info(f"[{run_id}] 已发送 finished 事件, status={final_status}")
-
-            # 使用 ReportService 生成报告
-            await report_service.generate_report(run_id)
-            logger.info(f"[{run_id}] 报告已生成")
-
-            # === Code Generation: buffer.assemble() + write (Phase 112, INTEG-02/D-03) ===
-            try:
-                from pathlib import Path as PathLib
-                _precondition_config = (
-                    {"target_url": effective_target_url}
-                    if effective_target_url
-                    else None
-                )
-                _assertions_config = None
-                if run and run.task and run.task.assertions:
-                    _assertions_config = [
-                        {"type": a.type, "expected": a.expected, "name": a.name}
-                        for a in run.task.assertions
-                    ]
-                _content = code_buffer.assemble(
-                    run_id=run_id,
-                    task_name=task_name,
-                    task_id=task_id,
-                    precondition_config=_precondition_config,
-                    assertions_config=_assertions_config,
-                )
-                _output_dir = PathLib("outputs") / run_id / "generated"
-                _output_dir.mkdir(parents=True, exist_ok=True)
-                _output_path = _output_dir / f"test_{run_id}.py"
-                _output_path.write_text(_content, encoding="utf-8")
-                _code_path = str(_output_path)
-                await run_repo.update_generated_code_path(run_id, _code_path)
-                logger.info(f"[{run_id}] 生成 Playwright 代码: {_code_path}")
-            except Exception as e:
-                logger.error(f"[{run_id}] 代码生成失败（非阻塞）: {e}")
-
+            if ui_status == "failed":
+                final_status = "failed"
+            # Step 5: external assertions
+            ext_status, counters["global_seq"] = await _run_external_assertions(
+                run_id, external_assertions, context, shared_cache,
+                run_repo, event_manager, session, counters["global_seq"],
+            )
+            if ext_status == "failed":
+                final_status = "failed"
+            # Step 6: finalize + code generation
+            await _finalize_run(run_id, final_status, counters["step_count"], run_repo, report_service)
+            await _run_code_generation(run_id, task_name, task_id, effective_target_url, run, code_buffer, run_repo)
 
         except Exception as e:
-            logger.error(f"[{run_id}] 执行失败: {e}")
-            logger.error(f"[{run_id}] 异常堆栈:\n{traceback.format_exc()}")
-
+            logger.error(f"[{run_id}] 执行失败: {e}\n{traceback.format_exc()}")
             await run_repo.update_status(run_id, "failed")
             event_manager.set_status(run_id, "failed")
-
-            error = SSEErrorEvent(error=str(e))
-            await event_manager.publish(run_id, f"event: error\ndata: {error.model_dump_json()}\n\n")
-            logger.info(f"[{run_id}] 已发送 error 事件")
-
+            await event_manager.publish(run_id, f"event: error\ndata: {SSEErrorEvent(error=str(e)).model_dump_json()}\n\n")
         finally:
-            await event_manager.publish(run_id, None)  # 结束信号
+            await event_manager.publish(run_id, None)
             logger.info(f"[{run_id}] 后台执行结束")
 
 
