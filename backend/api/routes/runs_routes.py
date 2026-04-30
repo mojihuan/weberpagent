@@ -24,6 +24,7 @@ from backend.db.database import async_session
 from backend.db.repository import TaskRepository, RunRepository, StepRepository
 from backend.db.schemas import RunResponse, TaskUpdate
 from backend.core.event_manager import event_manager
+from backend.core.error_utils import non_blocking_execute, silent_execute
 from backend.api.routes.run_pipeline import run_agent_background
 
 logger = logging.getLogger(__name__)
@@ -136,18 +137,19 @@ async def _execute_code_background(
 
         except Exception as e:
             logger.error(f"[{run_id}] 代码执行后台任务异常: {e}", exc_info=True)
-            try:
+
+            async def _mark_failed() -> None:
                 async with async_session() as session:
                     run_repo = RunRepository(session)
                     await run_repo.update_status(run_id, "failed")
-            except Exception:
-                pass
+
+            await non_blocking_execute(
+                _mark_failed,
+                error_msg=f"[{run_id}] Failed to mark run as failed",
+            )
         finally:
             for p in (Path(test_file_dir) / "conftest.py", Path(test_file_dir) / ".storage_state.json"):
-                try:
-                    p.unlink(missing_ok=True)
-                except Exception:
-                    pass
+                silent_execute(p.unlink, missing_ok=True)
             _active_code_execution.pop(run_id, None)
 
 
