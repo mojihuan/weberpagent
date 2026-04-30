@@ -437,7 +437,7 @@ def _resolve_login_context(
     from backend.core.account_service import account_service
     from backend.core.cache_service import CacheService
     account_info = account_service.resolve(login_role)
-    login_url = account_info.get_login_url()
+    login_url = account_service.get_login_url()
     shared_cache = CacheService()
     return account_info, login_url, shared_cache
 
