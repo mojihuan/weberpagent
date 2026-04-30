@@ -189,13 +189,36 @@ class StepCodeBuffer:
 
         return None
 
+    @staticmethod
+    def _extract_selector_from_js(code: str) -> str | None:
+        """从 evaluate 的 JS 代码中提取 CSS 选择器。
+
+        检测 document.querySelector/queryAll('CSS_SELECTOR') 模式。
+
+        Args:
+            code: evaluate action 的 JavaScript 代码字符串。
+
+        Returns:
+            提取到的 CSS 选择器字符串，或 None。
+        """
+        import re
+
+        # document.querySelectorAll('...') 或 document.querySelector('...')
+        match = re.search(
+            r'document\.querySelector(?:All)?\([\'"](.+?)[\'"]\)', code
+        )
+        if match:
+            return match.group(1)
+
+        return None
+
     def _try_convert_evaluate_to_fill(
         self, action_dict: dict, translated: TranslatedAction,
     ) -> TranslatedAction | None:
         """尝试将 evaluate 设置 input 值的操作转换为 .fill() 代码。
 
-        检测 evaluate action 是否在设置 input 元素的值，如果是则复用
-        前一步 click 操作的定位器生成 .fill(value) 代码。
+        优先从 JS 代码中提取 CSS 选择器生成 .fill()，
+        其次复用前一步 click 操作的定位器。
 
         Args:
             action_dict: 原始操作字典。
@@ -219,7 +242,25 @@ class StepCodeBuffer:
         if fill_value is None:
             return None
 
-        # 从前一步 click 复用定位器
+        escaped_value = fill_value.replace("\\", "\\\\").replace('"', '\\"')
+
+        # 策略 1: 从 JS 代码中提取 CSS 选择器
+        js_selector = self._extract_selector_from_js(js_code)
+        if js_selector:
+            escaped_selector = js_selector.replace("\\", "\\\\").replace('"', '\\"')
+            locator = f'page.locator("{escaped_selector}")'
+            code = self._translator._build_single_locator_code(
+                locator, f'.fill("{escaped_value}", timeout=5000)', "input"
+            )
+            return TranslatedAction(
+                code=code,
+                action_type="input",
+                is_comment=False,
+                has_locator=True,
+                locators=(locator,),
+            )
+
+        # 策略 2: 从前一步 click 复用定位器
         if not self._records:
             return None
 
@@ -227,15 +268,11 @@ class StepCodeBuffer:
         if prev_record.action.action_type != "click":
             return None
 
-        # 复用前一步的定位器链
         prev_locators = prev_record.action.locators
         if not prev_locators:
             return None
 
-        escaped_value = fill_value.replace("\\", "\\\\").replace('"', '\\"')
         action_suffix = f'.fill("{escaped_value}", timeout=5000)'
-
-        # 用 ActionTranslator 的回退代码生成器
         code = self._translator._build_fallback_code(
             list(prev_locators), action_suffix, "input"
         )
