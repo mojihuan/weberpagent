@@ -1,6 +1,6 @@
 """LocatorChainBuilder -- 从 DOMInteractedElement 提取多策略定位器链。
 
-按优先级排序 (语义优先): get_by_text -> get_by_role -> get_by_placeholder -> CSS by ID -> CSS by data-testid -> XPath。
+按优先级排序 (语义优先): get_by_role -> get_by_text -> get_by_placeholder -> CSS by ID -> CSS by data-testid -> XPath。
 语义定位器（text/role/placeholder）对动态 DOM 更健壮，XPath 相对路径优先语义属性，绝对路径作为最后兜底。
 每个操作最多 3 个定位器 (per D-02)。
 """
@@ -59,10 +59,15 @@ class LocatorChainBuilder:
         # D-06: 入口统一过滤 icon font 私有区字符，.strip() 去除首尾空白
         ax_name = _strip_pua_chars(elem.ax_name).strip() if elem.ax_name else None
 
-        # 1. get_by_text — 有 ax_name 时优先使用文本定位
-        # D-01: 短文本 (<=4 字符) 保留精确匹配，长文本使用模糊匹配
+        # 1. 语义定位器 — role 优先于 text (ARIA 语义锚定更稳定)
         if ax_name:
             escaped_name = _escape_string(ax_name)
+            role = _NODE_TO_ROLE.get(elem.node_name)
+            if role:
+                locators.append(
+                    f'page.get_by_role("{role}", name="{escaped_name}")'
+                )
+            # text 定位器作为第二选择
             if len(ax_name) <= 4:
                 locators.append(
                     f'page.get_by_text("{escaped_name}", exact=True)'
@@ -72,16 +77,7 @@ class LocatorChainBuilder:
                     f'page.get_by_text("{escaped_name}")'
                 )
 
-        # 2. get_by_role (当 node_name 映射到已知 ARIA role 时)
-        if ax_name:
-            role = _NODE_TO_ROLE.get(elem.node_name)
-            if role:
-                escaped_name = _escape_string(ax_name)
-                locators.append(
-                    f'page.get_by_role("{role}", name="{escaped_name}")'
-                )
-
-        # 3. get_by_placeholder (仅 input 操作且有 placeholder)
+        # 2. get_by_placeholder (仅 input 操作且有 placeholder)
         if action_type == "input":
             placeholder = attrs.get("placeholder", "")
             if placeholder:
@@ -90,19 +86,19 @@ class LocatorChainBuilder:
                     f'page.get_by_placeholder("{escaped_placeholder}")'
                 )
 
-        # 4. CSS by ID (使用 [id="..."] 避免 CSS 特殊字符问题)
+        # 3. CSS by ID (使用 [id="..."] 避免 CSS 特殊字符问题)
         elem_id = attrs.get("id", "")
         if elem_id:
             escaped_id = _escape_string(elem_id)
             locators.append(f'page.locator("[id=\\"{escaped_id}\\"]")')
 
-        # 5. CSS by data-testid
+        # 4. CSS by data-testid
         testid = attrs.get("data-testid", "")
         if testid:
             escaped_testid = _escape_string(testid)
             locators.append(f'page.get_by_test_id("{escaped_testid}")')
 
-        # 6. XPath — 相对路径优先语义属性，绝对路径作为最后兜底
+        # 5. XPath — 相对路径优先语义属性，绝对路径作为最后兜底
         # D-03/D-04: 相对 XPath 优先语义属性 (data-testid > id)，无语义属性时回退绝对路径
         x_path = elem.x_path
         if x_path:
