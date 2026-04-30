@@ -57,21 +57,20 @@ class StepCodeBuffer:
         self._llm_config = llm_config or {}
 
     def append_step(self, action_dict: dict, duration: float | None = None) -> None:
-        """同步翻译 action_dict 并存储为 StepRecord。
-
-        通过 ActionTranslator.translate() 同步翻译，然后根据操作类型和耗时
-        推导等待策略，创建 StepRecord 追加到内部列表。
-
-        Args:
-            action_dict: model_actions() 返回的单步操作字典。
-            duration: 该步骤的实际执行耗时（秒），用于推导等待策略。
-        """
+        """同步翻译 action_dict 并存储为 StepRecord。"""
         # 同步翻译操作
         translated = self._translator.translate(action_dict)
 
+        # evaluate 智能转换: 检测 JS 设置 input 值并转换为 .fill()
+        converted = self._try_convert_evaluate_to_fill(action_dict, translated)
+        if converted is not None:
+            translated = converted
+
         # 推导等待策略
         action_type = ActionTranslator._identify_action_type(action_dict)
-        wait_code = self._derive_wait(action_type, duration)
+        if converted is not None:
+            action_type = "input"
+        wait_code = self._derive_wait(action_type, duration, action_dict)
 
         # 创建 StepRecord 并追加
         record = StepRecord(
@@ -82,18 +81,25 @@ class StepCodeBuffer:
         self._records.append(record)
         self._next_index += 1
 
-    def _derive_wait(self, action_type: str, duration: float | None = None) -> str:
+    def _derive_wait(
+        self,
+        action_type: str,
+        duration: float | None = None,
+        action_dict: dict | None = None,
+    ) -> str:
         """根据操作类型和耗时推导等待策略。
 
-        三种策略（优先级从高到低）：
+        四种策略（优先级从高到低）：
         1. navigate → wait_for_load_state("networkidle")
         2. duration > 0.8s → wait_for_timeout(实际耗时ms)
-        3. click → wait_for_timeout(300)
-        4. 其他 → 无等待
+        3. click/input on popup → wait_for_timeout(500) (弹窗元素需更长时间)
+        4. click → wait_for_timeout(300)
+        5. 其他 → 无等待
 
         Args:
             action_type: 操作类型（click, input, navigate 等）。
             duration: 步骤实际执行耗时（秒）。
+            action_dict: 操作字典，用于提取 interacted_element 信息。
 
         Returns:
             等待代码字符串，可能为空字符串表示无需等待。
@@ -106,12 +112,141 @@ class StepCodeBuffer:
         if duration is not None and duration > 0.8:
             return f"    page.wait_for_timeout({int(duration * 1000)})"
 
+        # 弹窗/下拉选项元素需要更长等待
+        if action_type in ("click", "input") and self._is_popup_element(action_dict):
+            return "    page.wait_for_timeout(500)"
+
         # click 操作默认等待 300ms
         if action_type == "click":
             return "    page.wait_for_timeout(300)"
 
         # 其他操作无需额外等待
         return ""
+
+    @staticmethod
+    def _is_popup_element(action_dict: dict | None) -> bool:
+        """检测操作目标是否为弹出/下拉元素。
+
+        弹出元素通常被渲染在 body 下的高层级 div 中（如 div[4], div[5]），
+        而不是在页面主布局 (div[1]/div[2]) 内。
+
+        Args:
+            action_dict: 操作字典。
+
+        Returns:
+            True 如果目标是弹窗/下拉元素。
+        """
+        if not action_dict:
+            return False
+        elem = action_dict.get("interacted_element")
+        if elem is None:
+            return False
+        x_path = getattr(elem, "x_path", "")
+        if not x_path:
+            return False
+        # 检测 body 下高层级 div（弹窗 portal 通常在 div[3]+）
+        # html/body/div[N] 中 N >= 3 视为弹窗
+        import re
+        popup_match = re.match(r"html/body/div\[(\d+)\]", x_path)
+        if popup_match:
+            div_index = int(popup_match.group(1))
+            return div_index >= 3
+        return False
+
+    @staticmethod
+    def _extract_fill_value_from_js(code: str) -> str | None:
+        """从 evaluate 的 JS 代码中提取 input 填入的文本值。
+
+        检测两种常见模式:
+        1. nativeInputValueSetter: setter.call(element, "value")
+        2. 直接赋值: element.value = "value" 或 element.value = 'value'
+
+        Args:
+            code: evaluate action 的 JavaScript 代码字符串。
+
+        Returns:
+            提取到的文本值，或 None。
+        """
+        import re
+
+        # 模式 1: setter.call(inp, "xxx123") 或 setter.call(inp, 'xxx123')
+        setter_match = re.search(
+            r'setter\.call\([^,]+,\s*"((?:[^"\\]|\\.)*)"\)', code
+        ) or re.search(
+            r"setter\.call\([^,]+,\s*'((?:[^'\\]|\\.)*)'", code
+        )
+        if setter_match:
+            return setter_match.group(1).replace('\\"', '"').replace("\\'", "'")
+
+        # 模式 2: .value = "xxx" 或 .value = 'xxx'
+        value_match = re.search(
+            r'\.value\s*=\s*"((?:[^"\\]|\\.)*)"', code
+        ) or re.search(
+            r"\.value\s*=\s*'((?:[^'\\]|\\.)*)'", code
+        )
+        if value_match:
+            return value_match.group(1).replace('\\"', '"').replace("\\'", "'")
+
+        return None
+
+    def _try_convert_evaluate_to_fill(
+        self, action_dict: dict, translated: TranslatedAction,
+    ) -> TranslatedAction | None:
+        """尝试将 evaluate 设置 input 值的操作转换为 .fill() 代码。
+
+        检测 evaluate action 是否在设置 input 元素的值，如果是则复用
+        前一步 click 操作的定位器生成 .fill(value) 代码。
+
+        Args:
+            action_dict: 原始操作字典。
+            translated: 翻译后的 TranslatedAction。
+
+        Returns:
+            转换后的 TranslatedAction，或 None（无法转换时保留原始 evaluate）。
+        """
+        # 仅处理 evaluate 类型
+        action_type = ActionTranslator._identify_action_type(action_dict)
+        if action_type != "evaluate":
+            return None
+
+        # 从 JS 代码中提取填入值
+        params = action_dict.get("evaluate", {})
+        js_code = params.get("code", "")
+        if not js_code:
+            return None
+
+        fill_value = self._extract_fill_value_from_js(js_code)
+        if fill_value is None:
+            return None
+
+        # 从前一步 click 复用定位器
+        if not self._records:
+            return None
+
+        prev_record = self._records[-1]
+        if prev_record.action.action_type != "click":
+            return None
+
+        # 复用前一步的定位器链
+        prev_locators = prev_record.action.locators
+        if not prev_locators:
+            return None
+
+        escaped_value = fill_value.replace("\\", "\\\\").replace('"', '\\"')
+        action_suffix = f'.fill("{escaped_value}", timeout=5000)'
+
+        # 用 ActionTranslator 的回退代码生成器
+        code = self._translator._build_fallback_code(
+            list(prev_locators), action_suffix, "input"
+        )
+
+        return TranslatedAction(
+            code=code,
+            action_type="input",
+            is_comment=False,
+            has_locator=True,
+            locators=prev_locators,
+        )
 
     def assemble(
         self,
@@ -153,6 +288,22 @@ class StepCodeBuffer:
                 flat_actions.append(wait_action)
             # 追加主操作
             flat_actions.append(record.action)
+
+            # click 操作后插入页面稳定性检查
+            # 菜单/链接点击可能触发页面跳转，需等待新页面加载
+            if record.action.action_type == "click":
+                stability_action = TranslatedAction(
+                    code=(
+                        "    try:\n"
+                        "        page.wait_for_load_state(\"networkidle\", timeout=1000)\n"
+                        "    except Exception:\n"
+                        "        pass  # 非导航点击，无需等待"
+                    ),
+                    action_type="wait",
+                    is_comment=False,
+                    has_locator=False,
+                )
+                flat_actions.append(stability_action)
 
         # 委托 PlaywrightCodeGenerator 组装
         return self._generator.generate(
