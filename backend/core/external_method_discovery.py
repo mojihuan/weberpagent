@@ -427,6 +427,54 @@ def _scan_module_for_get_data_attrs(module: Any) -> set[str]:
     return attrs
 
 
+def _find_module_map_match(
+    attr_name: str, source: str, ImportApi: Any,
+) -> tuple[str, str] | None:
+    """Try to find a matching _module_map entry for attr_name.
+
+    Returns (mod_path, cls_name) if a match is found, None otherwise.
+    """
+    type_map_methods = set(re.findall(
+        r"'(\w+)',\s*'(?:main|idle|vice|special|platform|super|camera)'\)",
+        source
+    ))
+    api_method_refs = set(re.findall(r'api\.(\w+)', source))
+    probe_methods = type_map_methods | api_method_refs
+    if not probe_methods:
+        return None
+
+    for map_key, (mod_path, cls_name) in ImportApi._module_map.items():
+        try:
+            api_mod = importlib.import_module(mod_path)
+            api_cls = getattr(api_mod, cls_name)
+            api_methods = set(m for m in dir(api_cls) if not m.startswith('_'))
+            if probe_methods & api_methods:
+                return mod_path, cls_name
+        except Exception:
+            continue
+    return None
+
+
+def _scan_class_method_for_attr(
+    attr_name: str, obj: type, ImportApi: Any,
+) -> tuple[str, str] | None:
+    """Scan a class for a method containing attr_name and resolve via _module_map."""
+    for method_name in dir(obj):
+        if method_name.startswith('_'):
+            continue
+        method = getattr(obj, method_name, None)
+        if not callable(method):
+            continue
+        try:
+            source = inspect.getsource(method)
+        except (OSError, TypeError):
+            continue
+        if f"'{attr_name}'" not in source:
+            continue
+        return _find_module_map_match(attr_name, source, ImportApi)
+    return None
+
+
 def _match_attr_to_module_map(attr_name: str, ImportApi: Any) -> bool:
     """Try to add an obfuscated attr to _module_map by matching method names."""
     import sys as _sys
@@ -437,42 +485,45 @@ def _match_attr_to_module_map(attr_name: str, ImportApi: Any) -> bool:
         for class_name, obj in inspect.getmembers(mod, predicate=inspect.isclass):
             if obj.__module__ != mod.__name__:
                 continue
-            for method_name in dir(obj):
-                if method_name.startswith('_'):
-                    continue
-                method = getattr(obj, method_name, None)
-                if not callable(method):
-                    continue
-                try:
-                    source = inspect.getsource(method)
-                except (OSError, TypeError):
-                    continue
-
-                if f"'{attr_name}'" not in source:
-                    continue
-
-                type_map_methods = set(re.findall(
-                    r"'(\w+)',\s*'(?:main|idle|vice|special|platform|super|camera)'\)",
-                    source
-                ))
-                api_method_refs = set(re.findall(r'api\.(\w+)', source))
-                probe_methods = type_map_methods | api_method_refs
-                if not probe_methods:
-                    continue
-
-                for map_key, (mod_path, cls_name) in ImportApi._module_map.items():
-                    try:
-                        api_mod = importlib.import_module(mod_path)
-                        api_cls = getattr(api_mod, cls_name)
-                        api_methods = set(
-                            m for m in dir(api_cls) if not m.startswith('_')
-                        )
-                        if probe_methods & api_methods:
-                            ImportApi._module_map[attr_name] = (mod_path, cls_name)
-                            return True
-                    except Exception:
-                        continue
+            match = _scan_class_method_for_attr(attr_name, obj, ImportApi)
+            if match:
+                mod_path, cls_name = match
+                ImportApi._module_map[attr_name] = (mod_path, cls_name)
+                return True
     return False
+
+
+def _try_patch_alias_for_method(
+    method_name: str, method: Any, ImportApi: Any,
+) -> None:
+    """Try to patch ImportApi._module_map with an obfuscated alias for a method."""
+    try:
+        source = inspect.getsource(method)
+    except (OSError, TypeError):
+        return
+
+    get_data_match = re.search(r"_get_data\('(\w+)'", source)
+    if not get_data_match:
+        return
+    obfuscated_api_attr = get_data_match.group(1)
+    if obfuscated_api_attr in ImportApi._module_map:
+        return
+
+    type_map_methods = set(re.findall(
+        r"'(\w+)',\s*'(?:main|idle|vice|special|platform|super|camera)'\)",
+        source
+    ))
+
+    for map_key, (mod_path, cls_name) in ImportApi._module_map.items():
+        try:
+            mod = importlib.import_module(mod_path)
+            api_cls = getattr(mod, cls_name)
+            api_methods = set(m for m in dir(api_cls) if not m.startswith('_'))
+            if type_map_methods & api_methods:
+                ImportApi._module_map[obfuscated_api_attr] = (mod_path, cls_name)
+                break
+        except Exception:
+            continue
 
 
 def _patch_import_api_aliases() -> None:
@@ -505,34 +556,7 @@ def _patch_import_api_aliases() -> None:
                 method = getattr(obj, method_name, None)
                 if not callable(method):
                     continue
-                try:
-                    source = inspect.getsource(method)
-                except (OSError, TypeError):
-                    continue
-
-                get_data_match = re.search(r"_get_data\('(\w+)'", source)
-                if not get_data_match:
-                    continue
-                obfuscated_api_attr = get_data_match.group(1)
-
-                if obfuscated_api_attr in ImportApi._module_map:
-                    continue
-
-                type_map_methods = set(re.findall(
-                    r"'(\w+)',\s*'(?:main|idle|vice|special|platform|super|camera)'\)",
-                    source
-                ))
-
-                for map_key, (mod_path, cls_name) in ImportApi._module_map.items():
-                    try:
-                        mod = importlib.import_module(mod_path)
-                        api_cls = getattr(mod, cls_name)
-                        api_methods = set(m for m in dir(api_cls) if not m.startswith('_'))
-                        if type_map_methods & api_methods:
-                            ImportApi._module_map[obfuscated_api_attr] = (mod_path, cls_name)
-                            break
-                    except Exception:
-                        continue
+                _try_patch_alias_for_method(method_name, method, ImportApi)
 
         try:
             import common.base_assertions as ba_module
@@ -548,6 +572,18 @@ def _patch_import_api_aliases() -> None:
         logger.error(f"Failed to patch ImportApi aliases: {e}", exc_info=True)
 
 
+def _scan_class_for_attr_match(cls: type) -> list[dict]:
+    """Scan a class for public assertion methods."""
+    methods = []
+    for method_name in dir(cls):
+        if method_name.startswith('_'):
+            continue
+        method_info = extract_assertion_method_info(cls, method_name)
+        if method_info is not None:
+            methods.append(method_info)
+    return methods
+
+
 def get_assertion_methods_grouped() -> list[dict]:
     """Get assertion methods grouped by class name."""
     if loader._assertion_methods_cache is not None:
@@ -561,20 +597,14 @@ def get_assertion_methods_grouped() -> list[dict]:
     try:
         classes = []
         for name in ['PcAssert', 'MgAssert', 'McAssert']:
-            if name in classes_dict:
-                cls = classes_dict[name]
-                methods = []
-                for method_name in dir(cls):
-                    if not method_name.startswith('_'):
-                        method_info = extract_assertion_method_info(cls, method_name)
-                        if method_info is not None:
-                            methods.append(method_info)
-
-                if methods:
-                    classes.append({
-                        "name": name,
-                        "methods": methods
-                    })
+            if name not in classes_dict:
+                continue
+            methods = _scan_class_for_attr_match(classes_dict[name])
+            if methods:
+                classes.append({
+                    "name": name,
+                    "methods": methods
+                })
 
         loader._assertion_methods_cache = classes
         return loader._assertion_methods_cache

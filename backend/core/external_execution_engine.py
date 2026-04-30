@@ -94,6 +94,48 @@ def _parse_assertion_error(error_message: str) -> list[dict]:
     return field_results
 
 
+def _resolve_assertion_instance(
+    class_name: str,
+    method_name: str,
+    headers: str | None,
+) -> tuple[Any, Any | None, dict]:
+    """Resolve assertion class, instance, and method.
+
+    Returns (method, assertion_instance, result_dict).
+    If result_dict contains 'error', caller should return it immediately.
+    """
+    empty_result = {
+        'success': False, 'passed': False, 'fields': [],
+        'error': None, 'error_type': None, 'duration': 0.0,
+    }
+    classes_dict, error = loader.load_base_assertions_class()
+    if error:
+        empty_result['error'] = error
+        empty_result['error_type'] = 'ImportError'
+        return None, None, empty_result
+    if class_name not in classes_dict:
+        empty_result['error'] = f"Assertion class '{class_name}' not found. Available: {list(classes_dict.keys())}"
+        empty_result['error_type'] = 'NotFoundError'
+        return None, None, empty_result
+    if headers and headers not in VALID_HEADER_IDENTIFIERS:
+        empty_result['error'] = f"Invalid headers identifier '{headers}'. Valid: {VALID_HEADER_IDENTIFIERS}"
+        empty_result['error_type'] = 'HeaderResolutionError'
+        return None, None, empty_result
+    try:
+        assertion_class = classes_dict[class_name]
+        assertion_instance = assertion_class()
+        method = getattr(assertion_instance, method_name, None)
+        if method is None:
+            empty_result['error'] = f"Method '{method_name}' not found in class '{class_name}'"
+            empty_result['error_type'] = 'NotFoundError'
+            return None, None, empty_result
+        return method, assertion_instance, {}
+    except Exception as e:
+        empty_result['error'] = f"Failed to instantiate or access method: {e}"
+        empty_result['error_type'] = 'InstantiationError'
+        return None, None, empty_result
+
+
 async def execute_assertion_method(
     class_name: str,
     method_name: str,
@@ -111,44 +153,17 @@ async def execute_assertion_method(
     if params and not field_params:
         field_params = params
 
-    result = {
-        'success': False,
-        'passed': False,
-        'fields': [],
-        'error': None,
-        'error_type': None,
-        'duration': 0.0
+    method, _, resolve_result = _resolve_assertion_instance(
+        class_name, method_name, headers,
+    )
+    if resolve_result.get('error'):
+        resolve_result['duration'] = time.time() - start_time
+        return resolve_result
+
+    result: dict = {
+        'success': False, 'passed': False, 'fields': [],
+        'error': None, 'error_type': None, 'duration': 0.0,
     }
-    classes_dict, error = loader.load_base_assertions_class()
-    if error:
-        result['error'] = error
-        result['error_type'] = 'ImportError'
-        result['duration'] = time.time() - start_time
-        return result
-    if class_name not in classes_dict:
-        result['error'] = f"Assertion class '{class_name}' not found. Available: {list(classes_dict.keys())}"
-        result['error_type'] = 'NotFoundError'
-        result['duration'] = time.time() - start_time
-        return result
-    if headers and headers not in VALID_HEADER_IDENTIFIERS:
-        result['error'] = f"Invalid headers identifier '{headers}'. Valid: {VALID_HEADER_IDENTIFIERS}"
-        result['error_type'] = 'HeaderResolutionError'
-        result['duration'] = time.time() - start_time
-        return result
-    try:
-        assertion_class = classes_dict[class_name]
-        assertion_instance = assertion_class()
-        method = getattr(assertion_instance, method_name, None)
-        if method is None:
-            result['error'] = f"Method '{method_name}' not found in class '{class_name}'"
-            result['error_type'] = 'NotFoundError'
-            result['duration'] = time.time() - start_time
-            return result
-    except Exception as e:
-        result['error'] = f"Failed to instantiate or access method: {e}"
-        result['error_type'] = 'InstantiationError'
-        result['duration'] = time.time() - start_time
-        return result
     try:
         loop = asyncio.get_event_loop()
         merged_kwargs = {**(api_params or {}), **(field_params or {})}
@@ -353,6 +368,34 @@ def require_external_available() -> None:
         )
 
 
+def _parse_operation_line(
+    line: str, current_module: str,
+) -> tuple[str | None, str | None, str | None]:
+    """Parse a single source line into (code, description, module) or None.
+
+    Returns (None, None, new_module) for module headers,
+    (code, description, current_module) for operations,
+    or (None, None, None) for unrecognized lines.
+    """
+    stripped = line.strip()
+
+    if stripped.startswith('#') and '|' in stripped:
+        parts = stripped[1:].strip().split('|')
+        if len(parts) >= 2:
+            return None, None, f"{parts[0]} - {parts[1]}"
+        return None, None, parts[0] if parts else "未分组"
+
+    if "'" in stripped and "': [" in stripped:
+        match = re.search(r"'([A-Z0-9@]+)'", stripped)
+        if match:
+            code = match.group(1)
+            desc_match = re.search(r"#\s*(.+)$", stripped)
+            description = desc_match.group(1) if desc_match else code
+            return code, description, current_module
+
+    return None, None, None
+
+
 def _parse_operations_from_source() -> tuple[dict[str, str], list[dict]]:
     """Parse operations from source code."""
     if loader._operations_cache is not None and loader._modules_cache is not None:
@@ -372,36 +415,24 @@ def _parse_operations_from_source() -> tuple[dict[str, str], list[dict]]:
         loader._modules_cache = []
         return loader._operations_cache, loader._modules_cache
 
-    operations = {}
+    operations: dict[str, str] = {}
     modules_dict: dict[str, list] = {}
 
     lines = source.split('\n')
     current_module = "未分组"
 
     for line in lines:
-        stripped = line.strip()
-
-        if stripped.startswith('#') and '|' in stripped:
-            parts = stripped[1:].strip().split('|')
-            if len(parts) >= 2:
-                current_module = f"{parts[0]} - {parts[1]}"
-            else:
-                current_module = parts[0] if parts else "未分组"
-
-        elif "'" in stripped and "': [" in stripped:
-            match = re.search(r"'([A-Z0-9@]+)'", stripped)
-            if match:
-                code = match.group(1)
-                desc_match = re.search(r"#\s*(.+)$", stripped)
-                description = desc_match.group(1) if desc_match else code
-                operations[code] = description
-
-                if current_module not in modules_dict:
-                    modules_dict[current_module] = []
-                modules_dict[current_module].append({
-                    "code": code,
-                    "description": description
-                })
+        code, description, module = _parse_operation_line(line, current_module)
+        if code is None and module is not None:
+            current_module = module
+        elif code is not None:
+            operations[code] = description
+            if module not in modules_dict:
+                modules_dict[module] = []
+            modules_dict[module].append({
+                "code": code,
+                "description": description
+            })
 
     loader._operations_cache = operations
     loader._modules_cache = [
@@ -474,12 +505,16 @@ class ParamDictVisitor(ast.NodeVisitor):
         self.param_dict = None
 
     def visit_FunctionDef(self, node: ast.AST) -> None:
-        if node.name == 'assertive_field':
-            for child in ast.walk(node):
-                if isinstance(child, ast.Assign):
-                    for target in child.targets:
-                        if isinstance(target, ast.Name) and target.id == 'param':
-                            self.param_dict = child.value
+        if node.name != 'assertive_field':
+            self.generic_visit(node)
+            return
+        for child in ast.walk(node):
+            if not isinstance(child, ast.Assign):
+                continue
+            for target in child.targets:
+                if isinstance(target, ast.Name) and target.id == 'param':
+                    self.param_dict = child.value
+                    return
         self.generic_visit(node)
 
 

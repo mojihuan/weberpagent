@@ -153,6 +153,41 @@ def _validate_headers(ws: Any) -> list[str] | None:
     return errors if errors else None
 
 
+def _extract_cell_value(row_tuple: tuple, data_col_idx: int) -> Any:
+    """Extract cell value from row tuple, handling MergedCell."""
+    if data_col_idx >= len(row_tuple):
+        return None
+    cell = row_tuple[data_col_idx]
+    if isinstance(cell, MergedCell):
+        return None
+    return cell.value
+
+
+def _coerce_column_value(
+    key: str, cell_value: Any, col_def: dict, row_number: int,
+) -> tuple[Any, str | None]:
+    """Coerce a single column value. Returns (value, error_or_None)."""
+    if key == "login_role":
+        return _coerce_string(cell_value), None
+    if key in ("name", "description", "target_url"):
+        coerced = _coerce_string(cell_value)
+        if key == "target_url" and coerced is None:
+            return col_def.get("default", ""), None
+        return coerced if coerced is not None else (col_def.get("default") or None), None
+    if key == "max_steps":
+        coerced = _coerce_int(cell_value, default=col_def.get("default", 10))
+        if coerced is None and cell_value is not None and str(cell_value).strip() != "":
+            return col_def.get("default", 10), "最大步数必须为 1-100 之间的整数"
+        return coerced, None
+    if key in ("preconditions", "assertions"):
+        parsed_list, json_error = _coerce_json_list(cell_value)
+        if json_error is not None:
+            fallback = str(cell_value).strip() if cell_value is not None else None
+            return fallback, f"{col_def['header']}: {json_error}"
+        return parsed_list, None
+    return cell_value, None
+
+
 def _parse_single_row(
     row_tuple: tuple,
     col_mapping: list[tuple[int, dict]],
@@ -171,33 +206,11 @@ def _parse_single_row(
 
     for data_col_idx, (template_col_idx, col_def) in enumerate(col_mapping):
         key = col_def["key"]
-        cell_value = None
-        if data_col_idx < len(row_tuple):
-            cell = row_tuple[data_col_idx]
-            if not isinstance(cell, MergedCell):
-                cell_value = cell.value
-
-        if key == "login_role":
-            data[key] = _coerce_string(cell_value)
-        elif key in ("name", "description", "target_url"):
-            coerced = _coerce_string(cell_value)
-            if key == "target_url" and coerced is None:
-                data[key] = col_def.get("default", "")
-            else:
-                data[key] = coerced if coerced is not None else (col_def.get("default") or None)
-        elif key == "max_steps":
-            coerced = _coerce_int(cell_value, default=col_def.get("default", 10))
-            if coerced is None and cell_value is not None and str(cell_value).strip() != "":
-                row_errors.append("最大步数必须为 1-100 之间的整数")
-                data[key] = col_def.get("default", 10)
-            else:
-                data[key] = coerced
-        elif key in ("preconditions", "assertions"):
-            parsed_list, json_error = _coerce_json_list(cell_value)
-            data[key] = parsed_list
-            if json_error is not None:
-                row_errors.append(f"{col_def['header']}: {json_error}")
-                data[key] = str(cell_value).strip() if cell_value is not None else None
+        cell_value = _extract_cell_value(row_tuple, data_col_idx)
+        value, error = _coerce_column_value(key, cell_value, col_def, row_number)
+        data[key] = value
+        if error:
+            row_errors.append(error)
 
     for col_def in TEMPLATE_COLUMNS:
         if col_def["required"]:

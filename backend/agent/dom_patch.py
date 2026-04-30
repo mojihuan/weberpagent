@@ -476,6 +476,20 @@ def _reset_paint_order_for_erp_nodes(node: Any) -> None:
         _reset_paint_order_for_erp_nodes(child)
 
 
+def _has_erp_class_in_attributes(attributes: dict | None) -> bool:
+    """Check if node attributes contain an ERP clickable CSS class."""
+    if not attributes:
+        return False
+    class_value = attributes.get("class", "")
+    if not class_value:
+        return False
+    for cls in class_value.split():
+        for erp_cls in _ERP_CLICKABLE_CLASSES:
+            if erp_cls in cls:
+                return True
+    return False
+
+
 def _patch_is_interactive() -> None:
     """Patch ClickableElementDetector.is_interactive.
 
@@ -490,14 +504,8 @@ def _patch_is_interactive() -> None:
     original_is_interactive = ClickableElementDetector.is_interactive
 
     def patched_is_interactive(node: Any) -> bool:
-        attributes = getattr(node, "attributes", None)
-        if attributes:
-            class_value = attributes.get("class", "")
-            if class_value:
-                for cls in class_value.split():
-                    for erp_cls in _ERP_CLICKABLE_CLASSES:
-                        if erp_cls in cls:
-                            return True
+        if _has_erp_class_in_attributes(getattr(node, "attributes", None)):
+            return True
         # DOM-02: Skip td interactive marking if td contains visible input child.
         # This ensures the Agent targets the input, not the td cell.
         orig_node = getattr(node, "original_node", None)
