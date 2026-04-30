@@ -195,11 +195,11 @@ class ActionTranslator:
         """
         escaped_snippet = llm_snippet.replace("\\", "\\\\").replace('"', '\\"')
         code = (
-            f'    _healer.info("LLM 修复: {escaped_snippet[:80]}")\n'
+            f'    _logger.info("LLM 修复: {escaped_snippet[:80]}")\n'
             f"    try:\n"
             f"        {llm_snippet}\n"
             f"    except Exception as _e:\n"
-            f'        _healer.error("LLM 修复失败 [{action_type}]")\n'
+            f'        _logger.error("LLM 修复失败 [{action_type}]")\n'
             f'        raise HealerError('
             f'action_type="{action_type}", '
             f"locators=(), "
@@ -326,7 +326,7 @@ class ActionTranslator:
             short0 = self._short_locator(locators[0])
             short1 = self._short_locator(locators[1])
             lines.append(
-                f'{indent}    _healer.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
+                f'{indent}    _logger.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
             )
             lines.append(f"{indent}    try:")
             lines.append(f"{indent}        {locators[1]}{action_suffix}")
@@ -336,7 +336,7 @@ class ActionTranslator:
             else:
                 short_all = ", ".join(self._short_locator(l) for l in locators)
                 lines.append(
-                    f'{indent}        _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
+                    f'{indent}        _logger.error("定位器全部失败 [{action_type}]: {short_all}")'
                 )
                 locators_repr = ", ".join(repr(l) for l in locators)
                 lines.append(
@@ -354,7 +354,7 @@ class ActionTranslator:
             short0 = self._short_locator(locators[0])
             short1 = self._short_locator(locators[1])
             lines.append(
-                f'{indent}    _healer.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
+                f'{indent}    _logger.warning("定位器回退: {short0} 失败, 尝试 {short1}")'
             )
             lines.append(f"{indent}    try:")
             lines.append(f"{indent}        {locators[1]}{action_suffix}")
@@ -362,7 +362,7 @@ class ActionTranslator:
             short1b = self._short_locator(locators[1])
             short2 = self._short_locator(locators[2])
             lines.append(
-                f'{indent}        _healer.warning("定位器回退: {short1b} 失败, 尝试 {short2}")'
+                f'{indent}        _logger.warning("定位器回退: {short1b} 失败, 尝试 {short2}")'
             )
             lines.append(f"{indent}        try:")
             lines.append(f"{indent}            {locators[2]}{action_suffix}")
@@ -372,7 +372,7 @@ class ActionTranslator:
             else:
                 short_all = ", ".join(self._short_locator(l) for l in locators)
                 lines.append(
-                    f'{indent}            _healer.error("定位器全部失败 [{action_type}]: {short_all}")'
+                    f'{indent}            _logger.error("定位器全部失败 [{action_type}]: {short_all}")'
                 )
                 locators_repr = ", ".join(repr(l) for l in locators)
                 lines.append(
@@ -408,13 +408,13 @@ class ActionTranslator:
         locators_repr = ", ".join(repr(l) for l in locators)
 
         lines.append(
-            f'{base_indent}_healer.info("LLM 修复: {short_llm}")'
+            f'{base_indent}_logger.info("LLM 修复: {short_llm}")'
         )
         lines.append(f"{base_indent}try:")
         lines.append(f"{base_indent}    {llm_snippet}")
         lines.append(f"{base_indent}except Exception as {except_var}:")
         lines.append(
-            f'{base_indent}    _healer.error("定位器全部失败（含 LLM 修复）[{action_type}]: {short_all}")'
+            f'{base_indent}    _logger.error("定位器全部失败（含 LLM 修复）[{action_type}]: {short_all}")'
         )
         lines.append(
             f"{base_indent}    raise HealerError("
