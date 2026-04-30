@@ -72,14 +72,14 @@ def browser_context_args(browser_context_args):
 '''
 
 
-def _build_storage_state(login_role: str) -> dict:
+async def _build_storage_state(login_role: str) -> dict:
     """Build Playwright storage_state dict with auth token for the given role."""
     from backend.core.account_service import account_service
     from backend.core.auth_service import auth_service
     from urllib.parse import urlparse
 
     account_info = account_service.resolve(login_role)
-    token = auth_service.fetch_token(account_info.account, account_info.password, role=login_role)
+    token = await auth_service.fetch_token(account_info.account, account_info.password, role=login_role)
     settings = get_settings()
     parsed = urlparse(settings.erp_base_url)
     origin = f"{parsed.scheme}://{parsed.netloc}"
@@ -118,7 +118,7 @@ async def _execute_code_background(
         test_file_dir = str(Path(test_file_path).parent)
 
         try:
-            storage_state = _build_storage_state(login_role)
+            storage_state = await _build_storage_state(login_role)
             conftest_path, storage_state_path = _write_test_support_files(test_file_dir, storage_state)
 
             proc = subprocess.run(
