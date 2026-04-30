@@ -1,5 +1,23 @@
 # Milestones
 
+## v0.11.0 全面代码清理 (Shipped: 2026-04-30)
+
+**Phases completed:** 5 phases, 11 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Deleted 3 dead modules, fixed 2 undefined names, cleaned 17 unused imports across 14 files, pyflakes zero warnings
+- Removed 1 unused backend constant, fixed 2 unused frontend variables, verified zero uncalled functions across backend
+- Extracted shared helpers module, BaseRepository base class with _persist, unified assertion _check_attribute pattern, deleted 2 deprecated methods -- eliminating 6 of 13 duplicate patterns across routes, repositories, and assertions
+- Unified 4 lazy-load functions into _lazy_load(), extracted 7 inline 503 guards into require_external_available(), created shared extract_action_info() and _execute_sync_with_timeout() helpers
+- Complete return type annotations on 57 public functions across 12 backend files with naming convention verification
+- 39 functions annotated across 7 code files, py.typed marker created, basic mypy config added
+- Split 5 priority files' functions to under 80 lines with pipeline orchestrator pattern for run_agent_background
+- Split runs.py into routes/pipeline and bridge into loader/discovery/engine, added error_utils.py with 3 shared exception utilities
+- Flattened 8 deeply-nested functions to depth <= 4, shortened execute_assertion_method to 75 lines, fixed silent_execute async mismatch, documented unused scan_with_fallback
+
+---
+
 ## v0.10.11 移除自愈功能 (Shipped: 2026-04-29)
 
 **Phases completed:** 4 phases, 8 plans, 14 tasks

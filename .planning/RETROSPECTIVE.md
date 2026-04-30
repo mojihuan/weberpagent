@@ -1,5 +1,63 @@
 # Project Retrospective
 
+## Milestone: v0.11.0 — 全面代码清理
+
+**Shipped:** 2026-04-30
+**Phases:** 5 | **Plans:** 11
+
+### What Was Built
+
+- 删除整个测试套件 (87 文件, ~20K 行) + pytest 配置 + 测试依赖清理
+- 死代码清理: 3 个废弃模块 + 17 个未使用 import + pyflakes 零警告
+- 13 处重复模式合并: BaseRepository + lazy-load 统一 + 503 guards + assertion checks
+- 96 个公共函数完整类型标注 + py.typed + mypy 配置
+- runs.py 拆分为 routes/pipeline, bridge 拆分为 loader/discovery/engine
+- 8 个深层嵌套函数压平至 ≤4 层 + error_utils.py 统一异常处理
+- 修复 silent_execute 异步安全问题
+
+### What Worked
+
+- **Delete-first 策略**: 先删测试 (Phase 120) 再清死代码 (Phase 121)，删完再优化 (122-124)
+- **5 phase 线性流水线**: 每层职责明确，无回退修复
+- **自动化验证**: pyflakes / mypy / FastAPI startup check 每个阶段验证
+- **净减 20,094 行**: 143 文件修改，+4,292/-24,386，代码库从 ~30K 精简至 ~11.7K
+
+### What Was Inefficient
+
+- Phase 124 原定 2 plans 实际产生了 3 plans (124-03 fix commit) — silent_execute 异步问题发现较晚
+- scan_with_fallback 在 D-09 中标记为 intentionally unused — 抽象过度，应更早识别
+
+### Patterns Established
+
+- **BaseRepository 基类模式**: _persist() 统一 ORM 写入 + 类型安全返回
+- **_lazy_load 统一延迟加载**: globals() dict lookup 替代 4 处重复 lazy-load
+- **error_utils 共享异常工具**: require_external_available / raise_not_found / _error_result
+- **模块拆分 + re-export shim**: 向后兼容文件拆分
+
+### Key Lessons
+
+1. 全面代码清理的 ROI 很高——净减 67% 代码量，可维护性显著提升
+2. 类型标注发现隐性 bug (silent_execute 异步不安全) ——投资类型系统值得
+3. 函数拆分的边界选择很重要——职责单一但不过度碎片化
+4. 统计工具 (pyflakes/mypy) 比人工审查更可靠
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~5 (120, 121, 122, 123, 124)
+- Notable: 2 天完成 5 个阶段 11 个计划，净删除 20,094 行
+
+## Cross-Milestone Trends
+
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 | v0.10.9 | v0.10.11 | v0.11.0 |
+|--------|--------|--------|--------|--------|--------|---------|---------|---------|---------|----------|---------|
+| Phases | 4 | 5 | 5 | 1 | 4 | 4 | 3 | 3 | 3 | 4 | 5 |
+| Plans | 10 | 10 | 6 | 1 | 8 | 6 | 4 | 6 | 6 | 8 | 11 |
+| Duration (days) | 1 | 2 | 2 | 1 | 2 | 3 | 1 | 2 | 2 | <1 | 2 |
+| Tech Debt Added | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 1 | 0 | 1 | 1 |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | ~9400 | ~3000 | ~380 | ~4000 | ~1500 | -2999 | -20094 |
+
 ## Milestone: v0.10.11 — 移除自愈功能
 
 **Shipped:** 2026-04-29
