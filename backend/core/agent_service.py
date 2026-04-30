@@ -58,6 +58,30 @@ def create_browser_session() -> BrowserSession:
 logger = logging.getLogger(__name__)
 
 
+def _fill_ax_name_from_children(elem: Any, enhanced_node: Any) -> None:
+    """从子文本节点提取文本填充 elem.ax_name。
+
+    当 Chrome AX 树未给元素分配 accessible name 时（如 Element UI 下拉选项
+    的 <span> 子元素），从 DOM 子文本节点提取文本内容作为 ax_name，
+    使 LocatorChainBuilder 能生成 get_by_text 语义定位器。
+    """
+    # 使用 browser-use 内置方法递归收集子文本节点
+    get_text = getattr(enhanced_node, "get_all_children_text", None)
+    if get_text:
+        text = get_text().strip()
+    else:
+        # 回退：手动遍历直接子节点
+        children = getattr(enhanced_node, "children_nodes", None) or []
+        parts = []
+        for child in children:
+            value = getattr(child, "node_value", "")
+            if value and value.strip():
+                parts.append(value.strip())
+        text = " ".join(parts)
+    if text:
+        elem.ax_name = text
+
+
 class AgentService:
     """browser-use Agent 服务封装"""
 
@@ -451,9 +475,16 @@ class AgentService:
                     first_action = agent_output.action[0]
                     index = first_action.get_index()
                     if index is not None and index in selector_map:
-                        action_dict["interacted_element"] = DOMInteractedElement.load_from_enhanced_dom_tree(
-                            selector_map[index]
+                        enhanced_node = selector_map[index]
+                        elem = DOMInteractedElement.load_from_enhanced_dom_tree(
+                            enhanced_node
                         )
+                        # 当 ax_name 为空时，从子文本节点提取文本内容
+                        # 修复 Element UI 下拉选项等场景：Chrome AX 树将名称分配给
+                        # 父 <li> 而非子 <span>，导致 ax_name 为空
+                        if elem.ax_name is None:
+                            _fill_ax_name_from_children(elem, enhanced_node)
+                        action_dict["interacted_element"] = elem
                     else:
                         action_dict["interacted_element"] = None
                 except Exception as e:

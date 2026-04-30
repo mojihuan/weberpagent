@@ -1,7 +1,9 @@
 """LocatorChainBuilder -- 从 DOMInteractedElement 提取多策略定位器链。
 
-按优先级排序 (语义优先): get_by_role -> get_by_text -> get_by_placeholder -> CSS by ID -> CSS by data-testid -> XPath。
-语义定位器（text/role/placeholder）对动态 DOM 更健壮，XPath 相对路径优先语义属性，绝对路径作为最后兜底。
+按优先级排序 (语义优先): get_by_role -> get_by_text/CSS[placeholder] -> CSS class -> XPath。
+- 非 INPUT 元素: get_by_role -> get_by_text -> get_by_placeholder -> CSS class -> XPath
+- INPUT/TEXTAREA: get_by_role -> CSS[placeholder] -> CSS class -> XPath
+  (跳过 get_by_text，因为 placeholder 不是 text node；用 CSS 属性选择器替代 get_by_placeholder)
 每个操作最多 3 个定位器 (per D-02)。
 """
 
@@ -47,6 +49,10 @@ class LocatorChainBuilder:
 
         语义定位器优先（对动态 DOM 更健壮），XPath 绝对路径作为最后兜底。
 
+        对于 INPUT/TEXTAREA 元素：
+        - 跳过 get_by_text（placeholder 不是 text node，根本性错误）
+        - 优先 CSS 属性选择器 (input[placeholder='...'])，比 get_by_placeholder 更底层可靠
+
         Args:
             elem: DOMInteractedElement 实例 (属性访问 x_path, node_name, attributes, ax_name)。
             action_type: 操作类型 ("click" or "input")。
@@ -56,6 +62,8 @@ class LocatorChainBuilder:
         """
         locators: list[str] = []
         attrs = elem.attributes or {}
+        is_input_elem = elem.node_name in ("INPUT", "TEXTAREA")
+
         # D-06: 入口统一过滤 icon font 私有区字符，.strip() 去除首尾空白
         ax_name = _strip_pua_chars(elem.ax_name).strip() if elem.ax_name else None
 
@@ -75,39 +83,50 @@ class LocatorChainBuilder:
                 locators.append(
                     f'page.get_by_role("{role}", name="{escaped_name}")'
                 )
-            # text 定位器作为第二选择
-            if len(ax_name) <= 4:
-                locators.append(
-                    f'page.get_by_text("{escaped_name}", exact=True)'
-                )
-            else:
-                locators.append(
-                    f'page.get_by_text("{escaped_name}")'
-                )
+            # INPUT/TEXTAREA 的 ax_name 通常来自 placeholder，
+            # get_by_text 匹配的是 text node 而非属性值，对 input 无效
+            if not is_input_elem:
+                if len(ax_name) <= 4:
+                    locators.append(
+                        f'page.get_by_text("{escaped_name}", exact=True)'
+                    )
+                else:
+                    locators.append(
+                        f'page.get_by_text("{escaped_name}")'
+                    )
 
-        # 2. get_by_placeholder (input 操作和 click 操作均可用)
-        # click 操作也可能需要通过 placeholder 定位输入框（如 Element UI el-select
-        # 点击打开下拉时，placeholder 是识别该输入框的关键属性）
+        # 2. INPUT/TEXTAREA: CSS 属性选择器优先于 get_by_placeholder
+        #    CSS 选择器更底层，不受 Playwright 语义解析影响
+        #    外层用双引号，属性值内用转义双引号
         placeholder = attrs.get("placeholder", "")
-        if placeholder:
+        if placeholder and is_input_elem:
+            escaped_placeholder = _escape_string(placeholder)
+            tag = elem.node_name.lower()
+            locators.append(
+                f'page.locator("{tag}[placeholder=\\"{escaped_placeholder}\\"]")'
+            )
+
+        # 3. get_by_placeholder (非 INPUT/TEXTAREA 或无 placeholder 时的回退;
+        #    click 操作也可能需要通过 placeholder 定位输入框)
+        if placeholder and not is_input_elem:
             escaped_placeholder = _escape_string(placeholder)
             locators.append(
                 f'page.get_by_placeholder("{escaped_placeholder}")'
             )
 
-        # 3. CSS by ID (使用 [id="..."] 避免 CSS 特殊字符问题)
+        # 4. CSS by ID (使用 [id="..."] 避免 CSS 特殊字符问题)
         elem_id = attrs.get("id", "")
         if elem_id:
             escaped_id = _escape_string(elem_id)
             locators.append(f'page.locator("[id=\\"{escaped_id}\\"]")')
 
-        # 4. CSS by data-testid
+        # 5. CSS by data-testid
         testid = attrs.get("data-testid", "")
         if testid:
             escaped_testid = _escape_string(testid)
             locators.append(f'page.get_by_test_id("{escaped_testid}")')
 
-        # 5. CSS class-based locator — 使用元素的 class 属性生成 CSS 选择器
+        # 6. CSS class-based locator — 使用元素的 class 属性生成 CSS 选择器
         #    对于绝对 xpath 定位的弹窗/下拉选项元素，CSS class 更稳定
         class_value = attrs.get("class", "")
         if class_value and len(locators) < 3:
@@ -115,7 +134,7 @@ class LocatorChainBuilder:
             if css_selector:
                 locators.append(css_selector)
 
-        # 6. XPath — 优先相对路径，绝对路径作为最后兜底
+        # 7. XPath — 优先相对路径，绝对路径作为最后兜底
         # D-03/D-04: 相对 XPath 优先语义属性 (data-testid > id)，无语义属性时回退绝对路径
         x_path = elem.x_path
         if x_path and len(locators) < 3:
@@ -147,8 +166,10 @@ class LocatorChainBuilder:
         """从 class 属性生成 CSS 选择器定位器。
 
         选择第一个有意义的 CSS class（排除过短的通用 class），
-        与 tag name 组合成 CSS 选择器。当 ax_name 可用时使用
-        .filter(has_text="...") 精确定位，否则回退到 .first。
+        与 tag name 组合成 CSS 选择器。
+
+        - 非 INPUT 元素：当 ax_name 可用时使用 .filter(has_text="...") 精确定位
+        - INPUT/TEXTAREA 元素：使用 .first（has_text 对 input 无效）
 
         Args:
             class_value: 元素的 class 属性值。
@@ -158,6 +179,7 @@ class LocatorChainBuilder:
         Returns:
             CSS 选择器定位器字符串，或 None。
         """
+        is_input = node_name in ("INPUT", "TEXTAREA")
         classes = class_value.split()
         tag = node_name.lower()
         for cls in classes:
@@ -166,6 +188,9 @@ class LocatorChainBuilder:
                 continue
             escaped_cls = _escape_string(cls)
             base = f'page.locator("{tag}.{escaped_cls}")'
+            # INPUT/TEXTAREA 的 ax_name 来自 placeholder，不是 text node
+            if is_input:
+                return f'{base}.first'
             if ax_name:
                 escaped_name = _escape_string(ax_name)
                 return f'{base}.filter(has_text="{escaped_name}").first'
