@@ -66,6 +66,23 @@ def _form_login(page: Page, origin: str, account: str, password: str) -> bool:
     page.goto(f"{origin}/login")
     page.wait_for_load_state("networkidle", timeout=10000)
 
+    # Switch to password login tab if present
+    tab_info = page.evaluate("""() => {
+        var divs = document.querySelectorAll('div');
+        for (var i = 0; i < divs.length; i++) {
+            if (divs[i].textContent.trim() === '密码登录'
+                && divs[i].offsetParent !== null) {
+                var r = divs[i].getBoundingClientRect();
+                return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2});
+            }
+        }
+        return null;
+    }""")
+    if tab_info:
+        pos = json.loads(tab_info)
+        page.mouse.click(pos['x'], pos['y'])
+        page.wait_for_timeout(1000)
+
     # Fill account input via nativeInputValueSetter
     acc_ok = page.evaluate("""(account) => {
         var inp = document.querySelector('input[placeholder="请输入账号"]');
