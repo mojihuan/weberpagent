@@ -53,7 +53,7 @@ def _validate_code_path(code_path: str) -> Path:
     return resolved
 
 
-_CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright auth injection."""
+_CONFTEST_TEMPLATE = '''"""Auto-generated conftest: form-based login for ERP auth."""
 import json
 from pathlib import Path
 
@@ -61,59 +61,110 @@ import pytest
 from playwright.sync_api import Page, BrowserContext
 
 
+def _form_login(page: Page, origin: str, account: str, password: str) -> bool:
+    """Perform real form login (same as browser-use _programmatic_login)."""
+    page.goto(f"{origin}/login")
+    page.wait_for_load_state("networkidle", timeout=10000)
+
+    # Fill account input via nativeInputValueSetter
+    acc_ok = page.evaluate("""(account) => {
+        var inp = document.querySelector('input[placeholder="请输入账号"]');
+        if (!inp) {
+            var all = document.querySelectorAll('input');
+            for (var i = 0; i < all.length; i++) {
+                if (all[i].placeholder && all[i].placeholder.indexOf('账号') >= 0) { inp = all[i]; break; }
+            }
+        }
+        if (!inp) return false;
+        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        setter.call(inp, account);
+        inp.dispatchEvent(new Event('input', {bubbles: true}));
+        inp.dispatchEvent(new Event('change', {bubbles: true}));
+        return true;
+    }""", account)
+    if not acc_ok:
+        return False
+
+    page.wait_for_timeout(300)
+
+    # Fill password input
+    pwd_ok = page.evaluate("""(password) => {
+        var inp = document.querySelector('input[placeholder="请输入密码"]');
+        if (!inp) inp = document.querySelector('input[type="password"]');
+        if (!inp) return false;
+        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        setter.call(inp, password);
+        inp.dispatchEvent(new Event('input', {bubbles: true}));
+        inp.dispatchEvent(new Event('change', {bubbles: true}));
+        return true;
+    }""", password)
+    if not pwd_ok:
+        return False
+
+    page.wait_for_timeout(300)
+
+    # Click login button
+    btn_info = page.evaluate("""() => {
+        var btns = document.querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {
+            var t = btns[i].textContent.trim();
+            if (t === '登 录' || t === '登录' || t === 'Login') {
+                var r = btns[i].getBoundingClientRect();
+                return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2, text: t});
+            }
+        }
+        return null;
+    }""")
+    if not btn_info:
+        return False
+
+    pos = json.loads(btn_info)
+    page.mouse.click(pos['x'], pos['y'])
+
+    # Wait for redirect away from /login
+    for _ in range(5):
+        page.wait_for_timeout(2000)
+        if "/login" not in page.url:
+            return True
+    return False
+
+
 @pytest.fixture(scope="function")
 def page(context: BrowserContext) -> Page:
-    """Create page with localStorage auth pre-injected via login page."""
+    """Create authenticated page via real form login."""
     p = context.new_page()
-    state_file = Path(__file__).parent / ".storage_state.json"
-    if state_file.exists():
-        with open(state_file, encoding="utf-8") as f:
-            state = json.load(f)
-        origins = state.get("origins", [])
-        if origins:
-            origin = origins[0]["origin"]
-            entries = origins[0].get("localStorage", [])
-            if entries:
-                p.goto(f"{origin}/login")
-                for entry in entries:
-                    p.evaluate(
-                        "(args) => localStorage.setItem(args[0], args[1])",
-                        [entry["name"], entry["value"]],
-                    )
+    cred_file = Path(__file__).parent / ".login_credentials.json"
+    if cred_file.exists():
+        with open(cred_file, encoding="utf-8") as f:
+            creds = json.load(f)
+        _form_login(p, creds["origin"], creds["account"], creds["password"])
     return p
 '''
 
 
-async def _build_storage_state(login_role: str) -> dict:
-    """Build Playwright storage_state dict with auth token for the given role."""
+async def _build_login_credentials(login_role: str) -> dict:
+    """Build login credentials dict for the given role."""
     from backend.core.account_service import account_service
-    from backend.core.auth_service import auth_service
     from urllib.parse import urlparse
 
     account_info = account_service.resolve(login_role)
-    token = await auth_service.fetch_token(account_info.account, account_info.password, role=login_role)
     settings = get_settings()
     parsed = urlparse(settings.erp_base_url)
     origin = f"{parsed.scheme}://{parsed.netloc}"
     return {
-        "cookies": [],
-        "origins": [{
-            "origin": origin,
-            "localStorage": [
-                {"name": "Admin-Token", "value": token},
-                {"name": "Admin-Expires-In", "value": "720"},
-            ],
-        }],
+        "origin": origin,
+        "account": account_info.account,
+        "password": account_info.password,
     }
 
 
-def _write_test_support_files(test_file_dir: str, storage_state: dict) -> tuple[Path, Path]:
-    """Write conftest.py and .storage_state.json to the test file directory."""
+def _write_test_support_files(test_file_dir: str, credentials: dict) -> tuple[Path, Path]:
+    """Write conftest.py and .login_credentials.json to the test file directory."""
     conftest_path = Path(test_file_dir) / "conftest.py"
-    storage_state_path = Path(test_file_dir) / ".storage_state.json"
-    storage_state_path.write_text(json.dumps(storage_state, ensure_ascii=False), encoding="utf-8")
+    cred_path = Path(test_file_dir) / ".login_credentials.json"
+    cred_path.write_text(json.dumps(credentials, ensure_ascii=False), encoding="utf-8")
     conftest_path.write_text(_CONFTEST_TEMPLATE, encoding="utf-8")
-    return conftest_path, storage_state_path
+    return conftest_path, cred_path
 
 
 async def _execute_code_background(
@@ -130,8 +181,8 @@ async def _execute_code_background(
         test_file_dir = str(Path(test_file_path).parent)
 
         try:
-            storage_state = await _build_storage_state(login_role)
-            conftest_path, storage_state_path = _write_test_support_files(test_file_dir, storage_state)
+            credentials = await _build_login_credentials(login_role)
+            conftest_path, cred_path = _write_test_support_files(test_file_dir, credentials)
 
             proc = subprocess.run(
                 ["uv", "run", "pytest", test_file_path, "--timeout=60", "-v"],
@@ -165,7 +216,7 @@ async def _execute_code_background(
                 error_msg=f"[{run_id}] Failed to mark run as failed",
             )
         finally:
-            for p in (Path(test_file_dir) / "conftest.py", Path(test_file_dir) / ".storage_state.json"):
+            for p in (Path(test_file_dir) / "conftest.py", Path(test_file_dir) / ".login_credentials.json"):
                 silent_execute(p.unlink, missing_ok=True)
             _active_code_execution.pop(run_id, None)
 
