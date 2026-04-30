@@ -443,6 +443,23 @@ class AgentService:
             dom_hash, element_count = svc._extract_browser_state(run_id, browser_state, run_logger, step)
             action, action_name, action_params, action_dict, reasoning = svc._extract_agent_output(run_id, agent_output)
 
+            # 从 browser_state 提取 interacted_element 并注入 action_dict
+            if action_dict and browser_state and hasattr(browser_state, 'dom_state'):
+                try:
+                    from browser_use.dom.views import DOMInteractedElement
+                    selector_map = browser_state.dom_state.selector_map
+                    first_action = agent_output.action[0]
+                    index = first_action.get_index()
+                    if index is not None and index in selector_map:
+                        action_dict["interacted_element"] = DOMInteractedElement.load_from_enhanced_dom_tree(
+                            selector_map[index]
+                        )
+                    else:
+                        action_dict["interacted_element"] = None
+                except Exception as e:
+                    logger.warning(f"[{run_id}] 提取 interacted_element 失败: {e}")
+                    action_dict["interacted_element"] = None
+
             # Step statistics
             action_count = 1
             if agent_output and hasattr(agent_output, "action") and agent_output.action:
