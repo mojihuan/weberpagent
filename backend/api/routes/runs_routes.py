@@ -53,22 +53,34 @@ def _validate_code_path(code_path: str) -> Path:
     return resolved
 
 
-_CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright storage_state injection."""
+_CONFTEST_TEMPLATE = '''"""Auto-generated conftest for Playwright auth injection."""
 import json
 from pathlib import Path
 
 import pytest
-from playwright.sync_api import BrowserContext
+from playwright.sync_api import Page, BrowserContext
 
 
-@pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
-    """Inject storage_state from .storage_state.json in the test file directory."""
+@pytest.fixture(scope="function")
+def page(browser_context: BrowserContext) -> Page:
+    """Create page with localStorage auth pre-injected via login page."""
+    p = browser_context.new_page()
     state_file = Path(__file__).parent / ".storage_state.json"
     if state_file.exists():
         with open(state_file, encoding="utf-8") as f:
-            return {**browser_context_args, "storage_state": json.load(f)}
-    return browser_context_args
+            state = json.load(f)
+        origins = state.get("origins", [])
+        if origins:
+            origin = origins[0]["origin"]
+            entries = origins[0].get("localStorage", [])
+            if entries:
+                p.goto(f"{origin}/login")
+                for entry in entries:
+                    p.evaluate(
+                        "(args) => localStorage.setItem(args[0], args[1])",
+                        [entry["name"], entry["value"]],
+                    )
+    return p
 '''
 
 
