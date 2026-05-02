@@ -465,36 +465,44 @@ class AgentService:
         async def step_callback(browser_state: Any, agent_output: Any, step: int) -> None:
             logger.debug(f"[{run_id}] 步骤回调: step={step}")
             dom_hash, element_count = svc._extract_browser_state(run_id, browser_state, run_logger, step)
+
+            # Extract first action for backward compat (logging, detectors)
             action, action_name, action_params, action_dict, reasoning = svc._extract_agent_output(run_id, agent_output)
 
-            # 从 browser_state 提取 interacted_element 并注入 action_dict
-            if action_dict and agent_output and browser_state and hasattr(browser_state, 'dom_state'):
-                try:
-                    from browser_use.dom.views import DOMInteractedElement
-                    selector_map = browser_state.dom_state.selector_map
-                    first_action = agent_output.action[0]
-                    index = first_action.get_index()
-                    if index is not None and index in selector_map:
-                        enhanced_node = selector_map[index]
-                        elem = DOMInteractedElement.load_from_enhanced_dom_tree(
-                            enhanced_node
-                        )
-                        # 当 ax_name 为空时，从子文本节点提取文本内容
-                        # 修复 Element UI 下拉选项等场景：Chrome AX 树将名称分配给
-                        # 父 <li> 而非子 <span>，导致 ax_name 为空
-                        if elem.ax_name is None:
-                            _fill_ax_name_from_children(elem, enhanced_node)
-                        action_dict["interacted_element"] = elem
-                    else:
-                        action_dict["interacted_element"] = None
-                except Exception as e:
-                    logger.warning(f"[{run_id}] 提取 interacted_element 失败: {e}")
-                    action_dict["interacted_element"] = None
+            # Extract ALL actions and build action_dicts with interacted_elements
+            from backend.agent.action_utils import extract_all_actions
+            all_actions = extract_all_actions(agent_output)
+            action_dicts: list[dict] = []
+            selector_map = None
+            if browser_state and hasattr(browser_state, 'dom_state'):
+                selector_map = browser_state.dom_state.selector_map
+
+            for i, (act_name, act_params) in enumerate(all_actions):
+                act_dict = {act_name: act_params}
+                if selector_map is not None:
+                    try:
+                        act_model = agent_output.action[i]
+                        act_index = act_model.get_index()
+                        if act_index is not None and act_index in selector_map:
+                            from browser_use.dom.views import DOMInteractedElement
+                            enhanced_node = selector_map[act_index]
+                            elem = DOMInteractedElement.load_from_enhanced_dom_tree(enhanced_node)
+                            if elem.ax_name is None:
+                                _fill_ax_name_from_children(elem, enhanced_node)
+                            act_dict["interacted_element"] = elem
+                        else:
+                            act_dict["interacted_element"] = None
+                    except Exception as e:
+                        logger.warning(f"[{run_id}] 提取 interacted_element 失败: {e}")
+                        act_dict["interacted_element"] = None
+                action_dicts.append(act_dict)
+
+            # Combined action string for DB when multiple actions
+            if len(all_actions) > 1:
+                action = " | ".join(f"{n}: {p}" for n, p in all_actions)
 
             # Step statistics
-            action_count = 1
-            if agent_output and hasattr(agent_output, "action") and agent_output.action:
-                action_count = len(agent_output.action)
+            action_count = len(all_actions) or 1
             step_stats_data["value"] = json.dumps(
                 {"action_count": action_count, "duration_ms": 0, "element_count": element_count}, ensure_ascii=False,
             )
@@ -516,13 +524,12 @@ class AgentService:
                 evaluation, dom_hash, _prev_dom_hash_data, step, max_steps,
             )
 
-            # Call external on_step callback
+            # Call external on_step callback with all action_dicts
             step_stats_json = step_stats_data["value"]
-            _action_dict_data = action_dict if action_dict else None
             if asyncio.iscoroutinefunction(on_step):
-                await on_step(step, action, reasoning, screenshot_path, step_stats_json, action_dict=_action_dict_data)
+                await on_step(step, action, reasoning, screenshot_path, step_stats_json, action_dicts=action_dicts)
             else:
-                on_step(step, action, reasoning, screenshot_path, step_stats_json, action_dict=_action_dict_data)
+                on_step(step, action, reasoning, screenshot_path, step_stats_json, action_dicts=action_dicts)
 
         return step_callback
 

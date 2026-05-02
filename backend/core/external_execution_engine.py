@@ -114,9 +114,17 @@ def _resolve_assertion_instance(
         empty_result['error_type'] = 'ImportError'
         return None, None, empty_result
     if class_name not in classes_dict:
-        empty_result['error'] = f"Assertion class '{class_name}' not found. Available: {list(classes_dict.keys())}"
-        empty_result['error_type'] = 'NotFoundError'
-        return None, None, empty_result
+        # class_name 为空或未找到时，按 method_name 自动搜索所有断言类
+        if not class_name:
+            for _cname, _cls in classes_dict.items():
+                if hasattr(_cls, method_name):
+                    class_name = _cname
+                    logger.info(f"Auto-resolved method '{method_name}' to class '{class_name}'")
+                    break
+        if class_name not in classes_dict:
+            empty_result['error'] = f"Assertion class '{class_name}' not found. Available: {list(classes_dict.keys())}"
+            empty_result['error_type'] = 'NotFoundError'
+            return None, None, empty_result
     if headers and headers not in VALID_HEADER_IDENTIFIERS:
         empty_result['error'] = f"Invalid headers identifier '{headers}'. Valid: {VALID_HEADER_IDENTIFIERS}"
         empty_result['error_type'] = 'HeaderResolutionError'

@@ -42,6 +42,7 @@ dev = [
 [dependency-groups]
 dev = [
     "pytest-timeout>=2.4.0",
+    "pytest-html>=4.0.0",
 ]
 
 [tool.ruff]

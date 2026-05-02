@@ -347,6 +347,8 @@ async def _run_code_generation(
     run_repo: RunRepository,
     precondition_code: list[str] | None = None,
     variable_map: dict[str, str] | None = None,
+    login_config: dict | None = None,
+    external_assertions: list[dict] | None = None,
 ) -> None:
     """Assemble generated Playwright code from buffer and write to file."""
     async def _generate() -> None:
@@ -362,6 +364,8 @@ async def _run_code_generation(
             run_id=run_id, task_name=task_name, task_id=task_id,
             precondition_config=_precondition_config, assertions_config=_assertions_config,
             precondition_code=precondition_code, variable_map=variable_map,
+            login_config=login_config,
+            external_assertions=external_assertions,
         )
         _output_dir = PathLib("outputs") / run_id / "generated"
         _output_dir.mkdir(parents=True, exist_ok=True)
@@ -387,6 +391,7 @@ def _create_on_step(
     async def on_step(
         step: int, action: str, reasoning: str, screenshot_path: str | None,
         step_stats_json: str | None = None, action_dict: dict | None = None,
+        action_dicts: list[dict] | None = None,
     ) -> None:
         counters["step_count"] = step
         counters["global_seq"] += 1
@@ -413,7 +418,9 @@ def _create_on_step(
             duration_ms=0, step_stats=step_stats_dict,
         )
         await event_manager.publish(run_id, f"event: step\ndata: {event.model_dump_json()}\n\n")
-        if action_dict is not None:
+        # Process code buffer for all actions in this step
+        _action_list = action_dicts or ([action_dict] if action_dict else [])
+        if _action_list:
             _duration = None
             if step_stats_json:
                 try:
@@ -422,10 +429,11 @@ def _create_on_step(
                     _duration = _ms / 1000.0 if _ms > 0 else None
                 except (json.JSONDecodeError, TypeError):
                     pass
-            try:
-                code_buffer.append_step(action_dict, duration=_duration)
-            except Exception as _buf_err:
-                logger.error(f"[{run_id}] buffer append 失败（非阻塞）: {_buf_err}")
+            for _ad in _action_list:
+                try:
+                    code_buffer.append_step(_ad, duration=_duration)
+                except Exception as _buf_err:
+                    logger.error(f"[{run_id}] buffer append 失败（非阻塞）: {_buf_err}")
 
 
     return on_step
@@ -539,10 +547,23 @@ async def run_agent_background(
                 }
                 if not _variable_map:
                     _variable_map = None
+            # 构建 login_config: 嵌入登录代码到生成的测试文件
+            _login_config = None
+            if account_info:
+                from urllib.parse import urlparse
+                _parsed = urlparse(settings.erp_base_url)
+                _origin = f"{_parsed.scheme}://{_parsed.netloc}"
+                _login_config = {
+                    "origin": _origin,
+                    "account": account_info.account,
+                    "password": account_info.password,
+                }
             await _run_code_generation(
                 run_id, task_name, task_id, effective_target_url, run,
                 code_buffer, run_repo,
                 precondition_code=preconditions, variable_map=_variable_map,
+                login_config=_login_config,
+                external_assertions=external_assertions,
             )
 
         except Exception as e:

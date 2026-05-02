@@ -25,11 +25,13 @@ class StepRecord:
         action: 翻译后的 Playwright 操作。
         wait_before: 操作前的等待代码（可能为空字符串）。
         step_index: 步骤序号，从 0 开始。
+        input_text: input 操作的原始文本值（用于冗余检测）。
     """
 
     action: TranslatedAction
     wait_before: str = ""
     step_index: int = 0
+    input_text: str | None = None
 
 
 class StepCodeBuffer:
@@ -58,25 +60,35 @@ class StepCodeBuffer:
 
     def append_step(self, action_dict: dict, duration: float | None = None) -> None:
         """同步翻译 action_dict 并存储为 StepRecord。"""
+        action_type = ActionTranslator._identify_action_type(action_dict)
+
         # 同步翻译操作
         translated = self._translator.translate(action_dict)
 
         # evaluate 智能转换: 检测 JS 设置 input 值并转换为 .fill()
-        converted = self._try_convert_evaluate_to_fill(action_dict, translated)
+        # 但如果前一步 input 填了相同值（说明 input 失败，evaluate 是修正），保留 page.evaluate()
+        converted = None
+        if action_type == "evaluate" and self._is_corrective_evaluate(action_dict):
+            logger.debug("保留 evaluate 为 page.evaluate() (前一步 input 未生效，evaluate 是修正操作)")
+        elif action_type == "evaluate":
+            converted = self._try_convert_evaluate_to_fill(action_dict, translated)
         if converted is not None:
             translated = converted
 
         # 推导等待策略
-        action_type = ActionTranslator._identify_action_type(action_dict)
         if converted is not None:
             action_type = "input"
         wait_code = self._derive_wait(action_type, duration, action_dict)
 
         # 创建 StepRecord 并追加
+        input_text = None
+        if action_type == "input":
+            input_text = action_dict.get("input", {}).get("text")
         record = StepRecord(
             action=translated,
             wait_before=wait_code,
             step_index=self._next_index,
+            input_text=input_text,
         )
         self._records.append(record)
         self._next_index += 1
@@ -93,7 +105,7 @@ class StepCodeBuffer:
         1. navigate → wait_for_load_state("networkidle")
         2. duration > 0.8s → wait_for_timeout(实际耗时ms)
         3. click/input on popup → wait_for_timeout(500) (弹窗元素需更长时间)
-        4. click → wait_for_timeout(300)
+        4. click → wait_for_timeout(500)
         5. 其他 → 无等待
 
         Args:
@@ -116,9 +128,9 @@ class StepCodeBuffer:
         if action_type in ("click", "input") and self._is_popup_element(action_dict):
             return "    page.wait_for_timeout(500)"
 
-        # click 操作默认等待 300ms
+        # click 操作默认等待 3s（覆盖搜索结果加载、菜单动画等异步更新）
         if action_type == "click":
-            return "    page.wait_for_timeout(300)"
+            return "    page.wait_for_timeout(3000)"
 
         # 其他操作无需额外等待
         return ""
@@ -212,6 +224,38 @@ class StepCodeBuffer:
 
         return None
 
+    def _is_corrective_evaluate(self, action_dict: dict) -> bool:
+        """检测 evaluate 是否为修正操作（前一步 input 填了相同值但可能未生效）。
+
+        browser-use agent 在 input 失败时（如 Element UI InputNumber 重新格式化输入值），
+        会用 evaluate 通过 JS 直接设置 value。这种 evaluate 应保留为 page.evaluate()，
+        不应转换为 .fill()，因为 .fill() 会触发相同的组件格式化问题。
+
+        Returns:
+            True 表示这是修正型 evaluate，应保留为 page.evaluate()。
+        """
+        if not self._records:
+            return False
+
+        params = action_dict.get("evaluate", {})
+        js_code = params.get("code", "")
+        if not js_code:
+            return False
+
+        fill_value = self._extract_fill_value_from_js(js_code)
+        if fill_value is None:
+            return False
+
+        # 检查最近的 input 操作是否已填入相同值
+        for record in reversed(self._records):
+            if record.action.action_type == "input" and record.input_text == fill_value:
+                return True
+            # 只看最近的 input，遇到其他类型也停止搜索
+            if record.action.action_type in ("click", "input", "navigate"):
+                break
+
+        return False
+
     def _try_convert_evaluate_to_fill(
         self, action_dict: dict, translated: TranslatedAction,
     ) -> TranslatedAction | None:
@@ -294,6 +338,8 @@ class StepCodeBuffer:
         assertions_config: list[dict] | None = None,
         precondition_code: list[str] | None = None,
         variable_map: dict[str, str] | None = None,
+        login_config: dict | None = None,
+        external_assertions: list[dict] | None = None,
     ) -> str:
         """将 StepRecord 展平为 TranslatedAction 列表，委托 PlaywrightCodeGenerator 组装。
 
@@ -309,6 +355,9 @@ class StepCodeBuffer:
             task_id: 任务 ID。
             precondition_config: 前置条件配置（可选）。
             assertions_config: 断言配置列表（可选）。
+            precondition_code: 前置条件代码（可选）。
+            variable_map: 变量映射（可选）。
+            login_config: 登录配置 dict，含 origin/account/password（可选）。
 
         Returns:
             完整的 Python 测试文件内容字符串。
@@ -329,14 +378,15 @@ class StepCodeBuffer:
             flat_actions.append(record.action)
 
             # click 操作后插入页面稳定性检查
-            # 菜单/链接点击可能触发页面跳转，需等待新页面加载
+            # 两阶段等待：networkidle 覆盖网络请求 + 固定等待覆盖 DOM 渲染/动画
             if record.action.action_type == "click":
                 stability_action = TranslatedAction(
                     code=(
                         "    try:\n"
-                        "        page.wait_for_load_state(\"networkidle\", timeout=1000)\n"
+                        "        page.wait_for_load_state(\"networkidle\", timeout=3000)\n"
                         "    except Exception:\n"
-                        "        pass  # 非导航点击，无需等待"
+                        "        pass  # 非导航点击，无需等待\n"
+                        "    page.wait_for_timeout(500)  # DOM 渲染 + 动画缓冲"
                     ),
                     action_type="wait",
                     is_comment=False,
@@ -354,6 +404,8 @@ class StepCodeBuffer:
             assertions_config=assertions_config,
             precondition_code=precondition_code,
             variable_map=variable_map,
+            login_config=login_config,
+            external_assertions=external_assertions,
         )
 
     @property

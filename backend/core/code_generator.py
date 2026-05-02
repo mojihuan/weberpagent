@@ -76,6 +76,8 @@ class PlaywrightCodeGenerator:
         assertions_config: list[dict] | None = None,
         precondition_code: list[str] | None = None,
         variable_map: dict[str, str] | None = None,
+        login_config: dict | None = None,
+        external_assertions: list[dict] | None = None,
     ) -> str:
         """生成完整的测试文件内容。
 
@@ -156,6 +158,32 @@ class PlaywrightCodeGenerator:
                 parts.append('        raise RuntimeError(f"get_data 失败: {result[\'error\']}")')
                 parts.append("    return result['data']")
 
+        # 注入 _assert_external 辅助函数 (外部断言调用)
+        if external_assertions:
+            parts.append("")
+            parts.append("")
+            parts.append("def _assert_external(class_name, method_name, **params):")
+            parts.append('    """外部断言 — 需要 ERP 网络可达 + 外部模块可用。"""')
+            parts.append("    import asyncio")
+            parts.append("    import nest_asyncio")
+            parts.append("    from backend.core.external_execution_engine import execute_assertion_method")
+            parts.append("    nest_asyncio.apply()")
+            parts.append("    _headers = params.pop('headers', 'main')")
+            parts.append("    _data = params.pop('data', 'main')")
+            parts.append("    result = asyncio.run(execute_assertion_method(")
+            parts.append("        class_name=class_name, method_name=method_name,")
+            parts.append("        headers=_headers, data=_data, params=params,")
+            parts.append("    ))")
+            parts.append("    if not result.get('passed', False):")
+            parts.append("        _error = result.get('error', 'unknown')")
+            parts.append('        raise AssertionError(f"外部断言失败 [{class_name}.{method_name}]: {_error}")')
+
+        # 注入 _form_login 辅助函数 (自包含登录，无需外部 conftest)
+        if login_config:
+            parts.append("")
+            parts.append("")
+            parts.extend(self._build_login_helper())
+
         parts.append("")
         parts.append(f"def {func_name}(page: Page) -> None:")
         parts.append(f'    """Auto-generated test from agent execution: {task_name}"""')
@@ -163,6 +191,15 @@ class PlaywrightCodeGenerator:
         # 条件 healer logger 初始化 (per D-08)
         if _needs_logger:
             parts.append('    _logger = logging.getLogger("healer")')
+
+        # 注入登录调用 (在所有操作之前)
+        if login_config:
+            parts.append("    # === Login ===")
+            origin = login_config.get("origin", "").replace('"', '\\"')
+            account = login_config.get("account", "").replace('"', '\\"')
+            password = login_config.get("password", "").replace('"', '\\"')
+            parts.append(f'    _form_login(page, "{origin}", "{account}", "{password}")')
+            parts.append("")
 
         # no_errors js_errors collector (per D-08/D-09): 在前置条件之前注入
         if assertions_config and any(
@@ -212,6 +249,23 @@ class PlaywrightCodeGenerator:
             assertions_code = self._build_assertions(assertions_config)
             if assertions_code:
                 parts.append(assertions_code)
+
+        # 外部断言注入
+        if external_assertions:
+            parts.append("")
+            parts.append("    # === External Assertions ===")
+            for idx, ext_a in enumerate(external_assertions):
+                class_name = ext_a.get("class_name") or ext_a.get("className", "")
+                method_name = ext_a.get("method_name") or ext_a.get("methodName", "")
+                headers = ext_a.get("headers", "main")
+                data = ext_a.get("data", "main")
+                params = ext_a.get("params", {})
+                # 合并所有参数为 kwargs
+                kwargs = {"headers": headers, "data": data}
+                kwargs.update(params)
+                kwargs_str = ", ".join(f'{k}="{v}"' if isinstance(v, str) else f'{k}={v}'
+                                       for k, v in kwargs.items())
+                parts.append(f'    _assert_external("{class_name}", "{method_name}", {kwargs_str})')
 
         content = "\n".join(parts) + "\n"
 
@@ -286,6 +340,96 @@ class PlaywrightCodeGenerator:
                 fixed_lines.append(line)
 
         return "\n".join(fixed_lines)
+
+    @staticmethod
+    def _build_login_helper() -> list[str]:
+        """生成 _form_login 辅助函数代码。
+
+        该函数执行表单登录：打开登录页 → 切换密码登录 → 填入账号密码 → 点击登录 → 等待跳转。
+        """
+        return [
+            "def _form_login(page, origin, account, password):",
+            '    """表单登录 — 嵌入测试文件，无需外部 conftest。"""',
+            "    import json as _json",
+            "    page.goto(f\"{origin}/login\")",
+            '    page.wait_for_load_state("networkidle", timeout=10000)',
+            "",
+            "    # 切换到密码登录 tab",
+            '    _tab = page.evaluate("""() => {',
+            "        var divs = document.querySelectorAll('div');",
+            "        for (var i = 0; i < divs.length; i++) {",
+            "            if (divs[i].textContent.trim() === '密码登录'",
+            "                && divs[i].offsetParent !== null) {",
+            "                var r = divs[i].getBoundingClientRect();",
+            "                return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2});",
+            "            }",
+            "        }",
+            "        return null;",
+            '    }""")',
+            "    if _tab:",
+            "        _pos = _json.loads(_tab)",
+            "        page.mouse.click(_pos['x'], _pos['y'])",
+            "        page.wait_for_timeout(1000)",
+            "",
+            "    # 填入账号",
+            '    _acc_ok = page.evaluate("""(account) => {',
+            '        var inp = document.querySelector(\'input[placeholder=\"请输入账号\"]\');',
+            "        if (!inp) {",
+            "            var all = document.querySelectorAll('input');",
+            "            for (var i = 0; i < all.length; i++) {",
+            "                if (all[i].placeholder && all[i].placeholder.indexOf('账号') >= 0) { inp = all[i]; break; }",
+            "            }",
+            "        }",
+            "        if (!inp) return false;",
+            "        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;",
+            "        setter.call(inp, account);",
+            "        inp.dispatchEvent(new Event('input', {bubbles: true}));",
+            "        inp.dispatchEvent(new Event('change', {bubbles: true}));",
+            "        return true;",
+            '}""", account)',
+            "    if not _acc_ok:",
+            '        raise RuntimeError("登录失败: 找不到账号输入框")',
+            "    page.wait_for_timeout(300)",
+            "",
+            "    # 填入密码",
+            '    _pwd_ok = page.evaluate("""(password) => {',
+            '        var inp = document.querySelector(\'input[placeholder=\"请输入密码\"]\');',
+            "        if (!inp) inp = document.querySelector('input[type=\"password\"]');",
+            "        if (!inp) return false;",
+            "        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;",
+            "        setter.call(inp, password);",
+            "        inp.dispatchEvent(new Event('input', {bubbles: true}));",
+            "        inp.dispatchEvent(new Event('change', {bubbles: true}));",
+            "        return true;",
+            '}""", password)',
+            "    if not _pwd_ok:",
+            '        raise RuntimeError("登录失败: 找不到密码输入框")',
+            "    page.wait_for_timeout(300)",
+            "",
+            "    # 点击登录按钮",
+            '    _btn = page.evaluate("""() => {',
+            "        var btns = document.querySelectorAll('button');",
+            "        for (var i = 0; i < btns.length; i++) {",
+            "            var t = btns[i].textContent.trim();",
+            "            if (t === '登 录' || t === '登录' || t === 'Login') {",
+            "                var r = btns[i].getBoundingClientRect();",
+            "                return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2, text: t});",
+            "            }",
+            "        }",
+            "        return null;",
+            '    }""")',
+            "    if not _btn:",
+            '        raise RuntimeError("登录失败: 找不到登录按钮")',
+            "    _bpos = _json.loads(_btn)",
+            "    page.mouse.click(_bpos['x'], _bpos['y'])",
+            "",
+            "    # 等待跳转离开 /login",
+            "    for _ in range(10):",
+            "        page.wait_for_timeout(1000)",
+            '        if "/login" not in page.url:',
+            "            return",
+            '    raise RuntimeError("登录失败: 等待跳转超时")',
+        ]
 
     def _build_precondition(self, target_url: str) -> str:
         """生成 page.goto 前置条件代码 (per PREC-01).

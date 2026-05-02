@@ -5,7 +5,6 @@ Pipeline functions live in run_pipeline.py.
 """
 
 import asyncio
-import json
 import logging
 from datetime import datetime
 from typing import AsyncGenerator
@@ -53,109 +52,15 @@ def _validate_code_path(code_path: str) -> Path:
     return resolved
 
 
-_CONFTEST_TEMPLATE = '''"""Auto-generated conftest: form-based login for ERP auth."""
-import json
-from pathlib import Path
-
+_CONFTEST_TEMPLATE = '''"""Auto-generated conftest: minimal page fixture (login embedded in test)."""
 import pytest
 from playwright.sync_api import Page, BrowserContext
 
 
-def _form_login(page: Page, origin: str, account: str, password: str) -> bool:
-    """Perform real form login (same as browser-use _programmatic_login)."""
-    page.goto(f"{origin}/login")
-    page.wait_for_load_state("networkidle", timeout=10000)
-
-    # Switch to password login tab if present
-    tab_info = page.evaluate("""() => {
-        var divs = document.querySelectorAll('div');
-        for (var i = 0; i < divs.length; i++) {
-            if (divs[i].textContent.trim() === '密码登录'
-                && divs[i].offsetParent !== null) {
-                var r = divs[i].getBoundingClientRect();
-                return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2});
-            }
-        }
-        return null;
-    }""")
-    if tab_info:
-        pos = json.loads(tab_info)
-        page.mouse.click(pos['x'], pos['y'])
-        page.wait_for_timeout(1000)
-
-    # Fill account input via nativeInputValueSetter
-    acc_ok = page.evaluate("""(account) => {
-        var inp = document.querySelector('input[placeholder="请输入账号"]');
-        if (!inp) {
-            var all = document.querySelectorAll('input');
-            for (var i = 0; i < all.length; i++) {
-                if (all[i].placeholder && all[i].placeholder.indexOf('账号') >= 0) { inp = all[i]; break; }
-            }
-        }
-        if (!inp) return false;
-        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        setter.call(inp, account);
-        inp.dispatchEvent(new Event('input', {bubbles: true}));
-        inp.dispatchEvent(new Event('change', {bubbles: true}));
-        return true;
-    }""", account)
-    if not acc_ok:
-        return False
-
-    page.wait_for_timeout(300)
-
-    # Fill password input
-    pwd_ok = page.evaluate("""(password) => {
-        var inp = document.querySelector('input[placeholder="请输入密码"]');
-        if (!inp) inp = document.querySelector('input[type="password"]');
-        if (!inp) return false;
-        var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        setter.call(inp, password);
-        inp.dispatchEvent(new Event('input', {bubbles: true}));
-        inp.dispatchEvent(new Event('change', {bubbles: true}));
-        return true;
-    }""", password)
-    if not pwd_ok:
-        return False
-
-    page.wait_for_timeout(300)
-
-    # Click login button
-    btn_info = page.evaluate("""() => {
-        var btns = document.querySelectorAll('button');
-        for (var i = 0; i < btns.length; i++) {
-            var t = btns[i].textContent.trim();
-            if (t === '登 录' || t === '登录' || t === 'Login') {
-                var r = btns[i].getBoundingClientRect();
-                return JSON.stringify({x: r.x + r.width/2, y: r.y + r.height/2, text: t});
-            }
-        }
-        return null;
-    }""")
-    if not btn_info:
-        return False
-
-    pos = json.loads(btn_info)
-    page.mouse.click(pos['x'], pos['y'])
-
-    # Wait for redirect away from /login
-    for _ in range(5):
-        page.wait_for_timeout(2000)
-        if "/login" not in page.url:
-            return True
-    return False
-
-
 @pytest.fixture(scope="function")
 def page(context: BrowserContext) -> Page:
-    """Create authenticated page via real form login."""
-    p = context.new_page()
-    cred_file = Path(__file__).parent / ".login_credentials.json"
-    if cred_file.exists():
-        with open(cred_file, encoding="utf-8") as f:
-            creds = json.load(f)
-        _form_login(p, creds["origin"], creds["account"], creds["password"])
-    return p
+    """Create a new page. Login is embedded in the test file itself."""
+    return context.new_page()
 '''
 
 
@@ -175,13 +80,11 @@ async def _build_login_credentials(login_role: str) -> dict:
     }
 
 
-def _write_test_support_files(test_file_dir: str, credentials: dict) -> tuple[Path, Path]:
-    """Write conftest.py and .login_credentials.json to the test file directory."""
+def _write_test_support_files(test_file_dir: str, credentials: dict) -> tuple[Path, Path | None]:
+    """Write conftest.py to the test file directory. Credentials no longer needed (login in test)."""
     conftest_path = Path(test_file_dir) / "conftest.py"
-    cred_path = Path(test_file_dir) / ".login_credentials.json"
-    cred_path.write_text(json.dumps(credentials, ensure_ascii=False), encoding="utf-8")
     conftest_path.write_text(_CONFTEST_TEMPLATE, encoding="utf-8")
-    return conftest_path, cred_path
+    return conftest_path, None
 
 
 async def _execute_code_background(
@@ -201,17 +104,18 @@ async def _execute_code_background(
             credentials = await _build_login_credentials(login_role)
             conftest_path, cred_path = _write_test_support_files(test_file_dir, credentials)
 
+            report_path = Path(test_file_dir) / "report.html"
             proc = subprocess.run(
-                ["uv", "run", "pytest", test_file_path, "--timeout=60", "-v"],
-                capture_output=True, text=True, timeout=120,
+                ["uv", "run", "pytest", test_file_path, "--timeout=120", "-v",
+                 f"--html={report_path}", "--self-contained-html"],
+                capture_output=True, text=True, timeout=180,
             )
             result_status = "success" if proc.returncode == 0 else "failed"
             logger.info(f"[{run_id}] pytest 执行完成: returncode={proc.returncode}, status={result_status}")
-            if result_status == "failed":
-                if proc.stdout:
-                    logger.info(f"[{run_id}] pytest stdout:\n{proc.stdout}")
-                if proc.stderr:
-                    logger.warning(f"[{run_id}] pytest stderr:\n{proc.stderr}")
+            if proc.stdout:
+                logger.info(f"[{run_id}] pytest stdout:\n{proc.stdout}")
+            if proc.stderr:
+                logger.warning(f"[{run_id}] pytest stderr:\n{proc.stderr}")
 
             async with async_session() as session:
                 run_repo = RunRepository(session)
@@ -338,6 +242,25 @@ async def get_run_code(
     content = resolved.read_text(encoding="utf-8")
     formatted = _format_code_with_line_numbers(content)
     return PlainTextResponse(formatted)
+
+
+@router.get("/{run_id}/report")
+async def get_run_report(
+    run_id: str,
+    run_repo: RunRepository = Depends(get_run_repo),
+) -> FileResponse:
+    """获取 pytest HTML 测试报告"""
+    run = await run_repo.get(run_id)
+    if not run:
+        raise_not_found("Run", run_id)
+    if not run.generated_code_path:
+        raise HTTPException(status_code=404, detail="该执行记录无生成代码")
+
+    report_path = Path(run.generated_code_path).parent / "report.html"
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail="测试报告不存在，请先执行代码")
+
+    return FileResponse(report_path, media_type="text/html")
 
 
 @router.post("/{run_id}/execute-code", status_code=202)

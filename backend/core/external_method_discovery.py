@@ -8,8 +8,10 @@ external webseleniumerp integration.
 import ast
 import importlib
 import inspect
+import json
 import re
 import logging
+from pathlib import Path
 from typing import Any
 
 import backend.core.external_module_loader as loader
@@ -526,6 +528,48 @@ def _try_patch_alias_for_method(
             continue
 
 
+_CACHE_VERSION = 1
+
+
+def _cache_file_path() -> Path | None:
+    """Return path to .module_map_cache.json next to weberp_path."""
+    from backend.config import get_settings
+    weberp_path = get_settings().weberp_path
+    if not weberp_path:
+        return None
+    return Path(weberp_path) / ".module_map_cache.json"
+
+
+def _load_cached_module_map() -> dict[str, tuple[str, str]] | None:
+    """Load cached _module_map from JSON file. Returns None if cache missing/invalid."""
+    cache_path = _cache_file_path()
+    if cache_path is None or not cache_path.exists():
+        return None
+    try:
+        data = json.loads(cache_path.read_text(encoding="utf-8"))
+        if data.get("version") != _CACHE_VERSION:
+            return None
+        entries = data.get("entries", {})
+        return {k: tuple(v) for k, v in entries.items()}
+    except Exception as e:
+        logger.debug(f"Failed to load module_map cache: {e}")
+        return None
+
+
+def _save_cached_module_map(module_map: dict) -> None:
+    """Save _module_map to JSON cache file."""
+    cache_path = _cache_file_path()
+    if cache_path is None:
+        return
+    try:
+        entries = {k: list(v) for k, v in module_map.items()}
+        data = {"version": _CACHE_VERSION, "entries": entries}
+        cache_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        logger.info(f"Saved module_map cache ({len(entries)} entries) to {cache_path}")
+    except Exception as e:
+        logger.warning(f"Failed to save module_map cache: {e}")
+
+
 def _patch_import_api_aliases() -> None:
     """Add obfuscated api_attr aliases to ImportApi._module_map.
 
@@ -545,6 +589,15 @@ def _patch_import_api_aliases() -> None:
         import common.base_params as bp_module
         from common.import_api import ImportApi
 
+        # 尝试从缓存加载（跳过耗时的源码扫描）
+        cached = _load_cached_module_map()
+        if cached is not None:
+            ImportApi._module_map.update(cached)
+            logger.info(f"Loaded module_map cache ({len(cached)} entries)")
+            loader._import_api_patched = True
+            return
+
+        # 缓存未命中：执行完整扫描
         _remap_stale_module_map_classes(ImportApi)
 
         for class_name, obj in inspect.getmembers(bp_module, predicate=inspect.isclass):
@@ -567,6 +620,8 @@ def _patch_import_api_aliases() -> None:
         except ImportError:
             logger.debug("base_assertions not available, skipping assertion alias patching")
 
+        # 扫描完成，保存缓存
+        _save_cached_module_map(ImportApi._module_map)
         loader._import_api_patched = True
     except Exception as e:
         logger.error(f"Failed to patch ImportApi aliases: {e}", exc_info=True)

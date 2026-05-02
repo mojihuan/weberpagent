@@ -78,10 +78,16 @@ class LocatorChainBuilder:
         # 1. 语义定位器 — role 优先于 text (ARIA 语义锚定更稳定)
         if ax_name:
             escaped_name = _escape_string(ax_name)
-            role = _NODE_TO_ROLE.get(elem.node_name)
+            # 优先使用元素实际的 role 属性（如 Element UI InputNumber 的 spinbutton），
+            # 回退到标签名 → ARIA role 的默认映射
+            actual_role = attrs.get("role", "")
+            role = actual_role or _NODE_TO_ROLE.get(elem.node_name)
             if role:
+                # INPUT/TEXTAREA 在表格中可能有多个同 placeholder 的 input，
+                # 加 .first 避免 strict mode 报错
+                suffix = ".first" if is_input_elem else ""
                 locators.append(
-                    f'page.get_by_role("{role}", name="{escaped_name}")'
+                    f'page.get_by_role("{role}", name="{escaped_name}"){suffix}'
                 )
             # INPUT/TEXTAREA 的 ax_name 通常来自 placeholder，
             # get_by_text 匹配的是 text node 而非属性值，对 input 无效
@@ -98,12 +104,13 @@ class LocatorChainBuilder:
         # 2. INPUT/TEXTAREA: CSS 属性选择器优先于 get_by_placeholder
         #    CSS 选择器更底层，不受 Playwright 语义解析影响
         #    外层用双引号，属性值内用转义双引号
+        #    加 .first 避免 strict mode（表格中可能有多个同 placeholder 的 input）
         placeholder = attrs.get("placeholder", "")
         if placeholder and is_input_elem:
             escaped_placeholder = _escape_string(placeholder)
             tag = elem.node_name.lower()
             locators.append(
-                f'page.locator("{tag}[placeholder=\\"{escaped_placeholder}\\"]")'
+                f'page.locator("{tag}[placeholder=\\"{escaped_placeholder}\\"]").first'
             )
 
         # 3. get_by_placeholder (非 INPUT/TEXTAREA 或无 placeholder 时的回退;
