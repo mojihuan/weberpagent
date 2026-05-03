@@ -119,10 +119,12 @@ Plans:
   1. routes 目录下所有路由文件的参数验证缺陷、错误处理遗漏和边界条件均被识别并记录
   2. 路径遍历、CSRF、exec() 安全、不安全配置、SSRF 等安全风险均被评估并记录
   3. 每个 API 端点的异常路径均有审查结论（安全/需修复/需关注）
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 126-01: TBD
+- [x] 126-01-PLAN.md — Breadth scan all 13 API files, run ruff/mypy, produce risk matrix + CONCERNS.md verification
+- [ ] 126-02-PLAN.md — Deep-dive P1 routes: main.py, run_pipeline.py (API layer), runs_routes.py, batches.py, external_* routes
+- [ ] 126-03-PLAN.md — P2/P3 routes review (tasks, reports, dashboard) + final summary with statistics
 
 ### Phase 127: 前端审查
 **Goal**: 前端组件逻辑正确性和渲染性能得到全面审查，输出具体发现清单
@@ -174,11 +176,11 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 125. 后端核心逻辑审查 | 3/3 | Complete   | 2026-05-03 |
-| 126. API 层与安全审查 | 0/? | Not started | - |
+| 125. 后端核心逻辑审查 | 3/3 | Complete    | 2026-05-03 |
+| 126. API 层与安全审查 | 1/3 | In Progress|  |
 | 127. 前端审查 | 0/? | Not started | - |
 | 128. 代码质量审查 | 0/? | Not started | - |
 | 129. 测试规划 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-05-03 — Phase 125 planned (3 plans)*
+*Roadmap updated: 2026-05-03 — Phase 126 planned (3 plans)*

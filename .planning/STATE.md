@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
-status: Phase complete — ready for verification
-stopped_at: Completed 125-03 P2 review + architecture analysis
-last_updated: "2026-05-03T03:27:30.610Z"
+status: Ready to execute
+stopped_at: Completed 126-01-PLAN.md
+last_updated: "2026-05-03T05:04:42.319Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 125 — backend-core-review
+**Current focus:** Phase 126 — api
 
 ## Last Shipped
 
@@ -33,8 +33,8 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 
 ## Current Position
 
-Phase: 125 (backend-core-review) — EXECUTING
-Plan: 3 of 3
+Phase: 126 (api) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -65,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 125]: Coupling analysis: run_pipeline.py god-module (13+ deps), batch_execution.py upward dependency to API layer
 - [Phase 125]: assertion_service check_element_exists confirmed as high-severity stub (always returns True)
 - [Phase 125]: 9 new issues identified that are not in CONCERNS.md
+- [Phase 126-api]: P1 files (7): main.py, run_pipeline.py, runs_routes.py, batches.py, external_assertions.py, external_data_methods.py, external_operations.py
+- [Phase 126-api]: API-01 (High): execute_run_code endpoint missing _validate_code_path before subprocess.run
 
 ### Pending Todos
 
@@ -76,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T03:27:30.608Z
-Stopped at: Completed 125-03 P2 review + architecture analysis
+Last session: 2026-05-03T05:04:42.318Z
+Stopped at: Completed 126-01-PLAN.md
 Resume file: None
