@@ -8,12 +8,12 @@
 ### 正确性 (CORR)
 
 - [x] **CORR-01**: 审查后端核心业务逻辑正确性 — agent 层 (MonitoredAgent, detectors, prompts)、core services (agent_service, code_generator, precondition_service)、pipeline 编排 (run_pipeline.py) 的逻辑错误、边界条件、潜在 bug
-- [ ] **CORR-02**: 审查 API 路由层正确性 — routes 目录下所有路由文件的参数验证、错误处理、边界条件、异常路径
+- [x] **CORR-02**: 审查 API 路由层正确性 — routes 目录下所有路由文件的参数验证、错误处理、边界条件、异常路径
 - [ ] **CORR-03**: 审查前端组件逻辑正确性 — React 组件状态管理、事件处理、数据流、SSE 事件处理
 
 ### 安全性 (SEC)
 
-- [ ] **SEC-01**: 审查安全风险 — 路径遍历、CSRF 防护、exec() 安全、不安全配置、SSRF 风险
+- [x] **SEC-01**: 审查安全风险 — 路径遍历、CSRF 防护、exec() 安全、不安全配置、SSRF 风险
 
 ### 性能 (PERF)
 
@@ -52,9 +52,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CORR-01 | Phase 125 | Complete |
-| CORR-02 | Phase 126 | Pending |
+| CORR-02 | Phase 126 | Complete |
 | CORR-03 | Phase 127 | Pending |
-| SEC-01 | Phase 126 | Pending |
+| SEC-01 | Phase 126 | Complete |
 | PERF-01 | Phase 128 | Pending |
 | PERF-02 | Phase 127 | Pending |
 | MAINT-01 | Phase 128 | Pending |
