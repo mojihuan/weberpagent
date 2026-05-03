@@ -340,33 +340,34 @@ The following maps findings from Phase 125, 126, and 127 to Phase 128 requiremen
 
 ### Error Handling Strategy
 - **Pattern count:** 3 distinct strategies (non_blocking_execute, raw try/except, bare operations)
-- **File coverage:** non_blocking_execute in 4 files, raw try/except in 20+ files, bare operations in ~5 files
+- **File coverage:** non_blocking_execute in 3 files (run_pipeline, runs_routes, error_utils); raw try/except in 28 files (95 total try: blocks); HTTPException in 9 files; raise_not_found in 4 files; bare operations in ~5 files
 - **Consistency score:** Low -- error_utils.py helpers are selectively applied, not consistently adopted
 - **See also:** QS-01, QS-06
 
 ### Logging Strategy
-- **System count:** 3 different systems (getLogger, StructuredLogger, RunLogger) + print() in main.py
-- **File coverage:** getLogger in 25+ files, StructuredLogger in ~3 files, RunLogger in ~2 files, print in 1 file
-- **Consistency score:** Low -- no documented guidance on which logger to use when
+- **System count:** 3 different systems (getLogger, StructuredLogger, RunLogger) + print() in 2 files (main.py, validators.py)
+- **File coverage:** getLogger(__name__) in 21 files; StructuredLogger in 2 files (logger.py, utils/__init__.py -- definition only, no active consumers found); RunLogger in 2 files (agent_service.py, run_logger.py); print() in 2 files
+- **Consistency score:** Low -- StructuredLogger has zero consumers in application code (only defined and re-exported), no documented guidance on which logger to use when
 - **See also:** QS-02, 126-FINDINGS.md #DD-main-06
 
 ### Configuration Management
-- **Dual source impact:** Settings (.env) consumed by ~8 files, LLMConfig (YAML) consumed by ~3 files, with 2 files (llm/factory.py and run_pipeline.py) potentially reading different LLM parameters
-- **Files affected:** settings.py, llm/config.py, llm/factory.py, run_pipeline.py, main.py
+- **Dual source impact:** get_settings() consumed by 10 files; LLMConfig/load_config consumed by 3 files (llm/config.py, llm/__init__.py, account_service.py); overlap in LLM parameters between settings.py and llm_config.yaml
+- **Files affected:** settings.py, llm/config.py, llm/factory.py, run_pipeline.py, main.py, account_service.py
 - **Consistency score:** Low -- two configuration sources with overlapping scope
 - **See also:** QS-05, CONCERNS.md "Duplicated LLM configuration paths"
 
 ### Frontend State Management
 - **Pattern count:** 1 pattern repeated 4 times (manual useState+useEffect+fetch)
 - **Installed but unused:** React Query (@tanstack/react-query v5, ~40KB bundle size)
-- **DRY violation:** ~200 lines of identical boilerplate across 4 hooks
+- **DRY violation:** ~200 lines of identical boilerplate across 4 hooks (useTasks, useReports, useDashboard, useBatchProgress)
 - **See also:** QS-03, 127-FINDINGS.md #App.tsx-React-Query
 
 ### Async Blocking I/O
-- **Instance count:** 2 confirmed sync I/O in async context (save_screenshot write_bytes, subprocess.run)
+- **Instance count:** 2 confirmed sync I/O in async context (save_screenshot write_bytes in agent_service.py, subprocess.run in runs_routes.py)
 - **1 correctly handled:** run_pipeline write_text via non_blocking_execute (run_in_executor wrapper)
+- **Unbounded .append() patterns:** 22 files use .append() on long-lived collections; key concerns are event_manager._events, stall_detector._history, and useRunStream steps/timeline
 - **Event loop impact:** Screenshots block 100KB-1MB writes, subprocess blocks up to 180 seconds
-- **See also:** QS-08, 125-FINDINGS.md #Cross-3, 126-FINDINGS.md #DD-runs-11
+- **See also:** QS-07, QS-08, 125-FINDINGS.md #Cross-3, 126-FINDINGS.md #DD-runs-11
 
 ---
 *Phase 128-01 breadth scan complete. Tool results, risk matrix, and cross-reference map produced.*
