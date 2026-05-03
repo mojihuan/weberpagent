@@ -369,6 +369,180 @@ The following maps findings from Phase 125, 126, and 127 to Phase 128 requiremen
 - **Event loop impact:** Screenshots block 100KB-1MB writes, subprocess blocks up to 180 seconds
 - **See also:** QS-07, QS-08, 125-FINDINGS.md #Cross-3, 126-FINDINGS.md #DD-runs-11
 
+## Backend P1 Deep-Dive (MAINT-01/MAINT-02/MAINT-03)
+
+### run_pipeline.py (576 lines, 3 C-grade functions)
+
+#### [BD-01] SRP violation: 6 distinct concerns in orchestrator file
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** run_pipeline.py handles 6 distinct concerns: (1) LLM config resolution (get_llm_config/get_code_gen_llm_config, lines 51-72), (2) precondition execution (_run_preconditions, lines 75-129), (3) authentication/session management (_run_auth_and_session, lines 132-189), (4) assertion execution (_run_ui_assertions + _run_external_assertions + _publish_external_assertion_results, lines 192-337), (5) code generation orchestration (_run_code_generation, lines 340-381), (6) agent lifecycle (run_agent_background + _create_on_step + _finalize_run, lines 384-576). See 125-FINDINGS.md god-module analysis. NEW: The 6 extracted helper functions improved readability but the file still imports 16 symbols (lines 7-38), exceeding the typical module cohesion threshold.
+- **Recommendation:** Extract LLM config functions to `backend/llm/config_helpers.py`. Extract assertion pipeline functions (_run_ui_assertions, _run_external_assertions, _publish_external_assertion_results) to a new `backend/core/assertion_pipeline.py`. This would reduce run_pipeline.py to ~300 lines focused purely on orchestration.
+
+#### [BD-02] Repeated SSE publish pattern (event string construction)
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** The SSE publish pattern `await event_manager.publish(run_id, f"event: {type}\ndata: {event.model_dump_json()}\n\n")` is repeated 9 times across the file (lines 99, 109, 123-124, 219, 257-258, 266-267, 333-334, 420, 467, 573). Each call manually constructs the SSE format string with f-string concatenation. The event_manager.publish API accepts a raw SSE string but does not provide a typed helper for constructing events.
+- **Recommendation:** Add `event_manager.publish_event(run_id, event_type, event_data: BaseModel)` that handles SSE format construction internally. This eliminates 9 instances of format string duplication.
+
+#### [BD-03] Duplicated login JS logic between agent_service and code_generator
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** The JavaScript code for filling login forms (account input via nativeInputValueSetter, password input, button click detection) is duplicated between `agent_service.py` (_fill_login_form, lines 153-218) and `code_generator.py` (_build_login_helper, lines 345-432). Both files contain nearly identical JS snippets: `document.querySelector('input[placeholder="请输入账号"]')`, `Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set`, and `document.querySelectorAll('button')` iteration for login button detection. The code_generator version produces output as Python string lines; the agent_service version executes directly. Any fix to the login logic (e.g., new ERP UI version) requires updating both files.
+- **Recommendation:** Extract login JS templates to a shared module (e.g., `backend/agent/login_js.py`) with parameterized templates. agent_service would execute the template directly; code_generator would emit the template as string literals.
+
+#### [BD-04] _sanitize_variables duplicates JSON-serialization check logic
+- **Severity:** Low
+- **Category:** Maintainability (MAINT-01)
+- **Description:** `_sanitize_variables` (lines 43-48) manually checks `isinstance(v, (str, int, float, bool, list, dict, type(None)))` to filter out non-serializable values. This is a simplified version of JSON serialization filtering. A more robust approach would use `json.dumps` with a default handler or `Pydantic` model serialization, but the current implementation works for the known value types.
+- **Recommendation:** Low priority. Accept for now. If more complex types appear in precondition variables, replace with `json.dumps(value, default=str)` approach.
+
+#### [BD-05] C-grade functions: complexity from multi-branch pipeline stages
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** Three functions grade C on radon cc: `run_agent_background` (the orchestrator), `_run_preconditions` (precondition loop with early return), and `_publish_external_assertion_results` (assertion result iteration with SSE+DB). The orchestrator's complexity comes from the 6-stage pipeline: preconditions -> auth -> agent -> UI assertions -> external assertions -> finalize + codegen. Each stage modifies `final_status` and `global_seq` through mutable counters. The 13-line try block (lines 517-567) with 6 sequential awaits is the primary complexity driver.
+- **Recommendation:** Extract the try block body into `_execute_agent_pipeline()` that returns (final_status, context_for_codegen). This would make run_agent_background a thin wrapper of stage calls, reducing its complexity to A-grade.
+
+### agent_service.py (658 lines, 2 C-grade functions)
+
+#### [BD-06] SRP violation: 5 distinct concerns
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** AgentService handles 5 distinct concerns: (1) browser session creation and lifecycle (create_browser_session, run_with_streaming, run_with_cleanup, lines 47-658), (2) login form filling (_click_password_login_tab, _fill_login_form, _verify_login_success, _programmatic_login, pre_navigate, lines 130-318), (3) screenshot management (save_screenshot, lines 98-128), (4) browser state extraction and DOM hashing (_extract_browser_state, lines 386-414), (5) detector orchestration with step callback (_run_detectors, _extract_agent_output, _create_step_callback, lines 320-533). Concerns 2 and 3 could be extracted to separate services.
+- **Recommendation:** Extract login logic to `backend/core/auth_navigator.py` (login is a distinct workflow unrelated to agent step processing). Extract screenshot logic to `backend/utils/screenshot.py` (pure utility with no agent dependencies).
+
+#### [BD-07] DOM hash computation duplicated between agent_service and monitored_agent
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** See 125-FINDINGS.md Cross-2 for original discovery. NEW quantification: `hashlib.sha256(dom_str.encode('utf-8')).hexdigest()[:12]` appears at agent_service.py:406 and monitored_agent.py:184-186. Both locations call `dom_state.llm_representation()` then hash the result. The duplication means any change to the hash algorithm or representation format must be updated in two places.
+- **Recommendation:** Extract to a shared `compute_dom_hash(dom_state) -> str` function in `backend/agent/dom_utils.py`. Both consumers should call this function.
+
+#### [BD-08] Dual stall detection call: same StallDetector.check() invoked twice per step
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** See 125-FINDINGS.md Cross-2. StallDetector.check() is called from both MonitoredAgent.step_callback (monitored_agent.py:191-196) AND AgentService._run_detectors (agent_service.py:340-344). Both calls happen on every step with the same arguments. This doubles the stall detection count, causing the stall threshold to trigger at half the configured value. This is a correctness issue that was classified as an Architecture concern in Phase 125. From a MAINT-01 perspective, the two call sites mean the detection logic is coupled across two files.
+- **Recommendation:** Remove one of the two call sites. The MonitoredAgent.step_callback is the correct location (it has direct access to the agent). The AgentService._run_detectors call is redundant.
+
+#### [BD-09] C-grade functions: _run_detectors and _extract_agent_output
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** `_run_detectors` (agent_service.py:320-384) complexity comes from 3 sequential detector blocks: stall detection (lines 339-347), failure mode detection (lines 349-368), and progress tracking (lines 374-380), all wrapped in try/except. `_extract_agent_output` (agent_service.py:417-447) complexity comes from 4 attribute checks with hasattr on agent_output (evaluation_previous_goal, memory, next_goal). Both functions are at C-grade (11-20 complexity).
+- **Recommendation:** _run_detectors: Extract failure mode detection block (lines 349-368) to `_detect_failure_mode()`. _extract_agent_output: Use a list comprehension to collect non-None attributes instead of sequential hasattr checks.
+
+#### [BD-10] _create_step_callback is 70-line closure with 5 concerns
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** The step callback closure (agent_service.py:465-532) handles 5 sequential operations: (1) browser state extraction (line 467), (2) agent output extraction (line 470), (3) multi-action interacted_element extraction (lines 473-498), (4) screenshot saving (lines 513-516), (5) detector execution (lines 518-525), (6) external on_step call (lines 528-532). The interacted_element extraction block (lines 480-497) has 4 levels of nesting with try/except inside a for loop inside an if block.
+- **Recommendation:** Extract interacted_element extraction (lines 473-498) to `_extract_action_dicts(agent_output, selector_map) -> list[dict]`. This reduces the closure to sequential calls.
+
+#### [BD-11] Misleading name: _execute_actions does more than execute actions
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** See 125-FINDINGS.md P1-monitored_agent:113-114. MonitoredAgent._execute_actions (monitored_agent.py:87-146) name implies action execution only, but it also runs PreSubmitGuard checks and adds an async sleep for file uploads. The method has 3 distinct behaviors: guard check, action execution, and post-upload wait. The name suggests it is a thin override of the parent method.
+- **Recommendation:** Rename to `_execute_actions_with_guards` or `_run_step_with_monitors` to reflect the full behavior.
+
+#### [BD-12] Misleading name: run_with_cleanup does not perform resource cleanup
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** `AgentService.run_with_cleanup` (agent_service.py:607-658) name suggests resource cleanup (closing browser, releasing connections). In reality, it only wraps run_with_streaming with try/finally for logging. The docstring says "guaranteed cleanup logging" but the method name `run_with_cleanup` implies resource cleanup. No resources are actually cleaned up -- browser-use Agent handles browser lifecycle internally.
+- **Recommendation:** Rename to `run_with_logging` or `run_tracked` to reflect actual behavior.
+
+#### [BD-13] Private attribute mutation on external BrowserSession object
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** See 125-FINDINGS.md P1-agent_service:294,307. agent_service.py sets `browser_session._pre_navigated = True` (lines 294, 307) on BrowserSession, an external class from browser-use. The underscore prefix indicates it is a private attribute. Setting it from outside the class violates encapsulation and depends on browser-use's internal implementation remaining stable. This is also a MAINT-03 concern because `_pre_navigated` is not documented as a public API.
+- **Recommendation:** Track pre-navigation state internally in AgentService rather than mutating the BrowserSession. Pass the flag through the method signature or store it as `self._pre_navigated`.
+
+### code_generator.py (553 lines, F-grade generate function)
+
+#### [BD-14] F-grade generate() function: 190-line code assembly with 8 conditional blocks
+- **Severity:** Critical
+- **Category:** Maintainability (MAINT-02)
+- **Description:** `PlaywrightCodeGenerator.generate` (code_generator.py:69-281) is the only F-grade function in the backend (radon cc > 40). The function builds a Python test file as a list of strings through 8 sequential conditional blocks: (1) assertions import (lines 101-104), (2) re import for url_contains (lines 107-110), (3) logging import (lines 112-116), (4) precondition imports (lines 118-123), (5) HealerError class (lines 126-137), (6) random function definitions (lines 139-159), (7) _get_data helper (lines 146-159), (8) _assert_external helper (lines 162-179), plus login helper injection, variable substitution, and assertion code generation. The function mixes string manipulation (parts.append) with conditional logic and regex processing. Adding a new assertion type requires modifying this function directly (Open/Closed violation).
+- **Recommendation:** Refactor generate() into smaller methods: `_collect_imports()`, `_build_helpers()`, `_build_function_body()`. For the Open/Closed violation, create a registry pattern for assertion type handlers: `_ASSERTION_BUILDERS = {"url_contains": _translate_url_contains, ...}` so new types can be added without modifying generate().
+
+#### [BD-15] Open/Closed violation: adding assertion types requires modifying generate()
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** Adding a new assertion type (e.g., "status_code" or "response_time") requires modifying 3 places in code_generator.py: (1) the imports section to add any needed imports, (2) the `_build_assertions` method to add the elif branch, and (3) a new `_translate_*` method. The assertion type dispatch is a hardcoded elif chain (lines 468-479). This violates Open/Closed principle.
+- **Recommendation:** Create an assertion handler registry: `_ASSERTION_BUILDERS: dict[str, Callable[[str], list[str]]]`. Each handler is a standalone function. New assertion types register without modifying existing code.
+
+#### [BD-16] _build_login_helper returns 82-line list literal
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** `_build_login_helper` (code_generator.py:345-432) returns a list of 82 Python code strings. The function is essentially a template that produces ~40 lines of generated Python code. The template is embedded as string literals with complex JavaScript inside f-strings. This makes it hard to read, test, and modify. The JavaScript template code duplicates agent_service.py login logic (see BD-03).
+- **Recommendation:** Move the login template to a separate `.py.template` file or use Python's string.Template for cleaner parameterized code generation.
+
+### step_code_buffer.py (414 lines)
+
+#### [BD-17] Cross-class private method call: ActionTranslator._identify_action_type
+- **Severity:** Low
+- **Category:** Maintainability (MAINT-03)
+- **Description:** See 125-FINDINGS.md P1-step_code_buffer:63 and QS-14. step_code_buffer.py calls `ActionTranslator._identify_action_type(action_dict)` at lines 63 and 275 -- a private method (underscore prefix) from a different class. This violates encapsulation. If ActionTranslator refactors internal methods, this call breaks silently.
+- **Recommendation:** Make `_identify_action_type` a public `@staticmethod` named `identify_action_type` or extract to a module-level utility function in action_utils.py.
+
+#### [BD-18] Mutable counters dict passed by reference through pipeline
+- **Severity:** Low
+- **Category:** Maintainability (MAINT-03)
+- **Description:** run_pipeline.py creates `counters = {"step_count": 0, "global_seq": global_seq}` (line 514) and passes it to `_create_on_step`. The closure mutates `counters["step_count"]` and `counters["global_seq"]` directly (lines 396-397). This pattern uses a mutable dict as a shared state workaround -- it works but is non-obvious. A reader unfamiliar with Python closure semantics may not realize the dict is shared state.
+- **Recommendation:** Use an explicit dataclass `PipelineCounters` with mutable fields, making the shared state pattern explicit and type-safe.
+
+### monitored_agent.py (227 lines)
+
+#### [BD-19] create_step_callback duplicates detector calls from agent_service
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** monitored_agent.py's `create_step_callback` (lines 148-227) calls stall_detector.check() and task_tracker.check_progress() -- the same calls that agent_service._run_detectors() makes. Both callbacks are active simultaneously during execution: agent_service's step callback is registered via `register_new_step_callback`, AND MonitoredAgent has its own internal callback mechanism. See BD-08 for the dual-call correctness issue. From MAINT-01, this is code duplication.
+- **Recommendation:** Remove the detector calls from MonitoredAgent.create_step_callback. All detector orchestration should go through AgentService._run_detectors, which already handles error wrapping and logging.
+
+#### [BD-20] PreSubmitGuard always receives None parameters (dead code in hot path)
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** See 125-FINDINGS.md P3-pre_submit_guard:109-114. PreSubmitGuard.check() at monitored_agent.py:109-114 is called with `actual_values=None` and `submit_button_text=None` on every click action. The guard's core logic (field validation) is unreachable because it requires non-None actual_values. The function runs 30+ lines of setup code that always produces `should_block=False`. This is effectively a no-op in the hot path.
+- **Recommendation:** Either implement actual value extraction from the DOM (the intended functionality) or remove the PreSubmitGuard call entirely, along with the PreSubmitGuard class.
+
+### dom_patch.py (777 lines, 1 C-grade function)
+
+#### [BD-21] 777-line monkey-patch file with 7 patches on 4 browser-use classes
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** dom_patch.py contains 7 monkey-patches on 4 browser-use internal classes: (1) ClickableElementDetector.is_interactive, (2) PaintOrderRemover.calculate_paint_order, (3) DOMTreeSerializer._should_exclude_child, (4) DOMTreeSerializer._assign_interactive_indices_and_mark_new_nodes, (5-7) DOMTreeSerializer.serialize_tree (3 patches merged). The file has 20+ helper functions, 6 module-level mutable globals (_failure_tracker, _node_annotations, etc.), and complex DOM traversal logic. See CONCERNS.md "Monkey-patching browser-use internals" for the fragility concern. From MAINT-01, the file mixes ERP-specific business logic (IMEI detection, placeholder matching) with browser-use patch mechanics.
+- **Recommendation:** Separate concerns: (1) `dom_patch_core.py` for monkey-patch application and lifecycle, (2) `erp_table_detector.py` for ERP-specific detection logic (_is_textual_td_cell, _detect_row_identity, _is_erp_table_cell_input). This would make the ERP logic testable independently of browser-use.
+
+#### [BD-22] Module-level mutable globals with manual reset functions
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** dom_patch.py uses 4 module-level mutable globals: `_failure_tracker` (dict), `_node_annotations` (dict), `_discovered_placeholders` (list), `_diagnostic_log_emitted` (bool). These are reset by `reset_failure_tracker()` and `_reset_node_annotations()` which use `global` statements. The reset is called from `apply_dom_patch()` (lines 550-551) but only when `_PATCHED` is already True (re-subscription case). This means the reset functions serve dual purpose: clearing state between runs and being called from external code. The naming `reset_failure_tracker` implies it only resets the tracker, but `_reset_node_annotations` also clears `_discovered_placeholders` and `_diagnostic_log_emitted`.
+- **Recommendation:** Encapsulate all mutable state in a `DomPatchState` class with a single `reset()` method. Replace module-level globals with a module-level instance.
+
+### external_execution_engine.py (700 lines, 3 C-grade functions)
+
+#### [BD-23] Mixed abstraction levels: assertion execution + field discovery + operation parsing
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** external_execution_engine.py handles 3 distinct concerns at different abstraction levels: (1) high-level assertion/data method execution (execute_assertion_method, execute_all_assertions, execute_data_method, lines 147-358), (2) low-level AST parsing for field discovery (ParamDictVisitor, parse_assertions_field_py, lines 509-627), (3) source code parsing for operation discovery (_parse_operation_line, _parse_operations_from_source, lines 379-451). The file grew from the original external_precondition_bridge.py split but the concerns are not cleanly separated. The field discovery functions use AST parsing while the execution functions use runtime introspection.
+- **Recommendation:** Split into 3 modules: (1) `external_assertion_executor.py` for assertion execution, (2) `external_field_discovery.py` for AST-based field parsing, (3) `external_operation_parser.py` for operation code parsing.
+
+#### [BD-24] execute_data_method has 2 fallback lookups that duplicate method resolution
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** `execute_data_method` (external_execution_engine.py:294-358) performs method resolution in 3 stages: (1) direct getattr at line 325, (2) docstring-based lookup via `_build_docstring_method_map` at line 328, (3) second `_build_docstring_method_map` call at line 341 for error reporting. The docstring map is built up to twice per method call, even when the first getattr succeeds. The `_build_docstring_method_map` function scans all classes and methods, which is expensive.
+- **Recommendation:** Cache the docstring method map (it's already cached at module level in external_method_discovery.py). Avoid building it twice on failure paths.
+
+### Cross-File DRY Analysis
+
+#### [BD-25] Login JS template duplicated between agent_service and code_generator
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** (Cross-reference BD-03 for per-file analysis.) The JavaScript code for ERP login form filling is duplicated across 2 files: agent_service.py (executed at runtime) and code_generator.py (emitted as generated code). Both contain the same querySelector patterns for account/password inputs and button detection. Total duplicated JS code: ~80 lines across 2 files. This is the most significant DRY violation in the backend.
+- **Recommendation:** Extract to shared login JS templates in `backend/agent/login_js.py`.
+
+#### [BD-26] Mutable dict closures used in 3 pipeline files for state passing
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** Three mutable dict closures are used for state passing in the pipeline: (1) `counters = {"step_count": 0, "global_seq": global_seq}` in run_pipeline.py:514, (2) `step_stats_data = {"value": None}` in agent_service.py:564, (3) `_prev_dom_hash_data = {"value": None}` in agent_service.py:565. These dicts are passed to closures and mutated by side effect. The pattern is consistent across files, suggesting an implicit convention. Using dataclasses would be more explicit.
+- **Recommendation:** Replace with typed dataclasses: `PipelineCounters`, `StepStats`, `DomHashState`.
+
 ---
 *Phase 128-01 breadth scan complete. Tool results, risk matrix, and cross-reference map produced.*
-*Plans 02-03 will deep-dive P1 files identified in risk matrix.*
+*Phase 128-02 Task 1: Backend P1 Deep-Dive MAINT-01/MAINT-02/MAINT-03 complete.*
