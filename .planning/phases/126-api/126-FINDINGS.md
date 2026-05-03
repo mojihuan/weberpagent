@@ -558,3 +558,191 @@ The following P3 files had no significant findings and do not need deep-dive:
 *Findings documented: 2026-05-03*
 *Breadth scan completed: 2026-05-03*
 *Deep-dive (P1 main.py, runs_routes.py, run_pipeline.py) completed: 2026-05-03*
+
+### batches.py (140 lines)
+
+#### [DD-batch-01] POST /api/batches -- asyncio.create_task fire-and-forget with no error callback
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** batches.py:68 creates `asyncio.create_task(service.start(run_configs))` with no `add_done_callback()`. If `service.start()` raises before reaching the first await (e.g., configuration error, import failure), the exception is silently swallowed until the task is garbage collected. This triggers a Python "Task exception was never retrieved" warning. The batch appears "created" in the response (201 Created) but may already have failed internally. The user sees a successful batch creation response but the batch never executes. The BatchExecutionService internally uses `asyncio.gather(return_exceptions=True)` which catches per-run errors, but the outer `service.start()` call itself could fail before reaching gather.
+- **Current Impact:** Low -- batch creation rarely fails immediately in practice.
+- **Public Internet Impact:** Medium -- rapid batch creation with invalid or edge-case task IDs could trigger silent failures with no user feedback.
+- **Recommendation:** Add a done callback for error logging:
+  ```python
+  task = asyncio.create_task(service.start(run_configs))
+  task.add_done_callback(lambda t: logger.error(f"Batch task failed: {t.exception()}") if not t.cancelled() and t.exception() else None)
+  ```
+- **RESEARCH Reference:** Pitfall 5 (fire-and-forget with no error propagation)
+
+#### [DD-batch-02] POST /api/batches -- task_ids format not validated against expected hex ID pattern
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** batches.py:33 iterates `request.task_ids` and calls `task_repo.get(task_id)` for each. The `BatchCreateRequest` schema at db/schemas.py:285 constrains `task_ids: List[str]` with `min_length=1, max_length=50` (list length constraints, not string format). Individual task_id strings are bare `str` with no format validation. Invalid IDs result in 404 responses per task_id, which is correct but produces confusing error messages when one ID in a batch is invalid (the batch partially creates runs for valid IDs before failing on the invalid one).
+- **Recommendation:** Pre-validate all task_ids exist in a single query before creating any runs. Return a clear error listing which task_ids are invalid. Alternatively, validate the 8-char hex format at the schema level.
+- **RESEARCH Reference:** Pitfall 2 (Missing Pydantic Field Constraints)
+
+#### [DD-batch-03] POST /api/batches -- Partial run creation on task_id validation failure
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** batches.py:33-37 validates tasks in a loop. If task 1 is valid but task 2 is invalid, the loop processes task 1 (creating a run at line 45 and linking it to the batch at line 47-48) before encountering the 404 for task 2. The `raise_not_found` at line 36 raises an HTTPException which aborts the request, but the database session may have already committed partial data (line 48 commits after each run creation). This leaves a batch with an incomplete set of runs. The batch service would then execute only the created runs, missing the intended task.
+- **Current Impact:** Low -- users rarely submit batches with invalid task IDs.
+- **Public Internet Impact:** Medium -- could be used to create batches with partial run sets, potentially leading to inconsistent batch execution.
+- **Recommendation:** Validate all task IDs exist before creating any runs. Move the validation loop before run creation:
+  ```python
+  tasks = []
+  for task_id in request.task_ids:
+      task = await task_repo.get(task_id)
+      if not task:
+          raise_not_found("Task", task_id)
+      tasks.append(task)
+  # Only proceed to create runs after all tasks validated
+  ```
+  Note: The current code already has this pattern (tasks list is built first), BUT the session commits happen inside the loop at line 48. If the process crashes between commits, partial state exists.
+- **RESEARCH Reference:** None
+
+#### [DD-batch-04] GET /api/batches/{batch_id} and GET /api/batches/{batch_id}/runs -- batch_id has no format validation
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** batches.py:83 and batches.py:117 accept `batch_id: str` with no format constraints. Invalid batch IDs result in 404 responses via `raise_not_found()`, which is correct. However, the error message format is inconsistent: `raise_not_found("Batch", batch_id)` produces "Batch {batch_id} not found" which leaks the input value into the error message. While not a security issue, extremely long batch_id values would produce very long error messages.
+- **Recommendation:** Add `batch_id: str = Path(..., min_length=1, max_length=32)` for basic validation.
+- **RESEARCH Reference:** Pitfall 2 (Missing Pydantic Field Constraints)
+
+#### [DD-batch-05] No POST /api/batches/{batch_id}/cancel endpoint -- batches cannot be cancelled
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** The batches.py router has no cancel endpoint. Once a batch is created, it cannot be stopped. The BatchExecutionService uses `asyncio.gather` with a semaphore for concurrency control, but there is no cancellation mechanism. If a user creates a batch with 50 tasks and realizes they made a mistake, they have no way to stop execution. The batch will run to completion (or failure) consuming LLM API credits and server resources. Individual runs within the batch can theoretically be stopped via `POST /api/runs/{run_id}/stop` (runs_routes.py:334), but that endpoint has its own limitation (DD-runs-10: it updates status but doesn't cancel the agent).
+- **Recommendation:** Add a `POST /api/batches/{batch_id}/cancel` endpoint that sets the batch status to "cancelled" and signals the BatchExecutionService to skip remaining runs. The service should check batch status before starting each run.
+- **RESEARCH Reference:** None
+
+#### [DD-batch-06] Session management -- batch creates independent session, no transaction boundary
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** batches.py:26 opens `async with async_session() as session:` for the entire batch creation (validate tasks, create batch, create runs). The session commits at line 48 after each run is created and linked. If an error occurs after some runs are committed, the batch exists with partial runs. The session closes at the end of the handler via `async with` context manager. This is acceptable for current use but lacks atomicity.
+- **Recommendation:** Consider wrapping the entire batch creation in a single transaction with a commit at the end, or add cleanup logic to delete the batch and its partial runs on failure.
+- **RESEARCH Reference:** None
+
+### external_assertions.py (211 lines)
+
+#### [DD-ext-assert-01] POST /api/external-assertions/execute -- class_name and method_name flow to getattr() without validation
+- **Severity:** Medium
+- **Category:** Security
+- **Description:** external_assertions.py:200-208 accepts `class_name: str` and `method_name: str` from `AssertionExecuteRequest` (lines 116-117) with no format validation. These values flow to `execute_assertion_method()` at external_execution_engine.py:147 which calls `_resolve_assertion_instance()` that uses the names to look up classes and methods via `getattr()` and `inspect.getmembers()`. While the external module is loaded from a trusted path (WEBSERP_PATH), the class_name and method_name are used as attribute lookup keys without sanitization. An attacker could probe for available Python builtins or internal classes by trying different class names. The execution has a 30-second timeout (line 207), which limits damage per request but does not prevent repeated probing.
+- **Current Impact:** Low -- external module methods are well-defined, and lookup failure produces a safe error response.
+- **Public Internet Impact:** Medium -- combined with no auth, an attacker could enumerate all classes/methods in the external module and call any of them with arbitrary parameters. The `api_params` dict (line 119) is passed to the method as kwargs, potentially allowing SSRF via HTTP calls in the external module.
+- **Recommendation:** Validate class_name and method_name against the discovered method registry. The `require_external_available()` call ensures the module is loaded, and `get_assertion_methods_grouped()` provides the authoritative list of valid class/method combinations. Reject unknown combinations at the route level:
+  ```python
+  valid_methods = get_assertion_methods_grouped()
+  valid_names = {(c['name'], m['name']) for c in valid_methods for m in c['methods']}
+  if (request.class_name, request.method_name) not in valid_names:
+      raise HTTPException(status_code=400, detail=f"Unknown assertion: {request.class_name}.{request.method_name}")
+  ```
+- **RESEARCH Reference:** Pitfall 6 (code execution surface) and breadth scan API-09
+
+#### [DD-ext-assert-02] POST /api/external-assertions/execute -- api_params dict passed as kwargs to external code (SSRF risk)
+- **Severity:** Medium
+- **Category:** Security
+- **Description:** external_assertions.py:119 defines `api_params: dict = {}` with no schema validation. At external_execution_engine.py:177, `api_params` is merged into kwargs and passed to the external assertion method: `method(**call_kwargs)`. If the external assertion method makes HTTP requests (which is its intended purpose -- it calls ERP APIs), the `api_params` dict could influence those HTTP requests. For example, if an api_params key maps to a URL parameter in the external method, the caller controls the URL target. This creates an SSRF vector: the server makes HTTP requests to user-specified targets.
+- **Current Impact:** Low -- single user, external methods are trusted.
+- **Public Internet Impact:** High -- an attacker could make the server send HTTP requests to internal network resources, cloud metadata endpoints (169.254.169.254), or external servers.
+- **Recommendation:** (1) Validate api_params keys against known parameter schemas for the target method. (2) Add URL allowlisting if api_params contains URLs. (3) For public deployment, run external method execution in a network-isolated subprocess.
+- **RESEARCH Reference:** Security Check Matrix (SSRF risk for external_assertions)
+
+#### [DD-ext-assert-03] GET /api/external-assertions/methods -- No try/except around get_assertion_methods_grouped()
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** external_assertions.py:144 calls `get_assertion_methods_grouped()` after `require_external_available()` at line 142. The `require_external_available()` check ensures the module is loaded, but `get_assertion_methods_grouped()` could still raise if the external module's structure has changed (e.g., missing docstrings, import errors in individual classes). The exception would fall through to the global exception handler (main.py:132), returning a 500 with stack trace.
+- **Recommendation:** Wrap `get_assertion_methods_grouped()` in try/except, returning a 503 with a clear message if discovery fails.
+- **RESEARCH Reference:** None
+
+#### [DD-ext-assert-04] POST /api/external-assertions/execute -- Execution errors expose internal exception details
+- **Severity:** Low
+- **Category:** Security
+- **Description:** external_assertions.py:210 returns `AssertionExecuteResponse(**result)` where `result` comes from `execute_assertion_method()`. At external_execution_engine.py:201-204, the `result['error']` field is set to `str(e)` for any exception. This could include file paths, module names, or internal implementation details from the external module. The `error_type` field (line 133) reveals the Python exception type (e.g., "ExecutionError", "ParameterError"), which gives attackers information about the internal implementation.
+- **Current Impact:** Low -- only useful for debugging.
+- **Public Internet Impact:** Low -- error details are from the external module, not the platform itself.
+- **Recommendation:** In production, sanitize error messages to remove file paths and internal details. Return only high-level error descriptions to API consumers.
+- **RESEARCH Reference:** None
+
+### external_data_methods.py (101 lines)
+
+#### [DD-ext-data-01] POST /api/external-data-methods/execute -- class_name/method_name flow to inspect.getmembers and getattr
+- **Severity:** Medium
+- **Category:** Security
+- **Description:** external_data_methods.py:94-98 passes `request.class_name` and `request.method_name` to `execute_data_method()`. At external_execution_engine.py:306-313, `class_name` is compared against `inspect.getmembers()` results (class names from the external module). At line 325, `getattr(instance, method_name, None)` uses the user-provided `method_name` as an attribute lookup key. While the code checks `method is None` and falls back to docstring matching, the initial `getattr` call with arbitrary strings could potentially trigger Python descriptor protocol or `__getattr__` if the class implements custom attribute access.
+- **Current Impact:** Low -- external module classes are well-defined, no custom `__getattr__` known.
+- **Public Internet Impact:** Medium -- same probing risk as DD-ext-assert-01. Attacker can enumerate classes and call arbitrary methods.
+- **Recommendation:** Same as DD-ext-assert-01: validate against the discovered method registry before calling the execution engine.
+- **RESEARCH Reference:** Pitfall 6 (code execution surface)
+
+#### [DD-ext-data-02] POST /api/external-data-methods/execute -- params dict passed as kwargs to external method
+- **Severity:** Medium
+- **Category:** Security
+- **Description:** external_data_methods.py:56 defines `params: dict = {}` with no schema validation. At external_execution_engine.py:353-358, the params dict is passed as keyword arguments to the external method. Similar to DD-ext-assert-02, if the external method makes outbound HTTP calls based on these parameters, this creates an SSRF vector. The `params` dict accepts arbitrary keys and values with no restriction.
+- **Current Impact:** Low -- single user, external methods are trusted.
+- **Public Internet Impact:** High -- SSRF risk via user-controlled parameters flowing to external method HTTP calls.
+- **Recommendation:** Validate params keys against known method parameter schemas. Add URL validation if params may contain URLs.
+- **RESEARCH Reference:** Security Check Matrix (SSRF risk for external_data_methods)
+
+#### [DD-ext-data-03] external_data_methods.py uses Optional[str] instead of str | None
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** external_data_methods.py:9 imports `Optional` from typing and uses it in lines 27, 35, 49, 63. The project convention (CLAUDE.md) prefers `str | None` syntax. While functionally equivalent, this is inconsistent with the rest of the API layer which uses `str | None`.
+- **Recommendation:** Replace `Optional[str]` with `str | None` for consistency.
+- **RESEARCH Reference:** None
+
+#### [DD-ext-data-04] GET /api/external-data-methods -- No error handling if module is partially loaded
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** external_data_methods.py:73 calls `require_external_available()` which checks `loader.is_available()`. If the module is loaded but some classes fail to import (partial state), `is_available()` may return True but `get_data_methods_grouped()` could raise when trying to inspect the failed classes. The error would fall through to the global exception handler.
+- **Recommendation:** Wrap `get_data_methods_grouped()` in try/except, returning a degraded response with available classes.
+- **RESEARCH Reference:** Open Question 3 (External module partial states)
+
+### external_operations.py (88 lines)
+
+#### [DD-ext-ops-01] POST /api/external-operations/generate -- Redundant WEBSERP_PATH check after require_external_available
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** external_operations.py:74 calls `require_external_available()` which internally checks `loader.is_available()`, which already verifies WEBSERP_PATH is configured and the module loads. Then at lines 76-84, the code checks `settings.weberp_path` again and raises 503 if not configured. This is redundant -- if `require_external_available()` passed, WEBSERP_PATH is already validated. The second check adds no protection but adds code complexity.
+- **Recommendation:** Remove the redundant WEBSERP_PATH check at lines 76-84, or document why it exists (defensive programming against race conditions where WEBSERP_PATH becomes unavailable between the two checks).
+- **RESEARCH Reference:** None
+
+#### [DD-ext-ops-02] POST /api/external-operations/generate -- operation_codes format not validated
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** external_operations.py:45 defines `operation_codes: list[str]` with no validation on individual string format or list length. The operation codes are passed to `generate_precondition_code()` at external_execution_engine.py:466 which joins them into a string and embeds them in generated Python code. If an operation code contains a single quote (`'`), it would break the generated f-string at line 468: `f"'{c}'"`. For example, `operation_codes=["test'code"]` would generate `operations(['test'code'])` which is invalid Python syntax. This generated code would be exec()'d by the precondition service, causing a SyntaxError.
+- **Current Impact:** Low -- operation codes come from the discovery endpoint which returns valid codes.
+- **Public Internet Impact:** Low -- could cause precondition execution failure but no security impact.
+- **Recommendation:** Validate that operation_codes match the expected format (alphanumeric + underscores). Add escaping for the f-string at line 468: `f"'{c.replace(chr(39), chr(92)+chr(39))}'"`.
+- **RESEARCH Reference:** None
+
+#### [DD-ext-ops-03] POST /api/external-operations/generate -- Generated code embeds WEBSERP_PATH in sys.path.insert
+- **Severity:** Low
+- **Category:** Security
+- **Description:** external_operations.py:86 calls `generate_precondition_code()` which at external_execution_engine.py:469-470 generates `sys.path.insert(0, '{weberp_path}')`. This embeds the WEBSERP_PATH directory in the generated code string. The generated code is returned in the API response (line 87). If the frontend displays this code to the user, the server's file system path is exposed. Additionally, this generated code is later exec()'d by precondition_service.py with full `__builtins__`, meaning `sys.path.insert` actually modifies the runtime's Python path.
+- **Current Impact:** Low -- the path is internal and single-user.
+- **Public Internet Impact:** Low -- reveals server directory structure in the API response.
+- **Recommendation:** Consider redacting the full path in the API response, or at minimum be aware that this endpoint reveals the WEBSERP_PATH value to API consumers.
+- **RESEARCH Reference:** None
+
+#### [DD-ext-ops-04] GET /api/external-operations -- No error handling for get_operations_grouped() failure
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** external_operations.py:61 calls `get_operations_grouped()` after `require_external_available()` at line 59. If the external module's operation definitions are malformed or the discovery logic encounters an error, the exception propagates to the global handler. Same pattern as DD-ext-assert-03 and DD-ext-data-04.
+- **Recommendation:** Wrap in try/except returning 503 with clear error message.
+- **RESEARCH Reference:** None
+
+#### [DD-ext-ops-05] POST /api/external-operations/generate -- Generated code uses exec() at runtime via precondition_service
+- **Severity:** Medium (current) / Critical (public internet)
+- **Category:** Security
+- **Description:** external_operations.py:86 generates Python code via `generate_precondition_code()`. This code is stored as a precondition and later executed by `precondition_service.execute_single()` which calls `exec()` with full `__builtins__`. The generated code includes `sys.path.insert(0, '{weberp_path}')` and calls arbitrary methods on the external module. The `operation_codes` parameter controls which methods are called. While `require_external_available()` ensures the module exists, the generated code is executed with unrestricted Python access. This is already documented in CONCERNS.md under "exec() for user-provided code".
+- **Current Impact:** Low -- single user, operation codes come from discovery endpoint.
+- **Public Internet Impact:** Critical -- combined with no auth, anyone can generate and execute arbitrary precondition code.
+- **Recommendation:** Already documented in CONCERNS.md. For future: sandbox precondition execution and validate generated code before exec().
+- **CONCERNS.md Reference:** Confirmed -- "exec() for user-provided code"
+- **RESEARCH Reference:** Pitfall 6 (code execution surface)
+
+---
+
+*Findings documented: 2026-05-03*
+*Breadth scan completed: 2026-05-03*
+*Deep-dive (P1 -- all 7 files) completed: 2026-05-03*
