@@ -1016,3 +1016,136 @@ Confirmed: strict mode enabled, `verbatimModuleSyntax: true`, `erasableSyntaxOnl
 - **Category:** N/A
 - **Description:** Clean table component with proper status badges and navigation.
 - **Recommendation:** No action needed.
+
+## Final Summary Statistics
+
+*Summary compiled: 2026-05-03*
+*Includes findings from Plan 01 (breadth scan + ESLint/SSE cross-validation), Plan 02 (P1 deep-dive), Plan 03 (P2/P3 review)*
+
+| Metric | Value |
+|--------|-------|
+| Total files reviewed | 87 |
+| Total lines scanned | ~8,898 |
+| ESLint issues | 18 (15 errors, 3 warnings) |
+| TypeScript compilation errors | 0 |
+| P1 files (deep-dive) | 5 |
+| P2 files (quick scan) | 43 |
+| P3 files (lint/type only) | 39 |
+| **Critical issues** | **0** |
+| **High issues** | **3** |
+| **Medium issues** | **34** |
+| **Low issues** | **58** |
+| **Total actionable findings** | **95** |
+
+### Findings by Priority Tier
+
+| Tier | Files | Findings | Actionable | Description |
+|------|-------|----------|------------|-------------|
+| P1 | 5 | 37 | 37 | SSE core (useRunStream), HTTP client, oversized modal components |
+| P2 | 43 | 56 | 48 | Pages, hooks, API modules, complex components |
+| P3 | 39 | 11 | 3 | Shared components, simple API modules, utilities |
+
+### Findings by Category
+
+| Category | Count |
+|----------|-------|
+| Correctness | 41 |
+| Architecture | 39 |
+| Performance | 15 |
+| Security | 0 |
+
+### Findings by Layer
+
+| Layer | Count |
+|-------|-------|
+| SSE Streaming (useRunStream.ts) | 9 |
+| API Client (client.ts) | 5 |
+| Task Modal Components (DataMethodSelector, TaskForm, AssertionSelector) | 18 |
+| Page Components | 14 |
+| Custom Hooks (4 hooks) | 12 |
+| API Modules (8 files) | 11 |
+| Types (index.ts) | 5 |
+| Run Monitor Components (StepTimeline, ScreenshotPanel, RunHeader, ReasoningLog) | 6 |
+| Report Components (TimelineItemCard, StepItem, ReportTable) | 4 |
+| Other Components (TaskRow, CodeViewerModal) | 4 |
+| SSE Cross-Validation | 5 |
+| P3 Shared/Utility Components | 2 |
+
+### Top 5 Findings (by severity + impact)
+
+1. **[DD-USE-01] useRunStream.ts:44,59,83,110,126,147,163 -- All 7 JSON.parse calls lack try/catch protection.** A single malformed SSE event silently breaks the entire run stream because EventSource catches the listener exception internally, leaving the UI in an inconsistent state with no user feedback. (High/Correctness)
+
+2. **[DD-CLI-01] client.ts:23-29 -- Content-Type header set to application/json for all requests including FormData.** The apiClient always sets Content-Type: application/json, breaking multipart form uploads. The task import endpoint works only because it bypasses apiClient with raw fetch. (High/Correctness)
+
+3. **[SSE-3] useRunStream.ts -- All 7 JSON.parse calls in SSE handlers lack try/catch.** (Duplicate of DD-USE-01, confirmed from breadth scan.) Combined with DD-USE-02 (premature isConnected) and DD-USE-05 (onerror doesn't handle all failure modes), the SSE stream has the highest density of issues in the frontend. (High/Correctness)
+
+4. **[P2-HK-10] All 4 manual-fetch hooks -- React Query installed but unused.** TanStack React Query is configured with QueryClientProvider but no hooks use useQuery/useMutation. All data fetching uses manual useState+useEffect+fetch, reimplementing caching and loading states. CONVENTIONS.md claims React Query is used, which is misleading. (Medium/Architecture)
+
+5. **[DD-USE-04] useRunStream.ts:74-77 -- Steps and timeline arrays grow unbounded with O(n^2) copy cost.** Each step event copies the entire arrays via spread. Combined with missing React.memo on StepTimeline (P2-CMP-03), every step triggers re-rendering of all timeline items. Long-running tests (50+ steps) will cause noticeable UI lag. (Medium/Performance)
+
+### Confirmed CONCERNS.md Issues
+
+| CONCERNS.md Entry | Status | Finding Reference |
+|-------------------|--------|-------------------|
+| "No frontend tests" (Priority: Low) | **Confirmed** | No vitest/jest/mocha/@testing-library in package.json. Zero test files. |
+| "DataMethodSelector 829 lines" | **Confirmed** | 7 findings (DD-DMS-01 through DD-DMS-07), including 5 ESLint errors and 2 dependency warnings |
+| "main.tsx QueryClientProvider" | **Corrected -- in App.tsx** | SSE-3 cross-validation confirmed QueryClientProvider is in App.tsx, not main.tsx. CONTEXT.md was misleading. |
+| "event_manager.py memory leak" (backend mirror) | **Confirmed** | DD-USE-04: timeline/steps arrays grow unbounded in useRunStream. Same pattern as backend EventManager._events. |
+
+### New Issues Not in CONCERNS.md
+
+1. **JSON.parse without try/catch in all SSE handlers** (High) -- 7 unprotected parse calls silently lose events on malformed data (DD-USE-01)
+2. **FormData Content-Type header bug in apiClient** (High) -- breaks file upload, worked around by bypassing apiClient (DD-CLI-01)
+3. **SSE connection state premature set** (Medium) -- isConnected set true before EventSource opens (DD-USE-02, SSE-2)
+4. **Step handler does not deduplicate by index** (Medium) -- backend retries produce duplicate timeline entries (DD-USE-03)
+5. **external_assertions error-path format mismatch** (Medium) -- frontend shows all-zeros summary on backend error (DD-USE-09)
+6. **Retry toast persists after successful retry** (Medium) -- recursive retry logic skips toast.dismiss on success path (DD-CLI-03)
+7. **TaskForm initialData does not reset on null** (Medium) -- edit-to-create switch leaves stale data (DD-TF-01)
+8. **DataMethodSelector empty-to-0 conversion** (Medium) -- clearing numeric input shows 0 (DD-DMS-01)
+9. **DataMethodSelector modal resets all state on close** (Medium) -- accidental close discards all configuration (DD-DMS-06)
+10. **AssertionSelector initialConfigs reference instability** (Medium) -- inline array causes re-initialization (DD-AS-03)
+11. **RunMonitor auto-follow overrides manual selection** (Medium) -- user cannot browse earlier steps during active run (P2-PG-01)
+12. **Dashboard loads all tasks for QuickStart** (Medium) -- no lightweight API for dropdown data (P2-PG-11)
+13. **console.error used in 9+ files** (Low) -- violates coding-style.md across useTasks, useReports, useDashboard, RunMonitor, RunList, TaskDetail, ReportDetail, TaskRow, QuickStart
+14. **React Query gap: installed but unused** (Medium) -- 4 manual hooks should use useQuery (P2-HK-10)
+15. **Missing React.memo on list components** (Medium) -- StepTimeline, TaskRow re-render on every parent update (P2-CMP-03, P2-CMP-12)
+16. **No AbortController in fetch hooks** (Medium) -- unmounted component state updates, response race conditions (P2-HK-02, P2-HK-06)
+17. **CodeViewerModal retry reloads entire page** (Medium) -- window.location.reload() instead of API retry (P2-CMP-09)
+
+### Requirements Coverage
+
+| Requirement ID | Description | Coverage |
+|---------------|-------------|----------|
+| CORR-03 | React component state management, event handling, data flow, SSE event processing | 41 Correctness findings across 87 frontend files |
+| PERF-02 | Rendering performance, large list optimization, unnecessary re-renders, React Query cache strategy | 15 Performance findings covering missing React.memo/useMemo/useCallback, unbounded arrays, missing AbortController |
+
+### Files Requiring No Further Review
+
+The following files had no significant findings:
+- **api/externalOperations.ts** (24 lines) -- clean, well-typed
+- **api/externalAssertions.ts** (32 lines) -- clean, well-typed
+- **api/batches.ts** (19 lines) -- clean, well-typed
+- **pages/Tasks.tsx** (211 lines) -- well-structured with proper modal composition
+- **pages/Reports.tsx** (81 lines) -- clean filter/pagination usage
+- **components/RunMonitor/RunHeader.tsx** (60 lines) -- clean props and rendering
+- **components/Report/StepItem.tsx** (132 lines) -- clean expand/collapse
+- **components/Report/ReportTable.tsx** (92 lines) -- clean table rendering
+- **All P3 shared/utility files** -- LoadingSpinner, StatCard, Layout, Sidebar, NavItem, Button, ConfirmModal, roleLabels, retry.ts, reasoningParser.ts, barrel index files
+
+### Cross-Phase Correlation
+
+| Phase 125/126 Finding | Phase 127 Frontend Mirror |
+|----------------------|--------------------------|
+| event_manager.py memory leak: _events dict grows without cleanup (125) | DD-USE-04: useRunStream timeline/steps arrays grow unbounded with O(n^2) spread copy cost |
+| SSE stream missing try/except in event_generator (126, DD-runs-04) | DD-USE-01: All 7 JSON.parse calls in SSE handlers lack try/catch -- frontend mirror of backend error handling gap |
+| Precondition failure skips "started" SSE event (125, P1) | DD-USE-07: started handler ignores task_name/run_id; if "started" event is skipped, frontend run stays null, all subsequent handlers return prev unchanged |
+| Batch fire-and-forget in asyncio.create_task (126, DD-batch-01) | P2-HK-11/P2-HK-12: useBatchProgress polls with 2s interval, no abort on unmount, no guard against in-flight request overlap |
+| client.ts retry is linear not exponential (127-02, DD-CLI-04) | N/A -- frontend-only finding with no backend mirror |
+| PreSubmitGuard dead code (125) | N/A -- backend-only, no frontend mirror |
+
+---
+
+*Plan 01 breadth scan completed: 2026-05-03*
+*Plan 02 P1 deep-dive completed: 2026-05-03*
+*Plan 03 P2/P3 review completed: 2026-05-03*
+*Final summary compiled: 2026-05-03*
