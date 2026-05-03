@@ -87,7 +87,7 @@
 
 **Milestone Goal:** 对整个代码库进行系统性代码审查，按 6 个维度输出具体发现和改进建议
 
-- [ ] **Phase 125: 后端核心逻辑审查** — 审查 agent/core/pipeline 的正确性、耦合度和抽象合理性
+- [x] **Phase 125: 后端核心逻辑审查** — 审查 agent/core/pipeline 的正确性、耦合度和抽象合理性 (completed 2026-05-03)
 - [ ] **Phase 126: API 层与安全审查** — 审查路由正确性和安全风险
 - [ ] **Phase 127: 前端审查** — 审查 React 组件逻辑正确性和前端性能
 - [ ] **Phase 128: 代码质量审查** — 审查可维护性、横切关注点和异步性能
@@ -108,8 +108,8 @@
 
 Plans:
 - [x] 125-01-PLAN.md — Breadth scan + auxiliary tools (ruff/mypy) on all 31 files, produce risk matrix
-- [ ] 125-02-PLAN.md — Deep-dive review of 5 P1 pipeline-critical files (run_pipeline, agent_service, code_generator, step_code_buffer, monitored_agent)
-- [ ] 125-03-PLAN.md — P2 supporting services review + architecture analysis (coupling + abstraction) + final summary
+- [x] 125-02-PLAN.md — Deep-dive review of 5 P1 pipeline-critical files (run_pipeline, agent_service, code_generator, step_code_buffer, monitored_agent)
+- [x] 125-03-PLAN.md — P2 supporting services review + architecture analysis (coupling + abstraction) + final summary
 
 ### Phase 126: API 层与安全审查
 **Goal**: 所有 API 路由的正确性和安全风险得到全面审查，输出具体发现清单
@@ -174,7 +174,7 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 125. 后端核心逻辑审查 | 1/3 | In Progress|  |
+| 125. 后端核心逻辑审查 | 3/3 | Complete   | 2026-05-03 |
 | 126. API 层与安全审查 | 0/? | Not started | - |
 | 127. 前端审查 | 0/? | Not started | - |
 | 128. 代码质量审查 | 0/? | Not started | - |

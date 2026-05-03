@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
-status: Ready to execute
-stopped_at: Completed 125-01 breadth scan
-last_updated: "2026-05-03T03:13:12.436Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 125-03 P2 review + architecture analysis
+last_updated: "2026-05-03T03:27:30.610Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 125 (backend-core-review) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -57,6 +57,14 @@ Recent decisions affecting current work:
 - Test suite was deleted in v0.11.0; TEST-01/TEST-02 will identify what needs rebuilding
 - [Phase 125]: P1 deep-dive: run_pipeline, agent_service, code_generator, step_code_buffer, monitored_agent
 - [Phase 125]: Dual stall detection identified: MonitoredAgent + agent_service both call stall_detector.check() per step, inflating failure counts
+- [Phase 125]: Dual stall detection: same StallDetector instance called twice per step in MonitoredAgent and agent_service, inflating failure counts to half configured threshold
+- [Phase 125]: ContextWrapper isinstance check at run_pipeline.py:543 silently skips variable_map for all tasks with preconditions
+- [Phase 125]: Pre-click 3s wait in step_code_buffer._derive_wait is misplaced (before click not after), combined with post-click = 6.5s per click in generated code
+- [Phase 125]: PreSubmitGuard confirmed dead code: actual_values=None and submit_button_text=None always passed from monitored_agent.py
+- [Phase 125]: P2 files reviewed: precondition_service, stall_detector, assertion_service, event_manager, test_flow_service, batch_execution
+- [Phase 125]: Coupling analysis: run_pipeline.py god-module (13+ deps), batch_execution.py upward dependency to API layer
+- [Phase 125]: assertion_service check_element_exists confirmed as high-severity stub (always returns True)
+- [Phase 125]: 9 new issues identified that are not in CONCERNS.md
 
 ### Pending Todos
 
@@ -68,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T03:13:12.434Z
-Stopped at: Completed 125-01 breadth scan
+Last session: 2026-05-03T03:27:30.608Z
+Stopped at: Completed 125-03 P2 review + architecture analysis
 Resume file: None
