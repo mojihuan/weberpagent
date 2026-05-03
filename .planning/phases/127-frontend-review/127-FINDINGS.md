@@ -614,3 +614,405 @@ Confirmed: strict mode enabled, `verbatimModuleSyntax: true`, `erasableSyntaxOnl
 - **Category:** Architecture
 - **Description:** The `updateFieldParams` function (lines 165-188) nests `setConfigs` inside the `setFieldParamsMap` callback (line 173). This creates a two-level nested setState chain: `setFieldParamsMap(prev => { ... setConfigs(prevConfigs => { ... }) ... })`. The `updatedFieldParams` variable from the outer callback is used inside the inner callback, creating a closure dependency. While React batches these correctly, this pattern is fragile and hard to test. The field_params synchronization between `fieldParamsMap` (Map) and `configs.field_params` (Record) is redundant state that must be kept in sync manually.
 - **Recommendation:** Derive `configs.field_params` from `fieldParamsMap` at confirm time (in `handleConfirm`) rather than keeping them synchronized in real-time. This eliminates the nested setState and the redundant state.
+
+## P2 Findings
+
+### types/index.ts (456 lines)
+
+### [P2-TYP-01] types/index.ts:91,334,339,353 -- Four `any` type usages in SSE event and API request types
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** Four locations use `any` type, all flagged by ESLint `no-explicit-any`:
+  - Line 91: `variables?: Record<string, any>` in `SSEPreconditionEvent` -- should be `Record<string, unknown>` since variable types are dynamic
+  - Line 334: `params: Record<string, any>` in `ExecuteDataMethodRequest` -- should be `Record<string, string | number>` to match the backend's parameter types
+  - Line 339: `data?: Array<Record<string, any>>` in `ExecuteDataMethodResponse` -- should be `Array<Record<string, unknown>>` since the response shape is dynamic
+  - Line 353: `parameters: Record<string, any>` in `DataMethodConfig` -- should be `Record<string, string | number>` since parameters are user inputs of string or number type
+- **Recommendation:** Replace all `any` with appropriate types. Use `unknown` for truly dynamic data and `string | number` for known union types.
+
+### [P2-TYP-02] types/index.ts:91 vs backend schemas.py:51 -- TypeScript `SSEPreconditionEvent.variables` typed as `Record<string, any>` but backend sends `Optional[dict]`
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** The frontend type declares `variables?: Record<string, any>` while the backend `SSEPreconditionEvent` schema uses `variables: Optional[dict]`. The types are compatible, but the `any` on the frontend side means any property access on `variables` is untyped. The backend can return nested dicts, arrays, or primitives as variable values, so `Record<string, unknown>` is more appropriate.
+- **Recommendation:** Change to `Record<string, unknown>` and add type narrowing at usage sites.
+
+### [P2-TYP-03] types/index.ts:42 -- RunStatus type does not include 'stopped' status used in RunList.tsx
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** `RunStatus` is defined as `'pending' | 'running' | 'success' | 'failed'` (line 42). However, `RunList.tsx` line 9 defines a `statusConfig` that includes a `'stopped'` status with label "已停止". At line 105, `run.status` is cast via `as keyof typeof statusConfig`, which would map `'stopped'` to the `stopped` config if the backend ever returns it. The backend `Run.status` field does not have a 'stopped' value in its current schema, but the frontend anticipates it. This is a type mismatch that TypeScript does not catch because of the cast.
+- **Recommendation:** Either add `'stopped'` to the `RunStatus` type (if the backend can produce it) or remove the `'stopped'` entry from `statusConfig` (if it cannot).
+
+### [P2-TYP-04] types/index.ts -- Task status type 'success' differs from backend which allows 'draft' | 'ready' | 'success' for read but 'draft' | 'ready' for write
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** The `Task.status` type (line 11) is `'draft' | 'ready' | 'success'` which matches the backend `TaskResponse`. However, `UpdateTaskDto.status` (line 35) restricts to `'draft' | 'ready'`, matching the backend's `TaskUpdate.status` pattern `^(draft|ready)$`. The `success` status is set by the system, not by user updates. This is correctly modeled. No issue.
+- **Recommendation:** No action needed. The types correctly reflect backend constraints.
+
+### [P2-TYP-05] types/index.ts:45-60 -- Run interface mixes SSE-received data with frontend-computed data
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** The `Run` interface includes `steps: Step[]`, `preconditions?: SSEPreconditionEvent[]`, `timeline: TimelineItem[]`, and `assertion_summary?`. These fields are assembled by `useRunStream` from individual SSE events, not received as a single response from the backend. The `Run` type is also used in `api/runs.ts` for `listRuns()` and `getRun()` which return persisted run data. The SSE-assembled Run and the API-returned Run may have different shapes (e.g., API returns `steps` with persisted data, SSE assembles `timeline` from events). This dual use of the same type is a potential source of confusion.
+- **Recommendation:** Consider separating `SSEStreamRun` (built incrementally from events) from `APIRun` (returned from REST endpoints). The current approach works because the shared fields overlap sufficiently, but it conflates two different data sources.
+
+### hooks/useTasks.ts (135 lines)
+
+### [P2-HK-01] hooks/useTasks.ts:34 -- console.error violates coding-style.md
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 34: `console.error('Failed to fetch tasks:', error)` violates the project coding style rule against console.log statements. Should use toast or silent error handling.
+- **Recommendation:** Replace with `toast.error('加载任务失败')` or remove the catch block and let the error propagate.
+
+### [P2-HK-02] hooks/useTasks.ts:25-38 -- No AbortController for fetch cancellation on unmount
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The `fetchTasks` function (lines 25-38) does not use an AbortController. If the component unmounts while the fetch is in-flight (e.g., user navigates away quickly), the response will arrive and call `setTasks` and `setLoading` on an unmounted component. In React 18+ this does not cause a console warning, but it still performs unnecessary state updates and can cause issues with tests. The `useReports.ts` and `useDashboard.ts` hooks have the same pattern.
+- **Recommendation:** Add an AbortController in the useEffect that calls fetchTasks, and abort on cleanup.
+
+### [P2-HK-03] hooks/useTasks.ts:44-75 -- Client-side sorting of entire task list on every filter change
+- **Severity:** Medium
+- **Category:** Performance
+- **Description:** The `filteredTasks` useMemo (lines 44-75) sorts the entire `tasks` array on every render when `tasks`, `sortBy`, or `sortOrder` change. The `tasks` array comes from the API call which returns ALL tasks without pagination (the API has no server-side pagination). For a task list of 100+ items, this sort runs on every filter change. The sort itself is O(n log n) but the real issue is that the API returns all tasks instead of paginating server-side.
+- **Recommendation:** Add server-side pagination and sorting to the task list API. The client-side sort is fine for current scale (~50 tasks) but will degrade with more data.
+
+### [P2-HK-04] hooks/useTasks.ts:96-101 -- batchDelete uses Promise.all without error handling per-item
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** `batchDelete` (lines 96-101) calls `tasksApi.batchDelete(selectedIds)` which internally uses `Promise.all(ids.map(id => apiClient(...)))`. If one deletion fails, `Promise.all` rejects immediately and the remaining deletions are not attempted. The user sees an error but some tasks may already be deleted while others are not. The `selectedIds` are cleared regardless (line 99), so the user cannot easily retry the failed deletions.
+- **Recommendation:** Use `Promise.allSettled` in `tasksApi.batchDelete` and report partial failures to the user.
+
+### hooks/useReports.ts (93 lines)
+
+### [P2-HK-05] hooks/useReports.ts:59 -- console.error violates coding-style.md
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 59: `console.error('Failed to fetch reports:', err)` violates coding style.
+- **Recommendation:** Same as P2-HK-01 -- replace with toast or remove.
+
+### [P2-HK-06] hooks/useReports.ts:34-63 -- No abort controller, fetch races with filter changes
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** When the user rapidly changes filters (e.g., switching status from 'all' to 'failed' to 'success'), each change triggers a new `fetchReports` call. Without an AbortController, the responses may arrive out of order. If the 'success' filter response arrives before the 'failed' filter response, the UI briefly shows the correct data then overwrites it with stale data from the 'failed' filter. The `filters` object is included in `fetchReports` dependency array (line 63), but the response handler does not verify that the response corresponds to the current filter state.
+- **Recommendation:** Use an AbortController in the useEffect, aborting the previous fetch when filters change. Alternatively, add a request sequence counter and ignore stale responses.
+
+### [P2-HK-07] hooks/useReports.ts:70-72 -- setPage(1) on filter change triggers redundant re-render
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** The `setPage(1)` call in the useEffect (lines 70-72) triggers when `filters` changes. This causes an additional re-render cycle: filter change -> render -> setPage(1) -> render -> fetchReports -> render. The page reset could be combined with the filter update in `updateFilter` (line 78) where `setPage(1)` is already called (line 79 in useTasks pattern), but useReports uses a separate useEffect instead.
+- **Recommendation:** Move the `setPage(1)` call into the filter update path rather than using a separate useEffect, eliminating the redundant render.
+
+### hooks/useDashboard.ts (43 lines)
+
+### [P2-HK-08] hooks/useDashboard.ts:22 -- console.error violates coding-style.md
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 22: `console.error('Failed to fetch dashboard data:', err)` violates coding style.
+- **Recommendation:** Same as P2-HK-01.
+
+### [P2-HK-09] hooks/useDashboard.ts:35-41 -- refetch function creates new closures on every render
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** The `refetch` function (lines 35-41) is defined inline in the return object rather than using `useCallback`. A new function reference is created on every render. Any component receiving this refetch as a prop will re-render. Currently, no component passes refetch as a prop, so this is not an active issue.
+- **Recommendation:** Wrap in `useCallback` for consistency with other hooks, or document that refetch is intentionally unstable.
+
+### [P2-HK-10] All 4 manual-fetch hooks -- React Query installed but unused
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** All four data-fetching hooks (useTasks, useReports, useDashboard, useBatchProgress) use manual `useState + useEffect + fetch` pattern instead of React Query's `useQuery`. The project has `@tanstack/react-query` installed and `QueryClientProvider` configured in App.tsx. React Query provides automatic caching, stale-while-revalidate, retry, and refetch-on-window-focus out of the box. The manual hooks re-implement some of these features (e.g., useBatchProgress polling, useReports loading state) but miss others (no background refetch, no cache invalidation, no optimistic updates). CONVENTIONS.md claims the project uses "TanStack React Query (server state) + useState (local state)" but this is not reflected in the actual code.
+- **Recommendation:** Migrate hooks to use React Query's useQuery/useMutation. This eliminates the manual loading/error state management, adds caching, and aligns with the documented architecture. Alternatively, remove the @tanstack/react-query dependency and update CONVENTIONS.md.
+
+### hooks/useBatchProgress.ts (68 lines)
+
+### [P2-HK-11] hooks/useBatchProgress.ts:65 -- eslint-disable on useEffect dependencies
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 65: `// eslint-disable-line react-hooks/exhaustive-deps` suppresses the warning about missing `loading` in the dependency array. The `loading` variable is used inside the effect (line 35) but is not in the dependency array `[batchId, refetchCounter]`. If `loading` changes from `true` to `false` without `batchId` or `refetchCounter` changing, the effect does not re-run and `loading` retains its stale value within the effect closure. This is safe because `loading` is only read for the conditional `setLoading(false)` which is idempotent, but the eslint-disable masks the dependency issue.
+- **Recommendation:** Document why the eslint-disable is safe, or restructure to avoid referencing `loading` inside the effect.
+
+### [P2-HK-12] hooks/useBatchProgress.ts:55-57 -- Interval starts before first fetch completes
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** `fetchData()` is called at line 55, then `setInterval(fetchData, 2000)` starts at line 57 immediately after, without waiting for the initial fetch to complete. If the initial fetch takes longer than 2 seconds (unlikely but possible on slow networks), the interval fires before the first response arrives, causing concurrent fetches to the same endpoint. The `completedRef` guard prevents this after completion, but there is no guard for in-flight requests.
+- **Recommendation:** Start the interval only after the initial fetch completes, using `await fetchData()` followed by `setInterval` in a try/finally block.
+
+### pages/RunMonitor.tsx (132 lines)
+
+### [P2-PG-01] pages/RunMonitor.tsx:24-28 -- set-state-in-effect auto-follows timeline, triggers on every timeline update
+- **Severity:** Medium
+- **Category:** Performance
+- **Description:** The useEffect at lines 24-28 runs on every `run?.timeline?.length` change and calls `setViewIndex(run.timeline.length - 1)`. This is the "auto-follow latest step" feature. However, if the user manually clicks an earlier step (changing `viewIndex` via `handleTimelineItemClick` or `handleViewChange`), the next SSE event will override their selection and jump back to the latest step. The user cannot browse earlier steps while the run is in progress because every new event resets their position. Additionally, the ESLint `react-hooks/set-state-in-effect` rule flags line 26 because `setViewIndex` is called synchronously in the effect body rather than in an event handler.
+- **Recommendation:** Add a "follow mode" flag that disables auto-scroll when the user manually selects a step. Re-enable follow mode when the user scrolls to the bottom or clicks a "follow latest" button.
+
+### [P2-PG-02] pages/RunMonitor.tsx:38 -- console.error in task name fetch
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 38: `console.error('Failed to fetch task:', error)` violates coding style. The comment says "Keep default task name instead of crashing" which is a good fallback, but the console.error should be replaced.
+- **Recommendation:** Remove the console.error or replace with a silent catch.
+
+### [P2-PG-03] pages/RunMonitor.tsx:88 -- Complex inline filter expression for RunHeader currentStep count
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 88 computes `currentStep` for RunHeader using a complex inline expression: `run.timeline.filter(i => i.type === 'step' ? (i.data.status === 'success' || i.data.status === 'failed') : (i.data.status === 'success' || i.data.status === 'failed')).length`. This filter counts completed timeline items (steps, preconditions, and assertions all use the same status check). The duplicated ternary with identical branches `(i.data.status === 'success' || i.data.status === 'failed')` is unnecessary -- it could be simplified to `run.timeline.filter(i => i.data.status === 'success' || i.data.status === 'failed').length`. Also, this computation runs on every render without memoization.
+- **Recommendation:** Simplify to `run.timeline.filter(i => i.data.status === 'success' || i.data.status === 'failed').length` and wrap in `useMemo` if performance matters.
+
+### pages/TaskDetail.tsx (174 lines)
+
+### [P2-PG-04] pages/TaskDetail.tsx:41,59,78,93 -- Four console.error statements violate coding-style.md
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Lines 41, 59, 78, 93 all contain `console.error('Failed to ...:', error)` for task loading, runs loading, stats loading, and run execution. Four violations in one file.
+- **Recommendation:** Replace with toast.error for user-facing errors, or remove console.error for non-critical failures.
+
+### [P2-PG-05] pages/TaskDetail.tsx:32-84 -- Three parallel useEffect hooks load data independently without coordination
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** Three separate useEffect hooks (lines 32-48, 50-66, 68-84) each independently load task data, runs, and stats. Each has its own loading state (`loading`, `runsLoading`, `statsLoading`). This means the page renders three times with incremental data, and the initial render shows three separate loading spinners. A coordinated approach (e.g., `Promise.all` in a single useEffect) would reduce render cycles and provide a single loading state. The current approach also makes three separate network requests that could potentially be batched.
+- **Recommendation:** Consider using a single useEffect with `Promise.all` to load all data simultaneously, providing a unified loading state.
+
+### pages/ReportDetail.tsx (114 lines)
+
+### [P2-PG-06] pages/ReportDetail.tsx:17 -- set-state-in-effect ESLint error
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Line 17: `setLoading(true)` is flagged by `react-hooks/set-state-in-effect` as a synchronous setState in an effect. This is a common pattern for setting loading state before an async fetch. The ESLint rule flags it because effects should ideally not trigger re-renders synchronously. However, this is the standard pattern used throughout the codebase.
+- **Recommendation:** This is a false positive in the ESLint rule for the standard loading pattern. Consider adding an eslint-disable comment with explanation, or restructuring to initialize loading state as true.
+
+### [P2-PG-07] pages/ReportDetail.tsx:22 -- console.error violates coding-style.md
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 22: `console.error('Failed to fetch report:', err)` violates coding style.
+- **Recommendation:** Same as P2-HK-01.
+
+### [P2-PG-08] pages/ReportDetail.tsx:88-109 -- Legacy fallback creates inline objects without stable identity
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** When `timeline_items` is not available (lines 88-101), the code maps `data.steps` to create inline `ReportTimelineStep` objects. These objects are created fresh on every render because they are inside the JSX expression. Each object gets a `key` of `${item.type}-${item.id}` where `id` is `legacy-${idx}`, which is stable. The inline creation is fine for the fallback path since it only runs when `timeline_items` is absent, but the IIFE wrapper `(()) => { ... })()` in JSX is unusual.
+- **Recommendation:** Extract the `displayItems` computation to a `useMemo` above the return statement for cleaner JSX and memoization.
+
+### pages/RunList.tsx (156 lines)
+
+### [P2-PG-09] pages/RunList.tsx:57 -- console.error violates coding-style.md
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 57: `console.error('Failed to fetch runs:', err)` violates coding style.
+- **Recommendation:** Same as P2-HK-01.
+
+### [P2-PG-10] pages/RunList.tsx:105 -- Type assertion on status with keyof typeof statusConfig
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Line 105: `run.status as keyof typeof statusConfig` casts `run.status` to one of the statusConfig keys. If the backend returns a status not in statusConfig (e.g., 'stopped'), the `|| statusConfig.pending` fallback handles it gracefully. However, the cast hides the type mismatch between `Run.status` (RunStatus) and the statusConfig keys (which include 'stopped').
+- **Recommendation:** This is a symptom of P2-TYP-03. Fix the RunStatus type to include all possible statuses.
+
+### pages/Dashboard.tsx (53 lines)
+
+### [P2-PG-11] pages/Dashboard.tsx:7 -- useTasks() loads ALL tasks just for QuickStart selector
+- **Severity:** Medium
+- **Category:** Performance
+- **Description:** Dashboard.tsx calls `useTasks()` at line 7 solely to get `allTasks` for the `QuickStart` component. This triggers a full task list API call (with no server-side pagination) on every Dashboard mount. The `useTasks` hook also computes sorting and pagination that Dashboard doesn't need. If there are 100+ tasks, this is wasteful.
+- **Recommendation:** Create a lightweight `useTaskNames()` hook that only fetches task names and IDs for the QuickStart selector, or add a dedicated API endpoint for the QuickStart dropdown.
+
+### pages/Tasks.tsx (211 lines)
+
+### [P2-PG-12] pages/Tasks.tsx -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** The Tasks page is well-structured with proper modal composition, confirmation dialogs, and state management. Uses `useTasks` hook correctly. Error handling uses toast for batch execution errors. No significant findings beyond the underlying hook issues documented above.
+- **Recommendation:** No action needed.
+
+### pages/BatchProgress.tsx (98 lines)
+
+### [P2-PG-13] pages/BatchProgress.tsx:15 -- useBatchProgress called with batchId! non-null assertion
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Line 15: `useBatchProgress(batchId!)` uses the `!` non-null assertion on `batchId` which comes from `useParams`. If the route parameter is missing (e.g., navigating to `/batches/` without an ID), `batchId` is undefined and the hook will receive `undefined` instead of a string. The hook does not guard against undefined `batchId`, so the API call will fail with a malformed URL.
+- **Recommendation:** Add a guard: `if (!batchId) return <Navigate to="/" />` before calling the hook, or add a guard inside the hook.
+
+### pages/Reports.tsx (81 lines)
+
+### [P2-PG-14] pages/Reports.tsx -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean implementation using `useReports` hook with proper filter handling and pagination. Error state includes retry button. No significant findings.
+- **Recommendation:** No action needed.
+
+### components/RunMonitor/StepTimeline.tsx (285 lines)
+
+### [P2-CMP-01] StepTimeline.tsx:248 -- Array index used as key for timeline items
+- **Severity:** Medium
+- **Category:** Performance
+- **Description:** Line 248: `key={index}` uses the array index as the React key for timeline items. When items are stable (appending only), index keys work correctly. However, if the timeline ever supports reordering, removal, or insertion, index keys cause React to misassociate DOM elements. For the current append-only pattern, this is safe but fragile. Combined with the fact that each timeline item has unique data (step index, precondition index, assertion_id), a stable key could be constructed.
+- **Recommendation:** Use a composite key like `key={`${item.type}-${item.type === 'step' ? item.data.index : item.type === 'precondition' ? item.data.index : item.data.assertion_id}`}` for more stable identity.
+
+### [P2-CMP-02] StepTimeline.tsx:171,194 -- Array index used as key for field_results
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** Lines 171 and 194: `key={idx}` for field result items. Field results are static (received once per assertion event, never reordered), so index keys are safe. However, if two field results have identical content, React may not distinguish them correctly during reconciliation.
+- **Recommendation:** Use `key={fr.field_name || fr.name || idx}` for more stable identity.
+
+### [P2-CMP-03] StepTimeline.tsx:46-285 -- No React.memo on StepTimeline component
+- **Severity:** Medium
+- **Category:** Performance
+- **Description:** The `StepTimeline` component re-renders every time the parent `RunMonitor` re-renders, which happens on every SSE event (because `run` state changes). The component receives `items`, `currentStepIndex`, `onItemClick`, and `isRunning` as props. `items` is a new array reference on every SSE event (because useRunStream creates a new timeline via spread). Without `React.memo`, StepTimeline re-renders on every step, including re-rendering all existing timeline items. For a 50-step run, this means 50 timeline items re-render on every new step.
+- **Recommendation:** Wrap StepTimeline in `React.memo`. For the `items` prop, consider passing a version counter or using a ref-based approach to avoid unnecessary re-renders.
+
+### components/RunMonitor/ReasoningLog.tsx (64 lines)
+
+### [P2-CMP-04] ReasoningLog.tsx:31 -- Array index used as key for step items
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** Line 31: `key={index}` for reasoning step divs. Steps are append-only, so index keys are safe for the current use case.
+- **Recommendation:** Use `key={step.index}` for more stable identity, since step indices are unique.
+
+### components/RunMonitor/ScreenshotPanel.tsx (130 lines)
+
+### [P2-CMP-05] ScreenshotPanel.tsx:18 -- imageLoaded state not reset when steps change
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** `imageLoaded` state (line 18) is initialized as `false` and set to `true` on `onLoad`. When the user navigates between steps via prev/next buttons, `setImageLoaded(false)` is correctly called (lines 29, 35). However, if a new step arrives via SSE while viewing the current step (because `currentViewIndex` hasn't changed but `steps[currentViewIndex]` is a new object with a different screenshot URL), the `onLoad` event won't fire for the old image, and `imageLoaded` stays `true` while the new image loads. The `src` attribute change should trigger a new load, but the transition effect (`opacity-0` to `opacity-100`) may flash.
+- **Recommendation:** Add a `useEffect` that resets `imageLoaded` to `false` when the `steps[currentViewIndex]?.screenshot` URL changes.
+
+### components/RunMonitor/RunHeader.tsx (60 lines)
+
+### [P2-CMP-06] RunHeader.tsx -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean component with proper prop types. Inline style for progress bar width is acceptable for dynamic values. No significant findings.
+- **Recommendation:** No action needed.
+
+### components/Report/TimelineItemCard.tsx (247 lines)
+
+### [P2-CMP-07] TimelineItemCard.tsx:32 -- API_BASE for screenshot URL computed inside component body
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 32: `const API_BASE = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:11002'` is computed inside `StepExpandedContent`. This creates a new string on every render. The same computation exists in `api/reports.ts` line 82 as a module-level constant. The component should use the API module's constant rather than duplicating the URL construction logic.
+- **Recommendation:** Export the `API_BASE_FOR_IMAGES` constant from `api/reports.ts` and import it in TimelineItemCard, or create a shared `config.ts` for API base URLs.
+
+### [P2-CMP-08] TimelineItemCard.tsx:143,195 -- Array index used as key for field results
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Lines 143 and 195: `key={idx}` for field results. Same pattern as P2-CMP-02.
+- **Recommendation:** Use `key={field.field_name || idx}` for more stable identity.
+
+### components/TaskDetail/CodeViewerModal.tsx (175 lines)
+
+### [P2-CMP-09] CodeViewerModal.tsx:123 -- "Retry" button reloads entire page instead of retrying the API call
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** Line 123: `<button onClick={() => window.location.reload()}>` reloads the entire page when code loading fails. This is poor UX -- the user loses their position and all state. The modal has access to `task.latest_run_id`, so it could retry `getRunCode(task.latest_run_id)` instead.
+- **Recommendation:** Replace `window.location.reload()` with a retry function that calls `getRunCode(task.latest_run_id)` again, resetting `codeLoading` and `codeError` states.
+
+### [P2-CMP-10] CodeViewerModal.tsx:48-67 -- Polling interval not cleared when execState changes away from waiting/running
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** The polling useEffect (lines 48-67) creates a `setInterval` when `execState` is 'waiting' or 'running'. The cleanup function clears the interval when the effect re-runs or unmounts. However, if the component unmounts between the `execState` change (e.g., user closes the modal while polling) and the next effect execution, the interval is cleared by the cleanup. This is correctly handled by React's effect cleanup. No issue.
+- **Recommendation:** No action needed. The cleanup pattern is correct.
+
+### components/TaskList/TaskRow.tsx (140 lines)
+
+### [P2-CMP-11] TaskRow.tsx:30 -- console.error in handleExecute
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 30: `console.error('Failed to start run:', error)` violates coding style. The error is silently swallowed -- the user sees no feedback when run execution fails from the task row.
+- **Recommendation:** Replace with `toast.error('启动执行失败')` for user feedback.
+
+### [P2-CMP-12] TaskRow.tsx:17-140 -- No React.memo on TaskRow component
+- **Severity:** Medium
+- **Category:** Performance
+- **Description:** TaskRow is rendered in a list by TaskTable. When the parent re-renders (e.g., due to selection state change in a sibling row), all TaskRow instances re-render. Each TaskRow has a `handleExecute` async function that captures `task.id` in a closure. Without `React.memo`, every parent state change causes all rows to re-render and recreate their event handlers.
+- **Recommendation:** Wrap TaskRow in `React.memo`. Extract `handleExecute` to a stable callback (passed from parent) to avoid closure recreation.
+
+### api/tasks.ts (113 lines)
+
+### [P2-API-01] api/tasks.ts:27-56 -- Import functions bypass apiClient for FormData, using raw fetch with hardcoded API_BASE
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** The `importPreview` and `importConfirm` functions (lines 29-56) bypass the `apiClient` wrapper and use raw `fetch` directly. They correctly handle FormData (not setting Content-Type). However, they duplicate error handling logic from apiClient and use a separate `IMPORT_API_BASE` constant (line 27) instead of the shared apiClient configuration. This means retry logic, toast notifications, and error formatting from apiClient are not applied to import operations.
+- **Recommendation:** This is actually a workaround for DD-CLI-01 (client.ts always sets Content-Type: application/json for FormData). Once DD-CLI-01 is fixed, these functions can be migrated back to apiClient.
+
+### [P2-API-02] api/tasks.ts:93-95 -- batchDelete sends parallel DELETE requests instead of a batch endpoint
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** `batchDelete` (line 93) and `batchUpdateStatus` (line 97) send individual API requests per task via `Promise.all(ids.map(id => apiClient(...)))`. There is no batch delete/update API endpoint on the backend. For 50 selected tasks, this creates 50 concurrent HTTP requests. The backend has no rate limiting, so this works but is inefficient.
+- **Recommendation:** Add batch API endpoints to the backend (DELETE /tasks/batch, PUT /tasks/batch/status) or use sequential requests with a concurrency limit.
+
+### api/reports.ts (172 lines)
+
+### [P2-API-03] api/reports.ts:82 -- API_BASE_FOR_IMAGES duplicated across reports.ts and TimelineItemCard.tsx
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** The `API_BASE_FOR_IMAGES` constant (line 82) is duplicated in `TimelineItemCard.tsx` line 32 and `reports.ts` line 82. If the URL construction logic changes, both must be updated.
+- **Recommendation:** Extract to a shared config module (e.g., `api/config.ts`).
+
+### [P2-API-04] api/reports.ts:82 -- VITE_API_BASE env variable used inconsistently
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Line 82: `import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:11002'` strips '/api' from the env variable. Other files (runs.ts:33, tasks.ts:27) use `import.meta.env.VITE_API_BASE || 'http://localhost:11002/api'` with '/api' included. The inconsistency means `VITE_API_BASE` is expected to include '/api' in some files but not in others.
+- **Recommendation:** Standardize the env variable meaning: either always include '/api' or never include it. Use a single shared config for the base URL.
+
+### api/runs.ts (61 lines)
+
+### [P2-API-05] api/runs.ts:44-53 -- getRunCode bypasses apiClient for plain text response
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** `getRunCode` (lines 44-53) uses raw `fetch` instead of `apiClient` because the endpoint returns plain text (Python code), not JSON. It handles errors with `toast.error` and throws. This is a valid reason to bypass apiClient, but it duplicates the error handling pattern.
+- **Recommendation:** Add a `apiClientText` variant that handles non-JSON responses, or document why raw fetch is used here.
+
+### [P2-API-06] api/runs.ts:38 -- startRun labeled "Mock" but is the actual implementation
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 37-41: The comment says `// Mock: 启动执行 (保留向后兼容)` but the function calls `createRun` which is a real API call. The "Mock" label is misleading -- this is the production implementation.
+- **Recommendation:** Remove the "Mock" label and update the comment to accurately describe the function.
+
+### api/externalDataMethods.ts (38 lines)
+
+### [P2-API-07] api/externalDataMethods.ts:26 -- `any` type for execute params
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 26: `params: Record<string, any> = {}` uses `any`. Should be `Record<string, string | number>` to match the type constraint in `DataMethodConfig.parameters`.
+- **Recommendation:** Change to `Record<string, string | number>`.
+
+### api/externalOperations.ts (24 lines)
+
+### [P2-API-08] api/externalOperations.ts -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean API module with proper types and apiClient usage.
+- **Recommendation:** No action needed.
+
+### api/externalAssertions.ts (32 lines)
+
+### [P2-API-09] api/externalAssertions.ts -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean API module with proper types and apiClient usage.
+- **Recommendation:** No action needed.
+
+### api/dashboard.ts (44 lines)
+
+### [P2-API-10] api/dashboard.ts:39-42 -- Status type cast from string to union
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 41: `status: run.status as 'success' | 'failed' | 'running'` casts the API string response to the frontend union type. If the backend adds a new status, this cast silently passes it through without type checking.
+- **Recommendation:** Add runtime validation or use a type guard for API responses.
+
+### api/batches.ts (19 lines)
+
+### [P2-API-11] api/batches.ts -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean API module with proper types and apiClient usage.
+- **Recommendation:** No action needed.
+
+### components/Report/StepItem.tsx (132 lines)
+
+### [P2-CMP-13] StepItem.tsx -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean component with proper expand/collapse state, screenshot viewer, and reasoning display.
+- **Recommendation:** No action needed.
+
+### components/Report/ReportTable.tsx (92 lines)
+
+### [P2-CMP-14] ReportTable.tsx -- No significant issues found
+- **Severity:** N/A
+- **Category:** N/A
+- **Description:** Clean table component with proper status badges and navigation.
+- **Recommendation:** No action needed.
