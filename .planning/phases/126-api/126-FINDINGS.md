@@ -741,8 +741,267 @@ The following P3 files had no significant findings and do not need deep-dive:
 - **CONCERNS.md Reference:** Confirmed -- "exec() for user-provided code"
 - **RESEARCH Reference:** Pitfall 6 (code execution surface)
 
+## P2 Findings (CRUD Routes)
+
+*P2 review completed: 2026-05-03*
+*Scope: tasks.py, reports.py, runs.py*
+
+### tasks.py (159 lines)
+
+#### [P2-tasks-01] POST /api/tasks -- create_task returns raw ORM Task object, not TaskResponse
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** tasks.py:123 returns `await repo.create(data)` which is an ORM `Task` object. The endpoint declares `response_model=TaskResponse`, so FastAPI serializes the ORM object via `TaskResponse.model_validate()`. However, the ORM Task has different field names and structures than TaskResponse (e.g., ORM has `external_assertions` column while TaskResponse expects `assertions`). The conversion works because FastAPI uses `from_attributes=True` on the Pydantic model and the ORM-to-Pydantic field mapping is handled. But the return type annotation says `TaskResponse` while the actual returned object is `Task` -- this is a type annotation mismatch that confuses static analysis (2 mypy errors from breadth scan).
+- **Recommendation:** Either wrap the return in `TaskResponse.model_validate(result)` explicitly, or change the return type annotation to `Task`.
+- **RESEARCH Reference:** Breadth scan API-10
+
+#### [P2-tasks-02] GET /api/tasks -- list_tasks returns all tasks with no pagination
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** tasks.py:106-115 calls `repo.list()` which returns all tasks from the database. There is no pagination support (no page/page_size parameters). The `TaskRepository.list()` method at repository.py:64-70 eagerly loads `Task.assertions` and `Task.runs` via `selectinload()` for every task. As the number of tasks grows, this endpoint becomes increasingly slow. For 100+ tasks, each with multiple runs, the response size and query time grow linearly. Each task requires building `_build_task_dict()` which iterates `task.runs` to find the latest.
+- **Recommendation:** Add pagination parameters with reasonable defaults (e.g., `page: int = 1, page_size: int = 20`). ReportRepository already implements pagination (reports.py:24-25); apply the same pattern to TaskRepository.
+- **RESEARCH Reference:** CONCERNS.md "No pagination on task and run lists"
+
+#### [P2-tasks-03] GET /api/tasks/{task_id} -- task_id is bare str with no format validation
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** tasks.py:128 accepts `task_id: str` with no Field constraints. Expected format is 8-char hex (from `uuid4().hex[:8]`), but any string is accepted including empty strings, extremely long strings, or strings with special characters. Invalid IDs result in 404 via `raise_not_found()`, which produces a message like "Task {task_id} not found" -- this leaks the raw input value into the error message. An extremely long or maliciously crafted task_id would appear in the error response and any server logs.
+- **Recommendation:** Add `task_id: str = Path(..., min_length=1, max_length=32, pattern="^[a-f0-9]+$")` for basic format validation. This matches the pattern used for IDs throughout the codebase.
+- **RESEARCH Reference:** Breadth scan API-06
+
+#### [P2-tasks-04] PUT /api/tasks/{task_id} -- update_task returns ORM Task directly
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** tasks.py:149 returns `updated` which is `Task | None` from `repo.update()`. Unlike `get_task` (line 134) which explicitly converts via `TaskResponse.model_validate(_build_task_dict(task))`, `update_task` returns the raw ORM object. FastAPI's `response_model=TaskResponse` handles the conversion, but the returned data may differ from `get_task` because `_build_task_dict()` adds computed fields (`has_code`, `latest_run_id`) that the raw ORM Task does not have. After an update, the response lacks these computed fields.
+- **Recommendation:** Use the same `_build_task_dict() + TaskResponse.model_validate()` pattern as `get_task` for consistent response data.
+
+#### [P2-tasks-05] DELETE /api/tasks/{task_id} -- No cascade deletion, associated runs remain
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** tasks.py:152-159 deletes a task via `repo.delete(task_id)`. The delete operation only removes the Task row. Associated runs (Run records with `task_id` foreign key), steps, screenshots, assertion results, and generated code files remain in the database and on disk. If the database has ON DELETE CASCADE (not verified), the runs would be deleted automatically. If not, orphaned runs persist with a dangling `task_id` reference. The generated code files in `outputs/{run_id}/` are never cleaned up.
+- **Recommendation:** Verify the SQLite schema has `ON DELETE CASCADE` on the `runs.task_id` foreign key. If not, add explicit cascade deletion or document that task deletion leaves orphaned data. Add cleanup of generated files in `outputs/`.
+- **RESEARCH Reference:** None
+
+#### [P2-tasks-06] POST /api/tasks/import/confirm -- Re-parses Excel file (stateless but redundant)
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** tasks.py:74-103 re-reads and re-parses the uploaded Excel file during the confirm step. The design is intentionally stateless (per project decision D-06 from v0.9.0) -- the file is uploaded again rather than cached server-side. This means the confirm endpoint performs the same file validation and parsing as the preview endpoint. If the file differs between preview and confirm, the confirm operates on the new file content. The `async with db.begin()` at line 87 provides atomic transaction rollback on any error, which is correct.
+- **Recommendation:** The stateless design is acceptable. Document that the file must be re-uploaded for confirm. Consider adding a checksum validation to detect if the file changed between preview and confirm.
+- **RESEARCH Reference:** None
+
+#### [P2-tasks-07] POST /api/tasks/import/confirm -- Task objects created without explicit ID generation
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** tasks.py:98 creates `Task(**task_data, status="draft")` without explicitly setting an ID. The ORM model's `generate_id()` default (uuid4().hex[:8]) handles ID generation, but this bypasses the `TaskRepository.create()` method which may apply additional transformations (like JSON serialization of fields). The `task_data` dict is constructed from `row.data` which comes from `parse_excel()` -- the field names must exactly match the ORM Task columns. If the Excel template has a field mismatch, the `Task(**task_data)` call raises a TypeError.
+- **Recommendation:** This is acceptable for the current implementation. The Excel template and ORM columns are kept in sync. Consider validating field names against the ORM model before batch insertion.
+
+### reports.py (126 lines)
+
+#### [P2-reports-01] GET /api/reports/{report_id} -- report_id is bare str with no format validation
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** reports.py:44-45 accepts `report_id: str` with no Field constraints. The endpoint also uses the same value as a fallback `run_id` (lines 57-58). Both report_id and run_id are expected to be 8-char hex strings. Without validation, arbitrary strings flow into two database queries. Invalid IDs result in 404 via `HTTPException`, which is correct behavior.
+- **Recommendation:** Add `report_id: str = Path(..., min_length=1, max_length=32)` for basic validation.
+- **RESEARCH Reference:** Breadth scan API-06
+
+#### [P2-reports-02] GET /api/reports/{report_id} -- transform_assertion_results type annotation is wrong
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** reports.py:94 declares `results: list[dict[str, Any]]` but the actual items are ORM `AssertionResult` objects (from `report_service.get_report_data()` at report_service.py:156 which calls `assertion_result_repo.list_by_run()`). The function accesses `ar.id`, `ar.run_id`, `ar.assertion_id` etc. via attribute access (not dict key access). This causes 7 mypy errors (dict has no attribute .id, .run_id, etc.). The code works at runtime because the items ARE objects, but the type annotation is misleading.
+- **Recommendation:** Fix the type annotation: `results: list[AssertionResult]` (import the ORM model). This eliminates the 7 mypy errors and makes the code self-documenting.
+
+#### [P2-reports-03] GET /api/reports/{report_id} -- Lazy import of RunRepository inside handler
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** reports.py:68-69 imports `RunRepository` inside the handler function via `from backend.db.repository import RunRepository`. This is a lazy import to avoid circular dependencies or reduce module-level import cost. However, `ReportRepository` is imported at the module level (line 8). The inconsistency suggests the `RunRepository` import was added later and not moved to the top. The import is executed on every request to this endpoint.
+- **Recommendation:** Move the import to the module level. The import cost is negligible (same file already imported at module level) and it improves code readability.
+- **RESEARCH Reference:** None
+
+#### [P2-reports-04] GET /api/reports/{report_id} -- Two database queries for report lookup (report_id + run_id fallback)
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** reports.py:54-58 performs two sequential database lookups: first `report_repo.get(report_id)`, then `report_repo.get_by_run_id(report_id)` if the first fails. This is a fallback pattern that allows using either a report ID or a run ID in the URL. However, there is no validation to distinguish between the two -- any string is tried as a report_id first, and only if that fails, as a run_id. For the common case (valid report_id), this is efficient. For run_id lookups, it always requires two queries.
+- **Recommendation:** This is acceptable for the current scale. The fallback pattern is user-friendly. No action needed.
+
+#### [P2-reports-05] GET /api/reports -- Pagination properly implemented with Query constraints
+- **Severity:** N/A (verified correct)
+- **Category:** Correctness
+- **Description:** reports.py:24-25 properly validates pagination parameters via `Query(default=1, ge=1)` for page and `Query(default=10, ge=1, le=100)` for page_size. This is the good pattern that should be applied to other list endpoints (tasks.py, runs_routes.py list_runs). The report_repo.list() returns both data and total count for proper pagination metadata.
+- **Recommendation:** None needed. This is the reference implementation for pagination.
+
+### runs.py (7 lines)
+
+#### [P2-runs-01] Clean backward-compatible re-exports
+- **Severity:** N/A
+- **Category:** Architecture
+- **Description:** runs.py is a 7-line file that re-exports `router` from runs_routes.py and `run_agent_background` from run_pipeline.py. The `noqa: F401` annotations suppress unused import warnings since these are re-exported for backward compatibility. This file exists because runs.py was split into runs_routes.py (HTTP endpoints) and run_pipeline.py (pipeline logic) in Phase 124 (v0.11.0).
+- **Recommendation:** None needed. Clean re-export shim per project convention.
+
+## P3 Findings (Simple Routes)
+
+*P3 review completed: 2026-05-03*
+*Scope: dashboard.py, response.py, routes/__init__.py*
+
+*Note: dashboard.py, response.py, and __init__.py were initially reviewed during the breadth scan (Plan 01). This section provides the structured P3 audit with additional depth per the plan checklist.*
+
+### dashboard.py (97 lines)
+
+#### [P3-dash-01] GET /api/dashboard -- No error handling for database query failures
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** dashboard.py:16-96 performs 5+ database queries (total_tasks, total_runs, success_runs, today_runs, 7x trend day queries, recent_runs join) with no try/except wrapping. If any query fails (e.g., database locked, connection error, schema mismatch), the exception propagates to the global exception handler in main.py which returns a 500 error with stack trace. While the global handler catches the error, the dashboard endpoint is the landing page and a 500 error on first load creates poor user experience. The trend query loop (lines 42-67) performs 14 individual queries (7x count + 7x success count) which could be optimized into 1-2 aggregate queries.
+- **Recommendation:** Wrap the dashboard queries in try/except, returning a degraded response with empty data if the database is unavailable. For optimization: replace the 14 trend queries with a single `GROUP BY date` query.
+- **RESEARCH Reference:** Breadth scan P3 dashboard.py
+
+#### [P3-dash-02] GET /api/dashboard -- Uses datetime.now() instead of timezone-aware UTC
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** dashboard.py:28,44 uses `datetime.now()` for date calculations (today_start, date_start). This means the dashboard statistics are timezone-dependent on the server's local time. If the server is in UTC+8 and the user expects UTC+8, this works correctly. But if the server timezone differs from the user timezone, the "today" and "7-day trend" calculations will be incorrect. The SQLite `created_at` timestamps are stored without timezone information (datetime objects with no tzinfo), so the comparison is consistent within the server.
+- **Recommendation:** Consider using timezone-aware datetime or documenting the expected server timezone. For internal single-user deployment where the server and user share the same timezone, this is acceptable.
+- **RESEARCH Reference:** Breadth scan P3 dashboard.py
+
+#### [P3-dash-03] GET /api/dashboard -- No user input parameters, read-only aggregation
+- **Severity:** N/A (verified correct)
+- **Category:** Security
+- **Description:** The dashboard endpoint accepts no user-controlled parameters. All queries use hardcoded values and server-side date calculations. No SQL injection, XSS, or input validation concerns apply.
+- **Recommendation:** None needed. The endpoint is inherently safe from input-based attacks.
+
+### response.py (84 lines)
+
+#### [P3-resp-01] success_response() and error_response() are completely unused
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** response.py defines `success_response()`, `error_response()`, and `ErrorCodes` class. None of these are imported or used by any route file in the codebase. Routes return Pydantic models directly (success) or rely on global exception handlers (errors). The documented API format `{"success": true, "data": {...}}` from CLAUDE.md is only enforced on error responses via global handlers. The `ApiResponse` and `ErrorResponse` Pydantic models are also unused. This is 85 lines of dead code.
+- **Recommendation:** Either (a) remove the unused code to reduce confusion, or (b) adopt the standard response wrapper across all routes. If removed, update CLAUDE.md to document the actual response format (Pydantic models for success, standard wrapper for errors).
+- **RESEARCH Reference:** Breadth scan P3 response.py
+
+#### [P3-resp-02] ErrorCodes class defines constants never used
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** response.py:79-84 defines `ErrorCodes` with 4 constants (`NOT_FOUND`, `VALIDATION_ERROR`, `INTERNAL_ERROR`, `BAD_REQUEST`). None of these are used by any route or the global exception handlers (which hardcode error code strings like `"HTTP_xxx"`, `"VALIDATION_ERROR"`, `"INTERNAL_ERROR"`). The `ErrorCodes.VALIDATION_ERROR` matches the string used in main.py's validation error handler, but the handler uses the string literal directly rather than importing the constant.
+- **Recommendation:** If response.py is retained, refactor main.py to use `ErrorCodes` constants instead of string literals. If response.py is removed, this is moot.
+
+### routes/__init__.py (5 lines)
+
+#### [P3-init-01] Only exports tasks and runs, missing 6 other route modules
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** routes/__init__.py:3 imports only `tasks` and `runs`, but main.py registers 8 route modules directly: tasks, runs, reports, dashboard, external_operations, external_data_methods, external_assertions, batches. The `__init__.py` is not used for route registration (main.py imports each module directly), but it is misleading -- a developer looking at `__init__.py` would think only tasks and runs exist. The `__all__` list also only includes these two.
+- **Recommendation:** Either (a) update `__init__.py` to export all 8 route modules for discoverability, or (b) add a comment documenting that main.py is the sole registration point and this file is informational only.
+- **RESEARCH Reference:** Breadth scan P3 routes/__init__.py
+
+## Final Summary Statistics
+
+*Summary compiled: 2026-05-03*
+*Includes findings from Plan 01 (breadth scan), Plan 02 (P1 deep-dive), Plan 03 (P2/P3 review)*
+
+| Metric | Value |
+|--------|-------|
+| Total API files reviewed | 13 |
+| Total supporting files reviewed | 2 (helpers.py, schemas/index.py) |
+| Total lines scanned | ~2,269 |
+| ruff issues | 17 (5 fixable, 12 intentional E402) |
+| mypy errors (API files) | 58 |
+| **Critical issues** | **0** |
+| **High issues** | **2** |
+| **Medium issues** | **27** |
+| **Low issues** | **49** |
+| **Total actionable findings** | **78** |
+
+### Findings by Priority Tier
+
+| Tier | Files | Findings | Description |
+|------|-------|----------|-------------|
+| P1 | 7 | 38 | Code execution routes, SSE streams, security-critical endpoints |
+| P2 | 3 | 12 | CRUD routes (tasks, reports) + backward-compat re-exports |
+| P3 | 3 | 8 | Dashboard, unused response helpers, incomplete exports |
+
+### Findings by Category
+
+| Category | Count |
+|----------|-------|
+| Correctness | 23 |
+| Security | 13 |
+| Architecture | 15 |
+| Performance | 7 |
+
+### Findings by File
+
+| File | Findings | Highest Severity |
+|------|----------|-----------------|
+| main.py | 8 | Medium (DD-main-02, DD-main-05, DD-main-07, DD-main-08) |
+| runs_routes.py | 12 | High (DD-runs-06) |
+| run_pipeline.py | 8 | Medium (DD-pipe-03, DD-pipe-06) |
+| batches.py | 6 | Medium (DD-batch-01, DD-batch-03, DD-batch-05) |
+| external_assertions.py | 4 | Medium (DD-ext-assert-01, DD-ext-assert-02) |
+| external_data_methods.py | 4 | Medium (DD-ext-data-01, DD-ext-data-02) |
+| external_operations.py | 5 | Medium (DD-ext-ops-05) |
+| tasks.py | 7 | Low (all findings are Low) |
+| reports.py | 5 | Low (all findings are Low) |
+| runs.py | 1 | N/A (clean re-exports) |
+| dashboard.py | 3 | Low |
+| response.py | 2 | Low |
+| routes/__init__.py | 1 | Low |
+
+### Top 5 Findings (by severity + impact)
+
+1. **[DD-runs-06] runs_routes.py:299-305 -- Code execution endpoint missing `_validate_code_path()` before `subprocess.run`.** The `execute_run_code` endpoint passes `run.generated_code_path` to `subprocess.run(["uv", "run", "pytest", ...])` without re-validating the path. If the database path is tampered, arbitrary Python files execute with server-level permissions. (High/Security, Public Internet: Critical)
+
+2. **[DD-main-08] main.py -- No authentication or authorization middleware on any endpoint.** All 20+ endpoints are unauthenticated. Combined with CORS `allow_origins=["*"]`, the full API surface is accessible from any origin. Sensitive endpoints include subprocess execution, batch execution, and external code execution. (Medium/Security, Public Internet: Critical)
+
+3. **[DD-runs-09] runs_routes.py:67-80 -- Plaintext credentials flow to conftest.py on disk.** `_build_login_credentials()` returns a dict with the actual ERP password, which is written to `conftest.py` as string literals. Credentials flow through the code generation pipeline and are visible via the code viewer API. (Medium/Security, Public Internet: Medium)
+
+4. **[DD-ext-assert-02] external_assertions.py -- api_params dict passed as kwargs to external code creates SSRF risk.** User-controlled `api_params` dict flows to external assertion methods that make HTTP requests. An attacker could redirect the server to internal resources or cloud metadata endpoints. (Medium/Security, Public Internet: High)
+
+5. **[DD-runs-11] runs_routes.py:108 -- subprocess.run is synchronous blocking call in async context.** `_execute_code_background` calls `subprocess.run()` which blocks the event loop for up to 180 seconds, stalling all other async handlers including SSE events and concurrent runs. (Medium/Performance)
+
+### Confirmed CONCERNS.md Issues
+
+| CONCERNS.md Entry | Status | Finding Reference | Public Internet Severity |
+|-------------------|--------|-------------------|--------------------------|
+| CORS allows all origins | Confirmed | DD-main-01 (main.py:77-83) | Critical |
+| No authentication/authorization | Confirmed | DD-main-08 (all routes) | Critical |
+| Stack traces exposed in production | Confirmed | DD-main-02 + DD-main-05 (main.py:44,146) | High |
+| Credentials in generated test files | Confirmed | DD-runs-09 + Phase 125 code_generator.py:198-201 | Medium |
+| LLM API keys logged partially | Noted (out of API scope) | auth_service.py:85 | Medium |
+| exec() for user code | Noted (out of API scope) | DD-ext-ops-05 + Phase 125 precondition_service.py:243 | Critical |
+
+### New Issues Not in CONCERNS.md
+
+1. **Code execution path validation gap** (High) -- execute_run_code does not validate file path before subprocess.run (DD-runs-06)
+2. **Screenshot FileResponse path traversal** (Medium) -- no validation on database-sourced screenshot paths (DD-runs-05)
+3. **SSE stream error handling** (Medium) -- event_generator has no try/except/finally (DD-runs-04)
+4. **Fire-and-forget batch execution** (Medium) -- no error callback on asyncio.create_task (DD-batch-01)
+5. **External route identifier validation** (Medium) -- class_name/method_name flow to globals() lookup (DD-ext-assert-01, DD-ext-data-01)
+6. **SSRF via external assertion api_params** (Medium) -- user-controlled dict flows to HTTP requests (DD-ext-assert-02, DD-ext-data-02)
+7. **Synchronous subprocess.run in async context** (Medium) -- blocks event loop for 180s (DD-runs-11)
+8. **Stop run does not cancel agent** (Medium) -- status update only, agent continues running (DD-runs-10)
+9. **CORS credentials=True with origin=* is browser-blocked** (Medium) -- misleading configuration (DD-main-01)
+10. **Response format inconsistency** (Low) -- three different response patterns across routes (API-08)
+11. **Path parameter validation gaps** (Low) -- all IDs are bare str with no format constraints (API-06)
+12. **Unused response.py helpers** (Low) -- 85 lines of dead code (P3-resp-01)
+13. **reports.py type annotation wrong** (Low) -- dict type hint for ORM objects, 7 mypy errors (P2-reports-02)
+14. **Incomplete __init__.py exports** (Low) -- only 2 of 8 route modules listed (P3-init-01)
+15. **Precondition failure skips "started" SSE event** (Medium) -- frontend may miss run start (DD-pipe-03)
+16. **Plaintext credentials in task description for LLM** (Medium) -- login fallback embeds password in prompt (DD-pipe-06)
+
+### Files Requiring No Further Review
+
+The following files had no significant findings and do not need deep-dive:
+- **runs.py** -- clean backward-compat re-exports, no logic (P2-runs-01)
+- **dashboard.py** -- read-only aggregation with no user input, low-risk (P3-dash-03)
+
+### Requirements Coverage
+
+| Requirement ID | Description | Coverage |
+|---------------|-------------|----------|
+| CORR-02 | API route correctness: parameter validation, error handling, boundary conditions | 78 actionable findings covering all 13 route files |
+| SEC-01 | Security risks: path traversal, CSRF, exec() safety, unsafe config, SSRF | 13 Security-category findings across 9 route files |
+
 ---
 
 *Findings documented: 2026-05-03*
 *Breadth scan completed: 2026-05-03*
 *Deep-dive (P1 -- all 7 files) completed: 2026-05-03*
+*P2/P3 review completed: 2026-05-03*
+*Final summary compiled: 2026-05-03*
