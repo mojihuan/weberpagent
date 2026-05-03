@@ -700,7 +700,317 @@ The following maps findings from Phase 125, 126, and 127 to Phase 128 requiremen
 - **Description:** RunLogger.log_browser (run_logger.py:91) calls `dom_path.write_text(dom_content, encoding="utf-8")` synchronously. This is called from agent_service._extract_browser_state which is called from the step callback. The DOM content can be tens of KB. While this is a smaller I/O than screenshots (BD-35), it still blocks the event loop during the write.
 - **Recommendation:** Low priority. If BD-35 is fixed by offloading the entire step callback I/O to a thread pool, this is also resolved.
 
+## Frontend P1 Deep-Dive (MAINT-01/MAINT-02/MAINT-03)
+
+### JsonTreeViewer.tsx (221 lines, ESLint complexity 26)
+
+#### [FD-01] Recursive component with 7 type-dispatch branches and duplicate click handler logic
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** JsonNode (JsonTreeViewer.tsx:22-185) handles 7 distinct type branches: null (line 39), boolean (line 51), number (line 63), string (line 75), array (line 87), object (line 135), fallback (line 184). The null/boolean/number/string branches all share identical structure: a `<span>` with `cursor-pointer hover:bg-gray-100 px-0.5 rounded` classes, an `onClick` calling `onFieldClick?.(path, value)`, an optional `isSelected` check with `<Check>` icon. This click-handler pattern is repeated 4 times with only the color class and value display changing. The array and object branches share identical expand/collapse toggle logic (ChevronDown/ChevronRight toggle, collapsed summary text, expanded children mapping). These two branches duplicate the entire expand/collapse UI pattern (lines 88-131 vs 136-180).
+- **Recommendation:** Extract a `PrimitiveValue` component for null/boolean/number/string rendering (parameterized by color class and display text). Extract a `CollapsibleNode` component for array/object expand/collapse logic. This would reduce JsonNode from complexity 26 to ~12.
+
+#### [FD-02] array index used as React key in array rendering
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** JsonTreeViewer.tsx:111 uses `key={index}` for array items and line 160 uses `key={key}` for object entries. For object entries, the key is stable. For array items, the index-based key causes unnecessary re-renders when the array is modified (insertions/deletions). Since this viewer is read-only (no mutations to the data), the practical impact is low, but it establishes a pattern that could be copied to mutable lists.
+- **Recommendation:** Low priority. Accept for read-only viewer. Add a code comment noting this is acceptable because the data is immutable.
+
+### TaskForm.tsx (560 lines, ESLint complexity 24)
+
+#### [FD-03] SRP violation: form management + 3 child modal coordinators + validation + submission
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** TaskForm.tsx handles 5 distinct concerns: (1) form field management (name, description, target_url, max_steps, login_role, lines 34-75), (2) Operation Code Selector coordination (selectorOpen, selectorIndex, operationsLoading/Available/Error + handleOpenSelector/handleSelectorConfirm/handleSelectorCancel, lines 47-51, 134-178), (3) Data Method Selector coordination (dataSelectorOpen, dataSelectorIndex, dataMethodsLoading/Available/Error + handleOpenDataSelector/handleDataSelectorConfirm/handleDataSelectorCancel, lines 53-58, 181-235), (4) Assertion Selector coordination (assertionSelectorOpen + handleAssertionSelectorConfirm/handleAssertionSelectorCancel/handleRemoveAssertion, lines 60-61, 238-256), (5) validation and submission (validate, handleSubmit, lines 77-109). Each modal coordinator adds ~6 state variables and 3 handler functions. The 3 coordinators follow an identical pattern (open/loading/available/error state + open/confirm/cancel handlers) but are implemented independently.
+- **Recommendation:** Extract a generic `useModalCoordinator(fetchFn)` hook that manages open/loading/available/error state and provides open/confirm/cancel handlers. This would reduce TaskForm by ~80 lines and eliminate the 3x duplicated coordination pattern.
+
+#### [FD-04] initialData useEffect does not reset on null -- stale data from edit-to-create transition
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** See 127-FINDINGS.md P1-TaskForm. The `useEffect` at TaskForm.tsx:63-75 only runs when `initialData` is truthy. When switching from edit mode (initialData present) to create mode (initialData undefined), the form retains stale data from the previous edit. The initial `useState` at line 35 reads `initialData?.name || ''` which correctly initializes for the first render, but subsequent mode changes do not trigger a reset because the useEffect dependency `[initialData]` does not fire when initialData becomes undefined/null. This is a correctness issue that was identified in Phase 127.
+- **Recommendation:** Add a `useEffect` that resets form data when initialData becomes null/undefined: `useEffect(() => { if (!initialData) setFormData(emptyForm) }, [initialData])`.
+
+#### [FD-05] Duplicate data method code generation logic between TaskForm and DataMethodSelector
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** TaskForm.tsx:204-227 (`handleDataSelectorConfirm`) contains code generation logic (building Python `context.get_data(...)` calls with path extraction) that duplicates DataMethodSelector.tsx:223-241 (`generateCode`). Both functions construct identical Python code strings: parameter formatting, method call construction, path access conversion. Any change to the code generation format must be updated in both files. Total duplicated logic: ~24 lines.
+- **Recommendation:** Extract the code generation to a shared utility function in `frontend/src/utils/codegen.ts`. Both components should call this function.
+
+### DataMethodSelector.tsx (829 lines, ESLint complexity 14, 13, 14)
+
+#### [FD-06] 829-line component exceeds 800-line hard limit with 5 distinct concerns
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** DataMethodSelector.tsx (829 lines) exceeds the 800-line hard limit from coding-style.md. The component handles 5 distinct concerns: (1) multi-step wizard navigation (currentStep, STEPS, handlePrevious/handleNext/goToStep, lines 8, 306-359), (2) method search and selection (searchQuery, selectedMethodKeys, filteredClasses, toggleMethod, removeMethod, lines 23-24, 41-53, 69-89), (3) parameter configuration (methodConfigs, updateParameter, hasAllRequiredParams, lines 28, 92-126), (4) data preview and field extraction (previewData, previewLoading, previewError, currentPreviewKey, previewMethodData, addExtraction, removeExtraction, lines 31-34, 129-188), (5) variable naming and code generation (updateVariableName, getVariableConflicts, generateCode, lines 191-241). The 4-step wizard is the primary complexity driver, requiring a `switch(currentStep)` in `renderStepContent` (lines 361-698) with 4 large case blocks.
+- **Recommendation:** Split into: (1) `DataMethodSelector.tsx` (wizard shell, ~150 lines), (2) `MethodSelectionStep.tsx` (step 1, ~120 lines), (3) `ParameterConfigStep.tsx` (step 2, ~100 lines), (4) `DataPreviewStep.tsx` (step 3, ~130 lines), (5) `VariableNamingStep.tsx` (step 4, ~120 lines). Shared state (methods, selectedMethodKeys, methodConfigs) can be lifted to the wizard shell and passed as props.
+
+#### [FD-07] Duplicated modal pattern across DataMethodSelector, AssertionSelector, and OperationCodeSelector
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** All three TaskModal selector components (DataMethodSelector 829 lines, AssertionSelector 546 lines, OperationCodeSelector 226 lines) share an identical modal structure: (1) fetch methods on open via useEffect, (2) search/filter with collapsible class panels, (3) checkbox selection with selected key tracking, (4) backdrop + header + content + footer layout. The backdrop + header + content + footer structure is repeated verbatim in all three files (~30 lines each). The search + collapsible panel pattern is repeated in DataMethodSelector and AssertionSelector (~50 lines each). The useEffect-based fetch-on-open pattern is identical across all three.
+- **Recommendation:** Create a `SelectorModal` layout component that provides backdrop, header (title + close button), scrollable content area, and footer (cancel/confirm buttons). Each selector provides only its content rendering. This would save ~90 lines across 3 files.
+
+#### [FD-08] int/float parse converts empty input to 0 -- confusing UX
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** DataMethodSelector.tsx:519-521 and AssertionSelector.tsx:497 use `parseInt(e.target.value)` / `parseFloat(e.target.value)` which returns `NaN` for empty strings, then `isNaN(parsed) ? 0 : parsed`. This means clearing a number field sets it to 0 instead of remaining empty. The same pattern appears in AssertionSelector's parameter handling. Users who clear a field to re-enter a value get a confusing 0. See 127-FINDINGS.md P1-DataMethodSelector.
+- **Recommendation:** Use `value === '' ? '' : isNaN(parsed) ? 0 : parsed` to allow empty display while keeping 0 for invalid input. Or use `null`/`undefined` to represent "not set" state.
+
+#### [FD-09] ESLint exhaustive-deps warnings: handleCancel and methods.classes in useEffect
+- **Severity:** Low
+- **Category:** Maintainability (MAINT-02)
+- **Description:** DataMethodSelector.tsx has 2 exhaustive-deps warnings: (1) line 299 -- `handleCancel` missing from keydown listener useEffect, (2) line 283 -- `methods.classes` missing from initial expand useEffect. AssertionSelector.tsx line 276 -- `handleCancel` missing from keydown listener useEffect. The missing `handleCancel` in the keydown listener means the stale closure captures an old `handleCancel` that references stale `onCancel` prop. In practice this works because the modal is closed and the listener is removed, but it is technically a stale closure risk.
+- **Recommendation:** Wrap `handleCancel` in `useCallback` with `onCancel` dependency, then include it in the useEffect deps. For `methods.classes`, add it to the dependency array or suppress with an explanatory comment.
+
+### AssertionSelector.tsx (546 lines, ESLint complexity 16)
+
+#### [FD-10] Nested setState calls in toggleMethod violate React update batching assumptions
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** AssertionSelector.tsx:72-115 (`toggleMethod`) calls `setConfigs` and `setFieldParamsMap` inside the `setSelectedKeys` callback. In React 18+, these nested setState calls are batched, but the pattern is confusing because `setConfigs` and `setFieldParamsMap` are called with stale `prevConfigs`/`prev` that capture the state at the time of the `setSelectedKeys` callback execution. The code reads state from the closure of the `setSelectedKeys` updater function, creating nested updater functions that are hard to reason about. Lines 79-88: `setConfigs(prevConfigs => ...)` and `setFieldParamsMap(prev => ...)` are called inside `setSelectedKeys(prev => { ...; setConfigs(...); setFieldParamsMap(...); ... })`.
+- **Recommendation:** Move the `setConfigs` and `setFieldParamsMap` calls outside the `setSelectedKeys` updater. Use the key computed outside (before setState) to determine the operation. This separates the three state updates into independent calls that React can batch correctly.
+
+#### [FD-11] updateFieldParams double-nested setState creates hard-to-follow state flow
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-02)
+- **Description:** AssertionSelector.tsx:165-188 (`updateFieldParams`) nests `setConfigs` inside `setFieldParamsMap`'s updater callback. The flow is: `setFieldParamsMap(prev => { ...; setConfigs(prevConfigs => { ... }); return next; })`. The inner `setConfigs` converts the updated field params to a `Record<string, string>` and updates the config's `field_params`. This double-nesting means the config update depends on the field params update's computed value, but React batches both updates together. The code works because the `updatedFieldParams` variable is captured in the closure, but it creates a cognitive burden for readers.
+- **Recommendation:** Compute the updated field params first, then call `setFieldParamsMap` and `setConfigs` sequentially with the pre-computed value. Extract the Record conversion to a helper function.
+
+### useRunStream.ts (215 lines)
+
+#### [FD-12] 7 JSON.parse calls without try/catch -- SSE event parsing lacks defensive error handling
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01) / Architecture (ARCH-03)
+- **Description:** See 127-FINDINGS.md DD-USE-01 and 128-QS-07. useRunStream.ts contains 7 `JSON.parse(e.data)` calls (lines 44, 59, 83, 110, 126, 147, 162) with no try/catch wrapping. If the backend sends malformed JSON (e.g., partial event, serialization error), the `JSON.parse` throws an unhandled exception that crashes the entire event listener. This cascades: the error is caught by `eventSource.onerror` which closes the connection, but the parsed data from the current event is lost. The 'error' event handler at line 161 does try/catch on `JSON.parse(e.data)` (line 163), but only for extracting the error message, not for the other 6 event types.
+- **Recommendation:** Wrap each `JSON.parse` in try/catch. On parse failure, log the malformed data and skip the event (do not crash the stream). Create a helper `safeJsonParse(data: string): Record<string, unknown> | null` and use it for all 7 calls.
+
+#### [FD-13] Steps and timeline arrays grow with O(n^2) copy cost per step
+- **Severity:** High
+- **Category:** Performance (PERF-01)
+- **Description:** See 127-FINDINGS.md SSE-4 and 128-QS-07. useRunStream.ts:77-78 creates new arrays on every step event: `steps: [...prev.steps, newStep]` and `timeline: [...prev.timeline, ...]`. Each step appends to both arrays by spreading the entire previous array. For an N-step run, the total copy cost is O(N^2) -- step 1 copies 1 element, step 2 copies 2, ..., step N copies N, totaling N*(N+1)/2 element copies. For a 50-step run with average 500 bytes per step object, this is ~1.25MB of array copies. Combined with the timeline array (which also includes precondition and assertion events), the total can reach 2-3MB. The memory is released when the run completes (setRun replaces the state), but during execution, the GC pressure from creating N arrays can cause frame drops in the UI.
+- **Recommendation:** Use `useRef` for the mutable arrays and only trigger re-renders with a counter: `stepsRef.current.push(newStep); setStepCount(prev => prev + 1)`. Components that display the timeline can read from `stepsRef.current`.
+
+#### [FD-14] isConnected set true before EventSource confirms connection
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-03)
+- **Description:** See 127-FINDINGS.md DD-USE-02. useRunStream.ts:36-37 sets `setIsConnected(true)` and `isConnectedRef.current = true` at the start of `connect()`, before the EventSource is actually open. The actual connection state is not known until the `onopen` event fires, but useRunStream does not register an `onopen` handler. This means `isConnected` is `true` from the moment `connect()` is called, even if the connection fails. The subsequent `onerror` handler at line 180 only sets `isConnected(false)` when `readyState === CLOSED`, which may not trigger for all error types.
+- **Recommendation:** Remove `setIsConnected(true)` from connect() and instead register an `eventSource.onopen = () => { setIsConnected(true); isConnectedRef.current = true }` handler. Move the initial `setIsConnected(true)` to the 'started' event handler, which is the first event the backend sends.
+
+### client.ts (61 lines, ESLint complexity 11)
+
+#### [FD-15] Retry logic uses linear backoff (1s, 2s, 3s) not exponential -- documented as exponential
+- **Severity:** Low
+- **Category:** Maintainability (MAINT-03)
+- **Description:** See 128-QS-15. client.ts:48 implements `await sleep(1000 * attempt)` where `attempt = MAX_RETRIES - retries + 1` (values 1, 2, 3). This produces delays of 1000ms, 2000ms, 3000ms -- linear, not exponential. The code comment says "Exponential backoff" but the implementation is linear. Additionally, the retry logic uses recursive control flow (`return apiClient<T>(endpoint, options, retries - 1)`) which means each retry creates a new stack frame. After MAX_RETRIES, the error handling at line 55 checks `isNetworkError(error)` but the original error from the retry is a new ApiError (not a network error), so the toast dismissal logic at line 52 may not execute correctly.
+- **Recommendation:** Either implement true exponential backoff: `await sleep(1000 * Math.pow(2, attempt - 1))` producing 1s, 2s, 4s, or update the comment to say "linear backoff". Fix the toast persistence: dismiss the retry toast before throwing the final error.
+
+#### [FD-16] FormData requests always have Content-Type: application/json set
+- **Severity:** Medium
+- **Category:** Architecture (ARCH-03)
+- **Description:** See 127-FINDINGS.md P1-client. client.ts:25-28 sets `'Content-Type': 'application/json'` as a default header for ALL requests. When a caller passes FormData (e.g., for file upload), the Content-Type should be `multipart/form-data` with a boundary, which the browser sets automatically. The hardcoded Content-Type header overrides this, causing file upload requests to fail with incorrect content type. The spread `...options?.headers` at line 26 comes AFTER the Content-Type header, so callers CAN override it, but the default is wrong for FormData.
+- **Recommendation:** Detect FormData in the options and skip Content-Type: `if (!(options?.body instanceof FormData)) { headers['Content-Type'] = 'application/json' }`.
+
+### Cross-File Frontend DRY Analysis
+
+#### [FD-17] 4 data hooks use identical manual fetch pattern -- ~200 lines duplicated boilerplate
+- **Severity:** High
+- **Category:** Maintainability (MAINT-01)
+- **Description:** See 128-QS-03 and 127-FINDINGS.md App.tsx-React-Query. All 4 data-fetching hooks (useTasks.ts 135 lines, useReports.ts 93 lines, useDashboard.ts 43 lines, useBatchProgress.ts 68 lines) implement the same pattern: (1) `useState` for data, loading, error, (2) `useEffect` to trigger fetch on mount/dependency change, (3) async fetch function with try/catch + setError + console.error. React Query is installed and configured in App.tsx (QueryClientProvider) but completely unused. The duplicated boilerplate across 4 hooks totals ~200 lines that React Query would eliminate. Additionally, the hooks have inconsistent error handling: useTasks uses `console.error` without toast, useReports uses `console.error` without toast, useDashboard uses `console.error` without toast, while client.ts auto-toasts all API errors. This double-error-reporting (toast from client.ts + console.error from hooks) creates noise.
+- **Recommendation:** Migrate all 4 hooks to React Query `useQuery`. This eliminates useState+useEffect+try/catch boilerplate, adds caching/stale-while-revalidate, and centralizes error handling via QueryClient's default error handler.
+
+#### [FD-18] Modal layout pattern duplicated across 4+ components
+- **Severity:** Medium
+- **Category:** Maintainability (MAINT-01)
+- **Description:** The modal layout structure is repeated in DataMethodSelector.tsx (lines 703-828), AssertionSelector.tsx (lines 280-545), OperationCodeSelector.tsx (not in P1 but follows same pattern): (1) `<div className="fixed inset-0 z-50 flex items-center justify-center">` backdrop wrapper, (2) `<div className="fixed inset-0 bg-black/50" onClick={cancel} />` click-away backdrop, (3) `<div className="relative bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 max-h-[85vh] overflow-hidden flex flex-col">` content container, (4) header with title + close button, (5) scrollable content area, (6) footer with cancel/confirm buttons. The structure is identical across all modals with minor variations in max-width and max-height. Estimated duplication: ~25 lines per modal x 4 modals = ~100 lines.
+- **Recommendation:** Create a `ModalLayout` component that accepts title, onClose, footerContent, maxWidth, maxHeight, and children. Reduces each modal to its unique content only.
+
+## Frontend P1 Deep-Dive (ARCH-03/PERF-01)
+
+### ARCH-03: Frontend Cross-Cutting Consistency
+
+#### Error Handling Consistency
+
+| Pattern | Files Using It | When Used |
+|---------|---------------|-----------|
+| client.ts toast.error | apiClient (all API calls) | HTTP errors (non-ok responses) |
+| client.ts toast.loading | apiClient (retry path) | Network errors during retry |
+| console.error in hooks | useTasks.ts:34, useReports.ts:59, useDashboard.ts:22 | After catch block |
+| try/catch in components | DataMethodSelector.tsx:148,257, TaskForm.tsx:139,147,169,194, AssertionSelector.tsx:207 | API calls in event handlers |
+| no error handling | useRunStream.ts all JSON.parse | SSE event parsing |
+
+**Key inconsistency:** client.ts already shows toast.error for all API errors (line 37). The hooks (useTasks, useReports, useDashboard) then ALSO console.error the same error, creating double error reporting. Components that call API functions directly (DataMethodSelector, TaskForm, AssertionSelector) rely on client.ts's toast for error notification and use their own try/catch only for loading state management. useRunStream has zero error handling for JSON parsing, creating a gap at the SSE boundary.
+
+#### [FD-19] Double error reporting: client.ts toast + hook console.error
+- **Severity:** Medium
+- **Category:** Architecture (ARCH-03)
+- **Description:** client.ts:37 shows `toast.error(message, { duration: 5000 })` for all non-ok HTTP responses. Then useTasks.ts:34, useReports.ts:59, useDashboard.ts:22 each call `console.error(...)` for the same error. The user sees a toast AND the error is logged to console. If React Query migration happens (FD-17), the console.error should be replaced with QueryClient's `onError` handler which can decide centrally whether to toast, log, or both.
+- **Recommendation:** Remove console.error from hooks. Let client.ts handle user-facing errors (toast) and use QueryClient's error handler for logging. During migration, configure QueryClient with a global error handler.
+
+#### State Management Strategy
+
+| Pattern | Files Using It | Lines of Boilerplate |
+|---------|---------------|---------------------|
+| React Query (installed) | App.tsx (configured, not used) | 0 consumption lines |
+| Manual useState+useEffect+fetch | useTasks, useReports, useDashboard, useBatchProgress | ~200 lines |
+| SSE EventSource | useRunStream | 215 lines |
+
+**Key finding:** React Query v5 is installed (`@tanstack/react-query`), configured with QueryClientProvider in App.tsx, and has zero consumers. All 4 data-fetching hooks use manual state management instead. The SSE hook (useRunStream) correctly uses manual state because React Query does not handle SSE streams.
+
+#### [FD-20] React Query installed (v5) with zero consumers -- ~40KB dead bundle weight
+- **Severity:** Medium
+- **Category:** Architecture (ARCH-03)
+- **Description:** App.tsx imports and configures QueryClient + QueryClientProvider (lines 2, 13-19, 23, 38). The React Query library adds ~40KB to the production bundle. No hook or component uses `useQuery`, `useMutation`, or any React Query API. This is equivalent to the backend's StructuredLogger (BD-33): installed/configured but completely unused.
+- **Recommendation:** Either migrate hooks to React Query (FD-17) or remove the import and QueryClientProvider to reduce bundle size. The migration path is straightforward since all 4 hooks follow the same pattern.
+
+### PERF-01: Frontend Performance Issues
+
+#### [FD-21] useRunStream EventSource connection not properly cleaned up on unmount during active stream
+- **Severity:** Medium
+- **Category:** Performance (PERF-01)
+- **Description:** useRunStream.ts:198-206 has a cleanup effect that calls `disconnect()`. However, the `disconnect` function (lines 189-196) calls `streamRef.current.close()` and sets refs to false. If the component unmounts while the EventSource is in a connecting state (readyState CONNECTING), the `close()` call is correct per spec. But if individual event listeners were attached via `addEventListener` (lines 43, 58, 82, 109, 125, 146, 161), these listeners are not explicitly removed -- they are only cleaned up when the EventSource is garbage collected. In theory, the `close()` call triggers GC. In practice, if any closure holds a reference to the EventSource (e.g., through the `setRun` callback), the listeners may persist longer than expected.
+- **Recommendation:** Accept as-is for current use. The `close()` call is sufficient for cleanup. If memory profiling shows listener leaks, switch to `removeEventListener` in the cleanup function.
+
+#### [FD-22] useBatchProgress polls every 2s even when batch is completed
+- **Severity:** Low
+- **Category:** Performance (PERF-01)
+- **Description:** useBatchProgress.ts:57 creates a `setInterval(fetchData, 2000)` that runs until `completedRef.current` is true. The ref is set to true at line 40 when `data.status === 'completed'`. However, there is a race condition: if the component unmounts and remounts (React StrictMode double-render), the `completedRef` persists (useRef survives across strict mode double-render), so the interval may not start on remount even if the batch is not actually completed. Additionally, the 2s polling is aggressive for a completed batch.
+- **Recommendation:** Use React Query's `refetchInterval` with `refetchIntervalInBackground: false` for a cleaner polling pattern. Or add a check: only start interval if `data.status !== 'completed'` after the initial fetch.
+
+## Cross-Phase Correlation Analysis (per D-10)
+
+Comparing findings across ALL phases (125 + 126 + 127 + 128) to identify systemic patterns:
+
+| # | Systemic Pattern | Backend Instance | Frontend Instance | Root Cause | Severity |
+|---|-----------------|------------------|-------------------|------------|----------|
+| CP-1 | **Memory leak: unbounded data accumulation** | event_manager._events (BD-39, 125-P2-event_manager:27) | useRunStream steps/timeline arrays (FD-13, 127-SSE-4) | No cleanup lifecycle; both layers assume short-lived data | **High** |
+| CP-2 | **Error handling gap at external boundaries** | SSE event_generator no try/except (126-DD-pipe) + event_manager.publish no error handling (BD-27) | JSON.parse no try/catch in useRunStream (FD-12, 127-DD-USE-01) | Defensive programming skipped at I/O boundaries (network, serialization) | **High** |
+| CP-3 | **Installed-but-unused system alongside manual alternative** | StructuredLogger (BD-33) + LLMFactory (BD-31) + response.py (QS-09) | React Query v5 (FD-20) + 4 manual fetch hooks (FD-17) | Aspirational improvements not completed; partial adoption leaves dead code | **Medium** |
+| CP-4 | **Sync blocking in async/synchronous context** | write_bytes in agent_service (BD-35) + subprocess.run in runs_routes (BD-36) | O(n^2) array copy in useRunStream setState (FD-13) + synchronous DOM operations in JsonTreeViewer click handlers | Performance-sensitive operations not optimized for their execution context | **Medium** |
+| CP-5 | **Cross-layer state coupling via mutable objects** | Mutable dict counters in run_pipeline (BD-18) + ContextWrapper mutation (QS-11) | Nested setState callbacks in AssertionSelector (FD-10) + stale closure in DataMethodSelector (FD-09) | Mutable shared state patterns; no immutable data flow enforcement | **Low** |
+
+### Systemic Pattern Details
+
+**CP-1: Memory leak pattern (High)**
+Both backend (EventManager._events) and frontend (useRunStream steps/timeline) accumulate data in memory without cleanup. The backend has a `cleanup()` method that is never called (BD-39). The frontend creates new arrays on every step event via spread operator (FD-13). The root cause is identical: neither layer implements a lifecycle-aware cleanup pattern. The backend should call cleanup in _finalize_run; the frontend should use mutable refs with capped size.
+
+**CP-2: Error handling gap at boundaries (High)**
+Both layers skip defensive error handling at I/O serialization boundaries. Backend: event_manager.publish has no error handling (BD-27) and the SSE event generator has no try/except (126-DD-pipe). Frontend: all 7 JSON.parse calls in useRunStream lack try/catch (FD-12). The root cause is the same: developers assumed the data format is always correct and the external system never sends malformed data. In practice, network interruptions and backend serialization errors can produce malformed events.
+
+**CP-3: Installed-but-unused systems (Medium)**
+Both layers have aspirational improvements that were configured but never adopted. Backend: StructuredLogger (BD-33), LLMFactory (BD-31), response.py utilities (QS-09). Frontend: React Query v5 (FD-20). In all cases, a "better" system was introduced (either by code or dependency), but the existing manual pattern was not migrated. The result is dead code (backend) or dead bundle weight (frontend) that misleads developers about what the codebase actually uses.
+
+**CP-4: Blocking operations in performance-sensitive paths (Medium)**
+Backend blocks the event loop with synchronous I/O (write_bytes, subprocess.run) in async context (BD-35, BD-36). Frontend blocks the render cycle with O(n^2) array copies in setState (FD-13). The root cause is similar: performance-sensitive paths (event loop, render cycle) contain operations that do not respect the execution model. Backend should use run_in_executor; frontend should use mutable refs.
+
+**CP-5: Mutable state coupling (Low)**
+Backend uses mutable dict closures for cross-function state sharing (BD-18). Frontend uses nested setState callbacks for coordinated state updates (FD-10). Both patterns work but create cognitive overhead and are fragile under refactoring. The root cause is the lack of explicit state management abstractions (dataclasses for backend, reducer pattern for frontend).
+
+## Final Summary Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total files reviewed | 67 backend + 87 frontend = 154 |
+| Total lines scanned | ~12,527 Python + ~8,898 TypeScript/TSX = ~21,425 |
+| Backend P1 files (deep-dive) | 8 (run_pipeline, agent_service, code_generator, external_execution_engine, action_translator, dom_patch, step_code_buffer, monitored_agent) |
+| Frontend P1 files (deep-dive) | 6 (useRunStream, DataMethodSelector, TaskForm, AssertionSelector, client.ts, JsonTreeViewer) |
+| Critical issues | 0 |
+| High issues | 14 |
+| Medium issues | 38 |
+| Low issues | 18 |
+| Informational issues | 2 |
+| Total actionable findings | 72 |
+| Cross-referenced existing findings | 37 |
+| New findings (Phase 128) | 81 (15 QS + 44 BD + 22 FD) |
+
+### Findings by Requirement
+
+| Requirement | New Findings | Cross-Referenced |
+|-------------|-------------|-----------------|
+| MAINT-01 (DRY/SOLID) | 20 | 12 |
+| MAINT-02 (Complexity) | 14 | 8 |
+| MAINT-03 (Names) | 10 | 6 |
+| ARCH-03 (Consistency) | 16 | 7 |
+| PERF-01 (Performance) | 21 | 4 |
+| **Total** | **81** | **37** |
+
+### Findings by Category
+
+| Category | Count |
+|----------|-------|
+| Maintainability | 44 |
+| Architecture | 23 |
+| Performance | 14 |
+
+### Findings by Severity
+
+| Severity | Count |
+|----------|-------|
+| Critical | 0 |
+| High | 14 |
+| Medium | 38 |
+| Low | 18 |
+| Informational | 2 |
+
+### Top 5 Quality Findings (by severity + systemic impact)
+
+1. **[CP-1] Memory leak pattern across backend + frontend** -- Both EventManager._events and useRunStream arrays grow without cleanup. Affects long-running server stability and browser memory during extended runs. Severity: High, Systemic.
+
+2. **[BD-08/FD-12] Dual stall detection + missing JSON.parse error handling** -- Correctness bug (halves stall threshold) and unhandled parsing errors in SSE stream. Affects test execution reliability. Severity: High + High, Cross-layer.
+
+3. **[BD-14] F-grade PlaywrightCodeGenerator.generate (complexity >40)** -- Only F-grade function in backend. 190-line code assembly mixing string manipulation, conditional logic, and regex. Open/Closed violation. Severity: Critical (MAINT-02), Isolated.
+
+4. **[FD-17/QS-03] Frontend DRY violation: 4 identical manual fetch hooks + React Query unused** -- ~200 lines duplicated boilerplate across 4 hooks. React Query installed but zero consumers. Severity: High, Frontend-wide.
+
+5. **[BD-03/BD-25] Login JS template duplication across agent_service + code_generator** -- ~80 lines of duplicated JavaScript code across 2 backend files. Any login logic fix requires updating both. Severity: High, Backend cross-file.
+
+### Cross-Phase Correlation Summary
+
+5 systemic patterns identified across 4 phases (125, 126, 127, 128).
+
+**CP-1 Memory leak (High):** Backend event_manager._events + Frontend useRunStream arrays. Both accumulate without cleanup. Root cause: no lifecycle-aware cleanup.
+
+**CP-2 Error handling at boundaries (High):** Backend SSE event_generator + event_manager.publish. Frontend JSON.parse. Both skip defensive handling at I/O serialization points. Root cause: assumed correct data format.
+
+**CP-3 Installed-but-unused systems (Medium):** Backend StructuredLogger + LLMFactory + response.py. Frontend React Query. Root cause: aspirational improvements not completed.
+
+**CP-4 Blocking in async/render context (Medium):** Backend sync I/O in async. Frontend O(n^2) array copy in setState. Root cause: performance-sensitive paths not optimized.
+
+**CP-5 Mutable state coupling (Low):** Backend mutable dict closures. Frontend nested setState. Root cause: no explicit state management abstractions.
+
+### Confirmed CONCERNS.md Quality Issues
+
+| CONCERNS.md Entry | 128 Finding Reference |
+|-------------------|----------------------|
+| Duplicated LLM configuration paths | QS-05, BD-31, BD-32 |
+| Event manager memory leak | BD-39, QS-07, CP-1 |
+| DOM serialization on every step | BD-43, QS-08 |
+| Screenshot base64 decode on every step | BD-35 |
+| Monkey-patching browser-use internals | BD-21, BD-22 |
+| exec() for user-provided code | BD-42 (informational - correctly handled) |
+| Batch fire-and-forget execution | BD-41 |
+| Stack traces exposed in production | BD-29 |
+| Credentials in generated test files | BD-14 (code_generator) |
+| No pagination on task/run lists | QS (from 126-P2-runs-08, P2-tasks-02) |
+
+### New Quality Issues Not in CONCERNS.md
+
+1. **Login JS template duplication** (BD-03/BD-25) -- ~80 lines duplicated between agent_service.py and code_generator.py
+2. **Dual stall detection correctness bug** (BD-08) -- StallDetector called twice per step, halving the configured threshold
+3. **Frontend React Query unused** (FD-17/FD-20) -- 4 hooks use manual fetch, React Query installed but zero consumers
+4. **Frontend O(n^2) array copy** (FD-13) -- useRunStream creates new arrays on every step event
+5. **Error handling inconsistency** (QS-01, QS-06) -- 3 error handling strategies, non_blocking_execute in only 3 of 28 files
+6. **StructuredLogger dead code** (BD-33) -- Zero application consumers, superseded by RunLogger
+7. **LLMFactory dead code** (BD-31) -- create_llm bypasses it entirely
+8. **Settings.log_level unused** (BD-32) -- DEBUG hardcoded in main.py lifespan
+9. **event_manager.publish no error handling** (BD-27) -- Hot path has zero error handling
+10. **DataMethodSelector exceeds 800-line limit** (FD-06) -- 829 lines, largest frontend component
+11. **TaskForm stale data on mode switch** (FD-04) -- Edit-to-create transition retains old data
+12. **Client.ts Content-Type overrides FormData** (FD-16) -- File uploads broken due to hardcoded JSON content type
+13. **Frontend modal layout duplication** (FD-18) -- ~100 lines of identical modal structure across 4 components
+14. **print() bypasses logging system** (BD-34) -- 17 print() calls in main.py and validators.py
+
 ---
 *Phase 128-01 breadth scan complete. Tool results, risk matrix, and cross-reference map produced.*
 *Phase 128-02 Task 1: Backend P1 Deep-Dive MAINT-01/MAINT-02/MAINT-03 complete.*
 *Phase 128-02 Task 2: Backend P1 Deep-Dive ARCH-03/PERF-01 complete.*
+*Phase 128-03: Frontend P1 Deep-Dive + Cross-Phase Correlation + Final Summary complete.*
