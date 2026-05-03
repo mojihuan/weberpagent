@@ -453,3 +453,164 @@ Confirmed: strict mode enabled, `verbatimModuleSyntax: true`, `erasableSyntaxOnl
 - **Category:** Architecture
 - **Description:** The function signature `apiClient<T>(endpoint, options, retries): Promise<T>` suggests type-safe responses, but `response.json()` returns `Promise<any>` which is implicitly cast to `T`. There is no runtime validation of the response structure. If the server returns a response that does not match the expected type, TypeScript will not catch this at compile time and there is no runtime check. This is a common pattern in TypeScript but worth noting for a code review.
 - **Recommendation:** For critical API responses, consider using zod or io-ts schemas to validate the response at runtime. Low priority since this is a single-user tool with known backend API contracts.
+
+### DataMethodSelector.tsx (829 lines)
+
+**State variable count: 11 useState + 1 useMemo**
+- `currentStep` (number) -- wizard step index, 0-3
+- `methods` (DataMethodsResponse) -- API response data
+- `loading` (boolean) -- API loading state
+- `error` (string | null) -- API error state
+- `searchQuery` (string) -- Step 1 search filter
+- `selectedMethodKeys` (Set\<string\>) -- Step 1 multi-select
+- `methodConfigs` (Map\<string, DataMethodConfig\>) -- Step 2 parameter configs
+- `previewData` (unknown) -- Step 3 API execution result
+- `previewLoading` (boolean) -- Step 3 execution loading
+- `previewError` (string | null) -- Step 3 execution error
+- `currentPreviewKey` (string | null) -- Step 3 which method is being previewed
+- `expandedPanels` (Set\<string\>) -- collapsible class group panels
+- `initialExpandDone` (boolean) -- one-time expand guard
+- `filteredClasses` (useMemo) -- filtered methods from search
+
+### [DD-DMS-01] DataMethodSelector.tsx:519-524 -- int/float parse converts empty string to 0
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** Lines 519-524 in the Step 2 parameter input onChange handler: when the user clears an int/float input, `parseInt('')` returns `NaN`, and the code converts it to `0` via `isNaN(parsed) ? 0 : parsed`. This means the user cannot distinguish between "intentionally set to 0" and "field is empty". When the input is empty, the user sees a `0` appear in the field (because `value` is bound to `config.parameters[param.name] ?? ''` and the stored value is now `0`). This creates a confusing UX where clearing a numeric field immediately fills it with 0.
+- **Recommendation:** Store `NaN` or `undefined` for empty inputs, and display empty string when the value is `NaN`/`undefined`. Only convert to 0 at submission time.
+
+### [DD-DMS-02] DataMethodSelector.tsx:92,321 -- `any` type usage in parameter value and config
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** Two `any` usages:
+  - Line 92: `updateParameter(key: string, paramName: string, value: any)` -- the value parameter is typed as `any` because it can be string or number. Should be `string | number`.
+  - Line 321: `const params: Record<string, any> = {}` -- initialized when creating method configs. Should be `Record<string, string | number>` to match the `DataMethodConfig.parameters` type definition.
+  Both are flagged by ESLint `no-explicit-any` and should use a proper union type.
+- **Recommendation:** Replace `any` with `string | number` at both locations.
+
+### [DD-DMS-03] DataMethodSelector.tsx:161 -- no-useless-escape in regex
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Line 161 in `addExtraction`: `path.split(/[.\[\]]/).filter(Boolean)`. The `\[` and `\]` inside a character class `[...]` are unnecessary escapes -- `[` and `]` inside a character class are literal characters (except at the start/end position). ESLint flags this as `no-useless-escape`. The regex itself works correctly, but the escape is unnecessary.
+- **Recommendation:** Change to `path.split(/[.\][]/).filter(Boolean)` to remove unnecessary escapes.
+
+### [DD-DMS-04] DataMethodSelector.tsx:283,299 -- exhaustive-deps warnings in useEffect hooks
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Two useEffect hooks have missing dependencies:
+  - Line 283 (expand-all effect): depends on `[methods.classes.length, initialExpandDone]` but uses `methods.classes.map(c => c.name)`. If a class name changes without changing the count, the panels won't re-expand. Low risk since class names are fetched from API and don't change between renders.
+  - Line 299 (Escape key handler): depends on `[open]` but calls `handleCancel()` which references `onCancel`. If `onCancel` changes between renders (unlikely since it's typically a stable callback from parent), the handler calls a stale version. This is a common pattern but technically a stale closure.
+- **Recommendation:** Add `methods.classes` to the expand-all effect dependencies. Add `handleCancel` (or `onCancel`) to the Escape key handler dependencies. Both are low risk in practice.
+
+### [DD-DMS-05] DataMethodSelector.tsx:629-633 -- Lexical declarations in case block without braces
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** Lines 629-633 (the `case 3:` block in `renderStepContent`) declare `const conflicts` and `const hasExtractions` inside a switch case without wrapping in a block `{}`. ESLint flags these as `no-case-declarations` because lexical declarations in case blocks can cause confusion about scope -- they're visible in subsequent cases. While this is a style issue not a correctness bug, it triggers 2 ESLint errors.
+- **Recommendation:** Wrap the `case 3:` body in curly braces `{}` to create a block scope.
+
+### [DD-DMS-06] DataMethodSelector.tsx:244-274 -- Modal open resets all state, discarding unsaved work
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The useEffect at lines 244-274 fires when `open` changes to `true` and unconditionally resets all state: step to 0, search, selections, configs, preview data, expanded panels. If the user accidentally closes the modal (e.g., clicking the backdrop at line 706) and reopens it, all work is lost. The `OperationCodeSelector` has the same pattern (line 44 resets selection), but that component has fewer steps of configuration.
+- **Recommendation:** Either preserve state when modal closes (don't reset until explicit cancel), or add a confirmation dialog when closing with unsaved changes. At minimum, don't reset on re-open -- only reset on explicit Cancel.
+
+### [DD-DMS-07] DataMethodSelector.tsx:128-152 -- Single preview state shared across multiple methods
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The Step 3 preview state (`previewData`, `previewLoading`, `previewError`, `currentPreviewKey`) is shared across all selected methods. When the user clicks "Preview Data" for method A, then clicks "Preview Data" for method B, method A's preview result is discarded. The UI only shows the preview for `currentPreviewKey`. If the user needs to see previews side-by-side or switch between methods, they must re-execute the API call each time. The `previewData` is stored as a single value rather than a Map keyed by method key.
+- **Recommendation:** Store preview data in a Map keyed by method key, similar to how `methodConfigs` stores configurations. This allows the user to see the last preview for each method without re-executing.
+
+### TaskForm.tsx (560 lines)
+
+**State variable count: 12 useState + 1 useEffect**
+- `formData` (FormData) -- main form state object with name, description, target_url, max_steps, preconditions, assertions, login_role
+- `errors` (FormErrors) -- validation errors
+- `selectorOpen` (boolean) -- OperationCodeSelector modal open
+- `selectorIndex` (number | null) -- which precondition row is active for OperationCodeSelector
+- `operationsLoading` (boolean) -- operations API loading
+- `operationsAvailable` (boolean) -- operations API availability
+- `operationsError` (string | null) -- operations API error
+- `dataSelectorOpen` (boolean) -- DataMethodSelector modal open
+- `dataSelectorIndex` (number | null) -- which precondition row is active for DataMethodSelector
+- `dataMethodsLoading` (boolean) -- data methods API loading
+- `dataMethodsAvailable` (boolean) -- data methods API availability
+- `dataMethodsError` (string | null) -- data methods API error
+- `assertionSelectorOpen` (boolean) -- AssertionSelector modal open
+
+### [DD-TF-01] TaskForm.tsx:63-75 -- initialData useEffect does not reset on null/undefined
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The useEffect at lines 63-75 only runs when `initialData` is truthy. If the form is reused for a different task (e.g., switching from edit mode with a task to create mode with no task), the old form data persists because the effect does not fire when `initialData` becomes undefined. This means switching from "edit task A" to "create new task" leaves task A's data in the form. The form `mode` prop changes but is not checked.
+- **Recommendation:** Add a reset branch when `initialData` is falsy. Alternatively, add `mode` to the dependency array and reset to defaults when mode is 'create'.
+
+### [DD-TF-02] TaskForm.tsx:100-109 -- No double-submit prevention during loading
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** The `handleSubmit` function (lines 100-109) calls `onSubmit(formData)` after validation. The submit button is disabled when `loading` is true (line 531), but the `loading` prop is controlled by the parent, not by the form itself. If the parent does not immediately set `loading=true` after receiving the call, or if there's a React render cycle delay, a rapid double-click could trigger `onSubmit` twice. The button has `disabled={loading}` which should prevent this if the parent synchronously sets loading, but there is no local submission-in-progress guard.
+- **Recommendation:** Add a local `isSubmitting` ref or state that is set immediately in `handleSubmit` and checked before calling `onSubmit`.
+
+### [DD-TF-03] TaskForm.tsx:134-152 -- Operations availability state persists across precondition rows
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The `operationsLoading`, `operationsAvailable`, and `operationsError` state variables are shared across all precondition rows. When the user clicks "选择操作码" for precondition row 1, the API call runs and sets `operationsAvailable`. If the API returns unavailable, ALL precondition rows show the disabled button and error message (lines 374-394). The availability check is done once and cached for the entire form lifetime, which is correct from an API perspective (the external module availability doesn't change per row), but the loading/error state is coupled to the row-specific action. If row 1's check fails, row 2's button is permanently disabled without the user ever clicking it.
+- **Recommendation:** The availability check is appropriate as a shared concern. However, the loading spinner (line 383) should only show on the specific row that triggered the check, not on all rows. Track `selectorIndex` during loading to conditionally show the spinner only on the active row.
+
+### [DD-TF-04] TaskForm.tsx:200-229 -- Data selector code generation duplicates TaskForm and DataMethodSelector logic
+- **Severity:** Low
+- **Category:** Architecture
+- **Description:** The `handleDataSelectorConfirm` function (lines 200-229) generates Python code from DataMethodConfig by iterating over configs, building method call strings, and joining path segments. This same logic exists in DataMethodSelector.tsx `generateCode()` function (lines 223-241). Both functions produce identical Python code from the same DataMethodConfig input, violating DRY. If the code generation format changes, both must be updated.
+- **Recommendation:** Extract the code generation logic into a shared utility function (e.g., `utils/codegen.ts:generateGetDataCode(configs: DataMethodConfig[]): string`) and call it from both locations.
+
+### [DD-TF-05] TaskForm.tsx:369 -- Array index used as key in precondition list
+- **Severity:** Low
+- **Category:** Performance
+- **Description:** Line 369: `{formData.preconditions.map((precondition, index) => (<div key={index}>...))}`. Using array index as key in a dynamic list where items can be removed (via `handleRemovePrecondition`) causes React to misassociate DOM elements with list items. When precondition 1 is removed, React updates the DOM for precondition 0 (which stays) and unmounts the last node, rather than removing the specific node. This can cause stale state in controlled textareas if the user is actively typing in a precondition when another is removed.
+- **Recommendation:** Use a stable identifier for each precondition (e.g., a counter-based ID assigned at creation time).
+
+### AssertionSelector.tsx (546 lines)
+
+**State variable count: 8 useState + 2 useEffect + 1 useMemo**
+- `methods` (AssertionMethodsResponse) -- API response data
+- `loading` (boolean) -- API loading state
+- `error` (string | null) -- API error state
+- `searchQuery` (string) -- search filter
+- `selectedKeys` (Set\<string\>) -- multi-select
+- `expandedPanels` (Set\<string\>) -- collapsible class group panels
+- `configs` (Map\<string, AssertionConfig\>) -- per-method configurations
+- `fieldParamsMap` (Map\<string, Map\<string, {name, value}>>) -- field params per method
+- `filteredClasses` (useMemo) -- filtered methods from search
+
+### [DD-AS-01] AssertionSelector.tsx:276 -- exhaustive-deps warning: handleCancel missing from Escape key useEffect
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The Escape key handler useEffect (lines 263-276) depends on `[open]` but calls `handleCancel()` (line 268) which wraps `onCancel()`. If `onCancel` is a new function reference on each parent render, the handler captures a stale `onCancel`. In practice, React EventSource handles this correctly because the effect re-runs when `open` changes (which is the typical trigger for `onCancel` to become relevant). However, the ESLint warning is valid -- if the parent re-renders without `open` changing, the handler calls the old `onCancel`. Compare with OperationCodeSelector.tsx line 62 which correctly includes `onCancel` in dependencies.
+- **Recommendation:** Add `handleCancel` (or directly `onCancel`) to the dependency array: `[open, handleCancel]`.
+
+### [DD-AS-02] AssertionSelector.tsx:72-115 -- Nested setState calls in toggleMethod create inconsistent intermediate states
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The `toggleMethod` function (lines 72-115) calls `setSelectedKeys`, and inside its callback, also calls `setConfigs` and `setFieldParamsMap`. React batches state updates within event handlers, so these three setState calls trigger a single re-render. However, the `setConfigs` and `setFieldParamsMap` calls are nested inside `setSelectedKeys`'s callback, which means they access the `prev` state from `setSelectedKeys` rather than the current component state. While React batches these, the nesting makes the code harder to reason about and could lead to bugs if the state dependencies change. The `removeMethod` function (lines 118-135) correctly separates the three setState calls without nesting.
+- **Recommendation:** Separate the three setState calls to be sequential at the top level of `toggleMethod`, similar to how `removeMethod` does it. Compute the new key first, then update all three states independently.
+
+### [DD-AS-03] AssertionSelector.tsx:201-260 -- Modal open effect resets state even when initialConfigs provided
+- **Severity:** Medium
+- **Category:** Correctness
+- **Description:** The useEffect at lines 201-260 handles modal open. It fetches methods AND initializes state from `initialConfigs`. However, the dependency array is `[open, initialConfigs]`. If the parent re-renders while the modal is open (e.g., due to a state change in the parent), and `initialConfigs` is an inline array (e.g., `initialConfigs={task.assertions}`), the reference changes on every render, causing this effect to re-fire. This re-fetches methods and re-initializes state, potentially overwriting the user's current edits. The `open` dependency correctly gates the fetch, but `initialConfigs` reference instability could cause unexpected re-initialization.
+- **Recommendation:** Either memoize `initialConfigs` in the parent, or use a ref to track whether initialization has already happened for the current open session.
+
+### [DD-AS-04] AssertionSelector.tsx:150-162 -- updateParam stores number|string but parseInt converts empty to 0
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Similar to DD-DMS-01, the `updateParam` function (lines 150-162) calls `parseInt(e.target.value) || 0` at line 497. When the user clears a numeric input, `parseInt('')` returns `NaN`, and `|| 0` converts it to 0. The config type is `Record<string, number | string>`, so 0 is valid. The user sees "0" appear after clearing the field, which is confusing.
+- **Recommendation:** Same as DD-DMS-01: store undefined/NaN for empty inputs, convert to 0 at submission time.
+
+### [DD-AS-05] AssertionSelector.tsx:397-399 -- Split key by ':' assumes no colons in class/method names
+- **Severity:** Low
+- **Category:** Correctness
+- **Description:** Lines 397-399 and 419-420: `const [className, methodName] = key.split(':')`. The key format is `${className}:${methodName}`. If a class name or method name contains a colon, `split(':')` would produce more than 2 segments, and the destructuring `[className, methodName]` would only capture the first two. The remaining segments would be silently lost, causing `getMethodInfo` to fail to find the method. In practice, Python class/method names cannot contain colons, so this is safe for the current use case, but the pattern is fragile.
+- **Recommendation:** Use `split(':', 2)` or `split(':')` with `.slice(0, 2)` to make the intent explicit. This same pattern exists in DataMethodSelector.tsx lines 109, 318, 448, 479.
+
+### [DD-AS-06] AssertionSelector.tsx:165-188 -- updateFieldParams calls setConfigs inside setFieldParamsMap callback
+- **Severity:** Medium
+- **Category:** Architecture
+- **Description:** The `updateFieldParams` function (lines 165-188) nests `setConfigs` inside the `setFieldParamsMap` callback (line 173). This creates a two-level nested setState chain: `setFieldParamsMap(prev => { ... setConfigs(prevConfigs => { ... }) ... })`. The `updatedFieldParams` variable from the outer callback is used inside the inner callback, creating a closure dependency. While React batches these correctly, this pattern is fragile and hard to test. The field_params synchronization between `fieldParamsMap` (Map) and `configs.field_params` (Record) is redundant state that must be kept in sync manually.
+- **Recommendation:** Derive `configs.field_params` from `fieldParamsMap` at confirm time (in `handleConfirm`) rather than keeping them synchronized in real-time. This eliminates the nested setState and the redundant state.
