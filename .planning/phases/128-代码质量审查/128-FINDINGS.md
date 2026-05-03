@@ -543,6 +543,164 @@ The following maps findings from Phase 125, 126, and 127 to Phase 128 requiremen
 - **Description:** Three mutable dict closures are used for state passing in the pipeline: (1) `counters = {"step_count": 0, "global_seq": global_seq}` in run_pipeline.py:514, (2) `step_stats_data = {"value": None}` in agent_service.py:564, (3) `_prev_dom_hash_data = {"value": None}` in agent_service.py:565. These dicts are passed to closures and mutated by side effect. The pattern is consistent across files, suggesting an implicit convention. Using dataclasses would be more explicit.
 - **Recommendation:** Replace with typed dataclasses: `PipelineCounters`, `StepStats`, `DomHashState`.
 
+## Backend P1 Deep-Dive (ARCH-03/PERF-01)
+
+### ARCH-03: Cross-Cutting Consistency Analysis
+
+#### Error Handling Strategy
+
+| Pattern | Files Using It | When Used |
+|---------|---------------|-----------|
+| non_blocking_execute | run_pipeline.py (lines 177, 378), runs_routes.py (line 135) | Optional operations (session.stop, code generation) |
+| silent_execute | runs_routes.py (line 141) | File cleanup (unlink temp files) |
+| raw try/except | run_pipeline.py (lines 165, 398, 433), agent_service.py (lines 243, 316, 338, 382, 598), monitored_agent.py (lines 71, 83, 108, 134, 163), event_manager.py (implicit in queue ops), external_execution_engine.py (lines 141, 175, 245, 289), precondition_service.py (lines 293) | Main flow errors, detector errors, execution errors |
+| HTTPException | runs_routes.py (line 108), external_operations.py (line 76), external_data_methods.py, external_assertions.py | Route-level validation errors |
+| bare (no handling) | event_manager.publish (line 47), event_manager._send_heartbeat (line 63), dom_patch all patch functions | Always (assumed safe) |
+| global exception handler | main.py (lines 97-149) | Unhandled exceptions in all routes |
+
+**Key inconsistency:** error_utils.py provides non_blocking_execute and silent_execute for optional operations, but only 2 files (run_pipeline.py, runs_routes.py) use them. Agent_service.py wraps detector calls in raw try/except (line 338) instead of using non_blocking_execute. Event_manager.publish has zero error handling despite being in the hot path.
+
+#### [BD-27] event_manager.publish has no error handling in hot path
+- **Severity:** High
+- **Category:** Architecture (ARCH-03)
+- **Description:** `event_manager.publish()` (event_manager.py:37-51) performs two operations without error handling: (1) `self._events[run_id].append(event)` and (2) iterating `self._subscribers` queues to put events. If any subscriber queue is full or closed, the publish fails and propagates upward. This is called from every step of the agent pipeline (9+ times per run). A publish failure would abort the entire run. Compare with agent_service._run_detectors (line 338) which wraps in try/except for fault tolerance.
+- **Recommendation:** Wrap the subscriber notification loop in try/except per queue. Use non_blocking_execute pattern: log the failed queue and continue to other subscribers.
+
+#### [BD-28] agent_service._run_detectors uses raw try/except instead of non_blocking_execute
+- **Severity:** Low
+- **Category:** Architecture (ARCH-03)
+- **Description:** agent_service._run_detectors (lines 338-384) wraps the entire detector block in `try/except Exception as e:` with `logger.error`. This is the exact pattern that `non_blocking_execute` was designed to replace. The function is already marked as non-blocking (detector errors should never fail a run), so it should use the standardized pattern.
+- **Recommendation:** Refactor to use non_blocking_execute for each detector call (stall, failure mode, progress) individually, so one detector failure does not prevent other detectors from running.
+
+#### [BD-29] Global exception handler always includes stack traces (DEBUG hardcoded)
+- **Severity:** Medium
+- **Category:** Architecture (ARCH-03)
+- **Description:** See 126-FINDINGS.md #DD-main-02. main.py lifespan sets `logging.basicConfig(level=logging.DEBUG)` (line 44), which means `logging.getLogger().level == logging.DEBUG` is always True. The general_exception_handler at line 146 checks this condition and always includes `traceback.format_exc()` in API responses. The Settings.log_level (line 62 in settings.py) is never used to control this behavior.
+- **Recommendation:** Use `settings.log_level` to configure logging level instead of hardcoding DEBUG. Stack traces should only appear in responses when log_level is DEBUG.
+
+#### [BD-30] run_pipeline.py exception handler sends SSE error but does not log traceback
+- **Severity:** Low
+- **Category:** Architecture (ARCH-03)
+- **Description:** run_pipeline.py:569-573 catches exceptions from the entire agent pipeline. It logs `f"[{run_id}] 执行失败: {e}\n{traceback.format_exc()}"` (line 570) and sends an SSE error event. However, the traceback format uses `traceback.format_exc()` in the log message string, which captures the traceback at log time. The SSE error event only sends `str(e)` without the traceback, so the frontend user sees only the error message. This is correct behavior but inconsistent with the global handler which includes stack traces in responses.
+- **Recommendation:** Accept as-is. The pipeline should not expose stack traces to SSE consumers.
+
+#### Configuration Management
+
+| Config Source | Files Using It | Values Accessed |
+|--------------|---------------|-----------------|
+| settings.py (.env) | main.py (log_level, weberp_path), run_pipeline.py (llm_model, dashscope_api_key, openai_api_key, llm_base_url, llm_temperature, code_gen_*, erp_api_module_path), runs_routes.py (database_url), external_operations.py (weberp_path), auth_service.py (erp_base_url, erp_username, erp_password), account_service.py (erp_base_url), external_module_loader.py (weberp_path), external_execution_engine.py (weberp_path), external_method_discovery.py (weberp_path) | 12 files consuming ~15 distinct settings |
+| llm/config.py (YAML) | llm/factory.py (model, api_key, base_url via get_config()) | 1 file consuming LLMConfig |
+| Both | run_pipeline.py reads LLM params from Settings, llm/factory.py reads from LLMConfig | LLM parameters (model, api_key, base_url, temperature) are in both systems |
+
+**Overlap analysis:** The following LLM parameters exist in both configuration sources:
+- `model`: Settings.llm_model vs LLMConfig._config.llm.default_model
+- `api_key`: Settings.dashscope_api_key / Settings.openai_api_key vs LLMConfig._config.llm.api_key
+- `base_url`: Settings.llm_base_url vs LLMConfig._config.llm.base_url
+- `temperature`: Settings.llm_temperature vs (not in YAML, defaults in code)
+
+**Impact of dual source:** run_pipeline.py:get_llm_config() (line 51-59) reads from Settings to create browser-use ChatOpenAI. llm/factory.py:LLMFactory.create() reads from LLMConfig. If Settings and YAML specify different models, the agent uses a different LLM than what LLMFactory would provide. Currently this is not a problem because create_llm() in factory.py bypasses LLMFactory entirely when llm_config is provided, but the dual source creates confusion for developers.
+
+#### [BD-31] LLMFactory is unused dead code -- create_llm bypasses it
+- **Severity:** Medium
+- **Category:** Architecture (ARCH-03)
+- **Description:** LLMFactory (llm/factory.py:68-150) provides a module-path-based LLM creation system with caching. However, the actual LLM creation for agent execution uses `create_llm()` (factory.py:165-223) which creates a ChatOpenAI directly from the passed config dict, bypassing LLMFactory entirely. LLMFactory.create() reads from LLMConfig (YAML), while create_llm() reads from the dict provided by run_pipeline.py:get_llm_config() (which reads Settings). LLMFactory's methods (get_reflect_llm, get_decision_llm, get_code_generator_llm, etc.) are never called from any application code.
+- **Recommendation:** Remove LLMFactory class and its module-path routing system. Keep only create_llm() as the single entry point. If module-path routing is needed in the future, it can be re-added with clear requirements.
+
+#### [BD-32] Settings.log_level defined but never used for logging configuration
+- **Severity:** Medium
+- **Category:** Architecture (ARCH-03)
+- **Description:** Settings defines `log_level: str = "INFO"` (settings.py:62) but the lifespan function in main.py hardcodes `logging.basicConfig(level=logging.DEBUG)` (main.py:44). The Settings.log_level value is never read or applied. This means changing the log_level in .env has no effect.
+- **Recommendation:** Replace `level=logging.DEBUG` with `level=getattr(logging, settings.log_level.upper(), logging.INFO)` in the lifespan function.
+
+#### Logging Strategy
+
+| Logger Type | Files Using It | Purpose |
+|-------------|---------------|---------|
+| logging.getLogger(__name__) | 22 files: all api/routes/, all core/, all agent/, llm/factory.py | General application logging |
+| StructuredLogger | 0 application files (only defined in utils/logger.py and re-exported from utils/__init__.py) | JSONL structured logging -- NEVER USED |
+| RunLogger | 1 application file: agent_service.py (imported, instantiated at line 561) | Per-run JSONL file logging for post-mortem |
+| print() | 2 files: main.py (5 calls, lines 51-65), validators.py (12 calls, lines 26-67) | Startup messages and config validation |
+
+**Consistency issues:**
+1. StructuredLogger (utils/logger.py) is defined and exported from utils/__init__.py but has zero consumers in application code. It appears to be a v0-era logger that was superseded by RunLogger.
+2. RunLogger is only used in agent_service.py (instantiated once per run). Other files that could benefit from structured per-run logging (e.g., run_pipeline.py for pipeline stage timing) use standard getLogger instead.
+3. print() is used in main.py for startup messages and validators.py for config error reporting. Neither uses the logging system.
+
+#### [BD-33] StructuredLogger is dead code with zero application consumers
+- **Severity:** Low
+- **Category:** Architecture (ARCH-03)
+- **Description:** See QS-02 and 128-01-SUMMARY.md. StructuredLogger (utils/logger.py, 96 lines) defines a JSONL logging class with log_step, log_error, and log_summary methods. It is imported and re-exported from utils/__init__.py but no application code instantiates or uses it. RunLogger (utils/run_logger.py, 151 lines) provides similar functionality and IS used by agent_service.py. Both loggers write JSONL format but with different schemas. The StructuredLogger's `log_step` has fields (selector, reasoning, success) that are agent-step-specific, while RunLogger's `log` is more general-purpose.
+- **Recommendation:** Remove StructuredLogger and its re-export from utils/__init__.py. If JSONL logging is needed beyond agent_service.py, extend RunLogger (which already has a richer API: log_browser, log_agent).
+
+#### [BD-34] print() in main.py and validators.py bypasses logging system
+- **Severity:** Low
+- **Category:** Architecture (ARCH-03)
+- **Description:** See 126-FINDINGS.md #DD-main-06. main.py uses print() for 5 startup messages (lines 51-65). validators.py uses print() for 12 configuration error messages (lines 26-67). These bypass the logging system entirely, meaning they: (1) are not captured by log aggregators, (2) do not respect log level settings, (3) do not include timestamps. The validators.py print statements include ANSI-like formatting markers ([CONFIG ERROR]) which would be garbled in log files.
+- **Recommendation:** Replace print() calls with logger.info() in main.py and logger.error() in validators.py. For validators, the messages should use structured error reporting rather than formatted console output.
+
+### PERF-01: Async Anti-Pattern Analysis
+
+#### [BD-35] agent_service.save_screenshot: sync write_bytes blocks event loop
+- **Severity:** High
+- **Category:** Performance (PERF-01)
+- **Description:** See 125-FINDINGS.md #P1-agent_service:127. `save_screenshot` (agent_service.py:98-128) is declared `async def` but calls `filepath.write_bytes(screenshot_bytes)` (line 127) synchronously. Screenshots are typically 100KB-1MB. Writing this to disk blocks the event loop for the duration of the I/O operation. This is called on every agent step, meaning the event loop is blocked once per step. During this block, SSE heartbeats cannot be sent and concurrent operations are stalled.
+- **Recommendation:** Replace with `await asyncio.get_event_loop().run_in_executor(None, filepath.write_bytes, screenshot_bytes)` or use `aiofiles`.
+
+#### [BD-36] runs_routes subprocess.run blocks event loop for up to 180 seconds
+- **Severity:** High
+- **Category:** Performance (PERF-01)
+- **Description:** See 126-FINDINGS.md #DD-runs-11. runs_routes.py:108 calls `subprocess.run(cmd, ...)` synchronously in an async function. The subprocess executes pytest with a 180-second timeout (line 108). During this time, the event loop is completely blocked. No SSE events, no heartbeat, no other requests can be processed. This is the most severe blocking operation in the codebase.
+- **Recommendation:** Replace with `asyncio.create_subprocess_exec(*cmd, ...)` and `await proc.communicate()` with timeout.
+
+#### [BD-37] run_pipeline write_text wrapped in non_blocking_execute (correct pattern)
+- **Severity:** Informational
+- **Category:** Performance (PERF-01)
+- **Description:** run_pipeline.py:_run_code_generation (line 373) calls `_output_path.write_text(_content)` inside an async function. However, this is correctly handled: the entire _generate function is passed to `non_blocking_execute` (line 378), which executes it in a thread pool via run_in_executor. This is the correct pattern for sync I/O in async context. (Contrast with BD-35 and BD-36 which do NOT use this pattern.)
+- **Recommendation:** None needed -- this is the correct pattern.
+
+#### [BD-38] monitored_agent asyncio.sleep(3) after every file upload
+- **Severity:** Medium
+- **Category:** Performance (PERF-01)
+- **Description:** See 125-FINDINGS.md #P1-monitored_agent:141-146. MonitoredAgent._execute_actions adds `await asyncio.sleep(3)` (monitored_agent.py:143) after every upload_file action. This 3-second unconditional wait adds up significantly in tests that upload multiple files. Unlike sync I/O blocking, this sleep does yield to the event loop (other tasks can proceed), but it unnecessarily extends the total execution time.
+- **Recommendation:** Replace with a smarter wait: poll for upload completion (check DOM for upload success indicator) with a 3-second timeout. This would skip the wait for fast uploads and only wait when needed.
+
+#### [BD-39] event_manager._events never cleaned up -- unbounded memory growth
+- **Severity:** High
+- **Category:** Performance (PERF-01)
+- **Description:** See 125-FINDINGS.md #P2-event_manager:27 and QS-07. EventManager._events is a defaultdict(list) that stores every SSE event string for every run_id. The cleanup() method (event_manager.py:140-152) deletes event data, but it is never called from any code path. For a long-running server with many runs, this dict grows without bound. Each run generates ~20-50 SSE events, each event is ~200-500 bytes. After 1000 runs, ~15MB of event strings are held in memory permanently.
+- **Recommendation:** Call `event_manager.cleanup(run_id)` in run_pipeline._finalize_run (after the finished event is sent). This is the natural cleanup point since no more events will be published for a finished run.
+
+#### [BD-40] event_manager subscribe overwrites heartbeat task on re-subscribe
+- **Severity:** Medium
+- **Category:** Performance (PERF-01)
+- **Description:** See 125-FINDINGS.md #P2-event_manager:84-85. EventManager.subscribe (event_manager.py:84-85) creates a heartbeat task and stores it in `self._heartbeat_tasks[run_id]`. If a client disconnects and reconnects for the same run_id, the old heartbeat task is overwritten but not cancelled. The old task continues running in the background, sending heartbeats to an orphaned queue. Over multiple reconnections, multiple orphan heartbeat tasks accumulate.
+- **Recommendation:** Before creating a new heartbeat task, cancel the existing one: `if run_id in self._heartbeat_tasks: self._heartbeat_tasks[run_id].cancel()`.
+
+#### [BD-41] Unawaited coroutine risk in batch_execution fire-and-forget
+- **Severity:** Medium
+- **Category:** Performance (PERF-01)
+- **Description:** batch_execution.py:54 creates `asyncio.create_task(self._execute_run(config))` and batches.py:68 creates `asyncio.create_task(service.start(run_configs))`. These tasks are fire-and-forget: no reference is stored and no await is called. If the task raises an exception, it is silently swallowed by the event loop (Python 3.11+ emits a "Task exception was never retrieved" warning). The caller has no way to know if the batch run succeeded or failed.
+- **Recommendation:** Store task references and add a done callback for error logging: `task = asyncio.create_task(...); task.add_done_callback(_log_task_error)`.
+
+#### [BD-42] precondition_service exec() runs synchronously via run_in_executor (correct pattern)
+- **Severity:** Informational
+- **Category:** Performance (PERF-01)
+- **Description:** precondition_service.execute_single (line 294-296) runs user code via `loop.run_in_executor(None, lambda: exec(code, env))` wrapped in `asyncio.wait_for(..., timeout=30)`. This correctly offloads the synchronous exec() to a thread pool while maintaining the 30-second timeout. The exec() itself may contain synchronous I/O (get_data() calls) which would block the thread pool worker, but not the event loop.
+- **Recommendation:** None needed -- this is the correct pattern for running sync code from async context.
+
+#### [BD-43] agent_service._extract_browser_state performs synchronous DOM serialization
+- **Severity:** Medium
+- **Category:** Performance (PERF-01)
+- **Description:** See 125-FINDINGS.md #P1-agent_service:400-413. `_extract_browser_state` (agent_service.py:386-414) calls `dom_state.llm_representation()` and `hashlib.sha256(dom_str.encode('utf-8')).hexdigest()[:12]` synchronously. The llm_representation() call traverses the entire DOM tree and generates a text representation, which can be tens of KB for complex ERP pages. The sha256 hash computation on the full string adds additional CPU time. This runs on every step in the step callback (which is already in the async context). For a 10-step run on a complex page, this is 10 synchronous DOM serializations.
+- **Recommendation:** Short-term: skip DOM hashing when no stall was detected in the previous step. Long-term: offload to a thread via run_in_executor.
+
+#### [BD-44] run_logger.write_text synchronously in log_browser
+- **Severity:** Low
+- **Category:** Performance (PERF-01)
+- **Description:** RunLogger.log_browser (run_logger.py:91) calls `dom_path.write_text(dom_content, encoding="utf-8")` synchronously. This is called from agent_service._extract_browser_state which is called from the step callback. The DOM content can be tens of KB. While this is a smaller I/O than screenshots (BD-35), it still blocks the event loop during the write.
+- **Recommendation:** Low priority. If BD-35 is fixed by offloading the entire step callback I/O to a thread pool, this is also resolved.
+
 ---
 *Phase 128-01 breadth scan complete. Tool results, risk matrix, and cross-reference map produced.*
 *Phase 128-02 Task 1: Backend P1 Deep-Dive MAINT-01/MAINT-02/MAINT-03 complete.*
+*Phase 128-02 Task 2: Backend P1 Deep-Dive ARCH-03/PERF-01 complete.*
