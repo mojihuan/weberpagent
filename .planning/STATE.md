@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
-status: Ready to execute
-stopped_at: Completed 128-02-PLAN.md
-last_updated: "2026-05-03T13:23:40.793Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 128-03-PLAN.md
+last_updated: "2026-05-03T13:30:41.243Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Plan: 3 of 3
 | Phase 127-frontend-review P03 | 11min | 2 tasks | 1 files |
 | Phase 128 P01 | 8min | 2 tasks | 1 files |
 | Phase 128 P02 | 6min | 2 tasks | 1 files |
+| Phase 128 P03 | 4min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,11 @@ Recent decisions affecting current work:
 - [Phase 128]: event_manager._events unbounded growth confirmed; cleanup() exists but never called
 - [Phase 128]: Dual stall detection (MonitoredAgent + agent_service) is both correctness bug and DRY violation
 - [Phase 128]: Settings.log_level defined but never used; DEBUG hardcoded in main.py lifespan
+- [Phase 128]: JsonTreeViewer complexity 26 from 7 type branches with 4x duplicated click handler; extractable to PrimitiveValue + CollapsibleNode
+- [Phase 128]: Frontend CP-1 mirrors backend: useRunStream arrays + event_manager._events both grow without cleanup; highest-impact systemic pattern
+- [Phase 128]: Frontend CP-3 mirrors backend: React Query installed-but-unused mirrors StructuredLogger/LLMFactory dead code pattern
+- [Phase 128]: 5 systemic patterns span all 4 review phases (125-128): memory leak, error handling gap, dead code, blocking ops, mutable state
+- [Phase 128]: Phase 128 final: 81 new findings, 37 cross-referenced, 72 actionable, 14 High, 14 new issues not in CONCERNS.md
 
 ### Pending Todos
 
@@ -110,6 +116,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T13:23:40.791Z
-Stopped at: Completed 128-02-PLAN.md
+Last session: 2026-05-03T13:30:41.241Z
+Stopped at: Completed 128-03-PLAN.md
 Resume file: None
