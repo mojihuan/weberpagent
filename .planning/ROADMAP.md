@@ -134,11 +134,12 @@ Plans:
   1. React 组件的状态管理错误、事件处理缺陷和数据流问题均被识别并记录
   2. SSE 事件处理的边界情况（连接断开、重连、事件丢失）均被识别并记录
   3. 前端渲染性能问题（不必要重渲染、大列表优化、React Query 缓存策略）均被识别并记录
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 3 plans
 
 Plans:
-- [ ] 127-01: TBD
+- [x] 127-01-PLAN.md — Breadth scan all ~60 frontend files + run ESLint/TypeScript checks, produce risk matrix
+- [x] 127-02-PLAN.md — Deep-dive review of 5 P1 files (useRunStream.ts, DataMethodSelector.tsx, TaskForm.tsx, AssertionSelector.tsx, client.ts) + SSE cross-validation with backend
+- [ ] 127-03-PLAN.md — P2/P3 quick scan + final summary statistics with cross-phase correlation
 
 ### Phase 128: 代码质量审查
 **Goal**: 代码可维护性、横切关注点一致性和异步性能得到全面审查，输出具体发现清单
@@ -177,10 +178,10 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 125. 后端核心逻辑审查 | 3/3 | Complete    | 2026-05-03 |
-| 126. API 层与安全审查 | 3/3 | Complete   | 2026-05-03 |
-| 127. 前端审查 | 0/? | Not started | - |
+| 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
+| 127. 前端审查 | 2/3 | In Progress|  |
 | 128. 代码质量审查 | 0/? | Not started | - |
 | 129. 测试规划 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-05-03 — Phase 126 planned (3 plans)*
+*Roadmap updated: 2026-05-03 — Phase 127 planned (3 plans)*

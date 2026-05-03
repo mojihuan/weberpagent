@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
-status: Phase complete — ready for verification
-stopped_at: Completed 126-03-PLAN.md
-last_updated: "2026-05-03T05:30:23.550Z"
+status: Ready to execute
+stopped_at: Completed 127-02-PLAN.md
+last_updated: "2026-05-03T12:25:55.876Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-02)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 126 — api
+**Current focus:** Phase 127 — frontend-review
 
 ## Last Shipped
 
@@ -33,15 +33,19 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 
 ## Current Position
 
-Phase: 126 (api) — EXECUTING
+Phase: 127 (frontend-review) — EXECUTING
 Plan: 3 of 3
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0 (this milestone)
+- Total plans completed: 1 (this milestone)
 - Previous milestone (v0.11.0): 11 plans across 5 phases
+
+| Plan | Duration | Tasks | Files | Findings |
+|------|----------|-------|-------|----------|
+| 127-02 | 7min | 2 | 1 | 25 |
 
 *Updated after each plan completion*
 
@@ -72,6 +76,13 @@ Recent decisions affecting current work:
 - [Phase 126-api]: SSE stream: event_generator no try/except/finally, None sentinel works correctly, EventManager handles cleanup
 - [Phase 126-api]: P2/P3 files produce only Low-severity findings; CRUD routes well-implemented
 - [Phase 126-api]: Final stats: 78 actionable findings (2 High, 27 Medium, 49 Low) across 13 API files
+- [Phase 127]: 127-01 ESLint delta: 7 no-explicit-any (not 5), 3 set-state-in-effect (not 2), plus 2 no-case-declarations, 1 react-refresh, 1 prefer-const
+- [Phase 127]: 127-01 SSE cross-validation: all 7 backend event types match frontend listeners, format correct, 1 High (JSON.parse no try/catch), 3 Medium findings
+- [Phase 127]: 127-01 CONCERNS.md #3 QueryClientProvider: in App.tsx not main.tsx, CONTEXT.md was misleading
+- [Phase 127]: P1 deep-dive: 25 findings across 5 files (useRunStream 9, client 5, DataMethodSelector 7, TaskForm 5, AssertionSelector 6); 2 High (JSON.parse, FormData Content-Type), 15 Medium, 8 Low
+- [Phase 127]: client.ts retry is linear (1s,2s,3s) not exponential as documented; toast persists after successful retry due to recursive control flow
+- [Phase 127]: DataMethodSelector.tsx int/float parse converts empty input to 0 (same pattern in AssertionSelector); confusing UX
+- [Phase 127]: TaskForm.tsx initialData useEffect does not reset on null; switching edit-to-create leaves stale data
 
 ### Pending Todos
 
@@ -83,6 +94,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T05:30:23.548Z
-Stopped at: Completed 126-03-PLAN.md
+Last session: 2026-05-03T12:25:55.873Z
+Stopped at: Completed 127-02-PLAN.md
 Resume file: None
