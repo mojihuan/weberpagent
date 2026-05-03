@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v0.11.3 代码彻底的 Review** — Phases 125-129 (in progress)
 - ✅ **v0.11.0 全面代码清理** — Phases 120-124 (shipped 2026-04-30)
 - ✅ **v0.10.11 移除自愈功能** — Phases 116-119 (shipped 2026-04-29)
 - ✅ **v0.10.10 表单填写优化** — Phases 114-115 (shipped 2026-04-29)
@@ -29,6 +30,10 @@
 
 ## Phases
 
+**Phase Numbering:**
+- Integer phases (125-129): Planned milestone work for v0.11.3
+- Decimal phases (125.1, etc.): Urgent insertions (marked with INSERTED)
+
 <details>
 <summary>✅ v0.11.0 全面代码清理 (Phases 120-124) — SHIPPED 2026-04-30</summary>
 
@@ -51,16 +56,9 @@
 </details>
 
 <details>
-<summary>✅ v0.10.10 表单填写优化 (Phases 114-115) — SHIPPED 2026-04-29</summary>
+<summary>✅ Older milestones (v0.10.10 — v0.6.2)</summary>
 
-- [x] Phase 114: DOM Patch 核心修复 (1/1 plans) — completed 2026-04-29
-- [x] Phase 115: Prompt 优化与 E2E 验证 (2/2 plans) — completed 2026-04-29
-
-</details>
-
-<details>
-<summary>✅ Older milestones (v0.10.9 — v0.6.2)</summary>
-
+- ✅ **v0.10.10 表单填写优化** — Phases 114-115 (shipped 2026-04-29)
 - ✅ **v0.10.9 逐步代码生成** — Phases 111-113 (shipped 2026-04-29)
 - ✅ **v0.10.8 生成测试代码前置条件与断言步骤** — Phases 108-110 (shipped 2026-04-27)
 - ✅ **v0.10.7 生成测试代码行为优化** — Phases 105-107 (shipped 2026-04-27)
@@ -85,5 +83,102 @@
 
 </details>
 
+### 🚧 v0.11.3 代码彻底的 Review (In Progress)
+
+**Milestone Goal:** 对整个代码库进行系统性代码审查，按 6 个维度输出具体发现和改进建议
+
+- [ ] **Phase 125: 后端核心逻辑审查** — 审查 agent/core/pipeline 的正确性、耦合度和抽象合理性
+- [ ] **Phase 126: API 层与安全审查** — 审查路由正确性和安全风险
+- [ ] **Phase 127: 前端审查** — 审查 React 组件逻辑正确性和前端性能
+- [ ] **Phase 128: 代码质量审查** — 审查可维护性、横切关注点和异步性能
+- [ ] **Phase 129: 测试规划** — 识别缺失测试场景和边界覆盖不足
+
+## Phase Details
+
+### Phase 125: 后端核心逻辑审查
+**Goal**: 后端核心业务逻辑的正确性和架构合理性得到全面审查，输出具体发现清单
+**Depends on**: Nothing (first review phase)
+**Requirements**: CORR-01, ARCH-01, ARCH-02
+**Success Criteria** (what must be TRUE):
+  1. agent 层 (MonitoredAgent, detectors, prompts) 的逻辑错误、边界条件和潜在 bug 均被识别并记录
+  2. core services (agent_service, code_generator, precondition_service) 的逻辑缺陷和异常路径均被识别并记录
+  3. pipeline 编排 (run_pipeline.py) 的状态管理和错误传播问题均被识别并记录
+  4. 后端模块间的耦合关系和抽象层次问题均被识别并记录，附改进建议
+**Plans**: 3 plans
+
+Plans:
+- [x] 125-01-PLAN.md — Breadth scan + auxiliary tools (ruff/mypy) on all 31 files, produce risk matrix
+- [ ] 125-02-PLAN.md — Deep-dive review of 5 P1 pipeline-critical files (run_pipeline, agent_service, code_generator, step_code_buffer, monitored_agent)
+- [ ] 125-03-PLAN.md — P2 supporting services review + architecture analysis (coupling + abstraction) + final summary
+
+### Phase 126: API 层与安全审查
+**Goal**: 所有 API 路由的正确性和安全风险得到全面审查，输出具体发现清单
+**Depends on**: Phase 125
+**Requirements**: CORR-02, SEC-01
+**Success Criteria** (what must be TRUE):
+  1. routes 目录下所有路由文件的参数验证缺陷、错误处理遗漏和边界条件均被识别并记录
+  2. 路径遍历、CSRF、exec() 安全、不安全配置、SSRF 等安全风险均被评估并记录
+  3. 每个 API 端点的异常路径均有审查结论（安全/需修复/需关注）
+**Plans**: TBD
+
+Plans:
+- [ ] 126-01: TBD
+
+### Phase 127: 前端审查
+**Goal**: 前端组件逻辑正确性和渲染性能得到全面审查，输出具体发现清单
+**Depends on**: Phase 125
+**Requirements**: CORR-03, PERF-02
+**Success Criteria** (what must be TRUE):
+  1. React 组件的状态管理错误、事件处理缺陷和数据流问题均被识别并记录
+  2. SSE 事件处理的边界情况（连接断开、重连、事件丢失）均被识别并记录
+  3. 前端渲染性能问题（不必要重渲染、大列表优化、React Query 缓存策略）均被识别并记录
+**Plans**: TBD
+**UI hint**: yes
+
+Plans:
+- [ ] 127-01: TBD
+
+### Phase 128: 代码质量审查
+**Goal**: 代码可维护性、横切关注点一致性和异步性能得到全面审查，输出具体发现清单
+**Depends on**: Phase 125, Phase 126, Phase 127
+**Requirements**: MAINT-01, MAINT-02, MAINT-03, ARCH-03, PERF-01
+**Success Criteria** (what must be TRUE):
+  1. DRY/SOLID 违反、代码重复、单一职责违反均被识别并记录
+  2. 函数长度超标、文件过大、循环复杂度过高的位置均被识别并记录
+  3. 命名不规范、误导性命名的位置均被识别并记录
+  4. 错误处理策略、配置管理、日志策略的横切一致性问题均被识别并记录
+  5. 阻塞操作混入 async 代码、资源竞争、内存泄漏、SSE 连接管理等性能问题均被识别并记录
+**Plans**: TBD
+
+Plans:
+- [ ] 128-01: TBD
+
+### Phase 129: 测试规划
+**Goal**: 关键测试缺失和边界覆盖不足得到全面识别，输出测试优先级清单
+**Depends on**: Phase 125, Phase 126, Phase 127, Phase 128
+**Requirements**: TEST-01, TEST-02
+**Success Criteria** (what must be TRUE):
+  1. 所有缺少测试保护的核心业务流程均被识别，按 ROI 排序
+  2. 边界值、异常路径、竞态条件、超时场景等测试覆盖不足的位置均被识别并记录
+  3. 输出的测试场景清单可直接转化为后续里程碑的测试实施需求
+**Plans**: TBD
+
+Plans:
+- [ ] 129-01: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
+(Phase 127 can parallel with 126 since they review different code areas, but 128 depends on all prior phases completing)
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 125. 后端核心逻辑审查 | 1/3 | In Progress|  |
+| 126. API 层与安全审查 | 0/? | Not started | - |
+| 127. 前端审查 | 0/? | Not started | - |
+| 128. 代码质量审查 | 0/? | Not started | - |
+| 129. 测试规划 | 0/? | Not started | - |
+
 ---
-*Roadmap updated: 2026-04-30 — v0.11.0 milestone archived*
+*Roadmap updated: 2026-05-03 — Phase 125 planned (3 plans)*
