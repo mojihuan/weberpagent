@@ -151,10 +151,12 @@ Plans:
   3. 命名不规范、误导性命名的位置均被识别并记录
   4. 错误处理策略、配置管理、日志策略的横切一致性问题均被识别并记录
   5. 阻塞操作混入 async 代码、资源竞争、内存泄漏、SSE 连接管理等性能问题均被识别并记录
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 128-01: TBD
+- [x] 128-01-PLAN.md — Full-stack breadth scan: radon + ESLint complexity metrics, risk matrix, cross-reference map to 125/126/127 findings
+- [ ] 128-02-PLAN.md — Backend P1 deep-dive: MAINT-01/MAINT-02/MAINT-03 + ARCH-03/PERF-01 analysis
+- [ ] 128-03-PLAN.md — Frontend P1 deep-dive + cross-phase correlation analysis + final summary statistics
 
 ### Phase 129: 测试规划
 **Goal**: 关键测试缺失和边界覆盖不足得到全面识别，输出测试优先级清单
@@ -179,9 +181,9 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 |-------|----------------|--------|-----------|
 | 125. 后端核心逻辑审查 | 3/3 | Complete    | 2026-05-03 |
 | 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
-| 127. 前端审查 | 3/3 | Complete   | 2026-05-03 |
-| 128. 代码质量审查 | 0/? | Not started | - |
+| 127. 前端审查 | 3/3 | Complete    | 2026-05-03 |
+| 128. 代码质量审查 | 1/3 | In Progress|  |
 | 129. 测试规划 | 0/? | Not started | - |
 
 ---
-*Roadmap updated: 2026-05-03 — Phase 127 planned (3 plans)*
+*Roadmap updated: 2026-05-03 — Phase 128 planned (3 plans)*
