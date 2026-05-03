@@ -17,20 +17,20 @@
 
 ### 性能 (PERF)
 
-- [ ] **PERF-01**: 审查异步/并发性能 — 阻塞操作混入 async 代码、资源竞争、内存泄漏、SSE 连接管理
+- [x] **PERF-01**: 审查异步/并发性能 — 阻塞操作混入 async 代码、资源竞争、内存泄漏、SSE 连接管理
 - [x] **PERF-02**: 审查前端性能 — 渲染性能、大列表优化、不必要重渲染、React Query 缓存策略
 
 ### 可维护性 (MAINT)
 
-- [ ] **MAINT-01**: 审查 DRY/SOLID 违反 — 代码重复、单一职责违反、开闭原则违反
-- [ ] **MAINT-02**: 审查代码结构复杂度 — 函数长度、文件大小、循环复杂度、嵌套深度
-- [ ] **MAINT-03**: 审查命名规范性 — 变量/函数/模块命名不一致、误导性命名
+- [x] **MAINT-01**: 审查 DRY/SOLID 违反 — 代码重复、单一职责违反、开闭原则违反
+- [x] **MAINT-02**: 审查代码结构复杂度 — 函数长度、文件大小、循环复杂度、嵌套深度
+- [x] **MAINT-03**: 审查命名规范性 — 变量/函数/模块命名不一致、误导性命名
 
 ### 设计与架构 (ARCH)
 
 - [x] **ARCH-01**: 审查模块耦合度 — 跨层直接依赖、循环依赖、紧耦合模块
 - [x] **ARCH-02**: 审查抽象合理性 — 过度抽象、不足抽象、错误的抽象层次
-- [ ] **ARCH-03**: 审查横切关注点 — 错误处理策略一致性、配置管理、日志策略
+- [x] **ARCH-03**: 审查横切关注点 — 错误处理策略一致性、配置管理、日志策略
 
 ### 测试 (TEST)
 
@@ -55,14 +55,14 @@
 | CORR-02 | Phase 126 | Complete |
 | CORR-03 | Phase 127 | Complete |
 | SEC-01 | Phase 126 | Complete |
-| PERF-01 | Phase 128 | Pending |
+| PERF-01 | Phase 128 | Complete |
 | PERF-02 | Phase 127 | Complete |
-| MAINT-01 | Phase 128 | Pending |
-| MAINT-02 | Phase 128 | Pending |
-| MAINT-03 | Phase 128 | Pending |
+| MAINT-01 | Phase 128 | Complete |
+| MAINT-02 | Phase 128 | Complete |
+| MAINT-03 | Phase 128 | Complete |
 | ARCH-01 | Phase 125 | Complete |
 | ARCH-02 | Phase 125 | Complete |
-| ARCH-03 | Phase 128 | Pending |
+| ARCH-03 | Phase 128 | Complete |
 | TEST-01 | Phase 129 | Pending |
 | TEST-02 | Phase 129 | Pending |
 
