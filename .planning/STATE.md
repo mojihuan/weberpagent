@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
-status: Ready to execute
-stopped_at: Completed 127-02-PLAN.md
-last_updated: "2026-05-03T12:25:55.876Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 127-03-PLAN.md
+last_updated: "2026-05-03T12:38:51.028Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -48,6 +48,7 @@ Plan: 3 of 3
 | 127-02 | 7min | 2 | 1 | 25 |
 
 *Updated after each plan completion*
+| Phase 127-frontend-review P03 | 11min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 127]: client.ts retry is linear (1s,2s,3s) not exponential as documented; toast persists after successful retry due to recursive control flow
 - [Phase 127]: DataMethodSelector.tsx int/float parse converts empty input to 0 (same pattern in AssertionSelector); confusing UX
 - [Phase 127]: TaskForm.tsx initialData useEffect does not reset on null; switching edit-to-create leaves stale data
+- [Phase 127]: React Query gap: installed but unused, all 4 hooks use manual useState+useEffect+fetch pattern
+- [Phase 127]: P2/P3 review: 95 actionable findings (0 Critical, 3 High, 34 Medium, 58 Low) across 87 frontend files
+- [Phase 127]: Cross-phase correlation: event_manager memory leak mirrors useRunStream unbounded arrays, SSE error handling gap mirrors JSON.parse gap
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T12:25:55.873Z
-Stopped at: Completed 127-02-PLAN.md
+Last session: 2026-05-03T12:38:46.879Z
+Stopped at: Completed 127-03-PLAN.md
 Resume file: None

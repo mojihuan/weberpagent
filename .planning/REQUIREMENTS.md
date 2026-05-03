@@ -9,7 +9,7 @@
 
 - [x] **CORR-01**: 审查后端核心业务逻辑正确性 — agent 层 (MonitoredAgent, detectors, prompts)、core services (agent_service, code_generator, precondition_service)、pipeline 编排 (run_pipeline.py) 的逻辑错误、边界条件、潜在 bug
 - [x] **CORR-02**: 审查 API 路由层正确性 — routes 目录下所有路由文件的参数验证、错误处理、边界条件、异常路径
-- [ ] **CORR-03**: 审查前端组件逻辑正确性 — React 组件状态管理、事件处理、数据流、SSE 事件处理
+- [x] **CORR-03**: 审查前端组件逻辑正确性 — React 组件状态管理、事件处理、数据流、SSE 事件处理
 
 ### 安全性 (SEC)
 
@@ -18,7 +18,7 @@
 ### 性能 (PERF)
 
 - [ ] **PERF-01**: 审查异步/并发性能 — 阻塞操作混入 async 代码、资源竞争、内存泄漏、SSE 连接管理
-- [ ] **PERF-02**: 审查前端性能 — 渲染性能、大列表优化、不必要重渲染、React Query 缓存策略
+- [x] **PERF-02**: 审查前端性能 — 渲染性能、大列表优化、不必要重渲染、React Query 缓存策略
 
 ### 可维护性 (MAINT)
 
@@ -53,10 +53,10 @@
 |-------------|-------|--------|
 | CORR-01 | Phase 125 | Complete |
 | CORR-02 | Phase 126 | Complete |
-| CORR-03 | Phase 127 | Pending |
+| CORR-03 | Phase 127 | Complete |
 | SEC-01 | Phase 126 | Complete |
 | PERF-01 | Phase 128 | Pending |
-| PERF-02 | Phase 127 | Pending |
+| PERF-02 | Phase 127 | Complete |
 | MAINT-01 | Phase 128 | Pending |
 | MAINT-02 | Phase 128 | Pending |
 | MAINT-03 | Phase 128 | Pending |

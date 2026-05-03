@@ -89,7 +89,7 @@
 
 - [x] **Phase 125: 后端核心逻辑审查** — 审查 agent/core/pipeline 的正确性、耦合度和抽象合理性 (completed 2026-05-03)
 - [x] **Phase 126: API 层与安全审查** — 审查路由正确性和安全风险 (completed 2026-05-03)
-- [ ] **Phase 127: 前端审查** — 审查 React 组件逻辑正确性和前端性能
+- [x] **Phase 127: 前端审查** — 审查 React 组件逻辑正确性和前端性能 (completed 2026-05-03)
 - [ ] **Phase 128: 代码质量审查** — 审查可维护性、横切关注点和异步性能
 - [ ] **Phase 129: 测试规划** — 识别缺失测试场景和边界覆盖不足
 
@@ -139,7 +139,7 @@ Plans:
 Plans:
 - [x] 127-01-PLAN.md — Breadth scan all ~60 frontend files + run ESLint/TypeScript checks, produce risk matrix
 - [x] 127-02-PLAN.md — Deep-dive review of 5 P1 files (useRunStream.ts, DataMethodSelector.tsx, TaskForm.tsx, AssertionSelector.tsx, client.ts) + SSE cross-validation with backend
-- [ ] 127-03-PLAN.md — P2/P3 quick scan + final summary statistics with cross-phase correlation
+- [x] 127-03-PLAN.md — P2/P3 quick scan + final summary statistics with cross-phase correlation
 
 ### Phase 128: 代码质量审查
 **Goal**: 代码可维护性、横切关注点一致性和异步性能得到全面审查，输出具体发现清单
@@ -179,7 +179,7 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 |-------|----------------|--------|-----------|
 | 125. 后端核心逻辑审查 | 3/3 | Complete    | 2026-05-03 |
 | 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
-| 127. 前端审查 | 2/3 | In Progress|  |
+| 127. 前端审查 | 3/3 | Complete   | 2026-05-03 |
 | 128. 代码质量审查 | 0/? | Not started | - |
 | 129. 测试规划 | 0/? | Not started | - |
 
