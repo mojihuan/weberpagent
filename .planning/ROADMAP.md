@@ -155,7 +155,7 @@ Plans:
 
 Plans:
 - [x] 128-01-PLAN.md — Full-stack breadth scan: radon + ESLint complexity metrics, risk matrix, cross-reference map to 125/126/127 findings
-- [ ] 128-02-PLAN.md — Backend P1 deep-dive: MAINT-01/MAINT-02/MAINT-03 + ARCH-03/PERF-01 analysis
+- [x] 128-02-PLAN.md — Backend P1 deep-dive: MAINT-01/MAINT-02/MAINT-03 + ARCH-03/PERF-01 analysis
 - [ ] 128-03-PLAN.md — Frontend P1 deep-dive + cross-phase correlation analysis + final summary statistics
 
 ### Phase 129: 测试规划
@@ -182,7 +182,7 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 | 125. 后端核心逻辑审查 | 3/3 | Complete    | 2026-05-03 |
 | 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
 | 127. 前端审查 | 3/3 | Complete    | 2026-05-03 |
-| 128. 代码质量审查 | 1/3 | In Progress|  |
+| 128. 代码质量审查 | 2/3 | In Progress|  |
 | 129. 测试规划 | 0/? | Not started | - |
 
 ---

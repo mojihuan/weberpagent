@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
 status: Ready to execute
-stopped_at: Completed 128-01-PLAN.md
-last_updated: "2026-05-03T13:14:47.518Z"
+stopped_at: Completed 128-02-PLAN.md
+last_updated: "2026-05-03T13:23:40.793Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 128 (代码质量审查) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Plan: 2 of 3
 *Updated after each plan completion*
 | Phase 127-frontend-review P03 | 11min | 2 tasks | 1 files |
 | Phase 128 P01 | 8min | 2 tasks | 1 files |
+| Phase 128 P02 | 6min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,12 @@ Recent decisions affecting current work:
 - [Phase 128]: ESLint complexity: JsonTreeViewer (26), TaskForm (24), AssertionSelector (16) are frontend hotspots; 5 of 12 high-complexity functions in TaskModal components
 - [Phase 128]: Cross-cutting: error handling uses 3 strategies across 28 files (non_blocking_execute in only 3); StructuredLogger has zero consumers; config dual source affects 13 files
 - [Phase 128]: Frontend DRY violation: all 4 data hooks (useTasks, useReports, useDashboard, useBatchProgress) use identical manual useState+useEffect+fetch pattern; React Query installed but unused
+- [Phase 128]: Login JS duplication between agent_service.py and code_generator.py is highest-impact DRY violation (~80 lines across 2 files)
+- [Phase 128]: LLMFactory is dead code: create_llm() bypasses it; LLMConfig (YAML) has 1 consumer vs Settings (.env) with 12 consumers
+- [Phase 128]: StructuredLogger has zero application consumers; RunLogger is the actual structured logging system
+- [Phase 128]: event_manager._events unbounded growth confirmed; cleanup() exists but never called
+- [Phase 128]: Dual stall detection (MonitoredAgent + agent_service) is both correctness bug and DRY violation
+- [Phase 128]: Settings.log_level defined but never used; DEBUG hardcoded in main.py lifespan
 
 ### Pending Todos
 
@@ -103,6 +110,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-03T13:14:47.516Z
-Stopped at: Completed 128-01-PLAN.md
+Last session: 2026-05-03T13:23:40.791Z
+Stopped at: Completed 128-02-PLAN.md
 Resume file: None
