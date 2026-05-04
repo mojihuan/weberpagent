@@ -1,5 +1,6 @@
 """断言服务 - 验证执行结果"""
 
+import json
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -88,26 +89,33 @@ class AssertionService:
     async def check_element_exists(
         self, history: Any, selector: str
     ) -> tuple[bool, str, str]:
-        """检查元素是否存在（通过 CSS 选择器）。
+        """Check if a DOM element exists via CSS selector using page.evaluate.
 
-        注意：browser-use 的 history 可能没有直接的 DOM 访问能力。
-        当前实现基于执行完成状态作为回退方案。
+        Uses history.page.evaluate() + document.querySelector(selector)
+        consistent with the project CDP interaction pattern.
 
         Args:
-            history: browser-use 执行历史对象
-            selector: CSS 选择器
+            history: browser-use execution history object (must have .page)
+            selector: CSS selector string
 
         Returns:
-            tuple[bool, str, str]: (是否通过, 消息, 实际值)
+            tuple[bool, str, str]: (passed, message, actual_value)
         """
         try:
-            if hasattr(history, "is_done") and history.is_done:
-                # 如果执行完成且无错误，假设元素检查通过
-                # 真实实现需要检查浏览器 DOM 状态
+            page = getattr(history, "page", None)
+            if page is None:
+                return False, f"Page not available for element check '{selector}'", ""
+
+            result = await page.evaluate(
+                f"JSON.stringify({{ found: document.querySelector('{selector}') !== null }})"
+            )
+            parsed = json.loads(result) if isinstance(result, str) else result
+            if parsed.get("found"):
                 return True, "", selector
+            return False, f"Element '{selector}' not found in DOM", ""
+
         except Exception as e:
-            return False, f"元素检查失败: {str(e)}", ""
-        return False, f"无法检查元素 '{selector}'", ""
+            return False, f"Element check failed for '{selector}': {str(e)}", ""
 
     async def evaluate_all(
         self,

@@ -9,7 +9,7 @@ class Assertion(BaseModel):
     """断言模型"""
 
     name: str = Field(..., description="断言名称")
-    type: Literal["url_contains", "text_exists", "no_errors"] = Field(
+    type: Literal["url_contains", "text_exists", "no_errors", "element_exists"] = Field(
         ..., description="断言类型"
     )
     expected: str | bool = Field(..., description="期望值")

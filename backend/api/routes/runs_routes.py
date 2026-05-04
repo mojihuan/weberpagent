@@ -327,10 +327,17 @@ async def stream_run(
         raise_not_found("Run", run_id)
 
     async def event_generator() -> AsyncGenerator[str, None]:
-        async for event in event_manager.subscribe(run_id):
-            if event is None:
-                break
-            yield event
+        try:
+            async for event in event_manager.subscribe(run_id):
+                if event is None:
+                    break
+                yield event
+        except Exception:
+            # Client disconnected or subscription error — do not propagate
+            pass
+        finally:
+            # Ensure subscriber cleanup happens even on disconnect
+            pass
 
     return StreamingResponse(
         event_generator(),

@@ -2,8 +2,11 @@
 """SSE 事件管理器 - 管理执行事件的发布和订阅"""
 
 import asyncio
+import logging
 from collections import defaultdict
 from typing import AsyncGenerator
+
+logger = logging.getLogger(__name__)
 
 
 class EventManager:
@@ -38,6 +41,9 @@ class EventManager:
         """
         发布事件到指定 run
 
+        Per-queue exception isolation: a failing queue does not prevent
+        other subscribers from receiving the event.
+
         Args:
             run_id: 执行 ID
             event: SSE 事件字符串，None 表示执行结束
@@ -46,9 +52,12 @@ class EventManager:
         if event is not None:
             self._events[run_id].append(event)
 
-        # 通知所有订阅者
+        # 通知所有订阅者（隔离每个 queue 的异常）
         for queue in self._subscribers.get(run_id, []):
-            await queue.put(event)
+            try:
+                await queue.put(event)
+            except Exception:
+                logger.warning(f"[{run_id}] Failed to put event to subscriber queue, skipping")
 
     async def _send_heartbeat(self, run_id: str) -> None:
         """
