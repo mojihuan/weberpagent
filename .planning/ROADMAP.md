@@ -166,10 +166,12 @@ Plans:
   1. 所有缺少测试保护的核心业务流程均被识别，按 ROI 排序
   2. 边界值、异常路径、竞态条件、超时场景等测试覆盖不足的位置均被识别并记录
   3. 输出的测试场景清单可直接转化为后续里程碑的测试实施需求
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 129-01: TBD
+- [x] 129-01-PLAN.md — 汇总分析：读取 125-128 FINDINGS，筛选可测试发现，按严重程度排序，输出到 129-FINDINGS.md
+- [ ] 129-02-PLAN.md — 后端测试场景详列：展开后端 Critical/High 发现的具体单元+集成测试场景
+- [ ] 129-03-PLAN.md — 前端+E2E 测试场景+最终总结：前端组件测试、E2E 缺失场景、最终统计
 
 ## Progress
 
@@ -182,8 +184,8 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 | 125. 后端核心逻辑审查 | 3/3 | Complete    | 2026-05-03 |
 | 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
 | 127. 前端审查 | 3/3 | Complete    | 2026-05-03 |
-| 128. 代码质量审查 | 3/3 | Complete   | 2026-05-03 |
-| 129. 测试规划 | 0/? | Not started | - |
+| 128. 代码质量审查 | 3/3 | Complete    | 2026-05-03 |
+| 129. 测试规划 | 1/3 | In Progress|  |
 
 ---
-*Roadmap updated: 2026-05-03 — Phase 128 planned (3 plans)*
+*Roadmap updated: 2026-05-04 — Phase 129 planned (3 plans)*

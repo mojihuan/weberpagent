@@ -34,8 +34,8 @@
 
 ### 测试 (TEST)
 
-- [ ] **TEST-01**: 识别关键测试缺失 — 哪些核心业务流程缺少测试保护、高 ROI 测试场景
-- [ ] **TEST-02**: 识别边界情况覆盖不足 — 边界值、异常路径、竞态条件、超时场景
+- [x] **TEST-01**: 识别关键测试缺失 — 哪些核心业务流程缺少测试保护、高 ROI 测试场景
+- [x] **TEST-02**: 识别边界情况覆盖不足 — 边界值、异常路径、竞态条件、超时场景
 
 ## Out of Scope
 
@@ -63,8 +63,8 @@
 | ARCH-01 | Phase 125 | Complete |
 | ARCH-02 | Phase 125 | Complete |
 | ARCH-03 | Phase 128 | Complete |
-| TEST-01 | Phase 129 | Pending |
-| TEST-02 | Phase 129 | Pending |
+| TEST-01 | Phase 129 | Complete |
+| TEST-02 | Phase 129 | Complete |
 
 **Coverage:**
 - v0.11.3 requirements: 14 total
