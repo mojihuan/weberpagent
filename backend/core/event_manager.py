@@ -80,7 +80,14 @@ class EventManager:
         queue: asyncio.Queue[str | None] = asyncio.Queue()
         self._subscribers[run_id].append(queue)
 
-        # 启动心跳任务
+        # 启动心跳任务（先取消同一 run_id 的旧 task，防止 task 泄漏）
+        existing_task = self._heartbeat_tasks.get(run_id)
+        if existing_task is not None and not existing_task.done():
+            existing_task.cancel()
+            try:
+                await existing_task
+            except asyncio.CancelledError:
+                pass
         heartbeat_task = asyncio.create_task(self._send_heartbeat(run_id))
         self._heartbeat_tasks[run_id] = heartbeat_task
 
@@ -150,6 +157,8 @@ class EventManager:
             del self._subscribers[run_id]
         if run_id in self._status:
             del self._status[run_id]
+        if run_id in self._heartbeat_tasks:
+            del self._heartbeat_tasks[run_id]
 
 
 # 全局单例

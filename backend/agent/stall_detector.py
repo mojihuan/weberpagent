@@ -71,6 +71,7 @@ class StallDetector:
 
     max_consecutive_failures: int = 2
     max_stagnant_steps: int = 3
+    _MAX_HISTORY: int = 1000
     _history: list[_StepRecord] = field(default_factory=list, repr=False)
 
     def check(
@@ -98,6 +99,8 @@ class StallDetector:
             dom_hash=dom_hash,
         )
         self._history.append(record)
+        if len(self._history) > self._MAX_HISTORY:
+            self._history = self._history[-self._MAX_HISTORY:]
         return self._detect_stall()
 
     def _detect_stall(self) -> StallResult:

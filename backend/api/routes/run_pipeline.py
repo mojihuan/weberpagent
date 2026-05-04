@@ -468,6 +468,7 @@ async def _finalize_run(
     logger.info(f"[{run_id}] 已发送 finished 事件, status={final_status}")
     await report_service.generate_report(run_id)
     logger.info(f"[{run_id}] 报告已生成")
+    event_manager.cleanup(run_id)
 
 
 async def run_agent_background(
@@ -573,4 +574,5 @@ async def run_agent_background(
             await event_manager.publish(run_id, f"event: error\ndata: {SSEErrorEvent(error=str(e)).model_dump_json()}\n\n")
         finally:
             await event_manager.publish(run_id, None)
+            event_manager.cleanup(run_id)
             logger.info(f"[{run_id}] 后台执行结束")
