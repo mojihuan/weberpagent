@@ -256,6 +256,9 @@ async def get_run_report(
     if not run.generated_code_path:
         raise HTTPException(status_code=404, detail="该执行记录无生成代码")
 
+    # Path traversal protection (CORR-02)
+    _validate_code_path(run.generated_code_path)
+
     report_path = Path(run.generated_code_path).parent / "report.html"
     if not report_path.exists():
         raise HTTPException(status_code=404, detail="测试报告不存在，请先执行代码")
@@ -278,6 +281,11 @@ async def execute_run_code(
     # Pre-check 2: has generated code
     if not run.generated_code_path:
         raise HTTPException(status_code=400, detail="该执行记录无生成代码")
+
+    # Path traversal protection (CORR-02)
+    # Must validate before background_tasks.add_task so 403/404 errors
+    # return to HTTP client rather than silently failing in background
+    _validate_code_path(run.generated_code_path)
 
     # Pre-check 3: task has login_role (per D-07)
     async with async_session() as session:
