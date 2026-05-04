@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.4
 milestone_name: 审查发现优化 — 系统性模式修复
-status: Ready to execute
-stopped_at: Completed 131-01-PLAN.md
-last_updated: "2026-05-04T08:57:06.479Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 131-02-PLAN.md
+last_updated: "2026-05-04T09:02:25.269Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -43,6 +43,7 @@ Plan: 2 of 2
 | Phase 130 P01 | 236s | 2 tasks | 4 files |
 | Phase 130 P02 | 139 | 2 tasks | 2 files |
 | Phase 131 P01 | 7min | 2 tasks | 5 files |
+| Phase 131 P02 | 2min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,10 @@ Key decisions for v0.11.4 roadmap:
 - [Phase 131]: Slice assignment for _history truncation creates new list (immutable pattern)
 - [Phase 131]: Cleanup in both _finalize_run and finally block covers success and failure paths
 - [Phase 131]: Heartbeat cancellation uses cancel + await CancelledError pattern
+- [Phase 131]: publish() isolates each queue.put() in try/except — one bad queue does not block others
+- [Phase 131]: event_generator wraps subscribe loop in try/except — client disconnect does not propagate
+- [Phase 131]: check_element_exists uses page.evaluate + JSON.stringify + json.loads for DOM detection
+- [Phase 131]: import json at module top in assertion_service.py for clean imports
 
 ### Pending Todos
 
@@ -75,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T08:57:06.476Z
-Stopped at: Completed 131-01-PLAN.md
+Last session: 2026-05-04T09:02:25.267Z
+Stopped at: Completed 131-02-PLAN.md
 Resume file: None

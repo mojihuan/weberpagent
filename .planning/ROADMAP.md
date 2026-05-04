@@ -86,7 +86,7 @@
 **Milestone Goal:** 修复 v0.11.3 审查发现的 5 个系统性跨层模式 (CP-1~CP-5) 及 Top 5 High 优先问题，提升代码健壮性和安全性。
 
 - [x] **Phase 130: 安全与关键正确性修复** — 路径遍历防护 + 双重检测 bug 修复 (completed 2026-05-04)
-- [ ] **Phase 131: 后端内存与错误处理** — EventManager 泄漏修复 + SSE 异常保护 + 断言 stub 实现
+- [x] **Phase 131: 后端内存与错误处理** — EventManager 泄漏修复 + SSE 异常保护 + 断言 stub 实现 (completed 2026-05-04)
 - [ ] **Phase 132: 后端异步与状态** — 阻塞操作迁移 + 可变状态解耦
 - [ ] **Phase 133: 前端健壮性** — SSE hook 内存优化 + JSON.parse 保护 + 连接状态修正 + immutable 更新
 - [ ] **Phase 134: 死代码清理** — 未使用代码删除 + React Query 迁移 + 错误处理统一
@@ -120,7 +120,7 @@ Plans:
 
 Plans:
 - [x] 131-01-PLAN.md — EventManager 内存泄漏修复 + StallDetector 历史上限 (MEM-01, MEM-02, MEM-04)
-- [ ] 131-02-PLAN.md — SSE 异常保护 + 断言 DOM 检测实现 (ERR-01, ERR-03)
+- [x] 131-02-PLAN.md — SSE 异常保护 + 断言 DOM 检测实现 (ERR-01, ERR-03)
 
 ### Phase 132: 后端异步与状态
 **Goal**: 后端不再有阻塞事件循环的操作，外部断言 context 不再泄漏到 variable_map
@@ -173,7 +173,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 130. 安全与关键正确性修复 | v0.11.4 | 2/2 | Complete    | 2026-05-04 |
-| 131. 后端内存与错误处理 | v0.11.4 | 1/2 | In Progress|  |
+| 131. 后端内存与错误处理 | v0.11.4 | 2/2 | Complete   | 2026-05-04 |
 | 132. 后端异步与状态 | v0.11.4 | 0/2 | Not started | - |
 | 133. 前端健壮性 | v0.11.4 | 0/2 | Not started | - |
 | 134. 死代码清理 | v0.11.4 | 0/2 | Not started | - |

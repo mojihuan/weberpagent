@@ -21,11 +21,11 @@
 
 ### Error Handling (ERR) — 错误处理补全
 
-- [ ] **ERR-01**: SSE event_generator 添加 try/except 防止 publish 失败中断 pipeline (CP-2, High)
+- [x] **ERR-01**: SSE event_generator 添加 try/except 防止 publish 失败中断 pipeline (CP-2, High)
   - 来源: 128-FINDINGS QS-06, 125-FINDINGS P2-event_manager:27
 - [ ] **ERR-02**: useRunStream 所有 JSON.parse 调用添加 try/catch 保护 (CP-2, High)
   - 来源: 127-FINDINGS DD-USE-01 (7 处 unprotected JSON.parse)
-- [ ] **ERR-03**: assertion_service.check_element_exists 实现真实 DOM 元素检测逻辑，替换 stub (High)
+- [x] **ERR-03**: assertion_service.check_element_exists 实现真实 DOM 元素检测逻辑，替换 stub (High)
   - 来源: 125-FINDINGS P2-assertion_service:88-110, 128-FINDINGS QS-09
   - 当前硬编码返回 True，名称暗示 DOM 检查但实际是完成检查
 - [ ] **ERR-04**: useRunStream isConnected 状态在 EventSource onopen 后才设为 true (CP-2, Medium)
@@ -92,9 +92,9 @@
 | MEM-02 | Phase 131 | Complete |
 | MEM-03 | Phase 133 | Pending |
 | MEM-04 | Phase 131 | Complete |
-| ERR-01 | Phase 131 | Pending |
+| ERR-01 | Phase 131 | Complete |
 | ERR-02 | Phase 133 | Pending |
-| ERR-03 | Phase 131 | Pending |
+| ERR-03 | Phase 131 | Complete |
 | ERR-04 | Phase 133 | Pending |
 | ASYNC-01 | Phase 132 | Pending |
 | ASYNC-02 | Phase 132 | Pending |
