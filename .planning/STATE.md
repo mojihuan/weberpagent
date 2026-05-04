@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11.3
 milestone_name: 代码彻底的 Review
 status: Ready to execute
-stopped_at: Completed 129-01-PLAN.md
-last_updated: "2026-05-04T03:55:58.499Z"
+stopped_at: Completed 129-02-PLAN.md
+last_updated: "2026-05-04T04:07:10.912Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-05-02)
 ## Current Position
 
 Phase: 129 (测试规划) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Plan: 2 of 3
 | Phase 128 P02 | 6min | 2 tasks | 1 files |
 | Phase 128 P03 | 4min | 1 tasks | 1 files |
 | Phase 129 P01 | 5min | 1 tasks | 1 files |
+| Phase 129 P02 | 551s | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 128]: Phase 128 final: 81 new findings, 37 cross-referenced, 72 actionable, 14 High, 14 new issues not in CONCERNS.md
 - [Phase ?]: [129-01]: 24% testable rate (67/277 findings) -- backend unit (24), integration (25), frontend (13), e2e (5)
 - [Phase ?]: [129-01]: CP-1 (memory leak) and CP-2 (error handling gap) are highest-ROI systemic patterns for test coverage
+- [Phase 129]: [129-02]: 49 backend test scenarios (24 unit + 25 integration) with concrete test descriptions; P0: StallDetector, assertion stub, F-grade generate, EventManager, SSE, sync I/O
+- [Phase 129]: [129-02]: All 5 systemic patterns (CP-1~CP-5) covered by integration test scenarios; 2 partially deferred (EventManager auto-cleanup, agent cancellation)
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T03:55:58.497Z
-Stopped at: Completed 129-01-PLAN.md
+Last session: 2026-05-04T04:07:10.909Z
+Stopped at: Completed 129-02-PLAN.md
 Resume file: None

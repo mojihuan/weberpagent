@@ -170,7 +170,7 @@ Plans:
 
 Plans:
 - [x] 129-01-PLAN.md — 汇总分析：读取 125-128 FINDINGS，筛选可测试发现，按严重程度排序，输出到 129-FINDINGS.md
-- [ ] 129-02-PLAN.md — 后端测试场景详列：展开后端 Critical/High 发现的具体单元+集成测试场景
+- [x] 129-02-PLAN.md — 后端测试场景详列：展开后端 Critical/High 发现的具体单元+集成测试场景
 - [ ] 129-03-PLAN.md — 前端+E2E 测试场景+最终总结：前端组件测试、E2E 缺失场景、最终统计
 
 ## Progress
@@ -185,7 +185,7 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 | 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
 | 127. 前端审查 | 3/3 | Complete    | 2026-05-03 |
 | 128. 代码质量审查 | 3/3 | Complete    | 2026-05-03 |
-| 129. 测试规划 | 1/3 | In Progress|  |
+| 129. 测试规划 | 2/3 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-05-04 — Phase 129 planned (3 plans)*
