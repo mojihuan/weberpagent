@@ -119,7 +119,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 131-01-PLAN.md — EventManager 内存泄漏修复 + StallDetector 历史上限 (MEM-01, MEM-02, MEM-04)
+- [x] 131-01-PLAN.md — EventManager 内存泄漏修复 + StallDetector 历史上限 (MEM-01, MEM-02, MEM-04)
 - [ ] 131-02-PLAN.md — SSE 异常保护 + 断言 DOM 检测实现 (ERR-01, ERR-03)
 
 ### Phase 132: 后端异步与状态
@@ -173,7 +173,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 130. 安全与关键正确性修复 | v0.11.4 | 2/2 | Complete    | 2026-05-04 |
-| 131. 后端内存与错误处理 | v0.11.4 | 0/2 | Not started | - |
+| 131. 后端内存与错误处理 | v0.11.4 | 1/2 | In Progress|  |
 | 132. 后端异步与状态 | v0.11.4 | 0/2 | Not started | - |
 | 133. 前端健壮性 | v0.11.4 | 0/2 | Not started | - |
 | 134. 死代码清理 | v0.11.4 | 0/2 | Not started | - |

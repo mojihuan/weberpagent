@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.4
 milestone_name: 审查发现优化 — 系统性模式修复
-status: Phase complete — ready for verification
-stopped_at: Completed 130-02-PLAN.md
-last_updated: "2026-05-04T06:28:40.166Z"
+status: Ready to execute
+stopped_at: Completed 131-01-PLAN.md
+last_updated: "2026-05-04T08:57:06.479Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-04)
 
 **Core value:** 让 QA 用自然语言写测试用例，AI 自动执行并生成报告
-**Current focus:** Phase 130 — 安全与关键正确性修复
+**Current focus:** Phase 131 — 后端内存与错误处理
 
 ## Current Position
 
-Phase: 130 (安全与关键正确性修复) — EXECUTING
+Phase: 131 (后端内存与错误处理) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -42,6 +42,7 @@ Plan: 2 of 2
 *Updated after each plan completion*
 | Phase 130 P01 | 236s | 2 tasks | 4 files |
 | Phase 130 P02 | 139 | 2 tasks | 2 files |
+| Phase 131 P01 | 7min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,9 @@ Key decisions for v0.11.4 roadmap:
 - [Phase 130]: Reused existing _validate_code_path for consistent protection pattern
 - [Phase 130]: Removed create_step_callback entirely rather than deprecating - zero callers exist
 - [Phase 130]: Used mock.patch on parent Agent.__init__ in test to avoid real browser dependency
+- [Phase 131]: Slice assignment for _history truncation creates new list (immutable pattern)
+- [Phase 131]: Cleanup in both _finalize_run and finally block covers success and failure paths
+- [Phase 131]: Heartbeat cancellation uses cancel + await CancelledError pattern
 
 ### Pending Todos
 
@@ -71,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T06:28:40.164Z
-Stopped at: Completed 130-02-PLAN.md
+Last session: 2026-05-04T08:57:06.476Z
+Stopped at: Completed 131-01-PLAN.md
 Resume file: None

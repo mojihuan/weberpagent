@@ -9,14 +9,14 @@
 
 ### Memory (MEM) — 内存泄漏修复
 
-- [ ] **MEM-01**: EventManager._events dict 在 run 完成后自动清理，防止无界增长 (CP-1, High)
+- [x] **MEM-01**: EventManager._events dict 在 run 完成后自动清理，防止无界增长 (CP-1, High)
   - 来源: 125-FINDINGS P2-event_manager:27, 128-FINDINGS QS-07
   - 当前 cleanup() 方法存在但从未被调用
-- [ ] **MEM-02**: EventManager heartbeat task 在 re-subscribe 时正确取消旧 task，防止 task 泄漏 (CP-1, Medium)
+- [x] **MEM-02**: EventManager heartbeat task 在 re-subscribe 时正确取消旧 task，防止 task 泄漏 (CP-1, Medium)
   - 来源: 125-FINDINGS P2-event_manager:84-85
 - [ ] **MEM-03**: useRunStream steps/timeline 数组使用 ref-based 可变数组，消除 O(n^2) 拷贝开销 (CP-1, High)
   - 来源: 127-FINDINGS SSE-4, DD-USE-04, 128-FINDINGS QS-07
-- [ ] **MEM-04**: StallDetector._history 添加 1000 条目上限作为防御性保护 (CP-1, Low)
+- [x] **MEM-04**: StallDetector._history 添加 1000 条目上限作为防御性保护 (CP-1, Low)
   - 来源: 128-FINDINGS QS-07
 
 ### Error Handling (ERR) — 错误处理补全
@@ -88,10 +88,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MEM-01 | Phase 131 | Pending |
-| MEM-02 | Phase 131 | Pending |
+| MEM-01 | Phase 131 | Complete |
+| MEM-02 | Phase 131 | Complete |
 | MEM-03 | Phase 133 | Pending |
-| MEM-04 | Phase 131 | Pending |
+| MEM-04 | Phase 131 | Complete |
 | ERR-01 | Phase 131 | Pending |
 | ERR-02 | Phase 133 | Pending |
 | ERR-03 | Phase 131 | Pending |

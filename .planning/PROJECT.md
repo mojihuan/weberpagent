@@ -19,6 +19,8 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 系统性的全代码库审查完成，277 个可操作发现，67 个可测试场景已规划。
 
+**Phase 130 complete** — 安全与关键正确性修复: 路径遍历漏洞已封堵，create_step_callback 死代码已删除。10/10 测试通过。
+
 **5 系统性模式 (待修复):**
 - CP-1: 内存泄漏 (event_manager._events + useRunStream 数组无清理)
 - CP-2: 错误处理缺口 (SSE event_generator + JSON.parse 无保护)
@@ -33,17 +35,17 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 4. execute_run_code 路径验证缺失 (High, SEC)
 5. JSON.parse 无 try/catch (High, frontend)
 
-## Next Milestone Goals
+## Current Milestone: v0.11.4 审查发现优化 — 系统性模式修复
 
-基于 v0.11.3 审查结果的测试重建：
+**Goal:** 修复 v0.11.3 审查发现的 5 个系统性跨层模式 (CP-1~CP-5) 及 Top 5 High 优先问题，提升代码健壮性和安全性。
 
-1. **测试基础设施** — conftest.py, fixtures, mock 模式
-2. **P0 后端单元测试** — 24 场景 (StallDetector, schemas, excel_parser)
-3. **P0 后端集成测试** — 25 场景 (EventManager, SSE, pipeline)
-4. **P1 前端测试** — vitest + 13 组件测试场景
-5. **P2 E2E** — 5 个缺失 E2E 场景
-
-预计 67 个测试场景，实施周期 11-16 天。
+**Target features:**
+- CP-1 内存泄漏修复 — event_manager._events 无界增长 + useRunStream 数组无清理
+- CP-2 错误处理补全 — SSE event_generator 异常 + JSON.parse 无 try/catch 保护
+- CP-3 未使用代码清理 — StructuredLogger 未启用 + React Query 未充分使用
+- CP-4 阻塞操作迁移 — write_bytes 同步写文件 + subprocess.run 阻塞事件循环
+- CP-5 可变状态解耦 — external assertion context 全局可变 + useState 直接修改
+- Top 5 High 修复 — assertion_service stub、dual stall detection bug、execute_run_code 路径验证
 
 ## 已交付版本:
 
@@ -200,7 +202,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-(None — all requirements defined)
+(None — defining for v0.11.4)
 
 ### Backlog
 
@@ -283,4 +285,4 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-05-04 — v0.11.3 milestone archived*
+*Last updated: 2026-05-04 — v0.11.4 milestone started*
