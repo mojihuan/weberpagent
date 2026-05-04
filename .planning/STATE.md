@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.4
 milestone_name: 审查发现优化 — 系统性模式修复
-status: Ready to execute
-stopped_at: Completed 130-01-PLAN.md
-last_updated: "2026-05-04T06:24:11.939Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 130-02-PLAN.md
+last_updated: "2026-05-04T06:28:40.166Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -41,6 +41,7 @@ Plan: 2 of 2
 
 *Updated after each plan completion*
 | Phase 130 P01 | 236s | 2 tasks | 4 files |
+| Phase 130 P02 | 139 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -57,6 +58,8 @@ Key decisions for v0.11.4 roadmap:
 - Dual stall/progress detection bugs (CORR-01, CORR-03) grouped together as same pattern
 - [Phase 130]: Validated path before background_tasks.add_task so HTTP errors return to client
 - [Phase 130]: Reused existing _validate_code_path for consistent protection pattern
+- [Phase 130]: Removed create_step_callback entirely rather than deprecating - zero callers exist
+- [Phase 130]: Used mock.patch on parent Agent.__init__ in test to avoid real browser dependency
 
 ### Pending Todos
 
@@ -68,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T06:24:11.937Z
-Stopped at: Completed 130-01-PLAN.md
+Last session: 2026-05-04T06:28:40.164Z
+Stopped at: Completed 130-02-PLAN.md
 Resume file: None

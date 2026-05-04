@@ -50,12 +50,12 @@
 
 ### Correctness (CORR) — 正确性 bug 修复
 
-- [ ] **CORR-01**: 修复 dual stall detection bug — 同一 StallDetector 在 MonitoredAgent 和 agent_service 中各调用一次，阈值被意外减半 (High)
+- [x] **CORR-01**: 修复 dual stall detection bug — 同一 StallDetector 在 MonitoredAgent 和 agent_service 中各调用一次，阈值被意外减半 (High)
   - 来源: 125-FINDINGS Cross-2, 128-FINDINGS MAINT-01
   - 修复方案: 统一到单一调用点
 - [x] **CORR-02**: execute_run_code 添加路径验证，防止路径遍历攻击 (High, SEC)
   - 来源: 126-FINDINGS 安全发现
-- [ ] **CORR-03**: dual progress tracking bug — 同一 TaskProgressTracker 在两处被调用 (Medium)
+- [x] **CORR-03**: dual progress tracking bug — 同一 TaskProgressTracker 在两处被调用 (Medium)
   - 来源: 125-FINDINGS P1-agent_service:374-380
 
 ### Dead Code (DEAD) — 未使用代码清理
@@ -100,9 +100,9 @@
 | ASYNC-02 | Phase 132 | Pending |
 | STATE-01 | Phase 132 | Pending |
 | STATE-02 | Phase 133 | Pending |
-| CORR-01 | Phase 130 | Pending |
+| CORR-01 | Phase 130 | Complete |
 | CORR-02 | Phase 130 | Complete |
-| CORR-03 | Phase 130 | Pending |
+| CORR-03 | Phase 130 | Complete |
 | DEAD-01 | Phase 134 | Pending |
 | DEAD-02 | Phase 134 | Pending |
 | DEAD-03 | Phase 134 | Pending |
