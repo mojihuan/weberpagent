@@ -1,10 +1,13 @@
-"""Tests for EventManager cleanup, heartbeat cancellation, and _finalize_run integration.
+"""Tests for EventManager cleanup, heartbeat cancellation, publish isolation, and
+_finalize_run integration.
 
-Tests MEM-01 (cleanup removes run data) and MEM-02 (heartbeat task cancellation on
-re-subscribe). Also verifies _finalize_run calls event_manager.cleanup(run_id) (MEM-01).
+Tests MEM-01 (cleanup removes run data), MEM-02 (heartbeat task cancellation on
+re-subscribe), ERR-01 (publish per-queue exception isolation). Also verifies
+_finalize_run calls event_manager.cleanup(run_id) (MEM-01).
 """
 
 import asyncio
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -123,3 +126,58 @@ class TestEventManager:
 
             # Verify cleanup was called with the correct run_id
             mock_em.cleanup.assert_called_once_with(run_id)
+
+
+class TestEventManagerPublish:
+    """Unit tests for EventManager publish() per-queue exception isolation.
+
+    ERR-01: A failing subscriber queue must not prevent other subscribers
+    from receiving events. publish() must isolate each queue.put() in try/except.
+    """
+
+    @pytest.mark.asyncio
+    async def test_publish_isolates_bad_queue(self) -> None:
+        """publish() must not raise when one queue fails — other queues still receive events.
+
+        ERR-01: If one subscriber queue raises on put(), the event must still
+        be delivered to all other healthy queues, and publish must return normally.
+        """
+        mgr = EventManager()
+        run_id = "run-err"
+
+        # Create two queues for the same run
+        good_queue: asyncio.Queue = asyncio.Queue()
+        bad_queue: asyncio.Queue = asyncio.Queue()
+
+        # Register both as subscribers
+        mgr._subscribers[run_id] = [bad_queue, good_queue]
+
+        # Make bad_queue.put raise by replacing it with a mock
+        bad_queue.put = AsyncMock(side_effect=RuntimeError("queue closed"))  # type: ignore[assignment]
+
+        # Act — should not raise despite bad_queue failing
+        await mgr.publish(run_id, "test-event")
+
+        # Assert: good_queue still received the event
+        received = await asyncio.wait_for(good_queue.get(), timeout=1.0)
+        assert received == "test-event"
+
+    @pytest.mark.asyncio
+    async def test_publish_logs_bad_queue_error(self, caplog: pytest.LogCaptureFixture) -> None:
+        """publish() must log a warning when a queue fails.
+
+        ERR-01: When a subscriber queue raises during put(), a warning should
+        be logged so operators can diagnose subscription issues.
+        """
+        mgr = EventManager()
+        run_id = "run-log"
+
+        bad_queue: asyncio.Queue = asyncio.Queue()
+        mgr._subscribers[run_id] = [bad_queue]
+        bad_queue.put = AsyncMock(side_effect=RuntimeError("queue broken"))  # type: ignore[assignment]
+
+        with caplog.at_level(logging.WARNING, logger="backend.core.event_manager"):
+            await mgr.publish(run_id, "event")
+
+        # Assert: a warning was logged about the failed queue
+        assert any("Failed to put event" in record.message for record in caplog.records)
