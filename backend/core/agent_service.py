@@ -124,7 +124,7 @@ class AgentService:
         else:
             screenshot_bytes = screenshot_data
 
-        filepath.write_bytes(screenshot_bytes)
+        await asyncio.to_thread(filepath.write_bytes, screenshot_bytes)
         return str(filepath)
 
     async def _click_password_login_tab(self, run_id: str, page: Any) -> bool:

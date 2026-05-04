@@ -94,8 +94,6 @@ async def _execute_code_background(
     task_id: str,
 ) -> None:
     """Background task: execute generated Playwright code via pytest once and update run status."""
-    import subprocess
-
     async with _code_execution_semaphore:
         _active_code_execution[run_id] = datetime.now().isoformat()
         test_file_dir = str(Path(test_file_path).parent)
@@ -105,17 +103,25 @@ async def _execute_code_background(
             conftest_path, cred_path = _write_test_support_files(test_file_dir, credentials)
 
             report_path = Path(test_file_dir) / "report.html"
-            proc = subprocess.run(
-                ["uv", "run", "pytest", test_file_path, "--timeout=120", "-v",
-                 f"--html={report_path}", "--self-contained-html"],
-                capture_output=True, text=True, timeout=180,
+            proc = await asyncio.create_subprocess_exec(
+                "uv", "run", "pytest", test_file_path, "--timeout=120", "-v",
+                f"--html={report_path}", "--self-contained-html",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
+            try:
+                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=180)
+            except asyncio.TimeoutError:
+                proc.kill()
+                await proc.wait()
+                raise
+
             result_status = "success" if proc.returncode == 0 else "failed"
             logger.info(f"[{run_id}] pytest 执行完成: returncode={proc.returncode}, status={result_status}")
-            if proc.stdout:
-                logger.info(f"[{run_id}] pytest stdout:\n{proc.stdout}")
-            if proc.stderr:
-                logger.warning(f"[{run_id}] pytest stderr:\n{proc.stderr}")
+            if stdout:
+                logger.info(f"[{run_id}] pytest stdout:\n{stdout.decode()}")
+            if stderr:
+                logger.warning(f"[{run_id}] pytest stderr:\n{stderr.decode()}")
 
             async with async_session() as session:
                 run_repo = RunRepository(session)
