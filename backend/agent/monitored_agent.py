@@ -2,22 +2,19 @@
 
 Overrides _prepare_context() to inject intervention messages into LLM context
 after super() clears context_messages. Overrides _execute_actions() to block
-submit clicks when PreSubmitGuard detects field mismatches. Provides
-create_step_callback() for register_new_step_callback integration.
+submit clicks when PreSubmitGuard detects field mismatches.
 """
 
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
-from typing import Any, Callable
+from typing import Any
 
 from browser_use import Agent
 from browser_use.agent.views import ActionResult
 from browser_use.llm.messages import UserMessage
 
-from backend.agent.action_utils import extract_action_info
 from backend.agent.pre_submit_guard import PreSubmitGuard
 from backend.agent.stall_detector import StallDetector
 from backend.agent.task_progress_tracker import TaskProgressTracker
@@ -30,8 +27,6 @@ class MonitoredAgent(Agent):
 
     - _prepare_context(): injects _pending_interventions after super() clears
       context_messages (SUB-01).
-    - create_step_callback(): returns async callback that stores detector
-      results in _pending_interventions, not via _add_context_message (SUB-02).
     - _execute_actions(): blocks submit click when PreSubmitGuard returns
       should_block=True (SUB-03).
     - All detector calls wrapped in try/except for fault tolerance (D-07/D-08).
@@ -144,84 +139,3 @@ class MonitoredAgent(Agent):
                 logger.info("[monitor] Post-upload wait completed (3s)")
             except Exception as e:
                 logger.error("[monitor] Post-upload wait failed: %s", e)
-
-    def create_step_callback(self) -> Callable:
-        """Return async step callback for register_new_step_callback.
-
-        The callback:
-        1. Extracts action_name, target_index, evaluation from parameters
-        2. Computes dom_hash from dom_state
-        3. Calls stall_detector.check() -> stores in _pending_interventions
-        4. Calls task_tracker.check_progress() -> stores in _pending_interventions
-        5. Calls task_tracker.update_from_evaluation()
-        6. All wrapped in try/except for fault tolerance (D-07/D-08)
-        """
-
-        async def step_callback(
-            browser_state: Any, agent_output: Any, step: int
-        ) -> None:
-            try:
-                action_name = ""
-                target_index: int | None = None
-                evaluation = ""
-                dom_hash = ""
-
-                action_name, action_params = extract_action_info(agent_output)
-                target_index = (
-                    action_params.get("index") if action_params else None
-                )
-
-                if agent_output and hasattr(
-                    agent_output, "evaluation_previous_goal"
-                ):
-                    evaluation = agent_output.evaluation_previous_goal or ""
-
-                if browser_state and hasattr(browser_state, "dom_state"):
-                    dom_state = browser_state.dom_state
-                    if dom_state and hasattr(dom_state, "llm_representation"):
-                        try:
-                            dom_str = dom_state.llm_representation()
-                            dom_hash = hashlib.sha256(
-                                dom_str.encode("utf-8")
-                            ).hexdigest()[:12]
-                        except Exception:
-                            dom_hash = ""
-
-                # Stall detection
-                stall_result = self._stall_detector.check(
-                    action_name=action_name,
-                    target_index=target_index,
-                    evaluation=evaluation,
-                    dom_hash=dom_hash,
-                )
-                if stall_result.should_intervene:
-                    self._pending_interventions.append(stall_result.message)
-                    logger.info(
-                        "[monitor] Stall detected at step %d: %s",
-                        step,
-                        stall_result.message[:80],
-                    )
-
-                # Progress tracking
-                progress_result = self._task_tracker.check_progress(
-                    current_step=step,
-                    max_steps=getattr(self.state, "max_steps", 30),
-                )
-                if progress_result.should_warn:
-                    self._pending_interventions.append(
-                        progress_result.message
-                    )
-                    logger.info(
-                        "[monitor] Progress warning at step %d: %s",
-                        step,
-                        progress_result.message[:80],
-                    )
-
-                self._task_tracker.update_from_evaluation(evaluation)
-
-            except Exception as e:
-                logger.error(
-                    "[monitor] step_callback error (non-blocking): %s", e
-                )
-
-        return step_callback
