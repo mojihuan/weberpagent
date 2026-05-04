@@ -116,11 +116,11 @@ Plans:
   2. SSE event_generator 中 publish 失败不再中断整个 pipeline — 后续事件正常推送
   3. assertion_service.check_element_exists 返回基于真实 DOM 检测的结果（不再硬编码 True）
   4. EventManager heartbeat task 在重新订阅时旧 task 被正确取消，无 task 泄漏
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 131-01: EventManager 内存泄漏修复 (MEM-01, MEM-02, MEM-04)
-- [ ] 131-02: SSE 异常保护与断言 stub 替换 (ERR-01, ERR-03)
+- [ ] 131-01-PLAN.md — EventManager 内存泄漏修复 + StallDetector 历史上限 (MEM-01, MEM-02, MEM-04)
+- [ ] 131-02-PLAN.md — SSE 异常保护 + 断言 DOM 检测实现 (ERR-01, ERR-03)
 
 ### Phase 132: 后端异步与状态
 **Goal**: 后端不再有阻塞事件循环的操作，外部断言 context 不再泄漏到 variable_map
@@ -130,7 +130,7 @@ Plans:
   1. 截图保存操作不阻塞事件循环 — save_screenshot 执行期间其他 async 操作正常响应
   2. 代码执行子进程使用 async API — execute_code 运行期间后端仍可处理 SSE 心跳和其他请求
   3. external_assertion_summary 不再出现在 variable_map 中 — 前置条件变量替换不受断言结果污染
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 132-01: 阻塞操作异步迁移 (ASYNC-01, ASYNC-02)
@@ -146,7 +146,7 @@ Plans:
   3. isConnected 状态仅在 EventSource 连接真正建立后变为 true — UI 不再显示虚假的"已连接"状态
   4. 前端组件 useState 更新使用 immutable 模式 — React 渲染检测正确触发
 **UI hint**: yes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 133-01: useRunStream 健壮性与性能修复 (MEM-03, ERR-02, ERR-04)
@@ -162,7 +162,7 @@ Plans:
   3. PreSubmitGuard 中不可达的死代码路径被清理 — 代码审计无不可达分支
   4. 后端可选操作统一使用 non_blocking_execute — 全局 grep 无其他错误处理模式混用
 **UI hint**: yes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 134-01: 后端死代码与错误处理统一 (DEAD-01, DEAD-03, DEAD-04)
@@ -172,7 +172,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 130. 安全与关键正确性修复 | v0.11.4 | 2/2 | Complete   | 2026-05-04 |
+| 130. 安全与关键正确性修复 | v0.11.4 | 2/2 | Complete    | 2026-05-04 |
 | 131. 后端内存与错误处理 | v0.11.4 | 0/2 | Not started | - |
 | 132. 后端异步与状态 | v0.11.4 | 0/2 | Not started | - |
 | 133. 前端健壮性 | v0.11.4 | 0/2 | Not started | - |
