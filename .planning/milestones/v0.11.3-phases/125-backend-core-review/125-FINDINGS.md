@@ -198,12 +198,12 @@ F401 [*] `importlib` imported but unused            -- backend/core/external_mod
 - **Description:** `save_screenshot` at line 127 calls `filepath.write_bytes(screenshot_bytes)` synchronously. The method is declared `async` but performs no `await`. During batch execution with concurrency 2-4, this blocks the event loop for 100KB-1MB+ writes.
 - **Recommendation:** Wrap in `await asyncio.to_thread(filepath.write_bytes, screenshot_bytes)` or `await loop.run_in_executor(None, filepath.write_bytes, screenshot_bytes)`.
 
-### [Cross-4] Context dict type confusion in pipeline
+### [Cross-4] external_assertion_summary leaks into variable_map via incomplete filter
 - **Severity:** Medium
 - **Category:** Correctness
-- **Files:** run_pipeline.py:325, run_pipeline.py:543
-- **Description:** `_run_external_assertions` receives `context` which could be either a plain `dict` or a `ContextWrapper` object. Line 304 handles this with an isinstance check. But line 325 does `context['external_assertion_summary'] = summary` which works for both dict and ContextWrapper (has `__setitem__`). However, at line 543, `isinstance(context, dict)` is checked -- but context is a ContextWrapper, not a dict, so this check fails and `_variable_map` is set to None. This means variable substitution in generated code is skipped when preconditions exist (because context is a ContextWrapper from precondition_service, not a plain dict).
-- **Recommendation:** Use `isinstance(context, (dict, ContextWrapper))` at line 543, or call `context.to_dict()` before building variable_map.
+- **Files:** run_pipeline.py:325, run_pipeline.py:543-546
+- **Description:** `_run_external_assertions()` mutates the `context` dict by setting `context['external_assertion_summary'] = summary`. The variable_map filter at line 546 uses `not k.startswith("assertion")` which does NOT catch keys starting with "external_assertion" (they start with "external_", not "assertion"). However, the `isinstance(v, (str, int, float))` guard at line 546 would filter it out if the summary value is a dict or list (not a primitive type). This is a latent filter gap that could surface if the summary format changes to a string.
+- **Recommendation:** Change the filter to `not k.startswith(("assertion", "external_assertion"))` for defense-in-depth.
 
 ### [Cross-5] Login credentials embedded in generated test files
 - **Severity:** Low (internal tool)
@@ -238,13 +238,12 @@ The following P3 files had no significant findings and do not need deep-dive:
 
 ### run_pipeline.py
 
-### [P1] run_pipeline.py:543 -- ContextWrapper vs dict isinstance check skips variable_map for preconditioned tasks
-- **Severity:** High
+### [VERIFIED-OK] run_pipeline.py:543 -- isinstance(context, dict) check is correct
+- **Severity:** N/A (verified correct)
 - **Category:** Correctness
-- **Description:** After preconditions execute, `context` is a `ContextWrapper` object (not a plain `dict`). The variable_map construction at line 543 checks `isinstance(context, dict)`, which returns `False` for `ContextWrapper`. This means `_variable_map` is always set to `None` when preconditions exist, and variable substitution in generated test code is silently skipped. The generated Playwright test files will have unsubstituted `{{variable}}` placeholders instead of actual values.
-- **Impact:** Generated test code for tasks with preconditions will have broken variable references. This is the most common production scenario (most tasks use preconditions for login and data setup).
-- **Recommendation:** Change line 543 to check `isinstance(context, (dict, ContextWrapper))` and add `.items()` support to `ContextWrapper` (or call `context._data.items()` directly). Alternatively, extract a plain dict from ContextWrapper at the point of use.
-- **RESEARCH Reference:** Pitfall 3 (context mutation) -- also confirmed that `external_assertion_summary` leaks through if this check were fixed without also updating the filter.
+- **Description:** Initially flagged as a bug where `isinstance(context, dict)` would fail for ContextWrapper. **Verification revealed this is incorrect.** `_run_preconditions()` returns `precondition_service.get_context()` which calls `self.context.to_dict()` → `copy.deepcopy(self._data)` — a plain `dict`. When no preconditions exist, it returns `{}` (empty dict). In all code paths, `context` is a plain `dict`, so `isinstance(context, dict)` always returns `True`. Variable substitution via `_variable_map` works correctly for tasks with preconditions.
+- **Impact:** No issue. The variable_map is properly constructed and variable substitution works as designed.
+- **Recommendation:** None needed.
 
 ### [P1] run_pipeline.py:325 -- external_assertion_summary leaks into variable_map when isinstance check is bypassed
 - **Severity:** Medium
@@ -338,13 +337,12 @@ The following P3 files had no significant findings and do not need deep-dive:
 - **Recommendation:** For immediate: ensure escaping also handles backslashes (`\\` -> `\\\\`). For future: use environment variable injection instead of embedding credentials.
 - **RESEARCH Reference:** Cross-5 (login credentials in generated files)
 
-### [P1] code_generator.py:241-242 -- Variable substitution only works when variable_map is non-None
-- **Severity:** High
+### [VERIFIED-OK] code_generator.py:241-242 -- Variable substitution works correctly
+- **Severity:** N/A (verified correct)
 - **Category:** Correctness
-- **Description:** Line 241 checks `if body and variable_map:` before calling `_substitute_variables_in_code()`. Due to the ContextWrapper isinstance bug in run_pipeline.py:543, `variable_map` is always `None` when preconditions exist. This means variable substitution NEVER happens for tasks with preconditions (the majority of production tasks). The generated test files have hardcoded values from the agent's actual execution instead of variable references that would allow re-runs with different data.
-- **Impact:** Generated test code is not reusable across data changes. If a test was generated with `fill("张三")`, it will always use "张三" instead of the variable name, making the test brittle and data-dependent.
-- **Recommendation:** This is a downstream effect of the run_pipeline.py:543 bug. Fix the isinstance check there to make variable_map available. Additionally, `_substitute_variables_in_code` uses a global string replace (`code.replace(f'"{escaped}"', var_name)`) which could cause false matches if a short value appears in multiple fill() calls with different semantic meanings.
-- **RESEARCH Reference:** Linked to run_pipeline.py:543 finding.
+- **Description:** Initially flagged as broken because `variable_map` was believed to always be `None`. **Verification confirmed that `context` is always a plain `dict` (see run_pipeline.py:543 correction), so `_variable_map` is properly constructed and variable substitution works as designed.** However, `_substitute_variables_in_code` uses a global string replace (`code.replace(f'"{escaped}"', var_name)`) which could cause false matches if a short value appears in multiple fill() calls with different semantic meanings. This is a minor concern, not a blocker.
+- **Impact:** Variable substitution works. Minor risk of false matches in the string replacement strategy.
+- **Recommendation:** Consider using positional replacement instead of global string replace to avoid false matches.
 
 ### [P1] code_generator.py:487,496 -- Unescaped assertion expected values in f-string generated code
 - **Severity:** Medium
@@ -771,13 +769,13 @@ stall_detector.py (agent layer)
 | Severity | Count |
 |----------|-------|
 | Critical | 0 |
-| High | 3 |
+| High | 2 |
 | Medium | 14 |
 | Low | 16 |
-| Info/N/A | 19 |
-| **Total** | **52** |
+| Info/N/A | 21 |
+| **Total** | **53** |
 
-Note: Total includes N/A (verified correct) entries. Actionable findings (Critical+High+Medium+Low) = 33.
+Note: Total includes N/A (verified correct) entries and 2 verified-ok corrections. Actionable findings (Critical+High+Medium+Low) = 32.
 
 ### Findings by Category
 | Category | Count |
@@ -801,15 +799,15 @@ Note: Total includes N/A (verified correct) entries. Actionable findings (Critic
 
 ### Top 5 Findings (by severity + impact)
 
-1. **[P1] run_pipeline.py:543 -- ContextWrapper isinstance check skips variable_map for all tasks with preconditions.** Variable substitution in generated test code is completely broken for the most common production scenario. Generated Playwright files have unsubstituted `{{variable}}` placeholders. (High/Correctness)
+1. **[P2] assertion_service.py:88-110 -- check_element_exists is a stub that always returns True.** Element existence assertions provide zero actual verification. Users get false confidence in test results. (High/Correctness)
 
-2. **[P2] assertion_service.py:88-110 -- check_element_exists is a stub that always returns True.** Element existence assertions provide zero actual verification. Users get false confidence in test results. (High/Correctness)
+2. **[P1] agent_service.py:340-347 -- Dual stall detection inflates failure counts to half the configured threshold.** StallDetector.check() is called twice per step (once in MonitoredAgent, once in agent_service), recording duplicate history entries. The agent intervenes prematurely. (High/Correctness)
 
-3. **[P1] agent_service.py:340-347 -- Dual stall detection inflates failure counts to half the configured threshold.** StallDetector.check() is called twice per step (once in MonitoredAgent, once in agent_service), recording duplicate history entries. The agent intervenes prematurely. (High/Correctness)
+3. **[P1] step_code_buffer.py:131-133,380-395 -- Excessive wait times in generated test code (~6.5s per click).** Pre-click 3000ms wait (misplaced) + post-click networkidle 3000ms timeout + 500ms stability wait per click action. A 10-click test accumulates ~65 seconds of waits. (Medium/Performance)
 
-4. **[P1] code_generator.py:241-242 -- Variable substitution never activates (downstream of finding #1).** Even if variable_map were available, `_substitute_variables_in_code` uses global string replace which could cause false matches across different fill() calls. (High/Correctness)
+4. **[P2] event_manager.py:84-85 -- Heartbeat task leak on re-subscribe.** Old heartbeat task not cancelled when new subscriber connects, creating orphaned tasks. (Medium/Correctness)
 
-5. **[P1] step_code_buffer.py:131-133,380-395 -- Excessive wait times in generated test code (~6.5s per click).** Pre-click 3000ms wait (misplaced) + post-click networkidle 3000ms timeout + 500ms stability wait per click action. A 10-click test accumulates ~65 seconds of waits. (Medium/Performance)
+5. **[P1] agent_service.py:127 -- Synchronous file write in async method blocks event loop.** `save_screenshot()` performs blocking I/O in async context, stalling SSE events and concurrent runs. (Medium/Performance)
 
 ### Confirmed CONCERNS.md Issues
 
@@ -834,15 +832,14 @@ Note: Total includes N/A (verified correct) entries. Actionable findings (Critic
 
 ### New Issues Not in CONCERNS.md
 
-1. **ContextWrapper vs dict isinstance check** (High) -- variable_map construction broken for preconditioned tasks
-2. **Dual stall detection** (High) -- same detector called twice per step, inflating failure counts
-3. **external_assertion_summary leaks into variable_map** (Medium) -- filter does not match "external_assertion" prefix
-4. **Pre-click wait misplaced** (Medium) -- 3000ms wait before click, not after
-5. **Potential IndexError in multi-action step callback** (Medium) -- all_actions index may diverge from agent_output.action index
-6. **Unescaped assertion expected values in generated code** (Medium) -- double quotes break Python syntax
-7. **Heartbeat task leak on re-subscribe** (Medium) -- old task not cancelled when new subscriber connects
-8. **Fragile attribute setting on BrowserSession** (Medium) -- `_pre_navigated` dynamic attribute
-9. **auth_service.py response variable scope** (Medium) -- `response.text` in except handler may be unbound
+1. **Dual stall detection** (High) -- same detector called twice per step, inflating failure counts
+2. **external_assertion_summary leaks into variable_map** (Medium) -- filter does not match "external_assertion" prefix (latent gap, currently mitigated by isinstance guard)
+3. **Pre-click wait misplaced** (Medium) -- 3000ms wait before click, not after
+4. **Potential IndexError in multi-action step callback** (Medium) -- all_actions index may diverge from agent_output.action index
+5. **Unescaped assertion expected values in generated code** (Medium) -- double quotes break Python syntax
+6. **Heartbeat task leak on re-subscribe** (Medium) -- old task not cancelled when new subscriber connects
+7. **Fragile attribute setting on BrowserSession** (Medium) -- `_pre_navigated` dynamic attribute
+8. **auth_service.py response variable scope** (Medium) -- `response.text` in except handler may be unbound
 
 ---
 

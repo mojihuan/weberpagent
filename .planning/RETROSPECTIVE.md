@@ -1,5 +1,60 @@
 # Project Retrospective
 
+## Milestone: v0.11.3 — 代码彻底的 Review
+
+**Shipped:** 2026-05-04
+**Phases:** 5 | **Plans:** 15
+
+### What Was Built
+
+- 后端核心逻辑审查: 31 文件 32 actionable findings，含 dual stall detection bug、assertion_service stub、架构耦合分析
+- API 层与安全审查: 13 路由文件 78 findings，1 High (execute_run_code 路径验证缺失)，13 安全发现
+- 前端审查: 87 文件 95 findings，含 SSE 交叉验证、JSON.parse 安全、React Query 未使用
+- 代码质量审查: 81 new findings，5 系统性跨层模式 (CP-1~CP-5)，radon/ESLint 量化指标
+- 测试规划: 277 findings 筛选为 67 可测试场景 (24 unit + 25 integration + 13 frontend + 5 E2E)，含实施路线图
+
+### What Worked
+
+- **Review-only 模式**: 不改代码让审查更客观，39 commits, 5672 行审查文档
+- **跨 phase 关联发现系统性问题**: CP-1~CP-5 仅在 Phase 128 做 cross-phase correlation 时才被识别
+- **量化工具比人工审查更可靠**: ruff/mypy/radon/ESLint 提供客观数据基线
+- **4 phase sequential + 1 synthesis**: 125-128 按维度审查，129 综合规划，结构清晰
+
+### What Was Inefficient
+
+- Phase 127 和 126 实际上并行执行了（ROADMAP 标记 127 depends on 125，但实际审查不同代码区域）
+- 15 个 plan 产出大量 FINDINGS.md 数据，Phase 129 汇总分析需要重新阅读大量前置数据
+
+### Patterns Established
+
+- **5 系统性模式框架**: CP-1~CP-5 作为跨层质量分析工具，未来审查可直接复用
+- **严重程度驱动 ROI 排序**: Critical > High > Medium > Low，优先覆盖最高风险
+- **安全发现双评估**: 单用户影响 + 公网影响，兼顾当前和未来
+
+### Key Lessons
+
+1. Review-only 模式有效——审查结果不受实现偏见影响，发现质量更高
+2. 跨 phase 关联分析是识别系统性问题的关键——单 phase 只能看到局部
+3. 量化工具 (radon/ESLint) 提供客观数据基线，人工审查补充上下文
+4. 验证者纠正了审查者错误 (P1-01 ContextWrapper isinstance)——交叉验证重要
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~5 (125, 126+127 parallel, 128, 129)
+- Notable: 3 天完成 5 个阶段 15 个计划，纯文档产出 (0 行代码修改)
+
+## Cross-Milestone Trends
+
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 | v0.10.9 | v0.10.11 | v0.11.0 | v0.11.3 |
+|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|---------|----------|---------|---------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 | 3 | 3 | 4 | 5 | 5 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 | 6 | 6 | 8 | 11 | 15 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 | 2 | 2 | <1 | 2 | 3 |
+| Tech Debt Added | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 (review-only) |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 | ~4000 | ~1500 | -2999 | -20094 | 0 |
+
 ## Milestone: v0.11.0 — 全面代码清理
 
 **Shipped:** 2026-04-30

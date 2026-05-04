@@ -13,10 +13,37 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 这是产品的核心价值。如果这个流程跑不通，产品就没有意义。
 
-## Current Milestone: Planning next milestone
+## Current State
 
-**Next milestone goals:**
-- TBD — 待通过 `/gsd:new-milestone` 定义
+**Shipped: v0.11.3 代码彻底的 Review** (2026-05-04)
+
+系统性的全代码库审查完成，277 个可操作发现，67 个可测试场景已规划。
+
+**5 系统性模式 (待修复):**
+- CP-1: 内存泄漏 (event_manager._events + useRunStream 数组无清理)
+- CP-2: 错误处理缺口 (SSE event_generator + JSON.parse 无保护)
+- CP-3: 安装但未使用 (StructuredLogger + React Query)
+- CP-4: 阻塞操作混入 async (write_bytes + subprocess.run)
+- CP-5: 可变状态耦合 (external assertion context + useState 直接修改)
+
+**Top 5 优先修复:**
+1. event_manager 内存泄漏 (CP-1, High)
+2. assertion_service.check_element_exists stub (High)
+3. dual stall detection 正确性 bug (High)
+4. execute_run_code 路径验证缺失 (High, SEC)
+5. JSON.parse 无 try/catch (High, frontend)
+
+## Next Milestone Goals
+
+基于 v0.11.3 审查结果的测试重建：
+
+1. **测试基础设施** — conftest.py, fixtures, mock 模式
+2. **P0 后端单元测试** — 24 场景 (StallDetector, schemas, excel_parser)
+3. **P0 后端集成测试** — 25 场景 (EventManager, SSE, pipeline)
+4. **P1 前端测试** — vitest + 13 组件测试场景
+5. **P2 E2E** — 5 个缺失 E2E 场景
+
+预计 67 个测试场景，实施周期 11-16 天。
 
 ## 已交付版本:
 
@@ -42,14 +69,27 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - v0.10.10: 表单填写优化 (2026-04-29)
 - v0.10.11: 移除自愈功能 (2026-04-29)
 - v0.11.0: 全面代码清理 (2026-04-30) — 删除测试 + 死代码 + 重复合并 + 类型标注 + 函数优化
+- v0.11.3: 代码彻底的 Review (2026-05-04) — 全栈审查 277 findings + 67 测试场景规划
 
 ## Requirements
 
-### Active
-
-(None — milestone v0.11.0 complete, planning next milestone)
-
 ### Validated
+
+**v0.11.3 代码彻底的 Review (2026-05-04):**
+- ✓ CORR-01: 后端核心业务逻辑正确性审查 — Phase 125 (32 findings)
+- ✓ CORR-02: API 路由层正确性审查 — Phase 126 (78 findings)
+- ✓ CORR-03: 前端组件逻辑正确性审查 — Phase 127 (95 findings)
+- ✓ SEC-01: 安全风险审查 — Phase 126 (13 安全 findings)
+- ✓ PERF-01: 异步/并发性能审查 — Phase 128 (25 findings)
+- ✓ PERF-02: 前端性能审查 — Phase 127 (15 findings)
+- ✓ MAINT-01: DRY/SOLID 违反审查 — Phase 128 (32 findings)
+- ✓ MAINT-02: 代码结构复杂度审查 — Phase 128 (22 findings)
+- ✓ MAINT-03: 命名规范性审查 — Phase 128 (16 findings)
+- ✓ ARCH-01: 模块耦合度审查 — Phase 125 (5 findings)
+- ✓ ARCH-02: 抽象合理性审查 — Phase 125 (7 findings)
+- ✓ ARCH-03: 横切关注点审查 — Phase 128 (23 findings)
+- ✓ TEST-01: 关键测试缺失识别 — Phase 129 (52 scenarios)
+- ✓ TEST-02: 边界/错误覆盖不足识别 — Phase 129 (35 scenarios)
 
 **v0.11.0 全面代码清理 (2026-04-30):**
 - ✓ TEST-01~04: 删除整个测试套件 (87 文件, ~20K 行) + pytest 配置 + 测试依赖 — Phase 120
@@ -158,6 +198,10 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 </details>
 
+### Active
+
+(None — all requirements defined)
+
 ### Backlog
 
 - PreSubmitGuard DOM 值提取 — 当前 actual_values=None，需实现 DOM 值读取才能主动拦截
@@ -176,21 +220,21 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 - 前端 React + Vite + Tailwind
 - 数据库 SQLite (aiosqlite)
 
-**代码质量 (v0.11.0 后):**
-- 测试套件已删除 — 项目无自测套件
+**代码质量 (v0.11.3 后):**
+- 测试套件已删除 — 项目无自测套件（v0.11.3 规划了 67 个重建场景）
 - backend/ 约 11,705 行 Python 代码 (从 ~30K+ 精简)
 - pyflakes 零警告
 - 96 个公共函数完整类型标注
-- 模块重组完成 (runs.py → routes/pipeline, bridge → loader/discovery/engine)
-- error_utils.py 统一异常处理
-- 嵌套深度 ≤ 4 层
+- 277 个可操作发现 (Critical: 0, High: 14+, Medium: 100+, Low: 160+)
+- 5 系统性跨层模式 (CP-1~CP-5)
+- radon 平均复杂度 A (3.31), 1 个 F 级函数
 
 **技术栈:**
 | 层级 | 技术 |
 |------|------|
-| 前端 | React 18, TypeScript, Vite, Tailwind CSS |
+| 前端 | React 19.2, TypeScript 5.9, Vite 7.3, Tailwind CSS 4.2 |
 | 后端 | Python 3.11, FastAPI, Pydantic, SQLAlchemy |
-| AI | Browser-Use, 阿里云 Qwen 3.5 Plus |
+| AI | Browser-Use 0.12+, Qwen 3.5 Plus (阿里云 DashScope) |
 | 浏览器 | Playwright (Chromium) |
 | 通信 | REST API + SSE |
 | 存储 | SQLite |
@@ -229,10 +273,14 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 | SQLite 列保留不 ALTER TABLE (v0.10.11) | ORM 停止读写 healing 列，DB 列保持不动 | ✓ Good |
 | run.status 单一执行状态源 (v0.10.11) | 替代 healing_status 多状态轮询 | ✓ Good |
 | logger name "healer" 保留 (v0.10.11) | getLogger("healer") 不变，避免破坏已有测试文件 | ✓ Good |
+| Review-only 模式 (v0.11.3) | 审查结果不受实现偏见影响，发现更客观 | ✓ Good |
+| 严重程度驱动 ROI 排序 (v0.11.3) | Critical > High > Medium > Low，最高风险先覆盖 | ✓ Good |
+| 后端测试优先于前端 (v0.11.3) | 后端无测试保护风险最高，前端有编译期保护 | ✓ Good |
+| 安全发现双评估 (v0.11.3) | 当前单用户影响 + 公网部署影响，兼顾当前和未来 | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-04-30 after v0.11.0 milestone*
+*Last updated: 2026-05-04 — v0.11.3 milestone archived*

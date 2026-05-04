@@ -1,5 +1,29 @@
 # Milestones
 
+## v0.11.3 代码彻底的 Review (Shipped: 2026-05-04)
+
+**Phases completed:** 5 phases, 15 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Breadth scan of 31 backend files (8,089 lines) with ruff/mypy outputs, risk matrix (5 P1/6 P2/20 P3), and 13 documented findings including dual stall detection bug
+- Line-by-line review of 5 pipeline-critical files identifying 23 findings: 3 High, 12 Medium, 6 Low, 2 verified-correct
+- P2 supporting services review (6 files), cross-cutting coupling/abstraction analysis, and complete findings summary with 33 actionable issues across all 31 backend files
+- Breadth scan of 13 API layer files producing risk matrix, security check matrix, and CONCERNS.md verification
+- Deep-dive audit of 7 P1 API route files: 47 findings across parameter validation, error handling, security, and SSE stream handling with per-endpoint severity ratings
+- Complete API layer audit: 78 actionable findings across 13 route files with consolidated severity statistics and CONCERNS.md cross-reference
+- Breadth-scanned all 87 frontend files (8,898 lines), ran ESLint/TypeScript checks, produced risk matrix with SSE cross-validation
+- 25 findings from line-by-line review of 5 highest-risk frontend files: useRunStream.ts (SSE edge cases), client.ts (HTTP retry), DataMethodSelector.tsx (829-line component), TaskForm.tsx (modal composition), AssertionSelector.tsx (external assertions)
+- 95 actionable frontend findings across 87 files: 3 High (JSON.parse unprotected, FormData Content-Type, SSE parse), 34 Medium, 58 Low, with complete cross-phase correlation
+- Quantified complexity metrics (radon A avg, 1 F-grade function, 12 ESLint violations), 67-row risk matrix, cross-reference map for 205 prior findings, and 15 new quality-specific findings across MAINT/ARCH-03/PERF-01 dimensions
+- 44 deep-dive backend findings (BD-01 to BD-44) covering SRP violations in run_pipeline/agent_service, F-grade generate() function, login JS DRY violation, quantified cross-cutting consistency tables, and async anti-patterns (sync write_bytes, subprocess.run, unbounded _events)
+- 22 frontend deep-dive findings (FD-01 to FD-22), 5 systemic cross-layer patterns (memory leak, error handling gap, dead code, blocking ops, mutable state), and final Phase 128 statistics (81 new findings, 14 High, 37 cross-referenced across 4 phases)
+- Filtered 277 actionable findings from Phase 125-128 into 67 testable scenarios using severity-driven ROI scoring, classified as 24 unit + 25 integration + 13 frontend-component + 5 e2e tests
+- Expanded 49 backend test scenarios (24 unit + 25 integration) from Plan 01 findings, each with concrete test descriptions, source finding references, mock requirements, and ROI scoring -- covering all 5 systemic patterns
+- Completed 129-FINDINGS.md with 13 frontend component scenarios, 5 E2E gap scenarios, and final statistics showing 67 total scenarios covering TEST-01 (52 scenarios) and TEST-02 (35 scenarios) with a 5-phase implementation roadmap
+
+---
+
 ## v0.11.0 全面代码清理 (Shipped: 2026-04-30)
 
 **Phases completed:** 5 phases, 11 plans, 22 tasks
