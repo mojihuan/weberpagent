@@ -42,7 +42,7 @@
 
 ### State (STATE) — 可变状态解耦
 
-- [ ] **STATE-01**: external_execution_engine 中 context mutation 改用独立 dict 存储 external_assertion_summary，防止泄漏到 variable_map (CP-5, Medium)
+- [x] **STATE-01**: external_execution_engine 中 context mutation 改用独立 dict 存储 external_assertion_summary，防止泄漏到 variable_map (CP-5, Medium)
   - 来源: 125-FINDINGS P3-external_execution_engine:325
   - 当前 filter 无法捕获 "external_assertion_summary" key
 - [ ] **STATE-02**: 前端组件中 useState 直接修改对象属性的 pattern 改为 immutable 更新模式 (CP-5, Low)
@@ -98,7 +98,7 @@
 | ERR-04 | Phase 133 | Pending |
 | ASYNC-01 | Phase 132 | Pending |
 | ASYNC-02 | Phase 132 | Pending |
-| STATE-01 | Phase 132 | Pending |
+| STATE-01 | Phase 132 | Complete |
 | STATE-02 | Phase 133 | Pending |
 | CORR-01 | Phase 130 | Complete |
 | CORR-02 | Phase 130 | Complete |
