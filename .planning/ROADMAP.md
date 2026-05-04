@@ -91,7 +91,7 @@
 - [x] **Phase 126: API 层与安全审查** — 审查路由正确性和安全风险 (completed 2026-05-03)
 - [x] **Phase 127: 前端审查** — 审查 React 组件逻辑正确性和前端性能 (completed 2026-05-03)
 - [x] **Phase 128: 代码质量审查** — 审查可维护性、横切关注点和异步性能 (completed 2026-05-03)
-- [ ] **Phase 129: 测试规划** — 识别缺失测试场景和边界覆盖不足
+- [x] **Phase 129: 测试规划** — 识别缺失测试场景和边界覆盖不足 (completed 2026-05-04)
 
 ## Phase Details
 
@@ -171,7 +171,7 @@ Plans:
 Plans:
 - [x] 129-01-PLAN.md — 汇总分析：读取 125-128 FINDINGS，筛选可测试发现，按严重程度排序，输出到 129-FINDINGS.md
 - [x] 129-02-PLAN.md — 后端测试场景详列：展开后端 Critical/High 发现的具体单元+集成测试场景
-- [ ] 129-03-PLAN.md — 前端+E2E 测试场景+最终总结：前端组件测试、E2E 缺失场景、最终统计
+- [x] 129-03-PLAN.md — 前端+E2E 测试场景+最终总结：前端组件测试、E2E 缺失场景、最终统计
 
 ## Progress
 
@@ -185,7 +185,7 @@ Phases execute in numeric order: 125 -> 126 -> 127 -> 128 -> 129
 | 126. API 层与安全审查 | 3/3 | Complete    | 2026-05-03 |
 | 127. 前端审查 | 3/3 | Complete    | 2026-05-03 |
 | 128. 代码质量审查 | 3/3 | Complete    | 2026-05-03 |
-| 129. 测试规划 | 2/3 | In Progress|  |
+| 129. 测试规划 | 3/3 | Complete   | 2026-05-04 |
 
 ---
 *Roadmap updated: 2026-05-04 — Phase 129 planned (3 plans)*
