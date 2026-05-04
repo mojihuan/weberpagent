@@ -418,8 +418,353 @@ Findings that are testable but require a code fix before tests can be written.
 - **Note:** Test #39 documents current behavior (500 on unknown). Validation test deferred until route-level check is added.
 - **Priority:** Deferred until code fix adds validation.
 
+## Backend Unit Test Scenarios
+
+Detailed expansion of the 24 backend unit test scenarios identified in Plan 01. Each scenario provides enough specificity for implementation without re-reading source FINDINGS files.
+
+### [TS-BE-01] StallDetector double-invocation causes premature stall intervention
+- **Severity:** High
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 agent_service.py:340-347 (Cross-2); 128-FINDINGS.md BD-08
+- **Description:** Verify that calling `StallDetector.check()` with consecutive failure records triggers `should_intervene=True` at the correct threshold (not at half threshold). The dual-call bug means each actual failure produces TWO history entries, so the configured `max_consecutive_failures=2` triggers after just 1 actual failure.
+  - **Test 1 (baseline):** Record N failures once -> assert `should_intervene` fires at exactly N (correct behavior).
+  - **Test 2 (bug demo):** Record N failures TWICE (simulating dual invocation) -> assert `should_intervene` fires at N/2 (demonstrates the bug, expected to FAIL until code fix).
+  - **Test 3 (reset):** Record N-1 failures, then 1 success, then more failures -> assert counter resets on success and does NOT intervene prematurely.
+  - **Test 4 (stagnant DOM):** Record identical dom_hash for max_stagnant_steps, record TWICE per step -> assert stagnant detection triggers at half steps (bug).
+- **Priority:** P0 -- High severity correctness bug with high regression risk; pure logic, easy to test
+- **Mock requirements:** None (pure logic, no external dependencies)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-02] assertion_service.check_element_exists stub returns True for all inputs
+- **Severity:** High
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P2 assertion_service.py:88-110; 128-FINDINGS.md QS-09
+- **Description:** Verify that `check_element_exists` always returns `(True, "", selector)` when `history.is_done=True`, regardless of the selector parameter value. This confirms the stub behavior is documented.
+  - **Test 1:** Pass valid CSS selector with `is_done=True` -> assert returns `(True, "", selector)`.
+  - **Test 2:** Pass empty string selector with `is_done=True` -> assert returns `(True, "", "")`.
+  - **Test 3:** Pass `None` as selector with `is_done=True` -> assert returns `(True, "", None)`.
+  - **Test 4:** Pass `is_done=False` -> assert returns `(False, ...)` (completion check, not element check).
+- **Priority:** P0 -- documents a High-severity stub that gives users false confidence
+- **Mock requirements:** Mock `AssertionHistory` with `is_done` attribute
+- **Implementation cost:** Low
+- **Testability:** Testable now (tests verify current stub behavior; separate test for correct behavior is DEFERRED-2)
+
+### [TS-BE-03] step_code_buffer._is_corrective_evaluate fails when click intervenes between fill and evaluate
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 step_code_buffer.py:227-257
+- **Description:** Verify `_is_corrective_evaluate()` detection breaks when a click action exists between a failed input and a corrective evaluate. The search stops at any click/navigate action (line 254), which is too aggressive.
+  - **Test 1 (no click):** Records `[fill("name", "John"), evaluate("name", "John")]` -> assert corrective detected (correct).
+  - **Test 2 (click intervenes, bug):** Records `[fill("name", "John"), click("other"), evaluate("name", "John")]` -> assert corrective NOT detected (demonstrates bug).
+  - **Test 3 (navigate intervenes):** Records `[fill("name", "John"), navigate("url"), evaluate("name", "John")]` -> assert corrective NOT detected.
+  - **Test 4 (input intervenes):** Records `[fill("name", "John"), input("age", "25"), evaluate("name", "John")]` -> assert corrective NOT detected.
+- **Priority:** P1 -- Medium severity, regression protection for code generation correctness
+- **Mock requirements:** None (pure logic with StepRecord objects)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-04] code_generator._substitute_variables false match on short values
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 code_generator.py:241-242 (VERIFIED-OK but false match risk noted)
+- **Description:** Verify `_substitute_variables_in_code` uses global string replace (`code.replace(f'"{escaped}"', var_name)`) which could cause false matches when a short fill value appears in multiple `fill()` calls with different semantic meanings.
+  - **Test 1 (unique value):** Variable map `{"name": "John"}`, code has `fill("John")` -> assert correctly substituted.
+  - **Test 2 (short value collision):** Variable map `{"code": "A"}`, code has `fill("A")` and `fill("Category A")` -> assert BOTH get substituted (false match on "Category A" if it contains "A").
+  - **Test 3 (no match):** Variable map `{"name": "John"}`, code has `fill("Jane")` -> assert no substitution.
+  - **Test 4 (empty value):** Variable map `{"name": ""}`, code has `fill("")` -> assert substitution or skip.
+- **Priority:** P1 -- Medium severity, protects code generation correctness during refactoring
+- **Mock requirements:** None (pure string manipulation)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-05] task_progress_tracker.update_from_evaluation false-positive keyword matching
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P3 task_progress_tracker.py:149-152
+- **Description:** Verify `update_from_evaluation` marks a step as completed when ANY of the first 3 words from the step description appear in the evaluation text. This loose matching causes false positives.
+  - **Test 1 (exact match):** Step "click submit button", evaluation "clicked submit button successfully" -> assert completed (correct).
+  - **Test 2 (false positive):** Step "click submit button", evaluation "clicking dropdown menu" -> assert completed (false positive -- shares word "click").
+  - **Test 3 (no match):** Step "enter quantity", evaluation "page loaded successfully" -> assert NOT completed (correct rejection).
+  - **Test 4 (Chinese text):** Step "填写数量", evaluation "成功填写数量字段" -> assert completed (Chinese keyword matching).
+  - **Test 5 (partial word match):** Step "delete record", evaluation "deleted records" -> assert behavior documented.
+- **Priority:** P2 -- Low severity, but protects progress tracking accuracy during refactoring
+- **Mock requirements:** None (pure logic with step list and evaluation text)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-06] External assertion context mutation leaks into variable_map
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md Cross-4, P1 run_pipeline.py:325; 126-FINDINGS.md DD-pipe-04
+- **Description:** Verify that `_run_external_assertions` mutating `context['external_assertion_summary']` leaks past the variable_map filter. The filter `not k.startswith("assertion")` does NOT match keys starting with "external_assertion". Currently mitigated by `isinstance(v, (str, int, float))` guard if the summary is a dict.
+  - **Test 1 (dict summary, current behavior):** Context has `{"external_assertion_summary": {"total": 5}}` -> build variable_map -> assert key NOT present (isinstance guard filters dicts).
+  - **Test 2 (string summary, latent bug):** Context has `{"external_assertion_summary": "5/10 passed"}` -> build variable_map -> assert key IS present (latent bug, passes isinstance str check).
+  - **Test 3 (assertion-prefixed key):** Context has `{"assertion_result_0": "passed"}` -> build variable_map -> assert key NOT present (filter correctly blocks).
+  - **Test 4 (normal variable):** Context has `{"order_number": "ORD-001"}` -> build variable_map -> assert key IS present (correct).
+- **Priority:** P1 -- Medium severity, latent bug that could surface if summary format changes
+- **Mock requirements:** None (pure dict filtering logic)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-07] test_flow_service._shift_step_numbers boundary values
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P2 test_flow_service.py:174-193
+- **Description:** Verify `_shift_step_numbers` correctly handles step number boundaries, large offsets, and non-Chinese formats.
+  - **Test 1 (normal shift):** "步骤1：Login" with offset=2 -> assert "步骤3：Login".
+  - **Test 2 (full-width colon):** "步骤1：Login" -> assert colon preserved.
+  - **Test 3 (multi-digit step):** "步骤99：Submit" with offset=5 -> assert "步骤104：Submit".
+  - **Test 4 (no steps):** "Plain text without steps" -> assert unchanged.
+  - **Test 5 (English format, not matched):** "Step 1: Login" -> assert unchanged (regex only matches Chinese).
+  - **Test 6 (negative offset):** "步骤5：Submit" with offset=-2 -> assert "步骤3：Submit" or assert behavior documented.
+  - **Test 7 (offset to zero):** "步骤1：Login" with offset=-1 -> assert "步骤0：Login" or edge case behavior.
+- **Priority:** P2 -- Low severity, edge case protection
+- **Mock requirements:** None (pure regex replacement)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-08] code_generator assertion expected values with special characters produce invalid Python
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 code_generator.py:487,496
+- **Description:** Verify assertion values containing double quotes produce SyntaxError in generated code. Lines 487 and 496 embed `expected` values directly into generated f-strings without escaping.
+  - **Test 1 (normal value):** expected="Order created" -> assert generated code is valid Python (ast.parse succeeds).
+  - **Test 2 (double quote):** expected='He said "hello"' -> assert generated code has broken string literal (ast.parse fails).
+  - **Test 3 (backslash):** expected="C:\\Users\\test" -> assert generated code handling of backslashes.
+  - **Test 4 (single quote):** expected="It's done" -> assert generated code handling of single quotes.
+  - **Test 5 (newline):** expected="Line1\nLine2" -> assert generated code handling of newlines.
+- **Priority:** P1 -- Medium severity, protects code generation from user input with special characters
+- **Mock requirements:** None (string manipulation + ast.parse validation)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-09] code_generator F-grade generate() produces valid Python for all assertion types
+- **Severity:** Critical
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-14 (F-grade function)
+- **Description:** Verify `PlaywrightCodeGenerator.generate()` produces syntactically valid Python for all 4 assertion types (url_contains, text_exists, no_errors, element_exists). This is the only F-grade function in the backend and the most complex.
+  - **Test 1 (url_contains):** Generate with url_contains assertion -> assert ast.parse succeeds on output.
+  - **Test 2 (text_exists):** Generate with text_exists assertion -> assert ast.parse succeeds.
+  - **Test 3 (no_errors):** Generate with no_errors assertion -> assert ast.parse succeeds.
+  - **Test 4 (element_exists):** Generate with element_exists assertion -> assert ast.parse succeeds.
+  - **Test 5 (multiple assertions):** Generate with all 4 types -> assert ast.parse succeeds.
+  - **Test 6 (with preconditions):** Generate with precondition variables -> assert variable substitution in output.
+  - **Test 7 (with login):** Generate with login config -> assert login helper in output, ast.parse succeeds.
+- **Priority:** P0 -- Critical severity, validates the most complex backend function
+- **Mock requirements:** Mock Assertion schema objects, mock login_config dict
+- **Implementation cost:** Medium (requires constructing test fixtures for each assertion type)
+- **Testability:** Testable now
+
+### [TS-BE-10] code_generator Open/Closed violation -- elif chain produces correct output
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-15
+- **Description:** Verify that the hardcoded elif chain in `_build_assertions` produces identical output to a hypothetical registry-based approach. This test protects against regressions during the recommended refactoring.
+  - **Test 1:** Build assertions for each type via current elif chain -> capture output.
+  - **Test 2:** After refactoring to registry pattern, verify same output for all types.
+  - **Test 3:** Verify that adding a new assertion type (mock) via registry does not require modifying generate().
+- **Priority:** P2 -- Medium severity, refactoring protection
+- **Mock requirements:** Mock Assertion objects for each type
+- **Implementation cost:** Medium
+- **Testability:** Testable now (tests current behavior; documents refactoring goal)
+
+### [TS-BE-11] step_code_buffer pre-click wait is 3000ms (misplaced before click)
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 step_code_buffer.py:131-133
+- **Description:** Verify `_derive_wait()` returns 3000ms wait for click actions. This wait is placed BEFORE the click, but async page updates happen AFTER the click. Combined with post-click waits, total is ~6.5s per click.
+  - **Test 1 (click action):** Pass click action dict -> assert `wait_before=3000`.
+  - **Test 2 (fill action):** Pass fill action dict -> assert `wait_before` is 0 or absent.
+  - **Test 3 (navigate action):** Pass navigate action dict -> assert wait behavior.
+  - **Test 4 (popup element):** Pass action with popup element -> assert popup-specific wait handling.
+- **Priority:** P1 -- Medium severity performance issue in generated code
+- **Mock requirements:** None (pure logic with action dictionaries)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-12] step_code_buffer post-click networkidle always hits 3s timeout
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 step_code_buffer.py:380-395
+- **Description:** Verify `assemble()` adds a post-click stability action for every click with `wait_for_load_state("networkidle", timeout=3000)`. For non-navigation clicks, network is already idle, so this always times out at 3 seconds.
+  - **Test 1 (single click):** One click record -> assert generated code has `wait_for_load_state("networkidle", timeout=3000)` + `wait_for_timeout(500)`.
+  - **Test 2 (navigation click):** Click that navigates -> assert networkidle wait is useful (not directly testable in unit test, but verify the code structure).
+  - **Test 3 (no clicks):** Fill-only records -> assert no networkidle wait in output.
+  - **Test 4 (10 clicks):** 10 click records -> count total wait statements -> assert 10 * (3s + 0.5s) = 35s of waits.
+- **Priority:** P1 -- Medium severity, significant performance impact on generated test execution
+- **Mock requirements:** None (pure logic with StepRecord list)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-13] _sanitize_variables filters non-serializable values correctly
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-04
+- **Description:** Verify `_sanitize_variables` correctly keeps `str/int/float/bool/list/dict/None` and filters out other types.
+  - **Test 1 (keep str):** `{"name": "John"}` -> assert kept.
+  - **Test 2 (keep int):** `{"count": 42}` -> assert kept.
+  - **Test 3 (keep None):** `{"value": None}` -> assert kept.
+  - **Test 4 (filter set):** `{"items": {1, 2}}` -> assert filtered out.
+  - **Test 5 (filter bytes):** `{"data": b"raw"}` -> assert filtered out.
+  - **Test 6 (filter custom object):** `{"obj": object()}` -> assert filtered out.
+  - **Test 7 (nested dict):** `{"config": {"key": "val"}}` -> assert kept.
+  - **Test 8 (list of str):** `{"items": ["a", "b"]}` -> assert kept.
+- **Priority:** P2 -- Low severity, utility function validation
+- **Mock requirements:** None (pure type checking)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-14] _build_login_helper produces syntactically valid Python
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-16
+- **Description:** Verify `_build_login_helper` returns Python code that is syntactically valid. The function returns an 82-line list literal with complex JavaScript embedded in f-strings.
+  - **Test 1:** Call `_build_login_helper(origin="http://erp.test", account="admin", password="pass123")` -> join lines -> assert `ast.parse` succeeds.
+  - **Test 2:** Call with special characters in password (`pass"word`) -> assert escaping handles double quotes.
+  - **Test 3:** Call with backslash in account (`dom\\admin`) -> assert escaping handles backslashes.
+- **Priority:** P1 -- Medium severity, validates code generation correctness
+- **Mock requirements:** None (string list construction + ast.parse)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-15] dom_patch reset functions properly clear all state
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-22
+- **Description:** Verify dom_patch module-level mutable globals and reset functions properly clear all state. The module uses manual reset of mutable globals.
+  - **Test 1:** Apply patches -> call reset function -> assert all state variables return to initial values.
+  - **Test 2:** Apply patches -> modify state -> call reset -> assert clean state.
+  - **Test 3:** Call reset twice -> assert idempotent (no error, state stays clean).
+- **Priority:** P2 -- Medium severity, protects monkey-patch state management
+- **Mock requirements:** Requires importing dom_patch module (may need browser-use available)
+- **Implementation cost:** Medium
+- **Testability:** Testable now (may need browser-use import, which could add complexity)
+
+### [TS-BE-16] execute_data_method builds docstring map twice on failure
+- **Severity:** Medium
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-24; 125-FINDINGS.md P3 external_module_loader
+- **Description:** Verify method resolution fallback when docstring-based lookup fails. The code builds the docstring map twice on failure -- once during initial lookup, once during fallback.
+  - **Test 1 (known method):** Pass known class/method -> assert single lookup, success on first try.
+  - **Test 2 (unknown method):** Pass unknown method name -> assert second lookup attempted -> assert proper error message.
+  - **Test 3 (wrong class):** Pass unknown class name -> assert error without crash.
+- **Priority:** P2 -- Medium severity, validates external method resolution robustness
+- **Mock requirements:** Mock external module with known classes/methods
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-17] external_module_loader reset_cache properly resets all 14 globals
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P3 external_module_loader:17-43
+- **Description:** Verify `reset_cache()` properly resets all 14 module-level cache variables. The `_lazy_load` function uses `globals()[var_name]` for reading and writing, which is fragile.
+  - **Test 1:** Load module -> set cache values -> call `reset_cache()` -> assert all 14 globals are None.
+  - **Test 2:** Call `reset_cache()` without prior load -> assert no error, all globals None.
+  - **Test 3:** Partial load -> `reset_cache()` -> assert complete reset.
+- **Priority:** P2 -- Low severity, cache management validation
+- **Mock requirements:** None (module-level state manipulation)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-18] nest_asyncio.apply() is idempotent
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P2 precondition_service:59
+- **Description:** Verify calling `nest_asyncio.apply()` multiple times is idempotent and does not raise exceptions. The code calls apply() on every data method execution.
+  - **Test 1:** Call `nest_asyncio.apply()` once -> assert no exception.
+  - **Test 2:** Call `nest_asyncio.apply()` twice -> assert no exception (idempotent).
+  - **Test 3:** Call `nest_asyncio.apply()` 10 times -> assert no exception, event loop still functional.
+- **Priority:** P2 -- Low severity, validates async safety assumption
+- **Mock requirements:** None (event loop manipulation)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-19] test_flow_service missing cache key silently replaced with empty string
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P2 test_flow_service:116-123
+- **Description:** Verify `{{cached:NONEXISTENT}}` is replaced with empty string (not error) when cache key is missing. Silent replacement can mask typos in cache references.
+  - **Test 1 (missing key):** Text with `{{cached:order_number}}`, empty cache -> assert replaced with empty string.
+  - **Test 2 (existing key):** Text with `{{cached:order_number}}`, cache has `order_number: "ORD-001"` -> assert replaced with "ORD-001".
+  - **Test 3 (typo key):** Text with `{{cached:order_nubmer}}`, cache has `order_number` -> assert replaced with empty string (typo silently produces empty).
+  - **Test 4 (multiple keys):** Text with `{{cached:a}} and {{cached:b}}`, only `a` in cache -> assert `a` replaced, `b` empty string.
+- **Priority:** P2 -- Low severity, documents silent data loss behavior
+- **Mock requirements:** None (string replacement with cache dict)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-20] test_flow_service step number pattern only handles Chinese format
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P2 test_flow_service:59-60
+- **Description:** Verify regex `_STEP_NUMBER_PATTERN` matches Chinese step format and rejects non-Chinese formats.
+  - **Test 1 (Chinese colon):** "步骤1：Login" -> assert match, captures "1".
+  - **Test 2 (Chinese full-width colon):** "步骤1：Login" -> assert match.
+  - **Test 3 (English "Step 1:"):** "Step 1: Login" -> assert no match.
+  - **Test 4 (numbered "1."):** "1. Login" -> assert no match.
+  - **Test 5 (hash "#1"):** "#1 Login" -> assert no match.
+  - **Test 6 (multi-digit):** "步骤12：Submit" -> assert match, captures "12".
+- **Priority:** P2 -- Low severity, documents format limitation
+- **Mock requirements:** None (pure regex matching)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-21] ContextWrapper shared mutable state across pipeline stages
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P2 precondition_service:72-73; 128-FINDINGS.md QS-11
+- **Description:** Verify that mutation in one pipeline stage (via ContextWrapper) is visible in subsequent stages. This documents intentional shared state behavior.
+  - **Test 1:** Create ContextWrapper -> set key in "stage 1" -> read in "stage 2" -> assert value visible.
+  - **Test 2:** Set `external_assertion_summary` -> assert it passes through to `to_dict()` output.
+  - **Test 3:** Call `reset_assertion_tracking()` -> assert assertion-specific state cleared but other data preserved.
+- **Priority:** P2 -- Low severity, documents intentional shared state pattern
+- **Mock requirements:** None (dict-like object manipulation)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-22] Mutable dict counters closure behavior
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md BD-18 / QS-11
+- **Description:** Verify pipeline counters dict mutation across closure boundaries works correctly. The mutable dict `{"step_count": 0, "global_seq": 0}` is shared between `_create_on_step` closure and the pipeline orchestrator.
+  - **Test 1:** Create counter dict -> pass to closure -> increment in closure -> assert outer dict reflects change.
+  - **Test 2:** Multiple increments -> assert correct final values.
+  - **Test 3:** Counter starts at non-zero (global_seq) -> assert increments add to initial value.
+- **Priority:** P2 -- Low severity, documents closure-based state sharing pattern
+- **Mock requirements:** None (dict manipulation + closure)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-23] ActionTranslator._identify_action_type cross-class private method call
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 125-FINDINGS.md P1 step_code_buffer:63; 128-FINDINGS.md BD-17, QS-14
+- **Description:** Verify `ActionTranslator._identify_action_type` produces correct action types for all known action dictionaries. After refactoring to public method, verify same behavior.
+  - **Test 1 (click action):** `{"action": "click"}` -> assert type is "click".
+  - **Test 2 (fill action):** `{"action": "fill", "value": "text"}` -> assert type is "fill".
+  - **Test 3 (evaluate action):** `{"action": "evaluate"}` -> assert type is "evaluate".
+  - **Test 4 (empty dict):** `{}` -> assert type is handled (empty or unknown).
+  - **Test 5 (unknown action):** `{"action": "custom_new_type"}` -> assert type is handled.
+- **Priority:** P2 -- Low severity, refactoring protection
+- **Mock requirements:** None (pure logic with action dictionaries)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-24] TypeScript compilation passes after replacing `any` types
+- **Severity:** Low
+- **Test Type:** Unit
+- **Source Finding:** See 128-FINDINGS.md QS-12; 127-FINDINGS.md ESLint Scan
+- **Description:** Verify TypeScript compilation (`tsc --noEmit`) passes after replacing `any` types in `types/index.ts`. This is a build-time test, not a runtime test. 7 explicit `any` types exist across `types/index.ts` and `DataMethodSelector.tsx`.
+  - **Test 1:** Run `tsc --noEmit` on current code -> assert zero errors (baseline).
+  - **Test 2:** Replace `any` with `Record<string, unknown>` for API response types -> assert `tsc --noEmit` still passes.
+  - **Test 3:** Define proper interfaces for SSE event types -> assert `tsc --noEmit` passes.
+- **Priority:** P2 -- Low severity, type safety improvement validation
+- **Mock requirements:** None (TypeScript compiler check)
+- **Implementation cost:** Medium (requires running tsc)
+- **Testability:** Testable now
+
 ---
 
-*Findings documented: 2026-05-04*
-*Plan 129-01: Summary analysis -- filtered, classified, scored*
-*Plans 129-02/03 will expand specific test scenarios from this inventory*
+*Backend Unit Test Scenarios expanded: 2026-05-04*
+*Plan 129-02: Task 1 -- 24 unit test scenarios from Plan 01 inventory*
