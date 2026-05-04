@@ -764,7 +764,399 @@ Detailed expansion of the 24 backend unit test scenarios identified in Plan 01. 
 - **Implementation cost:** Medium (requires running tsc)
 - **Testability:** Testable now
 
+## Backend Integration Test Scenarios
+
+Detailed expansion of the 25 backend integration test scenarios identified in Plan 01. Integration tests require database, API client, or mocked external services.
+
+### [TS-BE-25] EventManager lifecycle -- cleanup prevents memory leak across runs (CP-1)
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P2 event_manager.py:27; 128-FINDINGS.md CP-1, QS-07
+- **Description:** Verify EventManager cleanup lifecycle prevents unbounded memory growth. `_events` dict accumulates all events per run_id, and `cleanup()` exists but is never called.
+  - **Test 1 (manual cleanup):** Subscribe to a run -> publish 10 events -> call `cleanup(run_id)` -> assert `_events[run_id]` is empty or removed.
+  - **Test 2 (pipeline cleanup, DEFERRED):** Run full pipeline (mocked agent) -> verify cleanup is called in `_finalize_run`. Currently fails because cleanup is never called. Test for when code fix is applied.
+  - **Test 3 (heartbeat cancellation):** Subscribe -> publish events -> cleanup -> assert heartbeat task cancelled and removed from `_heartbeat_tasks`.
+  - **Test 4 (re-subscribe after cleanup):** Subscribe -> cleanup -> subscribe again -> assert no stale events from previous subscription.
+  - **Test 5 (memory growth measurement):** Publish 1000 events -> assert `_events` memory is bounded (or measure size before/after cleanup).
+- **Priority:** P0 -- High severity systemic pattern (CP-1), protects long-running server stability
+- **Mock requirements:** Real EventManager instance; mock agent execution for pipeline test
+- **Implementation cost:** Medium
+- **Testability:** Tests 1,3,4,5 testable now; Test 2 DEFERRED until cleanup is called in _finalize_run
+
+### [TS-BE-26] SSE error handling -- broken subscriber does not crash publisher (CP-2)
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md BD-27; 128-FINDINGS.md CP-2, QS-06
+- **Description:** Verify `event_manager.publish` does not crash when a subscriber's queue is broken. The publish method iterates all subscriber queues with no error handling.
+  - **Test 1 (broken queue):** Add subscriber -> corrupt its queue (e.g., close it) -> publish event -> assert no exception thrown.
+  - **Test 2 (other subscribers receive):** Add 2 subscribers -> break 1 queue -> publish -> assert the intact subscriber still receives the event.
+  - **Test 3 (empty subscribers):** Publish to run_id with no subscribers -> assert no error (events stored in _events for history replay).
+  - **Test 4 (malformed event data):** Publish event with non-serializable data -> assert error handling (currently no try/except, expected to fail until fix).
+- **Priority:** P0 -- High severity systemic pattern (CP-2), protects SSE reliability
+- **Mock requirements:** Real EventManager; mock subscriber queues
+- **Implementation cost:** Medium
+- **Testability:** Tests 1,2,3 testable now; Test 4 documents current behavior (no error handling)
+
+### [TS-BE-27] save_screenshot sync write_bytes blocks event loop (CP-4)
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md BD-35 / Cross-3; 128-FINDINGS.md CP-4, QS-08
+- **Description:** Verify screenshot write does not block concurrent async operations. `save_screenshot` calls `filepath.write_bytes(screenshot_bytes)` synchronously.
+  - **Test 1 (blocking measurement):** Start screenshot write with 1MB data -> concurrently start SSE publish -> measure SSE delivery latency -> assert not delayed by screenshot.
+  - **Test 2 (concurrent screenshots):** Start 2 simultaneous screenshot writes -> assert both complete -> measure total time (if serialized, 2x; if non-blocking, ~1x).
+  - **Test 3 (with fix):** After wrapping in `asyncio.to_thread`, verify concurrent operations not delayed.
+- **Priority:** P0 -- High severity systemic pattern (CP-4), event loop blocking affects all users
+- **Mock requirements:** Real file system write; asyncio timing measurement
+- **Implementation cost:** Medium
+- **Testability:** Testable now (measures current blocking behavior)
+
+### [TS-BE-28] subprocess.run blocks event loop for 180 seconds (CP-4)
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-runs-11; 128-FINDINGS.md CP-4, QS-08
+- **Description:** Verify code execution via `subprocess.run` blocks the event loop for up to 180 seconds, preventing concurrent API requests.
+  - **Test 1 (blocking measurement):** Start code execution (long-running test) -> concurrently make API request (e.g., GET /api/dashboard) -> assert API request response time.
+  - **Test 2 (concurrent execution):** Start 2 code executions -> assert they run sequentially (not concurrently) due to event loop blocking.
+  - **Test 3 (with fix):** After replacing with `asyncio.create_subprocess_exec`, verify concurrent operations proceed during execution.
+- **Priority:** P0 -- High severity, blocks entire server during test execution
+- **Mock requirements:** FastAPI TestClient; subprocess that runs for known duration
+- **Implementation cost:** High
+- **Testability:** Testable now (documents current blocking behavior)
+
+### [TS-BE-29] Dual stall detection in full agent pipeline
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md Cross-2, P1 agent_service.py:340-347; 128-FINDINGS.md BD-08, BD-19
+- **Description:** Verify that the shared StallDetector instance is called twice per step -- once from MonitoredAgent.step_callback and once from agent_service._run_detectors.
+  - **Test 1 (call count):** Create agent with StallDetector -> mock step callback to count detector.check() calls -> run 2 steps -> assert 4 total calls (2 per step).
+  - **Test 2 (history inflation):** Create agent -> run steps with failures -> inspect StallDetector._history -> assert each failure appears twice.
+  - **Test 3 (threshold halving):** Create agent with max_consecutive_failures=4 -> generate 2 actual failures (but 4 history entries from dual call) -> assert intervention fires (demonstrates threshold halving).
+- **Priority:** P1 -- High severity, requires mocking agent internals
+- **Mock requirements:** Mock browser-use Agent; real StallDetector; real MonitoredAgent
+- **Implementation cost:** High
+- **Testability:** Testable now
+
+### [TS-BE-30] Pipeline precondition failure skips "started" SSE event
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P1 run_pipeline.py:499-500; 126-FINDINGS.md DD-pipe-03
+- **Description:** Verify SSE event sequence when preconditions fail. The "started" event (line 512) is skipped because precondition failure returns early at line 500.
+  - **Test 1 (normal flow):** Run pipeline with passing preconditions -> subscribe to events -> assert "started" event received before "finished".
+  - **Test 2 (failing preconditions):** Run pipeline with failing precondition -> subscribe to events -> assert NO "started" event received -> assert "finished" event with status="failed" IS received.
+  - **Test 3 (event ordering):** Verify events arrive in correct order for success path: precondition events -> started -> step events -> finished.
+- **Priority:** P1 -- Medium severity, UI state confusion risk
+- **Mock requirements:** Mock precondition service (success/failure); real EventManager; FastAPI TestClient for SSE stream
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-31] Screenshot FileResponse with unvalidated database path
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-runs-05, API-02
+- **Description:** Verify path traversal attack on screenshot endpoint. `step.screenshot_path` from database is served directly as FileResponse without validation.
+  - **Test 1 (normal screenshot):** Valid screenshot path -> GET screenshot endpoint -> assert 200 with image data.
+  - **Test 2 (path traversal):** Set screenshot_path to `"../../etc/passwd"` in test DB -> GET screenshot endpoint -> assert 403 or validation error (currently serves file, bug).
+  - **Test 3 (absolute path):** Set screenshot_path to `/etc/passwd` -> assert 403 (currently serves file).
+  - **Test 4 (within outputs/):** Set screenshot_path to valid outputs/ path -> assert 200.
+- **Priority:** P1 -- Medium severity security issue (path traversal)
+- **Mock requirements:** In-memory SQLite with manipulated screenshot_path; FastAPI TestClient
+- **Implementation cost:** Medium
+- **Testability:** Testable now (tests document current vulnerable behavior)
+
+### [TS-BE-32] Code execution endpoint missing path validation
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md API-01, DD-runs-06
+- **Description:** Verify `_validate_code_path` is NOT called before `subprocess.run` in the execute endpoint. This is the highest-severity security finding.
+  - **Test 1 (normal execution):** Valid generated_code_path -> POST execute-code -> assert 200 (test runs).
+  - **Test 2 (path traversal):** Set generated_code_path to `"/etc/passwd"` in test DB -> POST execute-code -> assert 403 or validation error (currently executes, critical bug).
+  - **Test 3 (with fix):** After adding `_validate_code_path` in endpoint, verify traversal is blocked.
+- **Priority:** P0 -- High severity, arbitrary code execution risk
+- **Mock requirements:** In-memory SQLite with manipulated generated_code_path; FastAPI TestClient; mock subprocess
+- **Implementation cost:** Medium
+- **Testability:** Testable now (documents critical security gap)
+
+### [TS-BE-33] Batch execution partial creation on task_id validation failure
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-batch-03
+- **Description:** Verify batch creation when some task_ids are invalid. Current implementation creates runs for valid tasks before failing on invalid ones, leaving partial state.
+  - **Test 1 (all valid):** Create batch with 3 valid task_ids -> assert 3 runs created, batch links all 3.
+  - **Test 2 (partial invalid):** Create batch with 2 valid + 1 invalid task_ids -> assert no runs created (rollback) OR assert partial state documented.
+  - **Test 3 (empty list):** Create batch with empty task_ids -> assert validation error.
+  - **Test 4 (all invalid):** Create batch with 3 invalid task_ids -> assert 404 error, no batch created.
+- **Priority:** P1 -- Medium severity, data integrity concern
+- **Mock requirements:** In-memory SQLite with Task records; FastAPI TestClient
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-34] SSE event_generator client disconnect does not crash server
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-runs-04, API-03
+- **Description:** Verify client disconnect during SSE stream does not crash the server. The event_generator has no try/except/finally.
+  - **Test 1 (normal completion):** Connect to SSE stream -> receive all events -> assert clean disconnect.
+  - **Test 2 (early disconnect):** Connect to SSE stream -> disconnect after first event -> assert server still responds to new requests.
+  - **Test 3 (rapid connect/disconnect):** Connect and immediately disconnect 10 times -> assert server stable.
+  - **Test 4 (reconnect after disconnect):** Disconnect -> reconnect to same run_id -> assert history replay works.
+- **Priority:** P1 -- Medium severity, server stability
+- **Mock requirements:** FastAPI TestClient with SSE stream support; real EventManager
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-35] Fire-and-forget batch startup failure logging
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-batch-01, API-04; 128-FINDINGS.md BD-41
+- **Description:** Verify batch startup failures are logged via done callback. `asyncio.create_task` with no `add_done_callback` means silent failure.
+  - **Test 1 (successful batch):** Create valid batch -> assert batch runs start.
+  - **Test 2 (failing batch config):** Create batch that fails immediately (mock service.start to raise) -> assert exception logged (currently swallowed).
+  - **Test 3 (with fix):** After adding done_callback, verify error appears in logs.
+- **Priority:** P1 -- Medium severity, operational visibility
+- **Mock requirements:** Mock BatchExecutionService.start to raise; log capture fixture
+- **Implementation cost:** Medium
+- **Testability:** Testable now (documents current silent failure behavior)
+
+### [TS-BE-36] Stop run does not cancel agent execution
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-runs-10
+- **Description:** Verify that calling stop endpoint updates status but does NOT actually cancel the running agent task.
+  - **Test 1 (status update):** Start run -> call stop endpoint -> assert run status is "stopped" in database.
+  - **Test 2 (agent continues):** Start run -> stop -> assert agent still running (check agent task reference or logs).
+  - **Test 3 (resource consumption):** Start run -> stop -> verify LLM API calls continue (currently they do).
+  - **Test 4 (with fix, DEFERRED):** After implementing task.cancel(), verify agent actually stops.
+- **Priority:** P1 -- Medium severity, resource waste; documents known limitation
+- **Mock requirements:** FastAPI TestClient; mock agent that runs for known duration; in-memory SQLite
+- **Implementation cost:** Medium
+- **Testability:** Tests 1,2,3 testable now; Test 4 DEFERRED until cancellation mechanism implemented
+
+### [TS-BE-37] Combined sync I/O blocking measurement (CP-4)
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 128-FINDINGS.md CP-4, QS-08; 125-FINDINGS.md Cross-3; 126-FINDINGS.md DD-runs-11
+- **Description:** Combined measurement of event loop blocking from all sync I/O operations: `write_bytes` (screenshots) + `subprocess.run` (code execution).
+  - **Test 1 (screenshot blocking):** Measure event loop responsiveness during 1MB screenshot write -> assert blocked for write duration.
+  - **Test 2 (subprocess blocking):** Measure event loop responsiveness during subprocess.run -> assert blocked for subprocess duration.
+  - **Test 3 (concurrent with SSE):** Start blocking I/O + SSE publish simultaneously -> measure SSE delivery latency -> assert delayed.
+- **Priority:** P1 -- Medium severity, combined performance measurement
+- **Mock requirements:** asyncio timing measurement; file write fixture; subprocess fixture
+- **Implementation cost:** High
+- **Testability:** Testable now (measures current blocking behavior)
+
+### [TS-BE-38] Heartbeat task leak on re-subscribe
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P2 event_manager.py:84-85; 128-FINDINGS.md CP-1
+- **Description:** Verify re-subscribing to the same run_id creates an orphaned heartbeat task. The old heartbeat task is overwritten but NOT cancelled.
+  - **Test 1 (first subscribe):** Subscribe to run_id -> assert exactly 1 heartbeat task in `_heartbeat_tasks[run_id]`.
+  - **Test 2 (re-subscribe):** Subscribe to run_id -> subscribe again -> assert old task cancelled (currently fails, old task leaked).
+  - **Test 3 (task count):** Subscribe 5 times to same run_id -> count heartbeat tasks -> assert 1 (currently leaks 4 orphaned tasks).
+  - **Test 4 (with fix):** After adding `if run_id in self._heartbeat_tasks: self._heartbeat_tasks[run_id].cancel()`, verify re-subscribe works correctly.
+- **Priority:** P1 -- Medium severity, resource leak in reconnection scenarios
+- **Mock requirements:** Real EventManager instance
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-39] External assertion unknown class/method returns 500 instead of 400
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-ext-assert-01, API-09
+- **Description:** Verify that unknown class_name/method_name combinations flow to `getattr()` without validation, producing a 500 error instead of a 400 validation error.
+  - **Test 1 (valid method):** Call with known class/method from external module -> assert 200.
+  - **Test 2 (unknown class):** Call with `class_name="NonExistentClass"` -> assert 500 (current) or 400 (desired).
+  - **Test 3 (unknown method):** Call with valid class but `method_name="nonexistent_method"` -> assert 500 (current) or 400 (desired).
+  - **Test 4 (special chars):** Call with `class_name="__class__"` -> assert behavior is safe (probing risk).
+- **Priority:** P1 -- Medium severity, security hardening
+- **Mock requirements:** External module available or mocked; FastAPI TestClient
+- **Implementation cost:** Medium
+- **Testability:** Testable now (documents current 500 behavior)
+
+### [TS-BE-40] External assertion api_params SSRF via HTTP requests
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-ext-assert-02
+- **Description:** Verify that `api_params` dict with URLs to internal resources is handled. Currently, user-controlled params flow directly to external methods that may make HTTP requests.
+  - **Test 1 (normal params):** Call with valid api_params -> assert 200.
+  - **Test 2 (internal URL):** Call with `api_params={"url": "http://169.254.169.254/metadata"}` -> assert behavior documented (currently allowed).
+  - **Test 3 (localhost URL):** Call with `api_params={"url": "http://localhost:6379/"}` -> assert behavior documented.
+  - **Test 4 (with fix, DEFERRED):** After adding URL allowlisting, verify internal URLs blocked.
+- **Priority:** P1 -- Medium severity, SSRF risk for public deployment
+- **Mock requirements:** External module with HTTP-calling method; FastAPI TestClient
+- **Implementation cost:** High
+- **Testability:** Tests 1,2,3 testable now; Test 4 DEFERRED until URL validation added
+
+### [TS-BE-41] assertion_service check_element_exists stub -- integration with pipeline
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P2 assertion_service.py:88-110
+- **Description:** Verify assertion results always show "passed" for element_exists type regardless of DOM state. This integration test confirms the stub behavior at the pipeline level.
+  - **Test 1 (existing element):** Run pipeline with element_exists assertion targeting real element -> assert passed (stub always returns True).
+  - **Test 2 (non-existent element):** Run pipeline with element_exists assertion targeting `".nonexistent-class-xyz"` -> assert PASSED (demonstrates stub always passes, bug).
+  - **Test 3 (comparison with text_exists):** Run same test with text_exists assertion targeting non-existent text -> assert behavior differs from element_exists.
+- **Priority:** P0 -- High severity, users get false confidence in element existence checks
+- **Mock requirements:** Mock agent execution; real assertion_service; real run_pipeline
+- **Implementation cost:** Medium
+- **Testability:** Testable now (documents critical stub behavior)
+
+### [TS-BE-42] Variable substitution via _variable_map construction
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P1 run_pipeline.py:543; 126-FINDINGS.md DD-pipe-04
+- **Description:** Verify variable map correctly filters assertion-prefixed keys and includes precondition variables. Tests the _variable_map construction logic end-to-end.
+  - **Test 1 (precondition variables):** Set context with `{"order_number": "ORD-001", "customer": "Acme"}` -> build variable_map -> assert both present.
+  - **Test 2 (assertion filtered):** Set context with `{"assertion_result_0": "passed", "order_number": "ORD-001"}` -> assert assertion_result_0 filtered, order_number present.
+  - **Test 3 (external_assertion_summary leak):** Set context with `{"external_assertion_summary": "5/10"}` -> assert key IS present (latent bug, passes filter).
+  - **Test 4 (non-serializable filtered):** Set context with `{"callback": lambda: None}` -> assert filtered out by isinstance guard.
+- **Priority:** P1 -- Medium severity, protects code generation variable substitution
+- **Mock requirements:** None (dict construction and filtering logic)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-43] Unawaited coroutine in batch_execution fire-and-forget
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 128-FINDINGS.md BD-41
+- **Description:** Verify batch task exception is properly logged when `asyncio.create_task` is used without error callback.
+  - **Test 1 (normal batch):** Create valid batch -> assert tasks execute without exception.
+  - **Test 2 (exception in task):** Mock batch_execution to raise before first await -> assert "Task exception was never retrieved" warning or assert custom error handling.
+  - **Test 3 (with fix):** After adding `add_done_callback`, verify exception logged with useful context.
+- **Priority:** P1 -- Medium severity, operational visibility
+- **Mock requirements:** Mock BatchExecutionService; asyncio task inspection; log capture
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-44] Potential IndexError when accessing agent_output.action[i] in multi-action steps
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P1 agent_service.py:484
+- **Description:** Verify multi-action step with filtered actions produces correct element mapping. The index `i` from `enumerate(all_actions)` diverges from `agent_output.action[i]` when actions are filtered.
+  - **Test 1 (no filtering):** Agent returns 3 non-empty actions -> assert all elements mapped correctly.
+  - **Test 2 (one empty action):** Agent returns [fill, empty_dict, click] -> extract_all_actions filters to [fill, click] -> assert element mapping for fill uses index 0, click uses index 2 (NOT index 1).
+  - **Test 3 (two empty actions):** Agent returns [empty, fill, empty, click] -> assert element mapping uses original indices.
+  - **Test 4 (all empty):** Agent returns [empty, empty] -> assert no IndexError.
+- **Priority:** P1 -- Medium severity, incorrect locator generation in code output
+- **Mock requirements:** Mock agent_output with action list; real extract_all_actions
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-45] Pipeline precondition failure SSE event sequence
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-pipe-03 (duplicate of TS-BE-30 from pipeline perspective)
+- **Description:** Integration test verifying SSE event sequence when precondition fails. Focuses on the pipeline's event publishing behavior.
+  - **Test 1 (success path events):** Run with passing preconditions -> capture all events -> assert sequence: precondition -> started -> steps -> finished.
+  - **Test 2 (failure path events):** Run with failing preconditions -> capture all events -> assert sequence: precondition -> finished(failed) -> assert "started" MISSING.
+  - **Test 3 (None sentinel):** Verify None sentinel is the final event in all paths.
+- **Priority:** P1 -- Medium severity, SSE event ordering
+- **Mock requirements:** Mock precondition service; real EventManager; SSE event capture
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-46] exec() with full __builtins__ provides unrestricted runtime
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P2 precondition_service:243
+- **Description:** Verify precondition code can access os, subprocess via full `__builtins__`. Documents current behavior for security awareness.
+  - **Test 1 (import os):** Execute `import os; result = os.path.exists(".")` -> assert no error (documents current capability).
+  - **Test 2 (subprocess access):** Execute `import subprocess` -> assert no error (documents current capability).
+  - **Test 3 (safe operation):** Execute `result = 2 + 2` -> assert result is 4 (normal precondition behavior).
+  - **Test 4 (timeout):** Execute infinite loop -> assert 30-second timeout triggers.
+- **Priority:** P2 -- Medium severity, documents accepted single-user behavior
+- **Mock requirements:** None (real exec() in test environment with timeout)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-47] Login credentials embedded in task description for LLM
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-pipe-06
+- **Description:** Verify credentials appear in task description on login fallback path. Documents credential exposure in LLM prompts.
+  - **Test 1 (login fallback):** Trigger login fallback path -> capture task_description -> assert account/password strings present.
+  - **Test 2 (successful login):** Trigger successful programmatic login -> assert credentials NOT in task_description.
+  - **Test 3 (log output):** Trigger login fallback -> capture log output -> assert credentials visible in logs at line 188.
+- **Priority:** P2 -- Medium severity, documents credential exposure pattern
+- **Mock requirements:** Mock account_service; mock login flow; log capture
+- **Implementation cost:** Medium
+- **Testability:** Testable now
+
+### [TS-BE-48] Hardcoded DEBUG logging ignores LOG_LEVEL setting
+- **Severity:** Medium
+- **Test Type:** Integration
+- **Source Finding:** See 126-FINDINGS.md DD-main-02
+- **Description:** Verify LOG_LEVEL setting has no effect on actual logging level. `main.py:44` hardcodes `logging.DEBUG`.
+  - **Test 1 (default):** Start app with default settings -> assert root logger level is DEBUG.
+  - **Test 2 (env override):** Set `LOG_LEVEL=WARNING` in env -> assert root logger level is STILL DEBUG (bug).
+  - **Test 3 (stack traces):** Set `LOG_LEVEL=ERROR` -> trigger 500 error -> assert stack trace still included in response (bug).
+  - **Test 4 (with fix):** After using settings.log_level, assert env override works.
+- **Priority:** P1 -- Medium severity, configuration control gap
+- **Mock requirements:** Environment variable fixture; FastAPI TestClient
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### [TS-BE-49] Login JS template duplicated between agent_service and code_generator
+- **Severity:** High
+- **Test Type:** Integration
+- **Source Finding:** See 125-FINDINGS.md P1 code_generator.py:487,496; 128-FINDINGS.md BD-03
+- **Description:** Verify both files produce identical login JS logic. ~80 lines of login JS are duplicated between `agent_service.py` and `code_generator.py`.
+  - **Test 1 (string equality):** Extract JS snippets from both files -> assert string equality (currently they should match).
+  - **Test 2 (regression detection):** Modify JS in one file -> assert test detects divergence.
+  - **Test 3 (with fix):** After extracting to shared module, verify both consumers produce same output.
+- **Priority:** P1 -- High severity DRY violation, protects login logic consistency
+- **Mock requirements:** None (string comparison of JS snippets)
+- **Implementation cost:** Low
+- **Testability:** Testable now
+
+### Backend Scenario Summary
+
+**Total scenarios: 49 (24 unit + 25 integration)**
+
+#### By Severity
+
+| Severity | Unit | Integration | Total |
+|----------|------|-------------|-------|
+| Critical | 1 | 0 | 1 |
+| High | 2 | 8 | 10 |
+| Medium | 15 | 16 | 31 |
+| Low | 6 | 1 | 7 |
+| **Total** | **24** | **25** | **49** |
+
+#### By Priority
+
+| Priority | Unit | Integration | Total |
+|----------|------|-------------|-------|
+| P0 | 3 | 5 | 8 |
+| P1 | 9 | 16 | 25 |
+| P2 | 12 | 4 | 16 |
+| **Total** | **24** | **25** | **49** |
+
+#### By Testability
+
+| Status | Count | Scenarios |
+|--------|-------|-----------|
+| Testable now | 47 | All except 2 partially deferred |
+| Partially DEFERRED | 2 | TS-BE-25 Test 2 (cleanup call), TS-BE-36 Test 4 (agent cancel) |
+
+#### Top 5 Highest ROI Scenarios
+
+1. **TS-BE-01** StallDetector dual-invocation (P0, High, no mocks, Low cost) -- ROI: pure logic, highest correctness impact
+2. **TS-BE-09** F-grade generate() validation (P0, Critical, Medium cost) -- ROI: validates most complex function
+3. **TS-BE-26** SSE error handling (P0, High, Medium cost) -- ROI: systemic pattern CP-2, server stability
+4. **TS-BE-25** EventManager lifecycle (P0, High, Medium cost) -- ROI: systemic pattern CP-1, memory leak prevention
+5. **TS-BE-32** Code execution path validation (P0, High, Medium cost) -- ROI: highest security impact
+
+#### Systemic Pattern Coverage
+
+| Pattern | Integration Scenario | Unit Scenario |
+|---------|---------------------|---------------|
+| CP-1 Memory leak | TS-BE-25, TS-BE-38 | N/A |
+| CP-2 Error handling gap | TS-BE-26, TS-BE-34 | TS-BE-01 (dual detection) |
+| CP-3 Installed-but-unused | N/A (observation, not bug) | N/A |
+| CP-4 Blocking I/O | TS-BE-27, TS-BE-28, TS-BE-37 | TS-BE-11, TS-BE-12 (generated code waits) |
+| CP-5 Mutable state | TS-BE-42 | TS-BE-06, TS-BE-21, TS-BE-22 |
+
 ---
 
 *Backend Unit Test Scenarios expanded: 2026-05-04*
 *Plan 129-02: Task 1 -- 24 unit test scenarios from Plan 01 inventory*
+*Plan 129-02: Task 2 -- 25 integration test scenarios + backend scenario summary*
