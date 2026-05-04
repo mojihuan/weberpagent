@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11.4
 milestone_name: 审查发现优化 — 系统性模式修复
 status: Ready to plan
-stopped_at: Completed 132-02-PLAN.md
-last_updated: "2026-05-04T11:07:29.771Z"
+stopped_at: Completed 132-01-PLAN.md
+last_updated: "2026-05-04T13:08:24.875Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -45,6 +45,7 @@ Plan: 02 complete
 | Phase 131 P01 | 7min | 2 tasks | 5 files |
 | Phase 131 P02 | 2min | 2 tasks | 6 files |
 | Phase 132 P02 | 82s | 2 tasks | 2 files |
+| Phase 132 P01 | 215s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Key decisions for v0.11.4 roadmap:
 - [Phase 131]: check_element_exists uses page.evaluate + JSON.stringify + json.loads for DOM detection
 - [Phase 131]: import json at module top in assertion_service.py for clean imports
 - [Phase 132]: [Phase 132 P02]: Removed context mutation in _run_external_assertions; summary persisted only via _publish_external_assertion_results to DB
+- [Phase 132]: [Phase 132 P01]: asyncio.to_thread for save_screenshot write_bytes offloads blocking file I/O to thread pool
+- [Phase 132]: [Phase 132 P01]: asyncio.create_subprocess_exec replaces subprocess.run for non-blocking subprocess management with proper timeout kill
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-04T11:07:29.769Z
-Stopped at: Completed 132-02-PLAN.md
+Last session: 2026-05-04T13:08:24.873Z
+Stopped at: Completed 132-01-PLAN.md
 Resume file: None

@@ -34,9 +34,9 @@
 
 ### Async Safety (ASYNC) — 阻塞操作迁移
 
-- [ ] **ASYNC-01**: agent_service.save_screenshot 中 write_bytes 迁移为 run_in_executor 避免阻塞事件循环 (CP-4, Medium)
+- [x] **ASYNC-01**: agent_service.save_screenshot 中 write_bytes 迁移为 run_in_executor 避免阻塞事件循环 (CP-4, Medium)
   - 来源: 125-FINDINGS P1-agent_service:127, 128-FINDINGS QS-08
-- [ ] **ASYNC-02**: runs_routes._execute_code_background 中 subprocess.run 迁移为 asyncio.create_subprocess_exec (CP-4, Medium)
+- [x] **ASYNC-02**: runs_routes._execute_code_background 中 subprocess.run 迁移为 asyncio.create_subprocess_exec (CP-4, Medium)
   - 来源: 126-FINDINGS DD-runs-11, 128-FINDINGS QS-08
   - 当前最大阻塞 180 秒
 
@@ -96,8 +96,8 @@
 | ERR-02 | Phase 133 | Pending |
 | ERR-03 | Phase 131 | Complete |
 | ERR-04 | Phase 133 | Pending |
-| ASYNC-01 | Phase 132 | Pending |
-| ASYNC-02 | Phase 132 | Pending |
+| ASYNC-01 | Phase 132 | Complete |
+| ASYNC-02 | Phase 132 | Complete |
 | STATE-01 | Phase 132 | Complete |
 | STATE-02 | Phase 133 | Pending |
 | CORR-01 | Phase 130 | Complete |
