@@ -322,7 +322,6 @@ async def _run_external_assertions(
         global_seq = await _publish_external_assertion_results(
             run_id, summary, run_repo, event_manager_obj, session, global_seq,
         )
-        context['external_assertion_summary'] = summary
 
         if summary['failed'] > 0 or summary['errors'] > 0:
             logger.info(f"[{run_id}] External assertions have failures/errors, status set to failed")
