@@ -15,18 +15,18 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ## Current State
 
-**Shipped: v0.11.3 代码彻底的 Review** (2026-05-04)
+**Shipped: v0.11.4 审查发现优化 — 系统性模式修复** (2026-05-05)
 
-系统性的全代码库审查完成，277 个可操作发现，67 个可测试场景已规划。
+v0.11.4 全部 5 个 phase 完成。5 个系统性跨层模式 (CP-1~CP-5) 全部修复。
 
-**Phase 130 complete** — 安全与关键正确性修复: 路径遍历漏洞已封堵，create_step_callback 死代码已删除。10/10 测试通过。
+**Phase 134 complete** — 死代码清理: response.py 删除 (85行)、PreSubmitGuard 精简 (46→10行)、scan_with_fallback 删除、on_step 统一 non_blocking_execute；4 个前端 hooks 迁移到 React Query (~340→244行)。
 
-**5 系统性模式 (待修复):**
-- CP-1: 内存泄漏 (event_manager._events + useRunStream 数组无清理)
-- CP-2: 错误处理缺口 (SSE event_generator + JSON.parse 无保护)
-- CP-3: 安装但未使用 (StructuredLogger + React Query)
-- CP-4: 阻塞操作混入 async (write_bytes + subprocess.run)
-- CP-5: 可变状态耦合 (external assertion context + useState 直接修改)
+**所有系统性模式已修复:**
+- CP-1: ~~内存泄漏~~ — Phase 131 (后端) + Phase 133 (前端) 已修复
+- CP-2: ~~错误处理缺口~~ — Phase 131 已修复
+- CP-3: ~~未使用代码~~ — Phase 134 已修复 (React Query 迁移 + 死代码删除)
+- CP-4: ~~阻塞操作~~ — Phase 132 已修复
+- CP-5: ~~可变状态~~ — Phase 132/133 已修复
 
 **Top 5 优先修复:**
 1. event_manager 内存泄漏 (CP-1, High)
@@ -202,7 +202,7 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 
 ### Active
 
-(None — defining for v0.11.4)
+(None — all v0.11.4 requirements validated)
 
 ### Backlog
 
@@ -285,4 +285,4 @@ AI 驱动的 UI 自动化测试平台，让 QA 用自然语言编写测试用例
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-05-04 — v0.11.4 milestone started*
+*Last updated: 2026-05-05 — v0.11.4 milestone complete*
