@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
-import type { Task } from '../types'
+import { useState, useCallback, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { tasksApi } from '../api/tasks'
 
 export interface Filters {
@@ -10,8 +10,6 @@ export interface Filters {
 }
 
 export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Filters>({
     search: '',
     status: 'all',
@@ -22,28 +20,18 @@ export function useTasks() {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const fetchTasks = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await tasksApi.list({
-        status: filters.status,
-        search: filters.search,
-      })
-      setTasks(data)
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [filters.status, filters.search])
+  // Server state via React Query
+  const { data: tasks = [], isLoading, refetch } = useQuery({
+    queryKey: ['tasks', { status: filters.status, search: filters.search }],
+    queryFn: () => tasksApi.list({
+      status: filters.status,
+      search: filters.search,
+    }),
+  })
 
-  useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
-
+  // Local state: sorting
   const filteredTasks = useMemo(() => {
-    let result = [...tasks]
-
+    const result = [...tasks]
     result.sort((a, b) => {
       let aVal: string | number = ''
       let bVal: string | number = ''
@@ -70,10 +58,10 @@ export function useTasks() {
       }
       return filters.sortOrder === 'asc' ? aVal - (bVal as number) : (bVal as number) - aVal
     })
-
     return result
   }, [tasks, filters.sortBy, filters.sortOrder])
 
+  // Local state: pagination
   const paginatedTasks = useMemo(() => {
     const start = (page - 1) * pageSize
     return filteredTasks.slice(start, start + pageSize)
@@ -97,15 +85,15 @@ export function useTasks() {
     if (selectedIds.length === 0) return
     await tasksApi.batchDelete(selectedIds)
     setSelectedIds([])
-    await fetchTasks()
-  }, [selectedIds, fetchTasks])
+    await refetch()
+  }, [selectedIds, refetch])
 
   const batchUpdateStatus = useCallback(async (status: 'draft' | 'ready') => {
     if (selectedIds.length === 0) return
     await tasksApi.batchUpdateStatus(selectedIds, status)
     setSelectedIds([])
-    await fetchTasks()
-  }, [selectedIds, fetchTasks])
+    await refetch()
+  }, [selectedIds, refetch])
 
   const updateFilter = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }))
@@ -117,7 +105,7 @@ export function useTasks() {
     allTasks: tasks,
     filteredTasks,
     total: filteredTasks.length,
-    loading,
+    loading: isLoading,
     filters,
     selectedIds,
     page,
@@ -128,7 +116,7 @@ export function useTasks() {
     setSelectedIds,
     toggleSelectAll,
     toggleSelect,
-    fetchTasks,
+    fetchTasks: refetch,
     batchDelete,
     batchUpdateStatus,
   }
