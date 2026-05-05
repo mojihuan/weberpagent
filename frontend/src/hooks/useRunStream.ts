@@ -1,5 +1,6 @@
 // frontend/src/hooks/useRunStream.ts
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { toast } from 'sonner'
 import type { Run, Step, SSEPreconditionEvent, SSEAssertionEvent, RunStatus } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:11002/api'
@@ -79,7 +80,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     }
 
     eventSource.addEventListener('started', (e: MessageEvent) => {
-      const data = JSON.parse(e.data)
+      let data: { task_id?: string }
+      try {
+        data = JSON.parse(e.data)
+      } catch (err) {
+        console.error('[useRunStream] Failed to parse "started" event data:', err, 'raw data:', e.data)
+        toast.error('数据解析错误')
+        return
+      }
       stepsRef.current = []
       timelineRef.current = []
       preconditionsRef.current = []
@@ -94,7 +102,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     })
 
     eventSource.addEventListener('step', (e: MessageEvent) => {
-      const stepData = JSON.parse(e.data)
+      let stepData: { index: number; action: string; reasoning?: string; screenshot_url?: string; status: string; duration_ms?: number }
+      try {
+        stepData = JSON.parse(e.data)
+      } catch (err) {
+        console.error('[useRunStream] Failed to parse "step" event data:', err, 'raw data:', e.data)
+        toast.error('数据解析错误')
+        return
+      }
       // 拼接完整的截图 URL
       const screenshotUrl = stepData.screenshot_url
         ? `${API_BASE}${stepData.screenshot_url}`
@@ -113,7 +128,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     })
 
     eventSource.addEventListener('precondition', (e: MessageEvent) => {
-      const data: SSEPreconditionEvent = JSON.parse(e.data)
+      let data: SSEPreconditionEvent
+      try {
+        data = JSON.parse(e.data) as SSEPreconditionEvent
+      } catch (err) {
+        console.error('[useRunStream] Failed to parse "precondition" event data:', err, 'raw data:', e.data)
+        toast.error('数据解析错误')
+        return
+      }
       const existingIdx = timelineRef.current.findIndex(
         item => item.type === 'precondition' && item.data.index === data.index
       )
@@ -139,7 +161,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     })
 
     eventSource.addEventListener('external_assertions', (e: MessageEvent) => {
-      const data = JSON.parse(e.data)
+      let data: { total?: number; passed?: number; failed?: number; errors?: number }
+      try {
+        data = JSON.parse(e.data)
+      } catch (err) {
+        console.error('[useRunStream] Failed to parse "external_assertions" event data:', err, 'raw data:', e.data)
+        toast.error('数据解析错误')
+        return
+      }
       setBaseRun(prev => prev ? {
         ...prev,
         assertion_summary: {
@@ -152,7 +181,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     })
 
     eventSource.addEventListener('assertion', (e: MessageEvent) => {
-      const data: SSEAssertionEvent = JSON.parse(e.data)
+      let data: SSEAssertionEvent
+      try {
+        data = JSON.parse(e.data) as SSEAssertionEvent
+      } catch (err) {
+        console.error('[useRunStream] Failed to parse "assertion" event data:', err, 'raw data:', e.data)
+        toast.error('数据解析错误')
+        return
+      }
       timelineRef.current.push({ type: 'assertion' as const, data })
       if (!baseRun) {
         setBaseRun({
@@ -166,7 +202,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
     })
 
     eventSource.addEventListener('finished', (e: MessageEvent) => {
-      const parsed = JSON.parse(e.data)
+      let parsed: { status?: string }
+      try {
+        parsed = JSON.parse(e.data)
+      } catch (err) {
+        console.error('[useRunStream] Failed to parse "finished" event data:', err, 'raw data:', e.data)
+        toast.error('数据解析错误')
+        return
+      }
       setBaseRun(prev => prev ? {
         ...prev,
         status: parsed.status as RunStatus,
@@ -179,7 +222,14 @@ export function useRunStream(options: UseRunStreamOptions): UseRunStreamReturn {
 
     eventSource.addEventListener('error', (e: MessageEvent) => {
       if (e.data) {
-        const parsed = JSON.parse(e.data)
+        let parsed: { error?: string }
+        try {
+          parsed = JSON.parse(e.data)
+        } catch (err) {
+          console.error('[useRunStream] Failed to parse "error" event data:', err, 'raw data:', e.data)
+          toast.error('数据解析错误')
+          parsed = { error: 'Unknown error' }
+        }
         setError(new Error(parsed.error || 'Unknown error'))
       }
       // Update run status to failed on error
