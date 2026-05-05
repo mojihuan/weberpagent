@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11.4
 milestone_name: 审查发现优化 — 系统性模式修复
-status: Ready to execute
-stopped_at: Completed 134-01-PLAN.md
-last_updated: "2026-05-05T03:04:19.920Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 134-02-PLAN.md
+last_updated: "2026-05-05T03:11:55.119Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Plan: 2 of 2
 | Phase 133 P01 | 211s | 2 tasks | 1 files |
 | Phase 133 P02 | 92s | 1 tasks | 0 files |
 | Phase 134 P01 | 236s | 2 tasks | 4 files |
+| Phase 134 P02 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Key decisions for v0.11.4 roadmap:
 - [Phase 133]: STATE-02 confirmed no-op: all 8 flagged .push() calls across 3 frontend files operate on function-local variables, not React state
 - [Phase 134]: Buffer append kept as inline try/except because append_step is sync; non_blocking_execute only accepts async callables
 - [Phase 134]: Cascade cleanup: removed unused asyncio import from error_utils.py after scan_with_fallback deletion
+- [Phase 134]: useQuery refetchInterval callback replaces manual setInterval + completedRef for dynamic polling control in useBatchProgress
+- [Phase 134]: useTasks local state (sorting, pagination, selection) kept as useState/useMemo per separation of concerns (D-04)
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-05T03:04:19.917Z
-Stopped at: Completed 134-01-PLAN.md
+Last session: 2026-05-05T03:11:55.117Z
+Stopped at: Completed 134-02-PLAN.md
 Resume file: None

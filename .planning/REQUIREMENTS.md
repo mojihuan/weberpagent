@@ -62,7 +62,7 @@
 
 - [x] **DEAD-01**: 删除 response.py 85 行完全未使用的代码 (CP-3, Medium)
   - 来源: 126-FINDINGS P3-resp-01, 128-FINDINGS QS-09
-- [ ] **DEAD-02**: 4 个前端 hooks 迁移到 React Query useQuery，消除 ~200 行重复 boilerplate (CP-3, High)
+- [x] **DEAD-02**: 4 个前端 hooks 迁移到 React Query useQuery，消除 ~200 行重复 boilerplate (CP-3, High)
   - 来源: 128-FINDINGS QS-03, 127-FINDINGS App.tsx-React-Query
   - useTasks, useReports, useDashboard, useBatchProgress
 - [x] **DEAD-03**: PreSubmitGuard 标记为已知限制或删除死代码路径 (CP-3, Medium)
@@ -104,7 +104,7 @@
 | CORR-02 | Phase 130 | Complete |
 | CORR-03 | Phase 130 | Complete |
 | DEAD-01 | Phase 134 | Complete |
-| DEAD-02 | Phase 134 | Pending |
+| DEAD-02 | Phase 134 | Complete |
 | DEAD-03 | Phase 134 | Complete |
 | DEAD-04 | Phase 134 | Complete |
 

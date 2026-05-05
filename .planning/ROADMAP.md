@@ -89,7 +89,7 @@
 - [x] **Phase 131: 后端内存与错误处理** — EventManager 泄漏修复 + SSE 异常保护 + 断言 stub 实现 (completed 2026-05-04)
 - [x] **Phase 132: 后端异步与状态** — 阻塞操作迁移 + 可变状态解耦 (completed 2026-05-04)
 - [x] **Phase 133: 前端健壮性** — SSE hook 内存优化 + JSON.parse 保护 + 连接状态修正 + immutable 更新 (completed 2026-05-05)
-- [ ] **Phase 134: 死代码清理** — 未使用代码删除 + React Query 迁移 + 错误处理统一
+- [x] **Phase 134: 死代码清理** — 未使用代码删除 + React Query 迁移 + 错误处理统一 (completed 2026-05-05)
 
 ## Phase Details
 
@@ -166,7 +166,7 @@ Plans:
 
 Plans:
 - [x] 134-01: 后端死代码与错误处理统一 (DEAD-01, DEAD-03, DEAD-04)
-- [ ] 134-02: React Query 迁移 (DEAD-02)
+- [x] 134-02: React Query 迁移 (DEAD-02)
 
 ## Progress
 
@@ -176,7 +176,7 @@ Plans:
 | 131. 后端内存与错误处理 | v0.11.4 | 2/2 | Complete    | 2026-05-04 |
 | 132. 后端异步与状态 | v0.11.4 | 2/2 | Complete   | 2026-05-04 |
 | 133. 前端健壮性 | v0.11.4 | 2/2 | Complete   | 2026-05-05 |
-| 134. 死代码清理 | v0.11.4 | 1/2 | In Progress|  |
+| 134. 死代码清理 | v0.11.4 | 2/2 | Complete   | 2026-05-05 |
 
 ---
 *Roadmap updated: 2026-05-04 — Phase 130 plans created*
