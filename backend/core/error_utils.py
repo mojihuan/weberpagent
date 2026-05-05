@@ -32,27 +32,6 @@ async def non_blocking_execute(
         return None
 
 
-async def scan_with_fallback(
-    scan_fn: Callable[..., Awaitable[T]],
-    fallback_value: T,
-    *args: Any,
-    error_msg: str = "Scan operation failed, using fallback",
-    **kwargs: Any,
-) -> T:
-    """Execute scan function, return fallback on failure.
-
-    Use for: discovery/scanning operations that degrade gracefully.
-    NOTE: Currently unused — scan patterns in external_method_discovery.py
-    have multi-line scan bodies where wrapping in a closure adds complexity.
-    Retained as utility for future use per D-09.
-    """
-    try:
-        return await scan_fn(*args, **kwargs)
-    except Exception as e:
-        logger.warning(f"{error_msg}: {e}")
-        return fallback_value
-
-
 def silent_execute(
     fn: Callable[..., T],
     *args: Any,

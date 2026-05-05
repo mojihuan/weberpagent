@@ -1,10 +1,10 @@
 """PreSubmitGuard -- validates form fields before submit clicks.
 
 Extracts expected values (sales amount, logistics fee, amount, payment status)
-from the task description using regex. Compares extracted expectations against
-actual page values (passed as parameter). Blocks submit clicks when mismatches
-are detected. Returns frozen GuardResult dataclass (immutable) per project
-coding conventions.
+from the task description using regex. Currently only extracts expectations;
+comparison against actual page values is deferred until actual_values are
+provided by the caller. Returns frozen GuardResult dataclass (immutable)
+per project coding conventions.
 """
 
 from __future__ import annotations
@@ -45,8 +45,8 @@ class PreSubmitGuard:
     """Validates form fields before submit clicks.
 
     - Extracts expected values from task description via regex (MON-04).
-    - Blocks submit when click targets a submit button and extracted
-      expectations do not match actual values (MON-05).
+    - Comparison against actual page values deferred until actual_values
+      are provided by the caller (currently always None).
     - Skips blocking when no expectations can be extracted (MON-06).
     """
 
@@ -60,6 +60,10 @@ class PreSubmitGuard:
     ) -> GuardResult:
         """Check whether a submit action should be blocked.
 
+        Currently extracts expectations but does not compare them against
+        actual values, as the caller always passes actual_values=None.
+        Will be extended when DOM value extraction is implemented.
+
         Args:
             action_name: The action being performed (e.g. "click", "input").
             target_index: The target element index, or None.
@@ -71,50 +75,12 @@ class PreSubmitGuard:
         Returns:
             Frozen GuardResult indicating whether to block and a message.
         """
-        # Only check click actions
         if action_name != "click":
             return GuardResult(should_block=False, message="")
 
-        # Extract expectations from task description
         expectations = self._extract_expectations(task)
-
-        # No expectations found -- skip validation (MON-06)
         if not expectations:
             return GuardResult(should_block=False, message="")
-
-        # Cannot verify without actual values -- don't block
-        if actual_values is None:
-            return GuardResult(should_block=False, message="")
-
-        # Check if clicking a submit button
-        if submit_button_text is None:
-            return GuardResult(should_block=False, message="")
-
-        submit_lower = submit_button_text.lower().strip()
-        is_submit = any(
-            keyword in submit_lower for keyword in SUBMIT_KEYWORDS
-        )
-        if not is_submit:
-            return GuardResult(should_block=False, message="")
-
-        # Compare expectations against actual values
-        mismatches: list[str] = []
-        for field_name, expected_value in expectations.items():
-            actual_value = actual_values.get(field_name)
-            if actual_value is None or actual_value != expected_value:
-                mismatches.append(
-                    f"{field_name}期望{expected_value}"
-                    f"实际{actual_value or '(空)'}"
-                )
-
-        if mismatches:
-            details = "；".join(mismatches)
-            message = (
-                f"【提交拦截】检测到提交操作，"
-                f"但以下字段值不匹配：{details}。"
-                "请先修正字段值再提交。"
-            )
-            return GuardResult(should_block=True, message=message)
 
         return GuardResult(should_block=False, message="")
 
