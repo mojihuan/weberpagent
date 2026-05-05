@@ -394,7 +394,8 @@ def _create_on_step(
     ) -> None:
         counters["step_count"] = step
         counters["global_seq"] += 1
-        try:
+
+        async def _save_step() -> None:
             step_data = {
                 "step_index": step, "action": action, "reasoning": reasoning,
                 "screenshot_path": screenshot_path, "status": "success",
@@ -402,8 +403,11 @@ def _create_on_step(
                 "sequence_number": counters["global_seq"],
             }
             await run_repo.add_step(run_id, step_data)
-        except Exception as e:
-            logger.error(f"[{run_id}] 保存步骤失败: {e}")
+
+        await non_blocking_execute(
+            _save_step,
+            error_msg=f"[{run_id}] 保存步骤失败",
+        )
         screenshot_url = f"/runs/{run_id}/screenshots/{step}" if screenshot_path else None
         step_stats_dict = None
         if step_stats_json:

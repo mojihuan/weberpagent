@@ -5,7 +5,6 @@ Per D-09: simple functions, no decorators or context managers.
 Per D-10: no custom exception hierarchy.
 """
 
-import asyncio
 import logging
 from typing import Any, Awaitable, Callable, TypeVar
 
