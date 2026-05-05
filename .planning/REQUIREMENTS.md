@@ -14,7 +14,7 @@
   - 当前 cleanup() 方法存在但从未被调用
 - [x] **MEM-02**: EventManager heartbeat task 在 re-subscribe 时正确取消旧 task，防止 task 泄漏 (CP-1, Medium)
   - 来源: 125-FINDINGS P2-event_manager:84-85
-- [ ] **MEM-03**: useRunStream steps/timeline 数组使用 ref-based 可变数组，消除 O(n^2) 拷贝开销 (CP-1, High)
+- [x] **MEM-03**: useRunStream steps/timeline 数组使用 ref-based 可变数组，消除 O(n^2) 拷贝开销 (CP-1, High)
   - 来源: 127-FINDINGS SSE-4, DD-USE-04, 128-FINDINGS QS-07
 - [x] **MEM-04**: StallDetector._history 添加 1000 条目上限作为防御性保护 (CP-1, Low)
   - 来源: 128-FINDINGS QS-07
@@ -23,12 +23,12 @@
 
 - [x] **ERR-01**: SSE event_generator 添加 try/except 防止 publish 失败中断 pipeline (CP-2, High)
   - 来源: 128-FINDINGS QS-06, 125-FINDINGS P2-event_manager:27
-- [ ] **ERR-02**: useRunStream 所有 JSON.parse 调用添加 try/catch 保护 (CP-2, High)
+- [x] **ERR-02**: useRunStream 所有 JSON.parse 调用添加 try/catch 保护 (CP-2, High)
   - 来源: 127-FINDINGS DD-USE-01 (7 处 unprotected JSON.parse)
 - [x] **ERR-03**: assertion_service.check_element_exists 实现真实 DOM 元素检测逻辑，替换 stub (High)
   - 来源: 125-FINDINGS P2-assertion_service:88-110, 128-FINDINGS QS-09
   - 当前硬编码返回 True，名称暗示 DOM 检查但实际是完成检查
-- [ ] **ERR-04**: useRunStream isConnected 状态在 EventSource onopen 后才设为 true (CP-2, Medium)
+- [x] **ERR-04**: useRunStream isConnected 状态在 EventSource onopen 后才设为 true (CP-2, Medium)
   - 来源: 127-FINDINGS DD-USE-02
   - 当前在 EventSource 构造后立即设为 true
 
@@ -45,7 +45,7 @@
 - [x] **STATE-01**: external_execution_engine 中 context mutation 改用独立 dict 存储 external_assertion_summary，防止泄漏到 variable_map (CP-5, Medium)
   - 来源: 125-FINDINGS P3-external_execution_engine:325
   - 当前 filter 无法捕获 "external_assertion_summary" key
-- [ ] **STATE-02**: 前端组件中 useState 直接修改对象属性的 pattern 改为 immutable 更新模式 (CP-5, Low)
+- [x] **STATE-02**: 前端组件中 useState 直接修改对象属性的 pattern 改为 immutable 更新模式 (CP-5, Low)
   - 来源: 127-FINDINGS 多处 useState mutation
 
 ### Correctness (CORR) — 正确性 bug 修复
@@ -90,16 +90,16 @@
 |-------------|-------|--------|
 | MEM-01 | Phase 131 | Complete |
 | MEM-02 | Phase 131 | Complete |
-| MEM-03 | Phase 133 | Pending |
+| MEM-03 | Phase 133 | Complete |
 | MEM-04 | Phase 131 | Complete |
 | ERR-01 | Phase 131 | Complete |
-| ERR-02 | Phase 133 | Pending |
+| ERR-02 | Phase 133 | Complete |
 | ERR-03 | Phase 131 | Complete |
-| ERR-04 | Phase 133 | Pending |
+| ERR-04 | Phase 133 | Complete |
 | ASYNC-01 | Phase 132 | Complete |
 | ASYNC-02 | Phase 132 | Complete |
 | STATE-01 | Phase 132 | Complete |
-| STATE-02 | Phase 133 | Pending |
+| STATE-02 | Phase 133 | Complete |
 | CORR-01 | Phase 130 | Complete |
 | CORR-02 | Phase 130 | Complete |
 | CORR-03 | Phase 130 | Complete |
