@@ -165,7 +165,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 134-01: 后端死代码与错误处理统一 (DEAD-01, DEAD-03, DEAD-04)
+- [x] 134-01: 后端死代码与错误处理统一 (DEAD-01, DEAD-03, DEAD-04)
 - [ ] 134-02: React Query 迁移 (DEAD-02)
 
 ## Progress
@@ -176,7 +176,7 @@ Plans:
 | 131. 后端内存与错误处理 | v0.11.4 | 2/2 | Complete    | 2026-05-04 |
 | 132. 后端异步与状态 | v0.11.4 | 2/2 | Complete   | 2026-05-04 |
 | 133. 前端健壮性 | v0.11.4 | 2/2 | Complete   | 2026-05-05 |
-| 134. 死代码清理 | v0.11.4 | 0/2 | Not started | - |
+| 134. 死代码清理 | v0.11.4 | 1/2 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-05-04 — Phase 130 plans created*

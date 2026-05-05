@@ -60,15 +60,15 @@
 
 ### Dead Code (DEAD) — 未使用代码清理
 
-- [ ] **DEAD-01**: 删除 response.py 85 行完全未使用的代码 (CP-3, Medium)
+- [x] **DEAD-01**: 删除 response.py 85 行完全未使用的代码 (CP-3, Medium)
   - 来源: 126-FINDINGS P3-resp-01, 128-FINDINGS QS-09
 - [ ] **DEAD-02**: 4 个前端 hooks 迁移到 React Query useQuery，消除 ~200 行重复 boilerplate (CP-3, High)
   - 来源: 128-FINDINGS QS-03, 127-FINDINGS App.tsx-React-Query
   - useTasks, useReports, useDashboard, useBatchProgress
-- [ ] **DEAD-03**: PreSubmitGuard 标记为已知限制或删除死代码路径 (CP-3, Medium)
+- [x] **DEAD-03**: PreSubmitGuard 标记为已知限制或删除死代码路径 (CP-3, Medium)
   - 来源: 125-FINDINGS P3-pre_submit_guard:109-114, 128-FINDINGS QS-09
   - actual_values/submit_button_text 始终为 None，核心逻辑不可达
-- [ ] **DEAD-04**: 统一后端错误处理策略 — 可选操作统一使用 non_blocking_execute (Medium)
+- [x] **DEAD-04**: 统一后端错误处理策略 — 可选操作统一使用 non_blocking_execute (Medium)
   - 来源: 128-FINDINGS QS-06
   - 当前 3+ 种错误处理模式混合使用
 
@@ -103,10 +103,10 @@
 | CORR-01 | Phase 130 | Complete |
 | CORR-02 | Phase 130 | Complete |
 | CORR-03 | Phase 130 | Complete |
-| DEAD-01 | Phase 134 | Pending |
+| DEAD-01 | Phase 134 | Complete |
 | DEAD-02 | Phase 134 | Pending |
-| DEAD-03 | Phase 134 | Pending |
-| DEAD-04 | Phase 134 | Pending |
+| DEAD-03 | Phase 134 | Complete |
+| DEAD-04 | Phase 134 | Complete |
 
 **Coverage:**
 - v0.11.4 requirements: 19 total
