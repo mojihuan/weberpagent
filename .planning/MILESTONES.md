@@ -1,5 +1,22 @@
 # Milestones
 
+## v0.11.4 审查发现优化 — 系统性模式修复 (Shipped: 2026-05-06)
+
+**Phases completed:** 5 phases, 10 plans, 15 tasks
+
+**Key accomplishments:**
+
+- Path traversal protection added to get_run_report and execute_run_code endpoints using existing _validate_code_path, with TDD test suite (6 tests)
+- Removed 87 lines of dead create_step_callback() method, eliminating dual detector call risk (CORR-01/CORR-03)
+- EventManager cleanup integration with run lifecycle, heartbeat task cancellation on re-subscribe, StallDetector history bounded at 1000 entries
+- SSE publish() per-queue exception isolation + event_generator disconnect protection + real page.evaluate DOM detection replacing hardcoded True stub
+- Ref-based mutable arrays with version counter replace O(n^2) spread copies; try/catch on all 7 JSON.parse calls with sonner toast; isConnected deferred to EventSource.onopen
+- Verified STATE-02 is a confirmed no-op: all 8 flagged .push() calls across 3 frontend files operate on function-local variables, not React state -- zero code changes required
+- Deleted 85-line unused response.py, removed unreachable PreSubmitGuard comparison logic and unused scan_with_fallback, unified step saving with non_blocking_execute
+- Migrated 4 frontend data hooks to @tanstack/react-query useQuery, reducing 340 lines to 244 lines (~28% reduction) with zero consumer page changes
+
+---
+
 ## v0.11.3 代码彻底的 Review (Shipped: 2026-05-04)
 
 **Phases completed:** 5 phases, 15 plans, 22 tasks
