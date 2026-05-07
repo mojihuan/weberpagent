@@ -39,8 +39,8 @@ Ant Design 表格使用 click-to-edit 模式：`<td>` 单元格在 DOM 快照中
 输入框有旧内容需要改为新值时 → 先 send_keys('Control+a') 全选旧内容，再 input 新值覆盖，不要逐字删除。
 
 ## 7. 表格交互
-表格中的订单号超链接、checkbox 等子元素 → 用 click 点击对应 index（DOM 已为它们分配独立索引）。
-如果 click 未命中目标元素 → fallback 用 evaluate JS: document.querySelector('.hand').click() 或 document.querySelector('.el-checkbox').click()。
+表格中的订单号超链接、checkbox、radio 等子元素 → 用 click 点击对应 index（DOM 已为它们分配独立索引）。
+如果 click 未命中目标元素 → fallback 用 evaluate JS: document.querySelector('.hand').click()、document.querySelector('.el-checkbox').click() 或 document.querySelector('.el-radio').click()。
 操作列按钮 → 直接 click 按钮文本即可。
 不要用 find_elements 查找 td a（表格无 <a> 标签），不要反复 click 同一个 index。
 

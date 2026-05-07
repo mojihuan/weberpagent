@@ -1,10 +1,10 @@
 """Monkey-patch for browser-use DOM serializer.
 
 Patches PaintOrderRemover and DOMTreeSerializer to prevent ERP table
-sub-elements (span.hand, .el-checkbox__inner) from being absorbed by
-parent <tr> nodes during DOM serialization. Without this patch, these
-elements lose their independent clickable index and the Agent cannot
-use standard click(index=N) to interact with them.
+sub-elements (span.hand, .el-checkbox__inner, .el-radio__inner) from
+being absorbed by parent <tr> nodes during DOM serialization. Without
+this patch, these elements lose their independent clickable index and
+the Agent cannot use standard click(index=N) to interact with them.
 """
 
 import logging
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 _PATCHED = False
 
 # CSS class substrings that identify ERP clickable sub-elements
-_ERP_CLICKABLE_CLASSES = frozenset({"hand", "el-checkbox"})
+_ERP_CLICKABLE_CLASSES = frozenset({"hand", "el-checkbox", "el-radio"})
 
 # Tags inside <td> that should be protected from bbox flattening
 _TD_CHILD_TAGS = frozenset({"div", "span"})

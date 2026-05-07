@@ -44,16 +44,63 @@
 - Sessions: ~5 (125, 126+127 parallel, 128, 129)
 - Notable: 3 天完成 5 个阶段 15 个计划，纯文档产出 (0 行代码修改)
 
+## Milestone: v0.11.4 — 审查发现优化 — 系统性模式修复
+
+**Shipped:** 2026-05-06
+**Phases:** 5 | **Plans:** 10
+
+### What Was Built
+
+- 路径遍历防护: get_run_report + execute_run_code 端点添加 _validate_code_path 验证 (Phase 130)
+- EventManager 内存泄漏修复: run 生命周期自动清理 + heartbeat task 取消 + StallDetector 1000 条上限 (Phase 131)
+- SSE 异常保护: per-queue try/except 隔离 + event_generator disconnect 保护 + page.evaluate DOM 检测替换 stub (Phase 131)
+- 阻塞操作异步迁移: save_screenshot asyncio.to_thread + subprocess.run → create_subprocess_exec (Phase 132)
+- 前端健壮性: useRef + version counter O(1) 追加 + 7 处 JSON.parse try/catch + isConnected 修正 (Phase 133)
+- 死代码清理: 85 行 response.py 删除 + PreSubmitGuard 精简 + scan_with_fallback 移除 + non_blocking_execute 统一 (Phase 134)
+- React Query 迁移: 4 个 hooks 从手动 fetch 迁移到 useQuery，340→244 行 (Phase 134)
+
+### What Worked
+
+- **5 系统性模式框架驱动修复**: CP-1~CP-5 分类让修复有序，不遗漏
+- **依赖链正确**: Phase 130→131→132/133→134，前端修复依赖后端 SSE 修复
+- **TDD 在安全/内存修复中效果显著**: Phase 130-131 先写 failing test，确保修复正确
+- **2 天完成 10 plans**: 平均每个 plan ~30 分钟，节奏极快
+
+### What Was Inefficient
+
+- Phase 133-02 STATE-02 最终确认为 no-op — 8 处 .push() 都是局部变量，investigation 花了时间但零代码改动
+- Phase 132 两个 SUMMARY.md 缺少 one_liner — summary-extract 工具无法自动提取
+
+### Patterns Established
+
+- **Ref + version counter 模式**: useRef 可变数组 + version 触发 useState，O(1) 追加替代 O(n^2) spread
+- **asyncio.to_thread 迁移阻塞 I/O**: 零侵入，保持 sync API 不变
+- **per-queue exception isolation**: SSE publish 每个 queue 独立 try/except，一个 bad queue 不影响其他
+- **page.evaluate + JSON.stringify DOM 检测**: browser-use CDP 下唯一可靠的 DOM 查询方式
+
+### Key Lessons
+
+1. 系统性模式修复比零散修复高效——CP-1~CP-5 框架让修复有系统性覆盖
+2. 前端 immutable 验证可能是 no-op——React .push() 在局部变量上是安全的，需要区分 state vs local
+3. React Query 迁移 ROI 高——~28% 代码缩减，零消费者改动
+4. TDD 在修复类任务中效率高——先写 failing test 锁定 bug，修复后立即验证
+
+### Cost Observations
+
+- Model mix: 100% opus
+- Sessions: ~5 (130, 131, 132, 133, 134)
+- Notable: 2 天完成 5 个阶段 10 个计划，38 文件修改 +3346/-547 行
+
 ## Cross-Milestone Trends
 
-| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 | v0.10.9 | v0.10.11 | v0.11.0 | v0.11.3 |
-|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|---------|----------|---------|---------|
-| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 | 3 | 3 | 4 | 5 | 5 |
-| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 | 6 | 6 | 8 | 11 | 15 |
-| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 | 2 | 2 | <1 | 2 | 3 |
-| Tech Debt Added | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| Bugs Found/Fixed | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 (review-only) |
-| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 | ~4000 | ~1500 | -2999 | -20094 | 0 |
+| Metric | v0.6.3 | v0.7.0 | v0.8.0 | v0.8.1 | v0.8.3 | v0.9.0 | v0.10.1 | v0.10.3 | v0.10.7 | v0.10.9 | v0.10.11 | v0.11.0 | v0.11.3 | v0.11.4 |
+|--------|--------|--------|--------|--------|--------|--------|---------|---------|---------|---------|----------|---------|---------|---------|
+| Phases | 4 | 5 | 5 | 1 | 2 | 4 | 4 | 3 | 3 | 3 | 4 | 5 | 5 | 5 |
+| Plans | 10 | 10 | 6 | 1 | 2 | 8 | 6 | 4 | 6 | 6 | 8 | 11 | 15 | 10 |
+| Duration (days) | 1 | 2 | 2 | 1 | <1 | 2 | 3 | 1 | 2 | 2 | <1 | 2 | 3 | 2 |
+| Tech Debt Added | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bugs Found/Fixed | 0 | 0 | 0 | 2 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 (review) | 5 (CP-1~5) |
+| Code LOC Changed | ~800 | ~300 | ~600 | ~100 | 0 | ~9400 | ~3000 | ~380 | ~4000 | ~1500 | -2999 | -20094 | 0 | +3346/-547 |
 
 ## Milestone: v0.11.0 — 全面代码清理
 
