@@ -12,6 +12,7 @@ from typing import Any
 from jinja2 import Environment, StrictUndefined
 
 from backend.core.cache_service import CacheService
+from backend.core.excel_fill_service import ExcelFillService
 from backend.core.external_precondition_bridge import execute_data_method
 from backend.core.random_generators import (
     random_imei,
@@ -68,9 +69,11 @@ class ContextWrapper:
     data method calls (context.get_data('Class', 'method', i=2)).
     """
 
-    def __init__(self, *, cache: CacheService | None = None):
+    def __init__(self, *, cache: CacheService | None = None, run_id: str | None = None):
         self._data: dict[str, Any] = {}
         self._cache = cache or CacheService()
+        self._run_id = run_id
+        self._excel_service: ExcelFillService | None = None
         self._assertion_count = 0  # Track number of assertions stored
         self._assertion_summary = {
             "total": 0,
@@ -117,6 +120,65 @@ class ContextWrapper:
             )
 
         return result['data']
+
+    def _get_excel_service(self) -> ExcelFillService:
+        """Lazily create ExcelFillService on first use."""
+        if self._excel_service is None:
+            if not self._run_id:
+                raise RuntimeError(
+                    "Excel filling requires a run_id. "
+                    "Ensure the pipeline passes run_id to ContextWrapper."
+                )
+            from backend.config.settings import get_settings
+            settings = get_settings()
+            self._excel_service = ExcelFillService(
+                templates_dir=settings.templates_dir,
+                filled_dir=settings.filled_dir,
+                run_id=self._run_id,
+            )
+        return self._excel_service
+
+    def fill_excel(
+        self,
+        template_name: str,
+        sheet: str = "Sheet1",
+        row: int = 2,
+        col: int = 1,
+        value: str | int | float | None = None,
+    ) -> "ContextWrapper":
+        """Fill a cell in an Excel template copy.
+
+        Copies the template to a run-specific directory on first call,
+        then writes value to the specified cell.
+
+        Args:
+            template_name: Template filename without .xlsx extension.
+            sheet: Sheet name (default 'Sheet1').
+            row: Row number (1-based).
+            col: Column number (1-based).
+            value: Value to write.
+
+        Returns:
+            self for chaining.
+        """
+        svc = self._get_excel_service()
+        svc.fill_excel(template_name, sheet, row, col, value)
+        return self
+
+    def get_excel_path(self, template_name: str) -> str:
+        """Get the absolute path to a filled Excel file as string.
+
+        If fill_excel hasn't been called for this template yet,
+        returns the original template path.
+
+        Args:
+            template_name: Template filename without .xlsx extension.
+
+        Returns:
+            Absolute file path as string.
+        """
+        svc = self._get_excel_service()
+        return str(svc.get_excel_path(template_name))
 
     # Dict-like interface methods
     def __getitem__(self, key: str) -> Any:
@@ -209,15 +271,22 @@ class PreconditionService:
     通过 context['变量名'] 存储结果供后续步骤使用。
     """
 
-    def __init__(self, external_module_path: str | None = None, *, cache: CacheService | None = None):
+    def __init__(
+        self,
+        external_module_path: str | None = None,
+        *,
+        cache: CacheService | None = None,
+        run_id: str | None = None,
+    ):
         """初始化服务
 
         Args:
             external_module_path: 外部 API 模块路径（可选）
             cache: External CacheService instance to share across phases (keyword-only per D-08)
+            run_id: Run ID for Excel filling and other run-scoped operations
         """
         self.external_module_path = external_module_path
-        self.context: ContextWrapper = ContextWrapper(cache=cache)
+        self.context: ContextWrapper = ContextWrapper(cache=cache, run_id=run_id)
 
     def _setup_execution_env(self) -> dict:
         """创建执行环境

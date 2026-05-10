@@ -88,7 +88,9 @@ async def _run_preconditions(
     if not preconditions:
         return {}, "", global_seq
 
-    precondition_service = PreconditionService(external_module_path=external_module_path, cache=shared_cache)
+    precondition_service = PreconditionService(
+        external_module_path=external_module_path, cache=shared_cache, run_id=run_id
+    )
 
     for i, code in enumerate(preconditions):
         if not code.strip():
