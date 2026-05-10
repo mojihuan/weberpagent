@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     # Example: /Users/you/projects/webseleniumerp
     weberp_path: str | None = Field(default=None, validation_alias="WEBSERP_PATH")
 
+    # Excel Template Configuration
+    templates_dir: str = "data/templates"
+    filled_dir: str = "data/filled"
+
     # Database Configuration
     database_url: str = "sqlite+aiosqlite:///./data/database.db"
 
