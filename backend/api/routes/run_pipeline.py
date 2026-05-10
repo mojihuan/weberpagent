@@ -48,6 +48,23 @@ def _sanitize_variables(variables: dict) -> dict:
     }
 
 
+def _extract_file_paths(context: dict) -> list[str]:
+    """Extract file paths from context variables for agent file upload.
+
+    Looks for string values ending with common file extensions
+    that were likely set by context.get_excel_path() calls.
+    """
+    file_extensions = {'.xlsx', '.xls', '.csv', '.pdf', '.txt'}
+    paths = []
+    for _key, value in context.items():
+        if isinstance(value, str) and any(value.lower().endswith(ext) for ext in file_extensions):
+            from pathlib import Path
+            p = Path(value)
+            if p.exists():
+                paths.append(str(p.resolve()))
+    return paths
+
+
 def get_llm_config() -> dict:
     """获取 LLM 配置，从集中配置读取"""
     settings = get_settings()
@@ -508,6 +525,9 @@ async def run_agent_background(
         if context:
             task_description = PreconditionService.substitute_variables(task_description, context)
 
+        # Extract filled Excel file paths from context for agent upload
+        extra_file_paths = _extract_file_paths(context) if context else []
+
         # Step 2: auth and session
         authenticated_session, effective_target_url, task_description, _ = await _run_auth_and_session(
             run_id, login_role, account_info, login_url, shared_cache,
@@ -526,6 +546,7 @@ async def run_agent_background(
                 task=task_description, run_id=run_id, on_step=on_step,
                 max_steps=max_steps, llm_config=llm_config,
                 target_url=effective_target_url, browser_session=authenticated_session,
+                extra_file_paths=extra_file_paths,
             )
             final_status = "success" if result.is_successful() else "failed"
             # Step 4: UI assertions

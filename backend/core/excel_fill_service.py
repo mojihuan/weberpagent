@@ -72,5 +72,5 @@ class ExcelFillService:
     def get_excel_path(self, template_name: str) -> Path:
         """Return absolute path to the filled copy, or original template if not yet filled."""
         if template_name in self._filled_paths:
-            return self._filled_paths[template_name]
-        return self._template_source(template_name)
+            return self._filled_paths[template_name].resolve()
+        return self._template_source(template_name).resolve()

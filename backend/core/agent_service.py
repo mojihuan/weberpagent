@@ -542,6 +542,7 @@ class AgentService:
         llm_config: dict | None = None,
         target_url: str | None = None,
         browser_session: BrowserSession | None = None,
+        extra_file_paths: list[str] | None = None,
     ) -> Any:
         """带流式回调的执行"""
         logger.info(f"[{run_id}] 创建 LLM: config={llm_config}")
@@ -581,6 +582,8 @@ class AgentService:
         pre_submit_guard = PreSubmitGuard()
         task_progress_tracker = TaskProgressTracker()
         file_paths = scan_test_files()
+        if extra_file_paths:
+            file_paths.extend(extra_file_paths)
 
         agent = MonitoredAgent(
             task=actual_task, llm=llm, browser_session=browser_session,
@@ -613,6 +616,7 @@ class AgentService:
         llm_config: dict | None = None,
         target_url: str | None = None,
         browser_session: BrowserSession | None = None,
+        extra_file_paths: list[str] | None = None,
     ) -> Any:
         """Execute task with guaranteed cleanup logging
 
@@ -647,6 +651,7 @@ class AgentService:
                 llm_config=llm_config,
                 target_url=target_url,
                 browser_session=browser_session,
+                extra_file_paths=extra_file_paths,
             )
             logger.info(f"[{run_id}] Execution completed successfully")
             return result
