@@ -12,6 +12,7 @@ if sys.platform == 'win32':
 import os
 import uuid
 import traceback
+from pathlib import Path
 
 # 禁用代理 - 避免 httpx 自动读取系统代理配置导致 LLM 调用超时
 # 必须在 import 其他模块之前执行，确保 httpx 不会读取到代理配置
@@ -26,6 +27,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes import tasks, runs, reports, dashboard, external_operations, external_data_methods, external_assertions, batches
@@ -149,11 +151,13 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 
-@app.get("/")
-async def root() -> dict:
-    return {"message": "Browser-Use API", "docs": "/docs"}
-
-
 @app.get("/health")
 async def health() -> dict:
     return {"status": "healthy"}
+
+
+# Mount frontend static files (Docker production mode)
+# Must be last — catch-all mount for SPA routing
+_frontend_dist = Path(__file__).parent.parent.parent / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")

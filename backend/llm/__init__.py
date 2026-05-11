@@ -6,17 +6,15 @@ LLM 模块
 """
 
 from .base import BaseLLM, LLMResponse, ActionResult
-from .config import LLMConfig, get_config
-from .factory import LLMFactory, get_llm
+from .factory import LLMFactory, get_llm, create_llm
 from .openai import OpenAIChat
 
 __all__ = [
     "BaseLLM",
     "LLMResponse",
     "ActionResult",
-    "LLMConfig",
-    "get_config",
     "LLMFactory",
     "get_llm",
+    "create_llm",
     "OpenAIChat",
 ]

@@ -40,11 +40,10 @@ RUN pip install uv
 WORKDIR /app
 
 COPY pyproject.toml ./
-RUN uv pip install --system -r pyproject.toml
+COPY backend/ ./backend/
+RUN uv pip install --system .
 
 RUN playwright install chromium --with-deps
-
-COPY backend/ ./backend/
 
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 

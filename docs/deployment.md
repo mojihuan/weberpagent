@@ -105,6 +105,12 @@ LLM_TEMPERATURE=0.0
 #CODE_GEN_BASE_URL=https://api.deepseek.com
 #CODE_GEN_API_KEY=sk-xxx
 #CODE_GEN_TEMPERATURE=0.0
+
+# ============================================
+# 应用配置（可选）
+# ============================================
+#DATABASE_URL=sqlite+aiosqlite:///./data/database.db
+#LOG_LEVEL=INFO
 ```
 
 > `DASHSCOPE_API_KEY` 和 `ERP_*` 是必须的。代码生成 LLM 可单独配置不同模型，不配置则复用默认 LLM。
@@ -199,6 +205,21 @@ nano .env
 
 必填项参见 [2.3 配置环境变量](#23-配置环境变量)。
 
+**Docker 模式额外注意：**
+
+如果需要使用外部 ERP 模块（`WEBSERP_PATH`），需要额外操作：
+
+1. 在 `docker-compose.yml` 中取消注释 volume 挂载行：
+   ```yaml
+   volumes:
+     - /path/to/webseleniumerp:/app/external/webseleniumerp:ro
+   ```
+2. 在 `.env` 中将路径改为容器内路径：
+   ```
+   ERP_API_MODULE_PATH=/app/external/webseleniumerp
+   WEBSERP_PATH=/app/external/webseleniumerp
+   ```
+
 ### 3.3 一键启动
 
 ```bash
@@ -207,7 +228,15 @@ docker compose up -d
 
 首次启动会自动构建镜像（安装 Python 依赖 + Playwright Chromium + 前端构建），可能需要 5-10 分钟。
 
-### 3.4 数据持久化
+### 3.4 端口说明
+
+| 端口 | 服务 | 说明 |
+|------|------|------|
+| 8080 | backend | FastAPI 服务，同时提供 API 和前端静态文件 |
+
+> Backend 在检测到 `frontend/dist` 目录时自动提供前端静态文件服务，无需额外的 web 服务器。
+
+### 3.5 数据持久化
 
 | 容器路径 | 宿主机路径 | 用途 |
 |---------|-----------|------|
@@ -216,7 +245,18 @@ docker compose up -d
 
 容器重建不会丢失这两个目录的数据。
 
-### 3.5 常用命令
+### 3.6 验证
+
+```bash
+# 健康检查
+curl http://localhost:8080/health
+# 预期: {"status":"healthy"}
+
+# 浏览器访问
+# http://<server-ip>:8080
+```
+
+### 3.7 常用命令
 
 ```bash
 docker compose logs -f              # 实时日志
@@ -227,10 +267,10 @@ docker compose up -d --build        # 代码更新后重建
 docker compose ps                   # 容器状态
 ```
 
-### 3.6 注意事项
+### 3.8 注意事项
 
 - **共享内存**：`docker-compose.yml` 已配置 `shm_size: 2gb`，Playwright Chromium 需要，请勿移除
-- **健康检查**：backend 容器配置了 `/health` 健康检查，通过 `docker compose ps` 可查看状态
+- **前端服务**：Backend 通过 FastAPI StaticFiles 自动服务前端静态文件，无需 nginx
 - **备份**：定期备份 `./data/` 和 `./outputs/` 目录即可
 
 ---
@@ -269,7 +309,7 @@ docker compose ps                   # 容器状态
 | `CODE_GEN_API_KEY` | 否 | 复用 `DASHSCOPE_API_KEY` | 代码生成 API Key |
 | `CODE_GEN_TEMPERATURE` | 否 | `0.0` | 代码生成温度参数 |
 
-#### 其他配置
+#### 应用配置
 
 | 变量 | 必填 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -278,12 +318,20 @@ docker compose ps                   # 容器状态
 
 ### 端口说明
 
+**快速启动模式：**
+
 | 端口 | 服务 | 说明 |
 |------|------|------|
 | 11002 | 后端 (uvicorn) | FastAPI 服务，直接暴露 API |
 | 11001 | 前端 (Vite) | Web 界面，`/api` 代理到 11002 |
 
-> 前端 Vite 配置了 `proxy`，将 `/api` 请求自动转发到后端。如需修改后端端口，在 `frontend/vite.config.ts` 中调整 `proxy.target`。
+**Docker 模式：**
+
+| 端口 | 服务 | 说明 |
+|------|------|------|
+| 8080 | backend | FastAPI 统一服务，同时提供 API 和前端静态文件 |
+
+> 快速启动模式前端 Vite 配置了 `proxy`，将 `/api` 请求自动转发到后端。如需修改后端端口，在 `frontend/vite.config.ts` 中调整 `proxy.target`。
 
 ---
 
@@ -312,15 +360,6 @@ cd frontend && npm ci && npm run dev
 cd /root/project/weberpagent
 git pull origin main
 docker compose up -d --build
-```
-
-**使用 deploy.sh 脚本：**
-
-```bash
-./deploy.sh                # 完整更新（快速启动模式）
-./deploy.sh --backend-only # 只更新后端
-./deploy.sh --frontend-only # 只更新前端
-./deploy.sh --docker       # Docker 模式更新
 ```
 
 ### 备份与恢复
@@ -354,3 +393,4 @@ docker compose logs -f --tail 100 backend
 | Playwright 崩溃 | 检查系统依赖 | `playwright install chromium --with-deps` |
 | 前端无法连后端 | 检查 11002 端口 | 确认后端已启动、Vite proxy 配置 |
 | LLM 调用失败 | 查看后端日志 | 检查 API Key、网络、配额 |
+| Docker 前端白屏 | 检查后端日志 | 确认 frontend/dist 存在于镜像中（`docker compose up -d --build` 重建） |

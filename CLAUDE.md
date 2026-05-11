@@ -117,7 +117,8 @@ uv run ruff check backend/
 cd frontend && npm run lint
 
 # 部署到服务器（121.40.191.49）
-./deploy.sh    # 支持参数: --backend-only, --frontend-only, --skip-build
+# Docker 部署: docker compose up -d --build
+# 快速启动: 参见 docs/deployment.md
 ```
 
 前端开发时 Vite 配置了 proxy，`/api` 请求自动转发到后端 11002 端口，无需 CORS 配置。
