@@ -378,8 +378,10 @@ def _remap_stale_module_map_classes(ImportApi: Any) -> None:
     from collections import defaultdict
 
     entries_by_module = defaultdict(list)
-    for key, (mod_path, cls_name) in list(ImportApi._module_map.items()):
-        entries_by_module[mod_path].append((key, cls_name))
+    for key, value in list(ImportApi._module_map.items()):
+        if isinstance(value, tuple):
+            mod_path, cls_name = value
+            entries_by_module[mod_path].append((key, cls_name))
 
     updated_count = 0
     for mod_path, entries in entries_by_module.items():
@@ -562,7 +564,12 @@ def _save_cached_module_map(module_map: dict) -> None:
     if cache_path is None:
         return
     try:
-        entries = {k: list(v) for k, v in module_map.items()}
+        entries = {}
+        for k, v in module_map.items():
+            if isinstance(v, tuple):
+                entries[k] = list(v)
+            elif isinstance(v, type):
+                entries[k] = [v.__module__, v.__name__]
         data = {"version": _CACHE_VERSION, "entries": entries}
         cache_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         logger.info(f"Saved module_map cache ({len(entries)} entries) to {cache_path}")

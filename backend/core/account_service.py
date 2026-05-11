@@ -62,11 +62,16 @@ class AccountService:
 
     @staticmethod
     def _load_config() -> dict[str, str]:
-        """Lazy-load INFO dict from webseleniumerp."""
+        """Lazy-load USER_INFO dict from webseleniumerp."""
         try:
-            from webseleniumerp.config.user_info import INFO
+            try:
+                from webseleniumerp.config.user_data import USER_INFO
 
-            return dict(INFO)
+                return dict(USER_INFO)
+            except ImportError:
+                from webseleniumerp.config.user_info import INFO
+
+                return dict(INFO)
         except ImportError as e:
             logger.warning(f"webseleniumerp.config.user_info not available: {e}")
             return {}

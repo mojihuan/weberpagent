@@ -116,13 +116,51 @@ def _resolve_assertion_instance(
     if class_name not in classes_dict:
         # class_name 为空或未找到时，按 method_name 自动搜索所有断言类
         if not class_name:
+            # Phase 1: 直接 hasattr 搜索
             for _cname, _cls in classes_dict.items():
                 if hasattr(_cls, method_name):
                     class_name = _cname
-                    logger.info(f"Auto-resolved method '{method_name}' to class '{class_name}'")
+                    logger.info(f"Auto-resolved method '{method_name}' to class '{class_name}' (hasattr)")
                     break
+            # Phase 2: docstring 匹配（方法名可能被混淆，但 docstring 保留原始名称）
+            if not class_name:
+                for _cname, _cls in classes_dict.items():
+                    for _mname in dir(_cls):
+                        if _mname.startswith('_'):
+                            continue
+                        _method = getattr(_cls, _mname, None)
+                        if not callable(_method):
+                            continue
+                        _doc = getattr(_method, '__doc__', '') or ''
+                        _first_line = _doc.strip().split('\n')[0] if _doc.strip() else ''
+                        if _first_line == method_name:
+                            class_name = _cname
+                            method_name = _mname
+                            logger.info(
+                                f"Auto-resolved docstring '{method_name}' to "
+                                f"class '{class_name}'.{_mname} (docstring match)"
+                            )
+                            break
+                    if class_name:
+                        break
         if class_name not in classes_dict:
-            empty_result['error'] = f"Assertion class '{class_name}' not found. Available: {list(classes_dict.keys())}"
+            # 收集每个类的公开方法名列表用于诊断
+            diag_parts = []
+            for _cname, _cls in classes_dict.items():
+                _methods = sorted(
+                    m for m in dir(_cls)
+                    if not m.startswith('_') and callable(getattr(_cls, m, None))
+                )
+                diag_parts.append(f"{_cname}: {_methods[:10]}{'...' if len(_methods) > 10 else ''}")
+            diag = '; '.join(diag_parts)
+            logger.warning(
+                f"Assertion method '{method_name}' not found in any class. "
+                f"Searched: {diag}"
+            )
+            empty_result['error'] = (
+                f"Assertion method '{method_name}' not found. "
+                f"Class was '{class_name}'. Available classes: {list(classes_dict.keys())}"
+            )
             empty_result['error_type'] = 'NotFoundError'
             return None, None, empty_result
     if headers and headers not in VALID_HEADER_IDENTIFIERS:
@@ -258,7 +296,9 @@ async def execute_all_assertions(
         if result.get('passed'):
             logger.info(f"Assertion {index} passed")
         elif result.get('error_type'):
-            logger.warning(f"Assertion {index} error: {result.get('error_type')}")
+            logger.warning(
+                f"Assertion {index} error: {result.get('error_type')} — {result.get('error')}"
+            )
         else:
             logger.warning(f"Assertion {index} failed: {result.get('error')}")
 
@@ -394,7 +434,7 @@ def _parse_operation_line(
         return None, None, parts[0] if parts else "未分组"
 
     if "'" in stripped and "': [" in stripped:
-        match = re.search(r"'([A-Z0-9@]+)'", stripped)
+        match = re.search(r"'([A-Za-z0-9@]+)'", stripped)
         if match:
             code = match.group(1)
             desc_match = re.search(r"#\s*(.+)$", stripped)
@@ -486,7 +526,7 @@ def execute_operations(operation_codes: list[str]) -> tuple[bool, str, dict[str,
 
     try:
         pre_front = PreFront()
-        pre_front.operations(operation_codes)
+        pre_front.precondition(operation_codes)
         return True, f"Executed operations: {operation_codes}", {}
     except Exception as e:
         logger.error(f"Failed to execute operations: {e}", exc_info=True)

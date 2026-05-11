@@ -13,6 +13,7 @@ from jinja2 import Environment, StrictUndefined
 
 from backend.core.cache_service import CacheService
 from backend.core.excel_fill_service import ExcelFillService
+from backend.core.external_execution_engine import execute_operations
 from backend.core.external_precondition_bridge import execute_data_method
 from backend.core.random_generators import (
     random_imei,
@@ -365,6 +366,30 @@ class PreconditionService:
                 loop.run_in_executor(None, lambda: exec(code, env)),
                 timeout=timeout
             )
+
+            # Auto-execute precondition operation codes if present
+            op_codes = self.context.get('preconditions')
+            if isinstance(op_codes, list) and len(op_codes) > 0:
+                executed = self.context.get('_executed_operations', set())
+                pending = [c for c in op_codes if c not in executed]
+                if pending:
+                    captured_pending = list(pending)
+                    success, error, _ = await asyncio.wait_for(
+                        loop.run_in_executor(
+                            None, lambda: execute_operations(captured_pending)
+                        ),
+                        timeout=timeout,
+                    )
+                    if not success:
+                        raise RuntimeError(
+                            f"Precondition operations failed: {error}"
+                        )
+                    executed.update(pending)
+                    self.context['_executed_operations'] = executed
+                    logger.info(
+                        f"前置条件 {index}: 自动执行操作码 {pending}"
+                    )
+
             result.success = True
             result.variables = self.context.to_dict()  # 快照当前变量
             logger.info(f"前置条件 {index} 执行成功，变量: {list(result.variables.keys())}")
