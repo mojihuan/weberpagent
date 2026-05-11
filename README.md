@@ -62,7 +62,7 @@
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/your-org/aiDriveUITest.git
+git clone git@github.com:mojihuan/weberpagent.git
 cd aiDriveUITest
 
 # 2. 配置环境变量
@@ -264,44 +264,137 @@ cd frontend && npm run lint    # 代码规范
 
 ## 部署说明
 
-### 手动部署
+### 服务器环境准备
 
 ```bash
-# 后端
-uv sync --no-dev
-uv run gunicorn backend.api.main:app -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:11002
+# 1. 安装基础依赖（Ubuntu 24.04）
+apt update && apt install -y git nginx
 
-# 前端
-cd frontend && npm run build
-# 将 dist/ 部署到 Nginx
+# 2. 安装 uv
+snap install --classic astral-uv
+
+# 3. 安装 Node.js 22+
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+apt install -y nodejs
+
+# 4. 克隆项目
+git clone git@github.com:mojihuan/weberpagent.git /root/project/weberpagent
+cd /root/project/weberpagent
+
+# 5. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入 DASHSCOPE_API_KEY、ERP_BASE_URL 等
+
+# 6. 安装依赖
+uv sync
+uv run playwright install chromium
+cd frontend && npm install
 ```
 
-### deploy.sh 脚本
+### deploy.sh 一键部署
+
+在服务器上执行：
 
 ```bash
-./deploy.sh                    # 完整部署
+cd /root/project/weberpagent
+./deploy.sh                    # 完整部署（拉代码 + 装依赖 + 构建 + 重启）
 ./deploy.sh --backend-only     # 只部署后端
 ./deploy.sh --frontend-only    # 只部署前端
 ./deploy.sh --skip-build       # 跳过构建，只拉取代码和重启
+./deploy.sh --stop             # 停止后端服务
 ```
+
+部署流程：`git pull` → `uv sync` / `npm build` → nohup 启动 uvicorn → 复制 dist 到 Nginx 目录。
 
 ### Nginx 配置
 
 ```nginx
+# /etc/nginx/sites-available/aidriveuitest
 server {
     listen 80;
+    server_name 121.40.191.49;
 
+    root /var/www/aidriveuitest;
+    index index.html;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+
+    # 后端 API 反代（端口 8080，与 deploy.sh 一致）
+    location /api {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection '';
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 86400s;   # SSE 长连接
+    }
+
+    # 健康检查
+    location /health {
+        proxy_pass http://127.0.0.1:8080/health;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+    }
+
+    # SPA 路由
     location / {
-        root /var/www/aidriveuitest;
         try_files $uri $uri/ /index.html;
     }
 
-    location /api {
-        proxy_pass http://127.0.0.1:11002;
-        proxy_http_version 1.1;
-        proxy_buffering off;
+    # 静态资源缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
     }
 }
+```
+
+```bash
+# 启用站点
+ln -sf /etc/nginx/sites-available/aidriveuitest /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl enable --now nginx
+```
+
+### 数据库优化
+
+SQLite 生产环境建议启用 WAL 模式（项目已内置在 `backend/db/database.py`）：
+
+```python
+@event.listens_for(engine.sync_engine, "connect")
+def set_sqlite_pragma(dbapi_conn, connection_record):
+    cursor = dbapi_conn.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.execute("PRAGMA busy_timeout=5000")
+    cursor.close()
+```
+
+### 验证部署
+
+```bash
+curl http://127.0.0.1/health
+# 预期: {"status": "healthy"}
+```
+
+访问 http://121.40.191.49 进入应用。
+
+### 服务管理
+
+```bash
+# 后端日志
+tail -f /tmp/aidriveuitest.log
+
+# 停止后端
+./deploy.sh --stop
+
+# 重启 Nginx
+systemctl reload nginx
 ```
 
 ## FAQ

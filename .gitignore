@@ -280,3 +280,11 @@ outputs/
 data/filled/
 
 .planning/
+
+# AI workflow files
+CHECKPOINT_MESSAGE.md
+deploy.sh
+npm
+task_template.xlsx
+.watchfiles_ignore
+docs/task_template.xlsx
