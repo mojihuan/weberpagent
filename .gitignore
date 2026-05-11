@@ -283,7 +283,6 @@ data/filled/
 
 # AI workflow files
 CHECKPOINT_MESSAGE.md
-deploy.sh
 npm
 task_template.xlsx
 .watchfiles_ignore
