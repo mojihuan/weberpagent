@@ -1,7 +1,7 @@
 # aiDriveUITest 部署指南
 
 > **本文档是 aiDriveUITest 平台的完整部署指南。**
-> 包含第 1 节（环境要求）、第 2 节（快速部署）、第 3 节（Docker 部署）、第 4 节（配置详解）。
+> 包含第 1 节（环境要求）、第 2 节（快速部署）、第 3 节（Docker 部署）、第 4 节（配置详解）、第 5 节（运维操作）。
 
 ---
 
@@ -487,3 +487,111 @@ docker compose ps
 | `try_files $uri $uri/ /index.html` | SPA 路由支持，所有未匹配的路径回退到 index.html 由前端路由处理 |
 | `gzip on` | 压缩 JSON/JS/CSS 响应，减少传输量 |
 | `expires 1y` + `immutable` | 静态资源（JS/CSS/图片等）设置 1 年缓存，利用文件名 hash 实现缓存失效 |
+
+---
+
+## 5. 运维操作
+
+### 更新部署
+
+使用 `deploy.sh` 脚本更新（推荐）：
+
+```bash
+# 完整更新（推荐）
+./deploy.sh
+
+# 只更新后端
+./deploy.sh --backend-only
+
+# 只更新前端
+./deploy.sh --frontend-only
+
+# Docker 模式更新
+./deploy.sh --docker
+```
+
+也可以手动更新：
+
+```bash
+cd /root/project/weberpagent
+git pull origin main
+uv sync
+sudo systemctl restart aidriveuitest
+cd frontend && npm ci && npm run build && cd ..
+sudo cp -r frontend/dist/* /var/www/aidriveuitest/
+```
+
+### 备份与恢复
+
+手动备份：
+
+```bash
+BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
+mkdir -p /root/backups
+tar czf /root/backups/${BACKUP_NAME}.tar.gz data/ outputs/ .env
+```
+
+设置自动备份 cron 任务：
+
+```bash
+# 创建备份脚本
+cat > /root/project/weberpagent/scripts/backup.sh << 'EOF'
+#!/bin/bash
+BACKUP_DIR="/root/backups"
+PROJECT_DIR="/root/project/weberpagent"
+BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
+mkdir -p $BACKUP_DIR
+tar czf $BACKUP_DIR/${BACKUP_NAME}.tar.gz -C $PROJECT_DIR data outputs .env
+# 保留最近 7 天的备份
+find $BACKUP_DIR -name "backup-*.tar.gz" -mtime +7 -delete
+EOF
+chmod +x /root/project/weberpagent/scripts/backup.sh
+
+# 添加 cron 任务（每天凌晨 2 点执行）
+echo "0 2 * * * root /root/project/weberpagent/scripts/backup.sh >> /var/log/aidriveuitest-backup.log 2>&1" | sudo tee /etc/cron.d/aidriveuitest-backup
+```
+
+恢复步骤：
+
+```bash
+sudo systemctl stop aidriveuitest
+cd /root/project/weberpagent
+tar xzf /root/backups/backup-XXXXXXXX-XXXXXX.tar.gz
+sudo systemctl start aidriveuitest
+```
+
+### 日志查看
+
+```bash
+# 后端服务日志（实时）
+journalctl -u aidriveuitest -f
+
+# 后端服务日志（最近 1 小时）
+journalctl -u aidriveuitest --since "1 hour ago"
+
+# 后端服务日志（最近 100 行）
+journalctl -u aidriveuitest -n 100
+
+# nginx 错误日志
+tail -f /var/log/nginx/error.log
+
+# nginx 访问日志
+tail -f /var/log/nginx/access.log
+
+# Docker 模式日志
+docker compose logs -f backend
+docker compose logs -f --tail 100 backend
+```
+
+### 常见问题排查
+
+| 问题 | 排查命令 | 解决方案 |
+|------|----------|----------|
+| 端口被占用 | `sudo lsof -i :8080` 或 `sudo ss -tlnp \| grep 8080` | kill 占用进程或修改 systemd 服务端口 |
+| 后端服务启动失败 | `journalctl -u aidriveuitest -n 50` | 检查 .env 配置、Python 依赖、uv 路径 |
+| Playwright/Chromium 崩溃 | `journalctl -u aidriveuitest \| grep -i chromium` | 检查系统依赖库是否完整：`ldd $(which chromium)` |
+| SQLite 数据库锁定 | `journalctl -u aidriveuitest \| grep -i locked` | 检查并发写入，必要时重启服务 |
+| SSE 事件不推送 | 检查 nginx 配置中 `proxy_buffering` 是否为 `off` | 确认 nginx 配置正确后 `sudo nginx -t && sudo systemctl reload nginx` |
+| 前端页面 404 | `ls /var/www/aidriveuitest/` | 重新构建前端并部署：`./deploy.sh --frontend-only` |
+| git pull 冲突 | `git status` | 手动解决冲突后重新部署 |
+| LLM API 调用失败 | `journalctl -u aidriveuitest \| grep -i error` | 检查 API Key、网络连通性、DashScope 配额 |
