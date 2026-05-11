@@ -102,25 +102,39 @@ cp .env.example .env
 nano .env
 ```
 
-`.env` 必填项说明：
+`.env` 配置示例：
 
 ```ini
-# LLM 配置 — 必填，用于 AI 驱动浏览器
-DASHSCOPE_API_KEY=sk-xxx          # 阿里云 DashScope API Key
-LLM_MODEL=qwen3.5-plus            # 模型名称
-LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-
-# ERP 系统配置 — 必填，用于自动登录被测系统
-ERP_BASE_URL=https://erp.example.com
+# ============================================
+# ERP 系统配置（必填）
+# ============================================
+ERP_BASE_URL=https://erp.example.com    # 被测 ERP 系统地址
 ERP_USERNAME=test_user
 ERP_PASSWORD=your_password
 
-# 外部模块路径 — 按需配置
-WEBSERP_PATH=./webseleniumerp
+# 外部模块路径（按需配置，用于前置条件和数据方法）
+ERP_API_MODULE_PATH=/path/to/webseleniumerp
+WEBSERP_PATH=/path/to/webseleniumerp
+
+# ============================================
+# LLM 配置（必填，用于 AI 驱动浏览器）
+# ============================================
+DASHSCOPE_API_KEY=sk-xxx                          # 阿里云 DashScope API Key
+LLM_MODEL=qwen3.5-plus                            # 模型名称
+LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+LLM_TEMPERATURE=0.0
+
+# ============================================
+# 代码生成 LLM（可选，不配置则使用上面的默认 LLM）
+# ============================================
+#CODE_GEN_MODEL=deepseek-v4-pro
+#CODE_GEN_BASE_URL=https://api.deepseek.com
+#CODE_GEN_API_KEY=sk-xxx
+#CODE_GEN_TEMPERATURE=0.0
 ```
 
-> `OPENAI_API_KEY` 可选，仅在同时使用 OpenAI 兼容接口时填写。
-> `DASHSCOPE_API_KEY` 是必须的，AI agent 依赖此 Key 调用 Qwen 模型。
+> `DASHSCOPE_API_KEY` 和 `ERP_*` 是必须的。AI agent 依赖 DashScope Key 调用 Qwen 模型驱动浏览器。
+> 代码生成 LLM 可单独配置不同的模型（如 DeepSeek），不配置则复用默认 LLM。
 
 ### Step 4 — 安装 Python 依赖
 
@@ -452,17 +466,40 @@ docker compose ps
 
 ### .env 环境变量
 
+#### ERP 系统配置
+
 | 变量 | 必填 | 默认值 | 说明 |
 |------|------|--------|------|
-| `DASHSCOPE_API_KEY` | 是 | - | 阿里云 DashScope API Key，用于 LLM 调用 |
-| `OPENAI_API_KEY` | 否 | - | OpenAI API Key（备用 LLM） |
-| `LLM_MODEL` | 否 | `qwen3.5-plus` | LLM 模型名称 |
-| `LLM_BASE_URL` | 否 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | LLM API 地址 |
-| `LLM_TEMPERATURE` | 否 | `0.0` | LLM 温度参数 |
-| `ERP_BASE_URL` | 是 | - | 目标 ERP 系统地址 |
+| `ERP_BASE_URL` | 是 | - | 被测 ERP 系统地址，AI agent 会自动登录此系统 |
 | `ERP_USERNAME` | 是 | - | ERP 登录用户名 |
 | `ERP_PASSWORD` | 是 | - | ERP 登录密码 |
-| `WEBSERP_PATH` | 否 | - | 外部模块路径（webseleniumerp） |
+| `ERP_API_MODULE_PATH` | 否 | - | 外部 API 模块路径，用于前置条件中复用现有项目的 API 封装 |
+| `WEBSERP_PATH` | 否 | - | webseleniumerp 项目路径，用于导入外部前置条件操作（FA1、HC1 等） |
+
+#### LLM 配置
+
+| 变量 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `DASHSCOPE_API_KEY` | 是 | - | 阿里云 DashScope API Key，AI agent 依赖此 Key 调用 Qwen 模型 |
+| `LLM_MODEL` | 否 | `qwen3.5-plus` | LLM 模型名称 |
+| `LLM_BASE_URL` | 否 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | LLM API 地址 |
+| `LLM_TEMPERATURE` | 否 | `0.0` | LLM 温度参数，0.0 = 确定性输出 |
+
+#### 代码生成 LLM（可选）
+
+代码生成使用独立的 LLM 配置，可选用不同模型。不配置则复用上面的默认 LLM。
+
+| 变量 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `CODE_GEN_MODEL` | 否 | 复用 `LLM_MODEL` | 代码生成模型，如 `deepseek-v4-pro` |
+| `CODE_GEN_BASE_URL` | 否 | 复用 `LLM_BASE_URL` | 代码生成 API 地址 |
+| `CODE_GEN_API_KEY` | 否 | 复用 `DASHSCOPE_API_KEY` | 代码生成 API Key |
+| `CODE_GEN_TEMPERATURE` | 否 | `0.0` | 代码生成温度参数 |
+
+#### 其他配置
+
+| 变量 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
 | `DATABASE_URL` | 否 | `sqlite+aiosqlite:///./data/database.db` | 数据库连接字符串 |
 | `LOG_LEVEL` | 否 | `INFO` | 日志级别 |
 
